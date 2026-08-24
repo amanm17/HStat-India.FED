@@ -1,0 +1,61 @@
+{
+  "products": 56,
+  "failures": [],
+  "warnings": [
+    {
+      "hs6": "847321",
+      "year": 2023,
+      "message": "global import/export ratio 0.496"
+    },
+    {
+      "hs6": "850780",
+      "year": 2023,
+      "message": "global import/export ratio 2.878"
+    },
+    {
+      "hs6": "850780",
+      "year": 2024,
+      "message": "global import/export ratio 2.743"
+    },
+    {
+      "hs6": "850790",
+      "year": 2023,
+      "message": "global import/export ratio 2.708"
+    },
+    {
+      "hs6": "851711",
+      "year": 2023,
+      "message": "global import/export ratio 0.673"
+    },
+    {
+      "hs6": "851711",
+      "year": 2024,
+      "message": "global import/export ratio 0.663"
+    },
+    {
+      "hs6": "851714",
+      "year": 2023,
+      "message": "global import/export ratio 0.650"
+    },
+    {
+      "hs6": "851718",
+      "year": 2023,
+      "message": "global import/export ratio 1.533"
+    },
+    {
+      "hs6": "852849",
+      "year": 2023,
+      "message": "global import/export ratio 0.543"
+    },
+    {
+      "hs6": "852859",
+      "year": 2023,
+      "message": "global import/export ratio 0.635"
+    },
+    {
+      "hs6": "852869",
+      "year": 2024,
+      "message": "global import/export ratio 0.674"
+    }
+  ]
+}

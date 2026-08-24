@@ -1,0 +1,15 @@
+{
+  "classification": "H6",
+  "indiaReporterCode": "699",
+  "startYear": 2022,
+  "headings": [
+    {"code": "8471", "label": "Automatic data-processing machines"},
+    {"code": "8473", "label": "Parts and accessories of machines of headings 8469-8472"},
+    {"code": "8507", "label": "Electric accumulators"},
+    {"code": "8517", "label": "Telecommunications and networking equipment"},
+    {"code": "8528", "label": "Monitors and projectors"},
+    {"code": "8534", "label": "Printed circuits"},
+    {"code": "8541", "label": "Semiconductor devices"},
+    {"code": "8542", "label": "Electronic integrated circuits"}
+  ]
+}

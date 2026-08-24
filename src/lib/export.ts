@@ -1,0 +1,6 @@
+import * as XLSX from 'xlsx'
+import {toPng,toSvg} from 'html-to-image'
+export function downloadJson(name:string,data:unknown){const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`${name}.json`;a.click();URL.revokeObjectURL(a.href)}
+export function downloadCsv(name:string,rows:Record<string,unknown>[]){if(!rows.length)return;const cols=Array.from(new Set(rows.flatMap(r=>Object.keys(r))));const q=(v:unknown)=>`"${String(v??'').replaceAll('"','""')}"`;const csv=[cols.map(q).join(','),...rows.map(r=>cols.map(c=>q(r[c])).join(','))].join('\n');const b=new Blob([csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`${name}.csv`;a.click();URL.revokeObjectURL(a.href)}
+export function downloadXlsx(name:string,sheets:Record<string,Record<string,unknown>[]>){const wb=XLSX.utils.book_new();Object.entries(sheets).forEach(([n,r])=>XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(r),n.slice(0,31)));XLSX.writeFile(wb,`${name}.xlsx`)}
+export async function downloadChart(id:string,name:string,fmt:'png'|'svg'){const n=document.getElementById(id);if(!n)return;const u=fmt==='png'?await toPng(n,{pixelRatio:2}):await toSvg(n);const a=document.createElement('a');a.href=u;a.download=`${name}.${fmt}`;a.click()}

@@ -1,0 +1,38 @@
+name: Monthly validated data refresh
+on:
+  schedule:
+    - cron: "17 3 5 * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: pip install -r requirements.txt
+      - run: npm ci
+      - name: Refresh and validate
+        env:
+          COMTRADE_API_KEY: ${{ secrets.COMTRADE_API_KEY }}
+        run: python pipeline/refresh_monthly.py
+      - run: npm run build
+      - name: Commit validated snapshot
+        run: |
+          git config user.name "hstat-data-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add public/data/snapshots public/data/hs-library.json config/hs6_universe.txt
+          if git diff --cached --quiet; then
+            echo "No data changes."
+          else
+            git commit -m "Monthly validated HStat data refresh"
+            git push
+          fi

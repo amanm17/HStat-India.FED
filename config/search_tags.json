@@ -1,0 +1,147 @@
+{
+  "8471": [
+    "computer",
+    "pc",
+    "personal computer",
+    "desktop",
+    "laptop",
+    "notebook",
+    "server",
+    "workstation",
+    "computer hardware"
+  ],
+  "847130": [
+    "laptop",
+    "notebook computer",
+    "portable computer",
+    "portable pc",
+    "macbook",
+    "chromebook"
+  ],
+  "8473": [
+    "computer parts",
+    "computer components",
+    "computer accessories",
+    "pc components"
+  ],
+  "847330": [
+    "laptop parts",
+    "computer parts",
+    "pc parts",
+    "motherboard assembly"
+  ],
+  "8507": [
+    "battery",
+    "battery pack",
+    "rechargeable battery",
+    "energy storage"
+  ],
+  "850760": [
+    "lithium ion battery",
+    "li ion battery",
+    "lithium battery",
+    "ev battery",
+    "laptop battery",
+    "battery cell"
+  ],
+  "8517": [
+    "telecom",
+    "telecommunications",
+    "network",
+    "networking",
+    "router",
+    "switch",
+    "modem",
+    "base station",
+    "mobile"
+  ],
+  "851713": [
+    "smartphone",
+    "smart phone",
+    "mobile phone",
+    "cell phone",
+    "handset"
+  ],
+  "851761": [
+    "base station",
+    "cell tower equipment",
+    "telecom base station"
+  ],
+  "851762": [
+    "router",
+    "network switch",
+    "ethernet switch",
+    "modem",
+    "gateway",
+    "network equipment"
+  ],
+  "8528": [
+    "monitor",
+    "display",
+    "screen",
+    "computer monitor",
+    "projector"
+  ],
+  "852852": [
+    "computer monitor",
+    "lcd monitor",
+    "led monitor"
+  ],
+  "8534": [
+    "pcb",
+    "printed circuit",
+    "printed circuit board",
+    "circuit board"
+  ],
+  "8541": [
+    "semiconductor",
+    "diode",
+    "transistor",
+    "thyristor",
+    "led",
+    "solar cell"
+  ],
+  "8542": [
+    "integrated circuit",
+    "ic",
+    "chip",
+    "semiconductor chip",
+    "processor",
+    "cpu",
+    "gpu",
+    "microprocessor",
+    "microcontroller",
+    "controller",
+    "memory chip",
+    "logic chip",
+    "soc"
+  ],
+  "854231": [
+    "processor",
+    "cpu",
+    "gpu",
+    "microprocessor",
+    "microcontroller",
+    "controller",
+    "system on chip",
+    "soc"
+  ],
+  "854232": [
+    "memory",
+    "memory chip",
+    "dram",
+    "sram",
+    "flash memory",
+    "nand",
+    "ram"
+  ],
+  "854233": [
+    "amplifier",
+    "amplifier ic"
+  ],
+  "854239": [
+    "integrated circuit",
+    "chip",
+    "ic"
+  ]
+}

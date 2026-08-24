@@ -1,0 +1,2 @@
+export function usd(v:number|null,d=2){if(v===null||!Number.isFinite(v))return'—';const a=Math.abs(v);if(a>=1e12)return`$${(v/1e12).toFixed(d)}tn`;if(a>=1e9)return`$${(v/1e9).toFixed(d)}bn`;if(a>=1e6)return`$${(v/1e6).toFixed(d)}mn`;if(a>=1e3)return`$${(v/1e3).toFixed(d)}k`;return`$${v.toFixed(0)}`}
+export function pct(v:number|null,d=1){return v===null||!Number.isFinite(v)?'—':`${(v*100).toFixed(d)}%`}

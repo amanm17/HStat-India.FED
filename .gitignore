@@ -1,0 +1,22 @@
+
+__pycache__/
+!.env.example
+.checkpoints/
+.dev.vars
+.DS_Store
+.env
+.env.*
+.pytest_cache/
+.venv/
+.wrangler/
+*.log
+*.pyc
+*.tsbuildinfo
+# build/runtime artifacts
+# local checkpoints/cache
+# non-published/raw data
+# secrets
+data/raw/
+data/staging/
+dist/
+node_modules/
