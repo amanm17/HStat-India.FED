@@ -539,22 +539,30 @@ def probe(scope_config: dict) -> None:
 
     year = str(datetime.now(timezone.utc).year - 2)
 
+    # Keep the HS-code list short enough to stay below Comtrade's URL
+    # length limit. Increase the number of periods instead to test whether
+    # the key can return responses approaching the configured record cap.
+    probe_year = int(year)
     ladder = [
-        ("single code, one year, all reporters", codes[:1]),
-        ("50 codes, one year, all reporters", codes[:50]),
-        ("250 codes, one year, all reporters", codes[:250]),
+        ("single code, one year, all reporters", codes[:1], year),
+        ("50 codes, one year, all reporters", codes[:50], year),
+        (
+            "50 codes, ten years, all reporters",
+            codes[:50],
+            ",".join(str(y) for y in range(probe_year - 9, probe_year + 1)),
+        ),
     ]
 
     observed = 0
 
-    for label, chunk in ladder:
+    for label, chunk, probe_periods in ladder:
         try:
             throttle(float(limits["minSecondsBetweenCalls"]))
 
             frame = request(
                 key,
                 freq="A",
-                periods=year,
+                periods=probe_periods,
                 reporter=None,
                 codes=",".join(chunk),
                 flow=FLOW_IMPORTS,
