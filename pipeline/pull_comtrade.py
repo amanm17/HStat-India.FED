@@ -547,9 +547,9 @@ def probe(scope_config: dict) -> None:
         ("single code, one year, all reporters", codes[:1], year),
         ("50 codes, one year, all reporters", codes[:50], year),
         (
-            "50 codes, ten years, all reporters",
+            "50 codes, fifteen years, all reporters",
             codes[:50],
-            ",".join(str(y) for y in range(probe_year - 9, probe_year + 1)),
+            ",".join(str(y) for y in range(probe_year - 14, probe_year + 1)),
         ),
     ]
 
