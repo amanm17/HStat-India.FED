@@ -1,0 +1,66 @@
+code,predecessor,relation,predecessor_valid_to,note
+# ---------------------------------------------------------------------------
+# HS 2022 is the base. This file records where a current code's history sits
+# before it existed.
+#
+# code                  the current HS 2022 code - the one HStat publishes
+# predecessor           the older code its trade used to be reported under
+# relation              identical | split | merge | new
+# predecessor_valid_to  last year the predecessor was the live code
+# note                  one plain sentence, shown on the product page
+#
+# WHAT EACH RELATION DOES
+#
+#   identical  The code was renumbered but its scope did not change. The
+#              predecessor's years are spliced onto the front of the series.
+#
+#   split      One old code became several new ones. The old total belongs to
+#              all of them jointly and cannot be divided without inventing a
+#              share, so HStat does NOT splice it. The six-digit series starts
+#              when the code does, and the page points at the HS-4 heading,
+#              where the split is internal and the series really is continuous.
+#
+#   merge      Several old codes became one. Same treatment as split.
+#
+#   new        No predecessor - the code covers goods that were scattered
+#              across several headings before. Nothing to splice or point at.
+#
+# A predecessor listed here is not a current code, so it gets no product page
+# of its own. Its data is still pulled: it is what makes the HS-4 and HS-2
+# series continuous, and searching the old number tells you where it went.
+#
+# Lines starting with # are ignored.
+# ---------------------------------------------------------------------------
+
+# --- 851712 -> smartphones and other cellular handsets ----------------------
+851713,851712,split,2021,Before 2022 smartphones were reported inside HS 851712 together with other cellular handsets. The continuous long series is at HS-4 8517.
+851714,851712,split,2021,Before 2022 other cellular handsets were reported inside HS 851712 together with smartphones. The continuous long series is at HS-4 8517.
+
+# --- 854140 -> photosensitive semiconductor devices, subdivided -------------
+854141,854140,split,2021,Before 2022 LEDs were reported inside HS 854140 with all other photosensitive devices. The continuous long series is at HS-4 8541.
+854142,854140,split,2021,Before 2022 unassembled photovoltaic cells were reported inside HS 854140. The continuous long series is at HS-4 8541.
+854143,854140,split,2021,Before 2022 solar modules were reported inside HS 854140 with all other photosensitive devices. The continuous long series is at HS-4 8541.
+854149,854140,split,2021,Before 2022 these devices were reported inside HS 854140. The continuous long series is at HS-4 8541.
+
+# --- 852580 -> cameras, subdivided ------------------------------------------
+852581,852580,split,2021,Before 2022 all television and digital cameras were reported inside HS 852580. The continuous long series is at HS-4 8525.
+852582,852580,split,2021,Before 2022 all television and digital cameras were reported inside HS 852580. The continuous long series is at HS-4 8525.
+852583,852580,split,2021,Before 2022 all television and digital cameras were reported inside HS 852580. The continuous long series is at HS-4 8525.
+852589,852580,split,2021,Before 2022 camera modules were reported inside HS 852580 with all other cameras. The continuous long series is at HS-4 8525.
+
+# --- 845610 -> laser machine tools, subdivided ------------------------------
+845610,,new,,Laser machine tools were renumbered in HS 2022. Series before 2022 sit under the earlier 8456.10 reporting; the continuous series is at HS-4 8456.
+
+# --- flat panel display modules: a heading created in HS 2022 ---------------
+852411,,new,,Heading 8524 was created in HS 2022. Before then display modules were reported across several headings, so there is no single predecessor to splice.
+852412,,new,,Heading 8524 was created in HS 2022. Before then display modules were reported across several headings, so there is no single predecessor to splice.
+852419,,new,,Heading 8524 was created in HS 2022. Before then display modules were reported across several headings, so there is no single predecessor to splice.
+852491,,new,,Heading 8524 was created in HS 2022. Before then display modules were reported across several headings, so there is no single predecessor to splice.
+852492,,new,,Heading 8524 was created in HS 2022. Before then display modules were reported across several headings, so there is no single predecessor to splice.
+852499,,new,,Heading 8524 was created in HS 2022. Before then display modules were reported across several headings, so there is no single predecessor to splice.
+
+# --- codes deleted outright, with no current successor to attach to ---------
+# Listed as predecessors of their heading so they leave the product list but
+# their data still feeds the HS-4 series.
+8473,847310,merge,2021,Typewriter and word-processor parts were dropped as a separate line; the trade now sits across the rest of heading 8473.
+8519,851950,merge,2016,Telephone answering machines were dropped as a separate line and now sit across the rest of heading 8519.

@@ -1,448 +1,284 @@
+"""
+Pre-deploy sanity check on the snapshot that is about to ship.
+
+validate_snapshot.py proves a staging snapshot is internally consistent.
+This runs against whatever is in `public/data/snapshots/current` at build
+time and asks a narrower question: is this thing fit to put in front of a
+user?
+
+It is deliberately cheap and deliberately loud. A build should not go out
+with an empty catalogue, a search index that has drifted from the sector
+definition, or a headline figure of zero.
+"""
+
+from __future__ import annotations
+
 from pathlib import Path
+import argparse
 import json
-from collections import Counter
+import re
+import sys
 
-ROOT = Path(".")
-SNAPSHOT = ROOT / "public" / "data" / "snapshots" / "current"
-PRODUCTS = SNAPSHOT / "products"
-SEARCH = ROOT / "public" / "data" / "hs-library.json"
-UNIVERSE = ROOT / "config" / "hs6_universe.txt"
+ROOT = Path(__file__).resolve().parents[1]
 
-errors = []
-warnings = []
+sys.path.insert(0, str(ROOT / "pipeline"))
 
+from definition import hs6_universe, parent_universe  # noqa: E402
 
-def error(msg):
-    errors.append(msg)
+APP_TSX = ROOT / "src" / "App.tsx"
 
 
-def warn(msg):
-    warnings.append(msg)
+def frontend_schema() -> str:
+    """
+    The snapshot version the built frontend will actually accept.
 
-
-# ------------------------------------------------------------
-# Universe
-# ------------------------------------------------------------
-
-codes = [
-    x.strip()
-    for x in UNIVERSE.read_text().splitlines()
-    if x.strip()
-]
-
-if len(codes) != 56:
-    error(f"Expected 56 configured HS-6 codes; found {len(codes)}")
-
-if len(codes) != len(set(codes)):
-    error("Duplicate HS-6 codes in config/hs6_universe.txt")
-
-for code in codes:
-    if not (code.isdigit() and len(code) == 6):
-        error(f"Invalid configured HS-6 code: {code}")
-
-
-# ------------------------------------------------------------
-# Product files
-# ------------------------------------------------------------
-
-product_files = sorted(PRODUCTS.glob("*.json"))
-
-if len(product_files) != 56:
-    error(f"Expected 56 product JSON files; found {len(product_files)}")
-
-product_codes = {
-    p.stem
-    for p in product_files
-}
-
-missing_products = (
-    set(codes)
-    - product_codes
-)
-
-extra_products = (
-    product_codes
-    - set(codes)
-)
-
-if missing_products:
-    error(
-        "Missing product files: "
-        + " ".join(sorted(missing_products))
-    )
-
-if extra_products:
-    warn(
-        "Extra product files: "
-        + " ".join(sorted(extra_products))
-    )
-
-
-# ------------------------------------------------------------
-# Search index
-# ------------------------------------------------------------
-
-library = json.loads(
-    SEARCH.read_text()
-)
-
-by_code = {
-    x["code"]: x
-    for x in library
-}
-
-loaded_search_codes = {
-    x["code"]
-    for x in library
-    if (
-        x.get("level") == 6
-        and x.get("loaded") is True
-    )
-}
-
-missing_search = (
-    set(codes)
-    - loaded_search_codes
-)
-
-if missing_search:
-    error(
-        "Configured HS codes not selectable in search: "
-        + " ".join(sorted(missing_search))
-    )
-
-for code in codes:
-    for parent in [
-        code[:2],
-        code[:4],
-    ]:
-        if parent not in by_code:
-            error(
-                f"Search hierarchy missing parent {parent} "
-                f"for HS {code}"
-            )
-
-
-# ------------------------------------------------------------
-# Product-level analytical QA
-# ------------------------------------------------------------
-
-latest_years = Counter()
-import_benchmark_years = Counter()
-export_benchmark_years = Counter()
-
-for path in product_files:
-    x = json.loads(
-        path.read_text()
-    )
-
-    hs = x["hs6"]
-
-    if hs != path.stem:
-        error(
-            f"{path.name}: hs6 field does not match filename"
+    Read from the frontend rather than repeated here, because the failure this
+    guards against is the two drifting apart: a snapshot that passes a stale
+    check in this file and then renders as a schema-mismatch screen for every
+    visitor. If the constant cannot be found the deploy stops rather than
+    guessing - an unreadable guard is not a guard.
+    """
+    if not APP_TSX.exists():
+        raise SystemExit(
+            f"Cannot read {APP_TSX.relative_to(ROOT)} to learn which snapshot "
+            "version the frontend accepts."
         )
 
-    years = x.get(
-        "years",
-        [],
+    match = re.search(
+        r"^const SCHEMA\s*=\s*['\"]([^'\"]+)['\"]",
+        APP_TSX.read_text(),
+        re.MULTILINE,
     )
 
-    if years != sorted(set(years)):
-        error(
-            f"{hs}: years are duplicated or out of order"
+    if not match:
+        raise SystemExit(
+            f"No `const SCHEMA` in {APP_TSX.relative_to(ROOT)}. That constant "
+            "is what decides whether the dashboard renders or shows a mismatch "
+            "notice, so the deploy cannot be checked without it."
         )
 
-    latest = x.get(
-        "latestIndiaYear"
+    return match.group(1)
+
+
+class Check:
+    def __init__(self):
+        self.problems: list[str] = []
+        self.notes: list[str] = []
+
+    def require(self, condition, message: str):
+        if not condition:
+            self.problems.append(message)
+
+    def note(self, message: str):
+        self.notes.append(message)
+
+
+def read(path: Path):
+    if not path.exists():
+        return None
+
+    try:
+        return json.loads(path.read_text())
+    except json.JSONDecodeError as error:
+        raise SystemExit(f"{path} is not valid JSON: {error}")
+
+
+def main():
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "--snapshot",
+        default=str(ROOT / "public" / "data" / "snapshots" / "current"),
     )
 
-    latest_years[
-        latest
-    ] += 1
+    parser.add_argument(
+        "--library",
+        default=str(ROOT / "public" / "data" / "hs-library.json"),
+    )
 
-    if latest not in years:
-        error(
-            f"{hs}: latestIndiaYear {latest} not in years"
+    parser.add_argument(
+        "--sample",
+        type=int,
+        default=25,
+        help="How many node files to open and inspect.",
+    )
+
+    args = parser.parse_args()
+
+    snapshot = Path(args.snapshot)
+
+    check = Check()
+
+    manifest = read(snapshot / "manifest.json")
+
+    catalogue = read(snapshot / "catalogue.json")
+
+    methodology = read(snapshot / "methodology.json")
+
+    qa = read(snapshot / "qa.json")
+
+    library = read(Path(args.library))
+
+    check.require(manifest is not None, "manifest.json is missing")
+    check.require(catalogue, "catalogue.json is missing or empty")
+    check.require(methodology is not None, "methodology.json is missing")
+    check.require(library, "hs-library.json is missing or empty")
+
+    if check.problems:
+        for problem in check.problems:
+            print(f"FAIL {problem}")
+
+        raise SystemExit(2)
+
+    # A fixture snapshot is fabricated data wearing a real snapshot's clothes.
+    # It is what makes offline development possible and it must never leave
+    # the machine it was built on.
+    check.require(
+        not manifest.get("fixture"),
+        "this snapshot was built from fabricated fixture data and must not be "
+        "deployed. Run a real refresh, or `git checkout public/data/snapshots` "
+        "to restore the last published one.",
+    )
+
+    expected = frontend_schema()
+
+    check.require(
+        manifest.get("schemaVersion") == expected,
+        f"snapshot is schema {manifest.get('schemaVersion')} but this build of "
+        f"the dashboard reads {expected}. Deploying would put a mismatch "
+        "notice in front of every visitor, so nothing ships until the "
+        "snapshot is rebuilt.",
+    )
+
+    check.note(f"schema           : {expected} (frontend and snapshot agree)")
+
+    if qa is not None:
+        check.require(
+            not qa.get("failures"),
+            f"snapshot carries {len(qa.get('failures', []))} QA failures",
         )
 
-    annual = x.get(
-        "annual",
-        {}
+        check.note(f"QA warnings: {len(qa.get('warnings', []))}")
+
+    # --- the definition and the shipped data must agree -------------------
+
+    expected = set(hs6_universe())
+
+    shipped = {
+        entry["code"] for entry in catalogue if entry.get("level") == 6
+    }
+
+    missing = expected - shipped
+
+    extra = shipped - expected
+
+    check.require(
+        not missing,
+        f"{len(missing)} definition codes are absent from the catalogue: "
+        + ", ".join(sorted(missing)[:8]),
     )
 
-    for year in years:
-        y = str(year)
-
-        if y not in annual:
-            error(
-                f"{hs}: missing annual record for {year}"
-            )
-            continue
-
-        r = annual[y]
-
-        india = r["india"]
-        glob = r["global"]
-
-        im = india["imports"]
-        ex = india["exports"]
-        bal = india["balance"]
-
-        if im is not None and im < 0:
-            error(
-                f"{hs}/{year}: negative India imports"
-            )
-
-        if ex is not None and ex < 0:
-            error(
-                f"{hs}/{year}: negative India exports"
-            )
-
-        if (
-            im is not None
-            and ex is not None
-        ):
-            expected = ex - im
-
-            if (
-                bal is None
-                or abs(
-                    bal - expected
-                )
-                > max(
-                    1,
-                    abs(expected) * 1e-9,
-                )
-            ):
-                error(
-                    f"{hs}/{year}: trade balance mismatch"
-                )
-
-        for flow in [
-            "import",
-            "export",
-        ]:
-            coverage = glob[
-                f"{flow}Coverage"
-            ]
-
-            status = coverage.get(
-                "status"
-            )
-
-            published = glob[
-                "imports"
-                if flow == "import"
-                else "exports"
-            ]
-
-            observed = glob[
-                "observedImports"
-                if flow == "import"
-                else "observedExports"
-            ]
-
-            rank = glob[
-                f"{flow}RankIndia"
-            ]
-
-            share = glob[
-                f"{flow}ShareIndia"
-            ]
-
-            if (
-                observed is not None
-                and observed < 0
-            ):
-                error(
-                    f"{hs}/{year}: negative observed global {flow}s"
-                )
-
-            if status != "VALID":
-                if any(
-                    v is not None
-                    for v in [
-                        published,
-                        rank,
-                        share,
-                    ]
-                ):
-                    error(
-                        f"{hs}/{year}: publishable {flow} metrics "
-                        f"exist despite {status} coverage"
-                    )
-
-            if status == "VALID":
-                if (
-                    published is None
-                    or published <= 0
-                ):
-                    error(
-                        f"{hs}/{year}: VALID {flow} coverage "
-                        "without positive publishable value"
-                    )
-
-            if (
-                share is not None
-                and not (
-                    0 <= share <= 1
-                )
-            ):
-                error(
-                    f"{hs}/{year}: invalid India {flow} share"
-                )
-
-
-    benchmarks = x.get(
-        "benchmarks",
-        {}
+    check.require(
+        not extra,
+        f"{len(extra)} catalogue codes are not in the sector definition: "
+        + ", ".join(sorted(extra)[:8]),
     )
 
-    for flow, key in [
-        (
-            "import",
-            "globalImports",
-        ),
-        (
-            "export",
-            "globalExports",
-        ),
-    ]:
-        b = benchmarks.get(
-            key
-        )
+    indexed = {entry["code"] for entry in library}
 
-        if not b:
-            error(
-                f"{hs}: no VALID global {flow} benchmark"
-            )
-            continue
+    check.require(
+        expected <= indexed,
+        "the search index is missing codes that the catalogue publishes",
+    )
 
-        year = b["year"]
-
-        if flow == "import":
-            import_benchmark_years[
-                year
-            ] += 1
-        else:
-            export_benchmark_years[
-                year
-            ] += 1
-
-        r = annual[
-            str(year)
-        ]["global"]
-
-        coverage = r[
-            f"{flow}Coverage"
+    for level, codes in parent_universe().items():
+        absent = [
+            code
+            for code in codes
+            if not (snapshot / "parents" / level / f"{code}.json").exists()
         ]
 
-        if (
-            coverage.get(
-                "status"
-            )
-            != "VALID"
-        ):
-            error(
-                f"{hs}: benchmark {year} for {flow} "
-                "does not point to VALID coverage"
-            )
-
-        annual_value = r[
-            "imports"
-            if flow == "import"
-            else "exports"
-        ]
-
-        if (
-            annual_value is None
-            or abs(
-                annual_value
-                - b["value"]
-            )
-            > max(
-                1,
-                abs(b["value"])
-                * 1e-9,
-            )
-        ):
-            error(
-                f"{hs}: benchmark {flow} value mismatch"
-            )
-
-
-print("=" * 72)
-print("HStat.India launch sanity audit")
-print("=" * 72)
-
-print(
-    "Configured HS-6:",
-    len(codes),
-)
-
-print(
-    "Product JSONs:",
-    len(product_files),
-)
-
-print(
-    "Selectable HS-6 in search:",
-    len(loaded_search_codes),
-)
-
-print(
-    "\nLatest India years:",
-    dict(
-        sorted(
-            latest_years.items()
+        check.require(
+            not absent,
+            f"{len(absent)} HS-{level} parent nodes are missing",
         )
-    ),
-)
 
-print(
-    "Global-import benchmark years:",
-    dict(
-        sorted(
-            import_benchmark_years.items()
-        )
-    ),
-)
+    # --- a headline that a user would actually see ------------------------
 
-print(
-    "Global-export benchmark years:",
-    dict(
-        sorted(
-            export_benchmark_years.items()
-        )
-    ),
-)
+    published = [
+        entry
+        for entry in catalogue
+        if entry.get("level") == 6 and entry.get("globalTrade") is not None
+    ]
 
-print(
-    "\nFailures:",
-    len(errors),
-)
-
-print(
-    "Warnings:",
-    len(warnings),
-)
-
-for msg in errors[:50]:
-    print(
-        "FAIL:",
-        msg,
+    check.require(
+        published,
+        "no product has a published global trade figure; the dashboard "
+        "would open empty",
     )
 
-for msg in warnings[:50]:
-    print(
-        "WARN:",
-        msg,
+    check.note(
+        f"products with a published global trade figure: "
+        f"{len(published)}/{len(shipped)}"
     )
 
-if errors:
-    raise SystemExit(2)
+    for entry in published[: args.sample]:
+        code = entry["code"]
 
-print(
-    "\nPASS — launch data/search contract is internally consistent."
-)
+        if entry["globalTrade"] <= 0:
+            check.problems.append(f"{code}: global trade figure is not positive")
+
+        share = entry.get("indiaShare")
+
+        if share is not None and not 0 <= share <= 1:
+            check.problems.append(f"{code}: India share out of bounds ({share})")
+
+    sample = [entry["code"] for entry in catalogue[: args.sample]]
+
+    for code in sample:
+        level = next(
+            entry["level"] for entry in catalogue if entry["code"] == code
+        )
+
+        path = (
+            snapshot / "products" / f"{code}.json"
+            if level == 6
+            else snapshot / "parents" / str(level) / f"{code}.json"
+        )
+
+        node = read(path)
+
+        if node is None:
+            check.problems.append(f"{code}: node file missing")
+            continue
+
+        if not node.get("annual"):
+            check.problems.append(f"{code}: node has no annual records")
+
+    # --- report -----------------------------------------------------------
+
+    print("HStat launch sanity")
+    print(f"  snapshot        : {snapshot}")
+    print(f"  refreshed       : {manifest.get('refreshedAt')}")
+    print(f"  nodes           : {manifest.get('nodes')}")
+    print(f"  HS-6 products   : {len(shipped)}")
+    print(f"  search records  : {len(library)}")
+    print(f"  monthly periods : {len(manifest.get('months', []))}")
+    print(f"  global basis    : {manifest.get('globalTradeBasis')}")
+
+    for note in check.notes:
+        print(f"  {note}")
+
+    if check.problems:
+        print()
+
+        for problem in check.problems:
+            print(f"FAIL {problem}")
+
+        raise SystemExit(2)
+
+    print("\nSanity checks passed.")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,1058 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>How HStat Counts Trade — Methodology</title>
+<style>
+  /* ============================================================
+     Print sheet. Light palette only — a PDF has no theme.
+     IBM Plex is resolved from installed system families, so this
+     document renders identically offline.
+     ============================================================ */
+
+  @page {
+    size: A4;
+    margin: 20mm 17mm 18mm;
+  }
+
+  :root {
+    --surface: #ffffff;
+    --surface-sunk: #f1f4f6;
+
+    --ink: #14202f;
+    --ink-soft: #465364;
+    --ink-faint: #6d7a88;
+
+    --rule: #d9e0e6;
+    --rule-strong: #b9c4cd;
+
+    --navy: #17365d;
+    --blue: #1f5f99;
+    --green: #2a7f5f;
+    --ochre: #8a5210;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  body {
+    margin: 0;
+    background: #ffffff;
+    color: var(--ink);
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 10.2pt;
+    line-height: 1.5;
+  }
+
+  h1, h2, h3 {
+    font-family: "IBM Plex Serif", serif;
+    font-weight: 600;
+    margin: 0;
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  h1 { font-size: 25pt; line-height: 1.14; letter-spacing: -.015em; }
+  h2 { font-size: 16pt; line-height: 1.22; letter-spacing: -.01em; }
+  h3 { font-size: 10.8pt; line-height: 1.32; }
+
+  p { margin: 0; orphans: 2; widows: 2; }
+
+  code, .mono {
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .hs {
+    font-family: "IBM Plex Mono", monospace;
+    color: var(--navy);
+    font-size: .93em;
+  }
+
+  /* --- masthead ------------------------------------------------ */
+
+  .masthead {
+    padding-bottom: 16pt;
+    border-bottom: 1.6pt solid var(--ink);
+  }
+
+  .kicker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6pt 14pt;
+    align-items: baseline;
+    margin-bottom: 14pt;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 7.6pt;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .kicker b { color: var(--navy); font-weight: 600; }
+
+  .standfirst {
+    margin-top: 12pt;
+    font-size: 11.6pt;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+
+  /* --- sections ------------------------------------------------- */
+
+  section { margin-top: 26pt; }
+
+  /* Each question starts its own page: the sheet is read one
+     question at a time, and a section split across a fold reads
+     as though an answer went missing. */
+  section + section {
+    break-before: page;
+    page-break-before: always;
+    margin-top: 0;
+  }
+
+  .sechead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10pt;
+    padding-bottom: 6pt;
+    margin-bottom: 12pt;
+    border-bottom: .8pt solid var(--rule-strong);
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  .sechead .q {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 7.6pt;
+    font-weight: 500;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    white-space: nowrap;
+  }
+
+  .stack > * + * { margin-top: 9pt; }
+
+  .lede { font-size: 10.7pt; color: var(--ink); }
+  .soft { color: var(--ink-soft); }
+
+  /* --- figure --------------------------------------------------- */
+
+  figure {
+    margin: 0;
+    padding: 14pt 14pt 11pt;
+    background: var(--surface);
+    border: .8pt solid var(--rule);
+    border-radius: 4pt;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  figure svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    color: var(--ink-soft);
+  }
+
+  figcaption {
+    margin-top: 10pt;
+    padding-top: 8pt;
+    border-top: .8pt solid var(--rule);
+    font-size: 8.6pt;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+
+  .dg-box { fill: var(--surface-sunk); stroke: var(--rule-strong); }
+  .dg-gate { fill: var(--surface); stroke: var(--blue); stroke-width: 1.6; }
+  .dg-hold { fill: var(--surface); stroke: var(--ochre); stroke-dasharray: 4 3; }
+  .dg-live { fill: var(--surface); stroke: var(--green); stroke-width: 1.6; }
+  .dg-t { font-family: "IBM Plex Sans", sans-serif; font-size: 12.5px; font-weight: 500; fill: var(--ink); }
+  .dg-s { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; fill: var(--ink-faint); }
+  .dg-e { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; fill: var(--ink-soft); }
+  .dg-e.pass { fill: var(--green); }
+  .dg-e.fail { fill: var(--ochre); }
+  .dg-line { stroke: var(--rule-strong); stroke-width: 1.4; fill: none; }
+  .dg-line.fail { stroke: var(--ochre); }
+
+  /* --- formula -------------------------------------------------- */
+
+  .formula {
+    padding: 10pt 14pt;
+    background: var(--surface-sunk);
+    border: .8pt solid var(--rule);
+    border-left: 2.4pt solid var(--blue);
+    border-radius: 4pt;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .formula .eq {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.6pt;
+    line-height: 1.5;
+    white-space: pre;
+    color: var(--ink);
+  }
+
+  .formula .where {
+    margin-top: 7pt;
+    padding-top: 7pt;
+    border-top: .8pt solid var(--rule);
+    font-size: 9pt;
+    line-height: 1.6;
+    color: var(--ink-soft);
+  }
+
+  /* --- tables --------------------------------------------------- */
+
+  .tablewrap {
+    background: var(--surface);
+    border: .8pt solid var(--rule);
+    border-radius: 4pt;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 9.4pt; }
+
+  caption {
+    caption-side: top;
+    padding: 7pt 12pt 1pt;
+    text-align: left;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 7.6pt;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  th, td {
+    padding: 3.6pt 12pt;
+    text-align: left;
+    border-bottom: .8pt solid var(--rule);
+    vertical-align: baseline;
+  }
+
+  thead th {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 7.4pt;
+    font-weight: 500;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  tbody th { font-weight: 500; }
+  tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
+
+  td.n, th.n {
+    text-align: right;
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  tr.total th, tr.total td {
+    border-top: 1.4pt solid var(--rule-strong);
+    font-weight: 600;
+    background: var(--surface-sunk);
+  }
+
+  .removed { color: var(--ochre); }
+  .kept { color: var(--green); }
+  .none { color: var(--ink-faint); font-style: italic; }
+
+  .illustrative {
+    display: inline-block;
+    margin-left: 7pt;
+    padding: 1pt 6pt;
+    border: .8pt solid var(--ochre);
+    border-radius: 999px;
+    color: var(--ochre);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 6.6pt;
+    font-weight: 500;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    vertical-align: middle;
+  }
+
+  /* --- rule cards ----------------------------------------------- */
+
+  .rules > * + * { margin-top: 8pt; }
+
+  .rule {
+    padding: 9pt 12pt;
+    background: var(--surface);
+    border: .8pt solid var(--rule);
+    border-left: 2.4pt solid var(--navy);
+    border-radius: 3pt;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .rule h3 { font-family: "IBM Plex Sans", sans-serif; font-size: 10.2pt; font-weight: 600; }
+  .rule p { margin-top: 3pt; font-size: 9.4pt; line-height: 1.5; color: var(--ink-soft); }
+
+  /* --- callout -------------------------------------------------- */
+
+  .callout {
+    padding: 11pt 13pt;
+    background: var(--surface-sunk);
+    border-left: 2.4pt solid var(--ochre);
+    border-radius: 0 3pt 3pt 0;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .callout p { font-size: 9.4pt; line-height: 1.5; color: var(--ink-soft); }
+  .callout strong { color: var(--ink); }
+
+  footer {
+    margin-top: 16pt;
+    padding-top: 10pt;
+    border-top: .8pt solid var(--rule);
+    font-size: 8.4pt;
+    line-height: 1.6;
+    color: var(--ink-faint);
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+</style>
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="kicker">
+      <span>Prepared by <b>FED</b> for the Ministry of Electronics &amp; Information Technology</span>
+    </div>
+
+    <h1>How HStat counts trade</h1>
+
+    <p class="standfirst">
+      Every figure on the dashboard comes from one source &mdash; UN Comtrade&rsquo;s
+      record of what customs authorities filed &mdash; put through one procedure.
+      This sheet sets out that procedure: what the data actually is, how the
+      single global trade figure is built, how re-imports are removed from it,
+      and what keeps it current.
+    </p>
+  </header>
+
+  <!-- ========================================================== -->
+
+  <section>
+    <div class="sechead">
+      <h2>The approach</h2>
+      <span class="q">Question 1</span>
+    </div>
+
+    <div class="stack">
+      <p class="lede">
+        The dashboard never queries UN Comtrade while someone is looking at it.
+        It reads a stored snapshot that has already been built, checked and
+        approved.
+      </p>
+
+      <p class="soft">
+        That is a deliberate constraint rather than a technical convenience.
+        A dashboard that queries live cannot refuse to show a bad number,
+        because the number arrives at the same moment the page does. Separating
+        the two gives us a place to stand between the source and the reader &mdash;
+        somewhere a figure can be examined and, if it does not hold up,
+        withheld. It also means any figure can be reproduced exactly: the
+        snapshot that produced it is still on disk.
+      </p>
+
+      <figure>
+        <svg viewBox="0 0 820 250" role="img" aria-label="The refresh pipeline: the sector definition drives a Comtrade pull into a cached store, which is processed into a candidate snapshot, which must pass a QA gate. Passing promotes it live; failing holds it in staging and leaves the previous snapshot serving.">
+          <defs>
+            <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"></path>
+            </marker>
+            <marker id="ahf" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#8a5210"></path>
+            </marker>
+          </defs>
+
+          <!-- stage 1 -->
+          <rect class="dg-box" x="6" y="54" width="132" height="56" rx="5"></rect>
+          <text class="dg-t" x="72" y="78" text-anchor="middle">Sector definition</text>
+          <text class="dg-s" x="72" y="95" text-anchor="middle">3 CSV files</text>
+
+          <!-- stage 2 -->
+          <rect class="dg-box" x="176" y="54" width="124" height="56" rx="5"></rect>
+          <text class="dg-t" x="238" y="78" text-anchor="middle">Pull</text>
+          <text class="dg-s" x="238" y="95" text-anchor="middle">cached store</text>
+
+          <!-- stage 3 -->
+          <rect class="dg-box" x="338" y="54" width="124" height="56" rx="5"></rect>
+          <text class="dg-t" x="400" y="78" text-anchor="middle">Process</text>
+          <text class="dg-s" x="400" y="95" text-anchor="middle">candidate</text>
+
+          <!-- gate -->
+          <polygon class="dg-gate" points="556,38 618,82 556,126 494,82"></polygon>
+          <text class="dg-t" x="556" y="79" text-anchor="middle">QA gate</text>
+          <text class="dg-s" x="556" y="95" text-anchor="middle">validate</text>
+
+          <!-- live -->
+          <rect class="dg-live" x="652" y="54" width="150" height="56" rx="5"></rect>
+          <text class="dg-t" x="727" y="78" text-anchor="middle">Live snapshot</text>
+          <text class="dg-s" x="727" y="95" text-anchor="middle">what people see</text>
+
+          <!-- held -->
+          <rect class="dg-hold" x="486" y="168" width="140" height="48" rx="5"></rect>
+          <text class="dg-t" x="556" y="190" text-anchor="middle">Held in staging</text>
+          <text class="dg-s" x="556" y="206" text-anchor="middle">not published</text>
+
+          <!-- forward arrows -->
+          <line class="dg-line" x1="138" y1="82" x2="170" y2="82" marker-end="url(#ah)"></line>
+          <text class="dg-e" x="154" y="72" text-anchor="middle">549</text>
+          <text class="dg-e" x="154" y="102" text-anchor="middle">codes</text>
+
+          <line class="dg-line" x1="300" y1="82" x2="332" y2="82" marker-end="url(#ah)"></line>
+          <text class="dg-e" x="316" y="72" text-anchor="middle">rows</text>
+
+          <line class="dg-line" x1="462" y1="82" x2="488" y2="82" marker-end="url(#ah)"></line>
+
+          <line class="dg-line" x1="618" y1="82" x2="646" y2="82" marker-end="url(#ah)"></line>
+          <text class="dg-e pass" x="632" y="72" text-anchor="middle">pass</text>
+
+          <!-- fail path -->
+          <line class="dg-line fail" x1="556" y1="126" x2="556" y2="162" marker-end="url(#ahf)"></line>
+          <text class="dg-e fail" x="568" y="150" text-anchor="start">fail</text>
+
+          <!-- unchanged annotation -->
+          <line class="dg-line fail" x1="626" y1="192" x2="727" y2="192"></line>
+          <line class="dg-line fail" x1="727" y1="192" x2="727" y2="120" marker-end="url(#ahf)"></line>
+          <text class="dg-e fail" x="676" y="182" text-anchor="middle">stays as it was</text>
+
+          <!-- loop back label -->
+          <line class="dg-line" x1="238" y1="126" x2="238" y2="114"></line>
+          <text class="dg-s" x="238" y="141" text-anchor="middle">settled periods reused</text>
+        </svg>
+
+        <figcaption>
+          The five stages of a refresh. Nothing reaches the live snapshot without
+          passing the gate, and a failure is not a blank dashboard &mdash; the
+          previous validated snapshot simply keeps serving. Only two snapshots
+          are ever kept, <span class="hs">current</span> and
+          <span class="hs">previous</span>.
+        </figcaption>
+      </figure>
+
+      <p class="soft">
+        Which HS codes exist is decided by three hand-editable CSV files, not by
+        anything the pipeline discovers at run time. That keeps the scope
+        auditable: the sector definition is a document someone at FED owns and
+        can be asked to justify, rather than an emergent property of a script.
+        423 rows from the FED Electronics Sector Definition workbook produce 418
+        current products, and those roll up into the 106 four-digit headings and
+        20 chapters that contain them &mdash; 549 codes pulled in all.
+      </p>
+    </div>
+  </section>
+
+  <!-- ========================================================== -->
+
+  <section>
+    <div class="sechead">
+      <h2>How the data is interpreted</h2>
+      <span class="q">Question 2</span>
+    </div>
+
+    <div class="stack">
+      <p class="lede">
+        UN Comtrade is not a finished dataset. It is a rolling collection of
+        what individual customs authorities have filed so far, and reading it as
+        though it were complete is the most common way to get trade analysis
+        wrong.
+      </p>
+
+      <p class="soft">
+        Two properties drive everything that follows. First, a recent period
+        contains whichever economies have reported by now &mdash; so summing it and
+        calling the result &ldquo;the world&rdquo; understates the total, and the
+        shortfall moves from month to month. A dashboard that did this would
+        appear to report a collapse in trade when it was reporting late
+        paperwork. Second, every shipment is recorded twice, once by the
+        exporter and once by the importer, and the two never agree; that is a
+        property of mirror statistics, not an error.
+      </p>
+
+      <div class="rules">
+
+        <div class="rule">
+          <h3>Each period is judged against the one before it</h3>
+          <p>
+            A period may be published only if it still contains the economies
+            that mattered last time: the previous largest reporter present, at
+            least 9 of the previous top 10, at least 95% of the previous top-20
+            value, and a reporter count of at least 80%. Meeting a looser bar
+            (8 of 10, 90% of value, 75% of count) is marked
+            <strong>caution</strong>. Anything else is <strong>invalid</strong>.
+          </p>
+        </div>
+
+        <div class="rule">
+          <h3>A period that fails is withheld, never estimated</h3>
+          <p>
+            No headline, no rank, no share. The reported observations stay in
+            the underlying data and in the workbook export, so an analyst can
+            still see them &mdash; but nothing goes on the page implying a
+            completeness the data does not have.
+          </p>
+        </div>
+
+        <div class="rule">
+          <h3>India&rsquo;s own filing must reconcile</h3>
+          <p>
+            India appears twice in the source: in its own bilateral return, and
+            as one row inside the all-reporters frame. The two describe the same
+            trade. If they differ by more than 1%, one of the two extracts is
+            stale and the whole period is demoted rather than published.
+          </p>
+        </div>
+
+        <div class="rule">
+          <h3>HS 2022 is the base; older codes are history, not products</h3>
+          <p>
+            The workbook mixes classification vintages. <span class="hs">851712</span>
+            covered all cellular handsets until HS 2022 split it into
+            <span class="hs">851713</span> smartphones and <span class="hs">851714</span>
+            others. The retired code gets no page of its own; it is recorded as
+            the successors&rsquo; classification history and its data still feeds
+            the four-digit heading.
+          </p>
+        </div>
+
+      </div>
+
+      <div class="callout">
+        <p>
+          <strong>Why a split series is never joined up.</strong> The old code&rsquo;s
+          total covers every successor at once. Dividing it between them
+          requires a share nobody has published, and an invented share would be
+          indistinguishable from measurement. So the six-digit series genuinely
+          begins in 2022, with the old code drawn beside it as a separate dashed
+          line. The continuous long series lives at the four-digit heading, where
+          the split is internal &mdash; and because headings are pulled directly from
+          Comtrade, that continuity requires no reconstruction at all.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================== -->
+
+  <section>
+    <div class="sechead">
+      <h2>The global trade figure</h2>
+      <span class="q">Question 3</span>
+    </div>
+
+    <div class="stack">
+      <p class="lede">
+        The previous version of the dashboard showed reported global imports
+        next to reported global exports. Those are the same trade measured from
+        opposite ends; they never match, and to a reader the difference looks
+        like an error. There is now one number.
+      </p>
+
+      <div class="formula">
+        <div class="eq">global trade (h, t)  =   Σ  ( M<sub>r</sub> − RM<sub>r</sub> )
+                        r</div>
+        <div class="where">
+          for HS code <b>h</b> in period <b>t</b>, summed over every reporting
+          economy <b>r</b>, where <b>M</b> is that economy&rsquo;s imports from the
+          world and <b>RM</b> is the re-imports it filed separately.
+        </div>
+      </div>
+
+      <p class="soft">
+        The import side is the headline for two reasons. It is the side that
+        matches how import-substitution and PLI analysis is framed &mdash; the
+        question is usually what India buys and from whom. And it is the side
+        with the better coverage: an economy that imports has every incentive to
+        record it at customs, because duty is assessed on it.
+      </p>
+
+      <p class="soft">
+        The trade-off is that imports are valued <b>CIF</b> &mdash; cost, insurance and
+        freight &mdash; so they sit slightly above the exporter&rsquo;s FOB valuation of
+        the same goods. That is why the export side is still computed and
+        published as a reconciliation gap rather than discarded.
+      </p>
+
+      <div class="tablewrap">
+        <table>
+          <caption>Worked example &mdash; one HS code, one year<span class="illustrative">Illustrative figures</span></caption>
+          <thead>
+            <tr>
+              <th scope="col">Reporting economy</th>
+              <th scope="col" class="n">Imports from world</th>
+              <th scope="col" class="n">Re-imports filed</th>
+              <th scope="col" class="n">Counted</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">China</th><td class="n">120.0</td><td class="n removed">4.0</td><td class="n">116.0</td></tr>
+            <tr><th scope="row">China, Hong Kong SAR</th><td class="n">60.0</td><td class="n removed">22.0</td><td class="n">38.0</td></tr>
+            <tr><th scope="row">Singapore</th><td class="n">45.0</td><td class="n removed">12.0</td><td class="n">33.0</td></tr>
+            <tr><th scope="row">Germany</th><td class="n">20.0</td><td class="n none">not filed</td><td class="n">20.0</td></tr>
+            <tr><th scope="row">India</th><td class="n">8.0</td><td class="n removed">0.2</td><td class="n">7.8</td></tr>
+            <tr class="total"><th scope="row">World</th><td class="n">253.0</td><td class="n removed">38.2</td><td class="n kept">214.8</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="soft">
+        Germany in this example did not file re-imports as a separate flow, so
+        its 20.0 is counted as filed. That is what the adjustment-coverage
+        figure exists to disclose: 92% of the world total could be adjusted, the
+        remaining 8% could not, and the true figure is therefore at or slightly
+        below the one shown. Every published figure carries this number, and the
+        product page states it in words.
+      </p>
+
+      <div class="tablewrap">
+        <table>
+          <caption>What the dashboard then publishes</caption>
+          <tbody>
+            <tr><th scope="row">Global trade</th><td class="n">214.8</td><td class="soft">world imports, net of re-imports</td></tr>
+            <tr><th scope="row">India share</th><td class="n">3.6%</td><td class="soft">7.8 &divide; 214.8</td></tr>
+            <tr><th scope="row">India rank</th><td class="n">5th</td><td class="soft">on the netted values, not the gross ones</td></tr>
+            <tr><th scope="row">Adjustment coverage</th><td class="n">92%</td><td class="soft">233.0 of 253.0 came from reporters that file re-imports separately</td></tr>
+            <tr><th scope="row">Mirror gap</th><td class="n">+6.3%</td><td class="soft">import side vs. export side, net of re-exports</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================== -->
+
+  <section>
+    <div class="sechead">
+      <h2>Adjusting for re-imports and re-exports</h2>
+      <span class="q">Question 4</span>
+    </div>
+
+    <div class="stack">
+      <p class="lede">
+        Total imports and total exports as filed already contain the
+        re-traded flows. Adding them up without removing those flows counts the
+        same goods more than once.
+      </p>
+
+      <div class="tablewrap">
+        <table>
+          <caption>UN Comtrade flow algebra</caption>
+          <thead>
+            <tr>
+              <th scope="col">Total flow</th>
+              <th scope="col">Is made of</th>
+              <th scope="col">HStat removes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row" class="mono">M &nbsp;imports</th>
+              <td class="mono">FM + <span class="removed">RM</span> + MIP + MOP</td>
+              <td><span class="removed mono">RM</span> <span class="soft">re-imports</span></td>
+            </tr>
+            <tr>
+              <th scope="row" class="mono">X &nbsp;exports</th>
+              <td class="mono">DX + <span class="removed">RX</span> + XIP + XOP</td>
+              <td><span class="removed mono">RX</span> <span class="soft">re-exports</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="soft">
+        A re-import is a good that left an economy and came back &mdash; returned
+        stock, goods sent out for repair, an entrep&ocirc;t movement. It crosses the
+        border twice and is recorded twice, but it is one shipment of one good.
+        Hong Kong and Singapore in the example above are exactly this case:
+        a large share of what they record as imports is destined to leave again.
+      </p>
+
+      <p class="soft">
+        The removal is done <b>economy by economy</b>, not as a single global
+        deduction, because each reporter files its own sub-flow. Three rules
+        govern it:
+      </p>
+
+      <div class="rules">
+        <div class="rule">
+          <h3>Only what is filed is removed</h3>
+          <p>
+            Where a reporter does not break out re-imports, its total is counted
+            as filed and the shortfall is disclosed rather than modelled. No
+            economy has a re-import figure imputed to it.
+          </p>
+        </div>
+
+        <div class="rule">
+          <h3>An inconsistent filing is refused, not negated</h3>
+          <p>
+            If a reporter files re-imports larger than the total they belong to,
+            the adjustment is declined for that economy and it is flagged.
+            Subtracting anyway would produce a negative contribution to a world
+            total &mdash; arithmetically valid, economically meaningless.
+          </p>
+        </div>
+
+        <div class="rule">
+          <h3>The export side is netted too, as a check</h3>
+          <p>
+            World exports less re-exports is computed alongside, and the ratio
+            between the two sides is published as the mirror gap. A modest
+            positive gap is expected and healthy &mdash; CIF includes freight and
+            insurance that FOB excludes. A gap outside roughly &plusmn;30% is
+            recorded as a QA warning against that code and period.
+          </p>
+        </div>
+      </div>
+
+      <div class="callout">
+        <p>
+          <strong>One limit worth stating plainly.</strong> India&rsquo;s
+          country-by-country breakdown is <em>not</em> netted, because re-imports
+          are not filed by partner &mdash; no authority records that a particular
+          return shipment came back from a particular country. So supplier
+          shares and concentration measures are computed on the gross basis.
+          This is recorded in the data as <span class="hs">basis: "gross"</span>
+          and stated on the page rather than left for the reader to discover.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================== -->
+
+  <section>
+    <div class="sechead">
+      <h2>India&rsquo;s own tariff lines, and rupees</h2>
+      <span class="q">Question 5</span>
+    </div>
+
+    <div class="stack">
+      <p class="lede">
+        Comtrade stops at six digits. India&rsquo;s eight-digit detail exists only
+        in India&rsquo;s own publication, on a different calendar, and often in a
+        different currency. All three differences are kept visible rather than
+        smoothed away.
+      </p>
+
+      <p class="soft">
+        Digits seven and eight are a national extension &mdash; ITC(HS) for India
+        &mdash; and every country&rsquo;s extension means something different, so
+        there is no such thing as a global comparison at that level. Tariff-line
+        detail is therefore a second, India-only source sitting beneath the
+        six-digit page, not a deeper zoom on the same data. It comes from a
+        DGCIS / TradeStat export supplied as a static file.
+      </p>
+
+      <div class="tablewrap">
+        <table>
+          <caption>Two sources, two calendars, two currencies</caption>
+          <thead>
+            <tr>
+              <th scope="col"></th>
+              <th scope="col">UN Comtrade</th>
+              <th scope="col">DGCIS tariff lines</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Detail</th>
+              <td>HS six digits</td>
+              <td>ITC(HS) eight digits</td>
+            </tr>
+            <tr>
+              <th scope="row">Period</th>
+              <td>Calendar year, Jan&ndash;Dec</td>
+              <td>Financial year, Apr&ndash;Mar</td>
+            </tr>
+            <tr>
+              <th scope="row">Coverage</th>
+              <td>Every reporting economy</td>
+              <td>India only</td>
+            </tr>
+            <tr>
+              <th scope="row">Filed in</th>
+              <td>US dollars</td>
+              <td>Rupees or dollars, by export</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="rules">
+        <div class="rule">
+          <h3>The two calendars are never merged</h3>
+          <p>
+            Tariff lines are stored in their own block, outside the
+            calendar-year series, and the quality gate fails any snapshot that
+            files a financial year under a calendar year. A bare four-digit
+            year in the input is refused rather than placed: &ldquo;2024&rdquo;
+            could mean either financial year, and choosing one silently would
+            shift a year of trade by up to twelve months. On the page the two
+            appear side by side, each labelled, never summed.
+          </p>
+        </div>
+
+        <div class="rule">
+          <h3>A part year says so, and does not become the default</h3>
+          <p>
+            An export taken mid-year is useful but is not comparable with a
+            full year. The file records how many months it covers; the page
+            marks the period incomplete, prefers the last complete financial
+            year as the default view, and skips the reconciliation check
+            entirely &mdash; nine months against twelve tells you nothing.
+          </p>
+        </div>
+
+        <div class="rule">
+          <h3>Each period converts at its own rate, and only what was filed is shown</h3>
+          <p>
+            Every figure is stored in dollars, because that is how both sources
+            are denominated. A single fixed rate across thirty years would turn
+            an exchange-rate movement into an apparent trade movement, so
+            calendar years use calendar-year rates and financial years use
+            financial-year rates, following the RBI annual average reference
+            rate FED already uses elsewhere; the rate is printed beside the
+            figure it produced. A value published in rupees is shown exactly as
+            filed rather than round-tripped, and the other currency is labelled
+            as derived. Where a period has no sourced rate nothing is
+            converted: the figure stays in dollars and the page says so.
+          </p>
+        </div>
+      </div>
+
+      <div class="callout">
+        <p>
+          <strong>Where the rupee stops.</strong> Conversion applies to
+          India&rsquo;s own figures and the tariff lines. Global trade, economy
+          rankings and supplier tables stay in dollars &mdash; an Indian
+          reference rate is the right way to read an Indian customs filing and
+          the wrong way to read anyone else&rsquo;s.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================== -->
+
+  <section>
+    <div class="sechead">
+      <h2>Headings, and what they do not cover</h2>
+      <span class="q">Question 6</span>
+    </div>
+
+    <div class="stack">
+      <p class="lede">
+        The four-digit and two-digit figures are Comtrade&rsquo;s own aggregates,
+        pulled at those levels. They cover the whole heading, including
+        six-digit lines this sector definition does not track &mdash; so each
+        parent page also states how large a slice it is looking at.
+      </p>
+
+      <p class="soft">
+        Deriving a heading by adding up the tracked six-digit lines would have
+        been cheaper, and would have been wrong twice over. It would publish a
+        partial figure under the heading&rsquo;s own name: of the 106 headings in
+        scope only 30 are fully covered, and the definition holds 418 of the 805
+        official six-digit lines inside them. And it would destroy the long
+        series, which is continuous across the 2022 revision precisely because
+        headings are pulled whole &mdash; the smartphone split is internal to
+        heading 8517 and needs no reconstruction. A derived heading inherits
+        every split.
+      </p>
+
+      <div class="tablewrap">
+        <table>
+          <caption>What a summed heading would have shown</caption>
+          <thead>
+            <tr>
+              <th scope="col">Heading</th>
+              <th scope="col" class="n">Tracked</th>
+              <th scope="col" class="n">Official lines</th>
+              <th scope="col" class="n">Covered</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">8501 &nbsp;motors and generators</th>
+              <td class="n">1</td><td class="n">17</td>
+              <td class="n removed">5.9%</td>
+            </tr>
+            <tr>
+              <th scope="row">3920 &nbsp;plastic sheet and film</th>
+              <td class="n">1</td><td class="n">22</td>
+              <td class="n removed">4.5%</td>
+            </tr>
+            <tr>
+              <th scope="row">8517 &nbsp;telephony</th>
+              <td class="n">10</td><td class="n">23</td>
+              <td class="n removed">43.5%</td>
+            </tr>
+            <tr class="total">
+              <th scope="row">All 106 headings</th>
+              <td class="n">418</td><td class="n">805</td>
+              <td class="n kept">51.9%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="soft">
+        So the official figure stays the published figure, and every parent page
+        carries a coverage panel alongside it: how many of the heading&rsquo;s
+        official lines the definition tracks, what those lines come to, and what
+        share of the heading&rsquo;s trade and of India&rsquo;s imports that is. The
+        denominator is Comtrade&rsquo;s own reference table, kept in the repository
+        so the count does not depend on being online. Where a tracked line had
+        no published figure in a given year the sum omits it and the panel says
+        the share is a lower bound.
+      </p>
+
+      <div class="callout">
+        <p>
+          <strong>The cost of doing it properly.</strong> Pulling the headings
+          rather than deriving them costs about 124 extra calls on a full
+          rebuild and eight a month thereafter, against an allowance of 500 a
+          day. The accuracy is not being bought at a price worth discussing.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================== -->
+
+  <section>
+    <div class="sechead">
+      <h2>What keeps it current</h2>
+      <span class="q">Question 7</span>
+    </div>
+
+    <div class="stack">
+      <p class="lede">
+        The dashboard refreshes itself on a schedule, and the schedule is shaped
+        by how fast each part of the data actually moves.
+      </p>
+
+      <p class="soft">
+        Comtrade revises continuously: an economy that filed late, or corrected
+        a return, changes a figure that was published months ago. But it revises
+        unevenly. The current year and the last few months change constantly;
+        a year three back barely moves at all. Refreshing both on the same
+        cadence would spend most of the effort re-fetching data that has not
+        changed.
+      </p>
+
+      <div class="tablewrap">
+        <table>
+          <caption>Refresh cadence</caption>
+          <thead>
+            <tr>
+              <th scope="col">Run</th>
+              <th scope="col">When</th>
+              <th scope="col">Re-fetches</th>
+              <th scope="col" class="n">API calls</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Light</th>
+              <td>Eight months a year</td>
+              <td class="soft">Current year, last 3 months</td>
+              <td class="n">36</td>
+            </tr>
+            <tr>
+              <th scope="row">Deep</th>
+              <td>January, April, July, October</td>
+              <td class="soft">Last 3 years, last 6 months</td>
+              <td class="n">90</td>
+            </tr>
+            <tr>
+              <th scope="row">Full rebuild</th>
+              <td>On demand</td>
+              <td class="soft">Everything, 1996 onward</td>
+              <td class="n">542</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="soft">
+        Everything already fetched is kept in a local store, so a settled period
+        is retrieved once and served from disk from then on. That is what holds
+        the ongoing cost to roughly 54 calls a month against a 500-a-day
+        allowance &mdash; and it is why extending the history back to 1996 was
+        affordable: depth costs one larger first build and nothing thereafter.
+      </p>
+
+      <div class="rules">
+        <div class="rule">
+          <h3>Every stage fails closed</h3>
+          <p>
+            If the pull is incomplete, or the quality checks find a fault, the
+            candidate is held and the live snapshot is left exactly as it was. A
+            stale but validated dashboard is preferable to a fresh but wrong
+            one, and a partial snapshot is the dangerous case &mdash; it is missing
+            periods rather than visibly broken.
+          </p>
+        </div>
+
+        <div class="rule">
+          <h3>The checks are arithmetic, not judgement</h3>
+          <p>
+            Balances must equal exports less imports; netted totals must equal
+            gross less what was removed; shares must fall between 0 and 1;
+            rankings must be ordered and sequential; no headline may exist for a
+            period that failed coverage. A snapshot violating any of these
+            cannot be promoted, by construction rather than by review.
+          </p>
+        </div>
+
+        <div class="rule">
+          <h3>Scope changes are a file edit, not a code change</h3>
+          <p>
+            Adding an HS code, renaming a product, adjusting the search
+            vocabulary or recording a classification change are all edits to a
+            CSV. The next refresh picks them up. Nobody needs to touch the
+            pipeline to change what the dashboard covers.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <p>
+        Source: UN Comtrade, HS 2022 (H6) at six digits, with official four-digit
+        and two-digit aggregates pulled directly at those levels. India tariff-line
+        detail at ITC(HS) eight digits comes from a DGCIS / TradeStat export when
+        supplied, on financial years. Rupee conversion uses the RBI annual average
+        reference rate, financial years from the Economic Survey Statistical
+        Appendix Table 5.4. Coverage denominators come from Comtrade&rsquo;s own H6
+        reference table. Figures in the worked example are illustrative and chosen
+        to show the arithmetic; they are not observations.
+      </p>
+      <p style="margin-top: 7pt;">
+        The methodology statement, the coverage thresholds and the adjustment
+        coverage for every published figure travel with the data itself, in
+        <span class="hs">methodology.json</span> and each product record, so any
+        number on the dashboard can be traced back to the rule that produced it.
+      </p>
+    </footer>
+  </section>
+
+</body>
+</html>

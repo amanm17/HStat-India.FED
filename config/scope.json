@@ -1,15 +1,73 @@
 {
   "classification": "H6",
   "indiaReporterCode": "699",
-  "startYear": 2022,
-  "headings": [
-    {"code": "8471", "label": "Automatic data-processing machines"},
-    {"code": "8473", "label": "Parts and accessories of machines of headings 8469-8472"},
-    {"code": "8507", "label": "Electric accumulators"},
-    {"code": "8517", "label": "Telecommunications and networking equipment"},
-    {"code": "8528", "label": "Monitors and projectors"},
-    {"code": "8534", "label": "Printed circuits"},
-    {"code": "8541", "label": "Semiconductor devices"},
-    {"code": "8542", "label": "Electronic integrated circuits"}
-  ]
+
+  "historyStartYear": 1996,
+  "analysisStartYear": 2022,
+
+  "monthly": {
+    "enabled": true,
+    "rollingMonths": 24,
+
+    "_scopes": "Which scopes are pulled monthly. Adding \"global\" costs ~24 more API calls every month and publishes little: most reporters file monthly data late, so those periods fail coverage validation and show blank anyway.",
+    "scopes": ["india"]
+  },
+
+  "globalTrade": {
+    "basis": "imports",
+    "netReExports": true,
+    "mirrorWarnRatio": [0.70, 1.50],
+    "label": "Global trade",
+    "methodology": "Sum of every reporting economy's imports from the World, less re-imports where the reporter files them separately. Valuation is CIF. The export side, net of re-exports, is computed as a mirror check and published as a reconciliation gap."
+  },
+
+  "parents": {
+    "_comment": "HS-4 and HS-2 are pulled from Comtrade at those levels, not summed from the six-digit list. Summing would publish the FED-defined slice of a heading under the heading's name - only 30 of the 106 headings are fully covered, and heading 8501 would show 1 of its 17 lines. It would also destroy the continuous long series, which works precisely because a 2022 split is internal to a heading that was pulled whole. The saving would be about 124 calls on a cold build and 8 a month thereafter, against a 500/day allowance. See definitionShare on each parent node for the coverage figure published instead.",
+    "levels": [2, 4]
+  },
+
+  "_periods": "Comtrade reports calendar years; DGCIS reports Indian financial years. They are kept in separate blocks on every node and are never summed, spliced or drawn on one axis.",
+  "periods": {
+    "comtrade": "CY",
+    "tariffLines": "FY",
+    "tariffFinancialYearDefault": "startsInSelectedCalendarYear",
+    "_tariffFinancialYearDefault": "CY 2024 pairs with FY 2024-25, which shares nine of its twelve months - but only if that financial year is fully built out. A part year falls back to the previous complete one, and the page says which it chose. The reader can always override with the panel's own selector."
+  },
+
+  "_currency": "The rupee view is a conversion and only as good as the rate behind it, so each period converts at its own average rate and a period with no rate is not converted at all. Rates live in config/fx_inr_usd.csv with a source per row.",
+  "currency": {
+    "base": "USD",
+    "display": ["USD", "INR"],
+    "default": "USD",
+    "applies": ["india", "tariffLines"],
+    "_applies": "Global trade, economy rankings and partner tables stay in dollars. An RBI reference rate is the right way to read an Indian customs filing and the wrong way to read anyone else's.",
+    "unit": "lakhCrore",
+    "_unit": "Headline unit. The formatter steps down to crore and lakh for smaller values, because a tariff line rendered as 0.00 lakh crore is not a number anyone can read.",
+    "convention": "RBI annual average reference rate. Financial years from the Economic Survey Statistical Appendix Table 5.4; calendar years as the mean of that year's RBI monthly averages.",
+    "missingRatePolicy": "refuse"
+  },
+
+  "_tariffLines": "India ITC(HS)-8 detail from data/dgcis/india_hs8.csv. Absent by default; the dashboard reports it as unavailable rather than estimating it.",
+  "tariffLines": {
+    "reconcileBand": [0.5, 2.0],
+    "_reconcileBand": "Summed tariff lines against the Comtrade six-digit India figure. Wide on purpose: the two are different statistical systems over different twelve-month windows, so this catches a units blunder - rupees in the dollar column are about 85x out - not a fine discrepancy. Part years are skipped rather than compared against a full year."
+  },
+
+  "_api": "Comtrade limits for the key in use. free: 500 calls/day, 100K records/call, 1 call/sec. premium individual: 5000/day, 250K, 5/sec. Run `python pipeline/pull_comtrade.py --probe` to measure the real ceiling before a first build - getting maxRecordsPerCall wrong is silent data loss, not a slow build.",
+  "api": {
+    "tier": "free",
+    "maxRecordsPerCall": 100000,
+    "targetRowsPerCall": 55000,
+    "callsPerDay": 500,
+    "minSecondsBetweenCalls": 1.1,
+
+    "_aggregates": "Ask Comtrade for the aggregate row only. Left unset, it returns the second-partner, customs-procedure and mode-of-transport breakdowns alongside the aggregate; common.filter_classic drops them so the totals were never wrong, but every one of those rows counted against the 100,000-record cap the whole call budget is built around. partner2Code 0 = World (all second partners as one), customsCode C00 = TOTAL procedure, motCode 0 = TOTAL modes. Changing any of these off the aggregate makes the stored rows non-additive and every world total built from them meaningless.",
+    "aggregates": {
+      "partner2Code": "0",
+      "customsCode": "C00",
+      "motCode": "0"
+    }
+  },
+
+  "_pullChunkSize": "Set a number here to fix the codes per Comtrade request. Left unset, the pull sizes each request by the rows it expects to return, which is what keeps the monthly call count low."
 }

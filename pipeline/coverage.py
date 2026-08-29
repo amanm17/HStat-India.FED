@@ -1,138 +1,82 @@
+"""
+Decide whether a period's global figures may be published at all.
+
+Comtrade is a rolling collection: a recent year contains whichever
+economies have filed so far. Summing that as though it were the world
+understates the total, and the shortfall moves around from month to month,
+so a dashboard that publishes it looks like it is reporting a collapse in
+trade when it is only reporting late paperwork.
+
+The test is comparative: does this period still contain the economies that
+mattered in the period before it?
+
+VALID
+  - the previous period's largest reporter is present
+  - at least 9 of the previous top 10 are present
+  - at least 95% of the previous top-20 value is retained
+  - reporter count is at least 80% of the previous period
+
+CAUTION
+  - largest reporter present, at least 8 of the previous top 10
+  - at least 90% of previous top-20 value, count at least 75%
+
+Anything else is INVALID. Only VALID periods carry a headline, a rank or
+a share.
+
+Reporter tables are {reporterCode: (name, value)} dictionaries.
+"""
+
 from __future__ import annotations
 
-import pandas as pd
+
+def _ordered(table: dict) -> list[tuple[str, str, float]]:
+    rows = [
+        (code, name, value)
+        for code, (name, value) in table.items()
+        if value is not None and value == value and value >= 0
+    ]
+
+    rows.sort(key=lambda item: -item[2])
+
+    return rows
 
 
-def assess_coverage(candidate: pd.DataFrame, previous: pd.DataFrame) -> dict:
-    """
-    Classify reporter coverage as VALID, CAUTION or INVALID.
-
-    The comparison asks whether the candidate year retains the economically
-    important reporting economies observed in the previous year.
-
-    VALID:
-      - previous #1 reporter present
-      - >= 9 of previous top 10 present
-      - >= 95% of previous top-20 value retained
-      - reporter count >= 80% of previous year
-
-    CAUTION:
-      - previous #1 reporter present
-      - >= 8 of previous top 10 present
-      - >= 90% of previous top-20 value retained
-      - reporter count >= 75% of previous year
-
-    Otherwise INVALID.
-    """
-
+def assess_coverage(candidate: dict | None, previous: dict | None) -> dict:
     if candidate is None or previous is None:
-        return {
-            "status": "INVALID",
-            "reason": "missing comparison frame",
-        }
+        return {"status": "INVALID", "reason": "missing comparison period"}
 
-    if candidate.empty or previous.empty:
-        return {
-            "status": "INVALID",
-            "reason": "empty comparison frame",
-        }
+    if not candidate or not previous:
+        return {"status": "INVALID", "reason": "empty comparison period"}
 
-    required = {"reporterCode", "primaryValue"}
+    current = _ordered(candidate)
+    prior = _ordered(previous)
 
-    for label, frame in [
-        ("candidate", candidate),
-        ("previous", previous),
-    ]:
-        missing = required - set(frame.columns)
+    if not current or not prior:
+        return {"status": "INVALID", "reason": "no usable reporter values"}
 
-        if missing:
-            return {
-                "status": "INVALID",
-                "reason": f"{label} missing columns {sorted(missing)}",
-            }
+    current_codes = {code for code, _, _ in current}
 
-    cur = candidate.copy()
-    old = previous.copy()
+    count_ratio = len(current) / len(prior)
 
-    for frame in [cur, old]:
-        frame["reporterCode"] = frame["reporterCode"].astype(str)
-        frame["primaryValue"] = pd.to_numeric(
-            frame["primaryValue"],
-            errors="coerce",
-        )
+    prior_top10 = prior[:10]
+    prior_top20 = prior[:20]
 
-        frame.dropna(
-            subset=["reporterCode", "primaryValue"],
-            inplace=True,
-        )
+    top1_present = prior[0][0] in current_codes
 
-        frame.drop(
-            frame[frame["primaryValue"] < 0].index,
-            inplace=True,
-        )
-
-        frame.sort_values(
-            "primaryValue",
-            ascending=False,
-            inplace=True,
-        )
-
-    if cur.empty or old.empty:
-        return {
-            "status": "INVALID",
-            "reason": "no usable reporter values",
-        }
-
-    # Coverage calculations must operate on one analytical row per reporter.
-    if cur["reporterCode"].duplicated().any():
-        return {
-            "status": "INVALID",
-            "reason": "duplicate reporter rows in candidate year",
-        }
-
-    if old["reporterCode"].duplicated().any():
-        return {
-            "status": "INVALID",
-            "reason": "duplicate reporter rows in previous year",
-        }
-
-    current_codes = set(cur["reporterCode"])
-
-    current_count = cur["reporterCode"].nunique()
-    previous_count = old["reporterCode"].nunique()
-
-    count_ratio = (
-        current_count / previous_count
-        if previous_count
-        else 0.0
+    top10_present = sum(
+        1 for code, _, _ in prior_top10 if code in current_codes
     )
 
-    old_top10 = old.head(10)
-    old_top20 = old.head(20)
+    top20_total = sum(value for _, _, value in prior_top20)
 
-    top1_code = str(old.iloc[0]["reporterCode"])
-    top1_present = top1_code in current_codes
-
-    top10_present = int(
-        old_top10["reporterCode"]
-        .isin(current_codes)
-        .sum()
-    )
-
-    top20_total = float(
-        old_top20["primaryValue"].sum()
-    )
-
-    top20_retained = float(
-        old_top20[
-            old_top20["reporterCode"].isin(current_codes)
-        ]["primaryValue"].sum()
+    top20_retained = sum(
+        value
+        for code, _, value in prior_top20
+        if code in current_codes
     )
 
     top20_value_coverage = (
-        top20_retained / top20_total
-        if top20_total > 0
-        else 0.0
+        top20_retained / top20_total if top20_total > 0 else 0.0
     )
 
     valid = (
@@ -156,32 +100,17 @@ def assess_coverage(candidate: pd.DataFrame, previous: pd.DataFrame) -> dict:
     else:
         status = "INVALID"
 
-    missing_top10 = (
-        old_top10[
-            ~old_top10["reporterCode"].isin(current_codes)
-        ][
-            [
-                c
-                for c in [
-                    "reporterCode",
-                    "reporterDesc",
-                    "primaryValue",
-                ]
-                if c in old_top10.columns
-            ]
-        ]
-        .to_dict("records")
-    )
-
     return {
         "status": status,
-        "candidateReporters": int(current_count),
-        "previousReporters": int(previous_count),
-        "reporterCountRatio": float(count_ratio),
+        "candidateReporters": len(current),
+        "previousReporters": len(prior),
+        "reporterCountRatio": round(count_ratio, 4),
         "priorTop1Present": bool(top1_present),
         "priorTop10Present": int(top10_present),
-        "priorTop20ValueCoverage": float(
-            top20_value_coverage
-        ),
-        "missingPriorTop10": missing_top10,
+        "priorTop20ValueCoverage": round(top20_value_coverage, 4),
+        "missingPriorTop10": [
+            {"reporterCode": code, "reporterDesc": name, "primaryValue": value}
+            for code, name, value in prior_top10
+            if code not in current_codes
+        ],
     }

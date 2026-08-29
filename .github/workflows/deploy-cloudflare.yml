@@ -10,6 +10,10 @@ permissions:
   contents: read
   deployments: write
 
+concurrency:
+  group: hstat-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -18,15 +22,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Setup Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v5
         with:
           node-version: "24"
           cache: npm
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
+      - name: Install dependencies
+        run: |
+          npm ci
+          pip install -r requirements.txt
+
+      # Nothing ships unless the snapshot on disk is fit to serve: the
+      # catalogue must match the sector definition CSV and carry a real
+      # headline figure.
       - name: Run data sanity checks
         run: python pipeline/launch_sanity.py
 
@@ -38,5 +52,3 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=hstat-india
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}

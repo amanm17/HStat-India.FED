@@ -1,7 +1,22 @@
+"""
+The monthly refresh, end to end.
+
+    build the search index from the sector definition CSV
+    validate the static ITC(HS)-8 CSV
+    pull Comtrade into the resumable raw store
+    process a staging snapshot
+    validate it
+    promote it over `current` only if validation passed
+
+Every step fails closed. If the pull is incomplete or QA finds a failure,
+the live snapshot is left exactly as it was — a stale but validated
+dashboard is always preferable to a fresh but wrong one.
+"""
+
 from __future__ import annotations
 
-from pathlib import Path
 from datetime import datetime, timezone
+from pathlib import Path
 import argparse
 import subprocess
 import sys
@@ -9,117 +24,196 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def run(*cmd):
-    print("+", " ".join(map(str, cmd)))
+# pull_comtrade exits with this when the call budget ran out mid-run.
+EXIT_INCOMPLETE = 3
 
-    subprocess.run(
-        list(map(str, cmd)),
+
+def run(*command, allow_failure: bool = False, ok_codes=()) -> int:
+    printable = " ".join(str(part) for part in command)
+
+    print(f"\n$ {printable}", flush=True)
+
+    result = subprocess.run(
+        [str(part) for part in command],
         cwd=ROOT,
-        check=True,
     )
+
+    if result.returncode in ok_codes:
+        return result.returncode
+
+    if result.returncode != 0 and not allow_failure:
+        raise SystemExit(
+            f"Refresh aborted: `{printable}` exited {result.returncode}. "
+            "The live snapshot has not been touched."
+        )
+
+    return result.returncode
 
 
 def main():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument(
-        "--history-start",
-        type=int,
-        default=2016,
-    )
+    parser.add_argument("--history-start", type=int, default=None)
+
+    parser.add_argument("--analysis-start", type=int, default=None)
+
+    parser.add_argument("--end-year", type=int, default=None)
 
     parser.add_argument(
-        "--analysis-start",
-        type=int,
-        default=2022,
-    )
-
-    parser.add_argument(
-        "--end-year",
+        "--months",
         type=int,
         default=None,
+        help="Rolling monthly window. 0 disables monthly data.",
+    )
+
+    parser.add_argument(
+        "--mode",
+        choices=["incremental", "full"],
+        default="incremental",
+    )
+
+    parser.add_argument(
+        "--max-calls",
+        type=int,
+        default=0,
+        help="API call budget for this run. 0 means no limit.",
+    )
+
+    parser.add_argument(
+        "--refresh-years",
+        type=int,
+        default=None,
+        help="Most recent annual periods to re-pull. Lower is cheaper.",
+    )
+
+    parser.add_argument(
+        "--refresh-months",
+        type=int,
+        default=None,
+        help="Most recent monthly periods to re-pull. Lower is cheaper.",
+    )
+
+    parser.add_argument(
+        "--skip-pull",
+        action="store_true",
+        help="Reprocess the existing raw store without contacting Comtrade.",
+    )
+
+    parser.add_argument(
+        "--no-promote",
+        action="store_true",
+        help="Build and validate a staging snapshot but leave `current` alone.",
     )
 
     args = parser.parse_args()
 
+    sys.path.insert(0, str(ROOT / "pipeline"))
+
+    from definition import load_scope, summary  # noqa: E402
+
+    scope = load_scope()
+
+    history_start = args.history_start or scope["historyStartYear"]
+
+    analysis_start = args.analysis_start or scope["analysisStartYear"]
+
     now = datetime.now(timezone.utc)
 
-    end_year = (
-        args.end_year
-        if args.end_year is not None
-        else now.year - 1
+    # Comtrade publishes annual data for a year during the following year.
+    # Asking for the current year is harmless: it simply returns the
+    # reporters that have already filed, and coverage validation will
+    # withhold the headline until enough of them have.
+    end_year = args.end_year if args.end_year is not None else now.year
+
+    months = (
+        args.months
+        if args.months is not None
+        else (
+            scope["monthly"]["rollingMonths"]
+            if scope["monthly"]["enabled"]
+            else 0
+        )
     )
 
-    stamp = now.strftime(
-        "%Y%m%dT%H%M%SZ"
-    )
+    stamp = now.strftime("%Y%m%dT%H%M%SZ")
 
-    raw = (
-        ROOT
-        / "data"
-        / "raw"
-        / stamp
-    )
+    staging = ROOT / "data" / "staging" / stamp
 
-    staging = (
-        ROOT
-        / "data"
-        / "staging"
-        / stamp
-    )
+    run_log = ROOT / "data" / "raw" / stamp
 
-    run(
-        sys.executable,
-        "pipeline/build_hs_library.py",
-    )
+    print("HStat monthly refresh")
+    print(f"  started        : {now.isoformat()}")
 
-    run(
-        sys.executable,
-        "pipeline/import_dgcis.py",
-    )
+    for key, value in summary().items():
+        print(f"  {key:<14} : {value}")
 
-    run(
-        sys.executable,
-        "pipeline/pull_comtrade.py",
-        "--start-year",
-        args.history_start,
-        "--end-year",
-        end_year,
-        "--out",
-        raw,
-    )
+    print(f"  annual years   : {history_start}-{end_year}")
+    print(f"  monthly window : {months} months")
+    print(f"  mode           : {args.mode}")
+
+    run(sys.executable, "pipeline/build_hs_library.py")
+
+    run(sys.executable, "pipeline/import_dgcis.py")
+
+    if not args.skip_pull:
+        pull = [
+            sys.executable,
+            "pipeline/pull_comtrade.py",
+            "--start-year", history_start,
+            "--end-year", end_year,
+            "--months", months,
+            "--mode", args.mode,
+            "--out", run_log,
+        ]
+
+        if args.max_calls:
+            pull += ["--max-calls", args.max_calls]
+
+        if args.refresh_years is not None:
+            pull += ["--refresh-years", args.refresh_years]
+
+        if args.refresh_months is not None:
+            pull += ["--refresh-months", args.refresh_months]
+
+        if run(*pull, ok_codes=(EXIT_INCOMPLETE,)) == EXIT_INCOMPLETE:
+            # The store is consistent but short. Building from it would
+            # publish a snapshot missing whole periods, so the run stops at
+            # a validated staging copy and leaves `current` alone.
+            incomplete = True
+        else:
+            incomplete = False
+    else:
+        incomplete = False
 
     run(
         sys.executable,
         "pipeline/process_snapshot.py",
-        "--raw-dir",
-        raw,
-        "--out",
-        staging,
-        "--start-year",
-        args.history_start,
-        "--analysis-start-year",
-        args.analysis_start,
-        "--end-year",
-        end_year,
+        "--out", staging,
+        "--start-year", history_start,
+        "--analysis-start-year", analysis_start,
+        "--end-year", end_year,
+        "--months", months,
     )
 
-    run(
-        sys.executable,
-        "pipeline/validate_snapshot.py",
-        staging,
-    )
+    run(sys.executable, "pipeline/validate_snapshot.py", staging)
 
-    run(
-        sys.executable,
-        "pipeline/rotate_snapshot.py",
-        "--staging",
-        staging,
-    )
+    if incomplete:
+        print(
+            f"\nPull was cut short by the call budget. Staging snapshot at "
+            f"{staging} validated but NOT promoted - it would be missing "
+            "periods the budget did not reach. Re-run to finish the pull, "
+            "then this will promote normally."
+        )
+        raise SystemExit(EXIT_INCOMPLETE)
 
-    print(
-        "Monthly refresh complete."
-    )
+    if args.no_promote:
+        print(f"\nValidated staging snapshot left at {staging}")
+        print("Promotion skipped (--no-promote).")
+        return
+
+    run(sys.executable, "pipeline/rotate_snapshot.py", "--staging", staging)
+
+    print("\nMonthly refresh complete. `current` now holds validated data.")
 
 
 if __name__ == "__main__":

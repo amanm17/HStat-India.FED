@@ -1,38 +1,229 @@
-name: Monthly validated data refresh
+name: Validated data refresh
+
+# Three runs on consecutive days rather than one.
+#
+# The steady state does not need this: a light month is 36 calls and the
+# deepest quarter is 90, against an allowance of 500 a day, so the 6th and 7th
+# find nothing to do and cost nothing. What they are for is the run that does
+# not fit - a cold build is 542 calls, and any month where the source is
+# throttling and calls are being retried three times each.
+#
+# The 5th does the scheduled work. The 6th and 7th ask the store whether
+# anything is outstanding, which costs no API calls, and stop immediately if
+# not. That turns "budget ran out, re-run it by hand tomorrow" into something
+# that finishes on its own.
+
 on:
   schedule:
+    # Comtrade publishes revisions through the month, so the 5th gives the
+    # previous month's filings time to land.
     - cron: "17 3 5 * *"
+    # Finish anything the 5th could not.
+    - cron: "17 3 6 * *"
+    - cron: "17 3 7 * *"
+
   workflow_dispatch:
+    inputs:
+      depth:
+        description: "probe = 3 calls, measure the key's real limits and stop. light / deep / full as below."
+        type: choice
+        options: [auto, probe, light, deep, full]
+        default: auto
+      max_calls:
+        description: "Ceiling for this run. 200 leaves 300 calls of headroom for retries; a cold build finishes in 3 days at that rate."
+        default: "200"
+
 permissions:
   contents: write
+
+concurrency:
+  group: hstat-refresh
+  cancel-in-progress: false
+
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 300
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: npm
+          cache: pip
+
       - run: pip install -r requirements.txt
-      - run: npm ci
-      - name: Refresh and validate
+
+      # The raw store is what makes a steady state cheap: settled periods are
+      # fetched once and served from here forever, so only revisable periods
+      # cost anything month to month. It is also what makes a multi-day build
+      # work at all - each day resumes exactly where the last one stopped.
+      # A cache miss is slower and more expensive, never wrong.
+      - name: Restore raw Comtrade store
+        uses: actions/cache@v4
+        with:
+          path: data/raw/store
+          key: comtrade-store-${{ github.run_id }}
+          restore-keys: |
+            comtrade-store-
+
+      # Annual data for a year three back barely moves; the current year and
+      # the last few months move constantly. Refreshing both on the same
+      # cadence spends calls on data that has not changed, so the schedule
+      # is split: a light run most months, a deeper one each quarter.
+      - name: Choose refresh depth
+        id: depth
+        run: |
+          DEPTH="${{ inputs.depth || 'auto' }}"
+          DAY=$(date -u +%d)
+
+          if [ "$DEPTH" = "auto" ]; then
+            MONTH=$(date -u +%m)
+            case "$MONTH" in
+              01|04|07|10) DEPTH=deep ;;
+              *)           DEPTH=light ;;
+            esac
+          fi
+
+          case "$DEPTH" in
+            probe) echo "args=" >> "$GITHUB_OUTPUT" ;;
+            light) echo "args=--refresh-years 1 --refresh-months 3" >> "$GITHUB_OUTPUT" ;;
+            deep)  echo "args=--refresh-years 3 --refresh-months 6" >> "$GITHUB_OUTPUT" ;;
+            full)  echo "args=--mode full" >> "$GITHUB_OUTPUT" ;;
+          esac
+
+          echo "depth=$DEPTH" >> "$GITHUB_OUTPUT"
+          echo "day=$DAY" >> "$GITHUB_OUTPUT"
+          echo "Refresh depth: $DEPTH (day $DAY)"
+
+      # Three calls, and the only thing worth doing before a cold build.
+      #
+      # Comtrade's own documentation disagrees with itself about the free
+      # tier: the Python package says preview data is capped at 500 records,
+      # the subscriptions page says a registered free key gets 100,000. The
+      # difference decides whether this universe costs a few hundred calls or
+      # is not viable at all, and getting the record cap wrong is silent data
+      # loss rather than a slow build. So it is measured against the real key
+      # before anything is spent.
+      - name: Probe the key
+        if: steps.depth.outputs.depth == 'probe'
         env:
           COMTRADE_API_KEY: ${{ secrets.COMTRADE_API_KEY }}
-        run: python pipeline/refresh_monthly.py
-      - run: npm run build
-      - name: Commit validated snapshot
+        run: |
+          python pipeline/pull_comtrade.py --probe
+          echo
+          echo "Put the reported ceiling in config/scope.json under api.maxRecordsPerCall,"
+          echo "then run this workflow again with depth: full."
+
+      - name: Build the HS library
+        if: steps.depth.outputs.depth != 'probe'
+        env:
+          COMTRADE_API_KEY: ${{ secrets.COMTRADE_API_KEY }}
+        run: python pipeline/build_hs_library.py
+
+      # On a continuation day, ask the store whether there is anything left.
+      # This costs no API calls. When the answer is "nothing", the rest of the
+      # job is skipped and the run ends in seconds - which is what happens in
+      # every ordinary month.
+      - name: Is anything outstanding?
+        id: outstanding
+        if: steps.depth.outputs.day != '05' && steps.depth.outputs.depth != 'probe'
+        env:
+          COMTRADE_API_KEY: ${{ secrets.COMTRADE_API_KEY }}
+        run: |
+          set +e
+          python pipeline/pull_comtrade.py --check ${{ steps.depth.outputs.args }}
+          CODE=$?
+          set -e
+
+          if [ "$CODE" = "3" ]; then
+            echo "work=true" >> "$GITHUB_OUTPUT"
+            echo "Store is short; continuing."
+          elif [ "$CODE" = "0" ]; then
+            echo "work=false" >> "$GITHUB_OUTPUT"
+            echo "Store is complete; nothing to do today."
+          else
+            exit "$CODE"
+          fi
+
+      - name: Should this run do anything?
+        id: gate
+        run: |
+          if [ "${{ steps.depth.outputs.depth }}" = "probe" ]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Probe only; no pull."
+          elif [ "${{ steps.depth.outputs.day }}" = "05" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=${{ steps.outstanding.outputs.work }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Print the plan before spending anything, so a run that is about to
+      # cost far more than expected is visible in the log.
+      - name: Show the call plan
+        if: steps.gate.outputs.run == 'true'
+        env:
+          COMTRADE_API_KEY: ${{ secrets.COMTRADE_API_KEY }}
+        run: python pipeline/pull_comtrade.py --dry-run ${{ steps.depth.outputs.args }}
+
+      # Exit 3 means the call budget ran out with work still queued. The
+      # store is consistent but short, so a staging snapshot was built and
+      # validated and `current` was deliberately left alone. Tomorrow's run
+      # finishes it; the job is marked neutral rather than failed.
+      - name: Refresh, validate and promote
+        id: refresh
+        if: steps.gate.outputs.run == 'true'
+        env:
+          COMTRADE_API_KEY: ${{ secrets.COMTRADE_API_KEY }}
+        run: |
+          set +e
+          python pipeline/refresh_monthly.py \
+            --max-calls "${{ inputs.max_calls || '200' }}" \
+            ${{ steps.depth.outputs.args }}
+          CODE=$?
+          set -e
+
+          if [ "$CODE" = "3" ]; then
+            echo "incomplete=true" >> "$GITHUB_OUTPUT"
+            echo "::warning::Call budget reached; snapshot not promoted. Tomorrow's scheduled run continues from here."
+            exit 0
+          fi
+
+          exit "$CODE"
+
+      - name: Sanity-check the promoted snapshot
+        if: steps.gate.outputs.run == 'true' && steps.refresh.outputs.incomplete != 'true'
+        run: python pipeline/launch_sanity.py
+
+      # Uploaded whether or not the refresh succeeded, so a failed run can be
+      # diagnosed without re-running the pull. The call log is the record of
+      # every failed attempt, including ones a retry recovered from.
+      - name: Upload QA report and call log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-report-${{ steps.depth.outputs.depth }}-day${{ steps.depth.outputs.day }}
+          path: |
+            public/data/snapshots/current/qa.json
+            data/staging/*/qa.json
+            data/logs/call-errors.jsonl
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Commit the validated snapshot
+        if: steps.gate.outputs.run == 'true' && steps.refresh.outputs.incomplete != 'true'
         run: |
           git config user.name "hstat-data-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add public/data/snapshots public/data/hs-library.json config/hs6_universe.txt
+
+          git add public/data/snapshots public/data/hs-library.json \
+                  config/hs6_universe.txt config/parent_universe.json \
+                  config/hs_titles.json
+
           if git diff --cached --quiet; then
-            echo "No data changes."
+            echo "No data changes this run."
           else
-            git commit -m "Monthly validated HStat data refresh"
+            git commit -m "HStat data refresh (${{ steps.depth.outputs.depth }}, day ${{ steps.depth.outputs.day }})"
             git push
           fi

@@ -1,22 +1,45 @@
-
-__pycache__/
-!.env.example
-.checkpoints/
-.dev.vars
-.DS_Store
+# secrets
 .env
 .env.*
-.pytest_cache/
-.venv/
-.wrangler/
+!.env.example
+.dev.vars
+
+# build/runtime artifacts
+dist/
+node_modules/
 *.log
 *.pyc
 *.tsbuildinfo
-# build/runtime artifacts
+__pycache__/
+.pytest_cache/
+.venv/
+.wrangler/
+.DS_Store
+
 # local checkpoints/cache
+.checkpoints/
+backup/
+
 # non-published/raw data
-# secrets
+# The Comtrade raw store lives under data/raw/store and is rebuilt by the
+# pull; staging snapshots are promoted, not committed.
 data/raw/
 data/staging/
-dist/
-node_modules/
+
+# The canonical ITC(HS)-8 file is a deliberate, reviewable commit; the
+# loose exports it is built from are not.
+data/dgcis/incoming/
+data/dgcis/normalized/
+
+# Fixture inputs are fabricated. They exist so the pipeline and the dashboard
+# can be exercised offline, and must never be mistaken for the real thing:
+# config/fx_inr_usd.csv carries only citable rates, and india_hs8.csv is a
+# deliberate, reviewable commit.
+config/fx_inr_usd.fixture.csv
+data/dgcis/india_hs8.fixture.csv
+
+# Call error log: append-only evidence of a struggling source, useful locally
+# and in a workflow artifact, not something to commit.
+data/logs/
+
+_to_delete/

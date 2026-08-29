@@ -1,0 +1,50 @@
+period,basis,inr_per_usd,status,source,note
+# ---------------------------------------------------------------------------
+# Rupees per US dollar, by period.
+#
+# period   CY    a calendar year          2024
+#          FY    an Indian financial year 2024-25   (April 2024 - March 2025)
+#          MONTH a calendar month         2024-07
+# basis    CY | FY | MONTH
+# inr_per_usd  The average reference rate for that period. Blank = not supplied.
+# status   verified  a rate taken from a citable published table
+#          supplied  a rate you entered yourself; treated as usable
+#          needed    the period is used by the dashboard but has no rate yet
+# source   Where the number came from. Required for verified and supplied.
+# note     Anything a reader should know about that particular rate.
+#
+# WHY THIS FILE EXISTS
+#   Every figure in the dashboard is stored in US dollars, because that is how
+#   both UN Comtrade and the DGCIS export are denominated. The rupee view is a
+#   conversion, and a conversion is only as defensible as the rate behind it.
+#   A single fixed rate applied across thirty years of data would be worse than
+#   useless - it would make an exchange-rate movement look like a trade
+#   movement. So each period converts at its own average rate, and the rate
+#   used is carried into the published snapshot and shown on the page.
+#
+# THE CONVENTION
+#   RBI annual average reference rate, following the same basis FED already
+#   uses in Sectoral_Debt_INR_to_USD.xlsx (see sources/): Economic Survey
+#   Statistical Appendix, Table 5.4. Financial-year rates come straight from
+#   that table. Calendar-year rates are the mean of the twelve RBI monthly
+#   average reference rates in that year, and must be cited as such - the
+#   Economic Survey does not publish a calendar-year average.
+#
+# FAILS CLOSED
+#   A period with no rate is not converted. The dashboard shows dollars for it
+#   and says the rate is missing; it never falls back to a neighbouring year,
+#   never interpolates, and never carries a rate forward. Run
+#       python pipeline/fx.py --report
+#   to list the periods the current snapshot needs, and
+#       python pipeline/fx.py --template
+#   to append blank rows for the missing ones so they can be filled in.
+#
+# The six financial-year rates below are the ones already verified in the FED
+# workbook. Everything else is deliberately absent rather than guessed.
+# ---------------------------------------------------------------------------
+2013-14,FY,60.502,verified,Economic Survey Statistical Appendix Table 5.4 (indiabudget.gov.in) - RBI annual average reference rate,Carried over from Sectoral_Debt_INR_to_USD.xlsx
+2015-16,FY,65.468,verified,Economic Survey Statistical Appendix Table 5.4 (indiabudget.gov.in) - RBI annual average reference rate,Carried over from Sectoral_Debt_INR_to_USD.xlsx
+2017-18,FY,64.455,verified,Economic Survey Statistical Appendix Table 5.4 (indiabudget.gov.in) - RBI annual average reference rate,Carried over from Sectoral_Debt_INR_to_USD.xlsx
+2019-20,FY,70.897,verified,Economic Survey Statistical Appendix Table 5.4 (indiabudget.gov.in) - RBI annual average reference rate,Carried over from Sectoral_Debt_INR_to_USD.xlsx
+2021-22,FY,74.504,verified,Economic Survey Statistical Appendix Table 5.4 (indiabudget.gov.in) - RBI annual average reference rate,Carried over from Sectoral_Debt_INR_to_USD.xlsx
+2023-24,FY,82.790,verified,Economic Survey Statistical Appendix Table 5.4 (indiabudget.gov.in) - RBI annual average reference rate,Carried over from Sectoral_Debt_INR_to_USD.xlsx
