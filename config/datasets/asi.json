@@ -1,0 +1,46 @@
+{
+  "id": "asi",
+  "title": "Annual Survey of Industries",
+  "subtitle": "Factory-sector output, employment and value added, by NIC industry and state",
+
+  "_keys": "ASI is industry-keyed, not product-keyed. It has no HS code anywhere in it, so it cannot join to trade data directly - the bridge is config/concordances/hs6-nic5.csv, and until that file has rows the two datasets sit side by side rather than together. This is the honest position: NIC and HS classify different things (an activity versus a good) and no exact mapping exists.",
+  "keys": {
+    "industry": "nic5",
+    "region": "state",
+    "period": "FY"
+  },
+
+  "_periodBasis": "ASI reports Indian financial years, April to March - the same basis as the DGCIS tariff lines and NOT the same as Comtrade's calendar years.",
+  "periodBasis": "FY",
+  "frequencies": ["A"],
+
+  "storage": {
+    "raw": "data/raw/asi",
+    "format": "parquet",
+    "snapshot": "public/data/snapshots/current/datasets/asi"
+  },
+
+  "surface": {
+    "route": "/industry",
+    "_panels": "Where this dataset offers blocks on someone else's page. `via` names the concordance that makes the match possible; the panel stays hidden while that concordance is empty.",
+    "panels": [
+      {
+        "id": "asi-production",
+        "title": "Domestic factory output",
+        "on": "product",
+        "via": "hs6-nic5",
+        "note": "Mapped from NIC industries; a product may draw on several industries and an industry on several products."
+      }
+    ]
+  },
+
+  "provenance": {
+    "source": "MoSPI, Annual Survey of Industries",
+    "url": "https://mospi.gov.in",
+    "licence": "Government of India open data",
+    "refresh": "annual, on release"
+  },
+
+  "_status": "declared means the manifest exists and the shell knows the shape, but no data has been ingested. Nothing renders for a declared dataset beyond a stub saying so.",
+  "status": "declared"
+}

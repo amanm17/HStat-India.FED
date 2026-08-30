@@ -1,0 +1,1304 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>HStat Calculation Reference</title>
+<style>
+  /* ============================================================
+     Print sheet. Light palette only — a PDF has no theme.
+     IBM Plex is resolved from installed system families, so this
+     document renders identically offline.
+     ============================================================ */
+
+  @page {
+    size: A4;
+    margin: 20mm 17mm 18mm;
+  }
+
+  :root {
+    --surface: #ffffff;
+    --surface-sunk: #f1f4f6;
+
+    --ink: #14202f;
+    --ink-soft: #465364;
+    --ink-faint: #6d7a88;
+
+    --rule: #d9e0e6;
+    --rule-strong: #b9c4cd;
+
+    --navy: #17365d;
+    --blue: #1f5f99;
+    --green: #2a7f5f;
+    --ochre: #8a5210;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  body {
+    margin: 0;
+    background: #ffffff;
+    color: var(--ink);
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 10.2pt;
+    line-height: 1.5;
+  }
+
+  h1, h2, h3 {
+    font-family: "IBM Plex Serif", serif;
+    font-weight: 600;
+    margin: 0;
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  h1 { font-size: 25pt; line-height: 1.14; letter-spacing: -.015em; }
+  h2 { font-size: 16pt; line-height: 1.22; letter-spacing: -.01em; }
+  h3 { font-size: 10.8pt; line-height: 1.32; }
+
+  p { margin: 0; orphans: 2; widows: 2; }
+
+  code, .mono {
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .hs {
+    font-family: "IBM Plex Mono", monospace;
+    color: var(--navy);
+    font-size: .93em;
+  }
+
+  /* --- masthead ------------------------------------------------ */
+
+  .masthead {
+    padding-bottom: 16pt;
+    border-bottom: 1.6pt solid var(--ink);
+  }
+
+  .kicker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6pt 14pt;
+    align-items: baseline;
+    margin-bottom: 14pt;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 7.6pt;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .kicker b { color: var(--navy); font-weight: 600; }
+
+  .standfirst {
+    margin-top: 12pt;
+    font-size: 11.6pt;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+
+  /* --- sections ------------------------------------------------- */
+
+  section { margin-top: 26pt; }
+
+  /* Each question starts its own page: the sheet is read one
+     question at a time, and a section split across a fold reads
+     as though an answer went missing. */
+  section + section {
+    break-before: page;
+    page-break-before: always;
+    margin-top: 0;
+  }
+
+  .sechead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10pt;
+    padding-bottom: 6pt;
+    margin-bottom: 12pt;
+    border-bottom: .8pt solid var(--rule-strong);
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  .sechead .q {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 7.6pt;
+    font-weight: 500;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    white-space: nowrap;
+  }
+
+  .stack > * + * { margin-top: 9pt; }
+
+  .lede { font-size: 10.7pt; color: var(--ink); }
+  .soft { color: var(--ink-soft); }
+
+  /* --- figure --------------------------------------------------- */
+
+  figure {
+    margin: 0;
+    padding: 14pt 14pt 11pt;
+    background: var(--surface);
+    border: .8pt solid var(--rule);
+    border-radius: 4pt;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  figure svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    color: var(--ink-soft);
+  }
+
+  figcaption {
+    margin-top: 10pt;
+    padding-top: 8pt;
+    border-top: .8pt solid var(--rule);
+    font-size: 8.6pt;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+
+  .dg-box { fill: var(--surface-sunk); stroke: var(--rule-strong); }
+  .dg-gate { fill: var(--surface); stroke: var(--blue); stroke-width: 1.6; }
+  .dg-hold { fill: var(--surface); stroke: var(--ochre); stroke-dasharray: 4 3; }
+  .dg-live { fill: var(--surface); stroke: var(--green); stroke-width: 1.6; }
+  .dg-t { font-family: "IBM Plex Sans", sans-serif; font-size: 12.5px; font-weight: 500; fill: var(--ink); }
+  .dg-s { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; fill: var(--ink-faint); }
+  .dg-e { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; fill: var(--ink-soft); }
+  .dg-e.pass { fill: var(--green); }
+  .dg-e.fail { fill: var(--ochre); }
+  .dg-line { stroke: var(--rule-strong); stroke-width: 1.4; fill: none; }
+  .dg-line.fail { stroke: var(--ochre); }
+
+  /* --- formula -------------------------------------------------- */
+
+  .formula {
+    padding: 10pt 14pt;
+    background: var(--surface-sunk);
+    border: .8pt solid var(--rule);
+    border-left: 2.4pt solid var(--blue);
+    border-radius: 4pt;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .formula .eq {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.6pt;
+    line-height: 1.5;
+    white-space: pre;
+    color: var(--ink);
+  }
+
+  .formula .where {
+    margin-top: 7pt;
+    padding-top: 7pt;
+    border-top: .8pt solid var(--rule);
+    font-size: 9pt;
+    line-height: 1.6;
+    color: var(--ink-soft);
+  }
+
+  /* --- tables --------------------------------------------------- */
+
+  .tablewrap {
+    background: var(--surface);
+    border: .8pt solid var(--rule);
+    border-radius: 4pt;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 9.4pt; }
+
+  caption {
+    caption-side: top;
+    padding: 7pt 12pt 1pt;
+    text-align: left;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 7.6pt;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  th, td {
+    padding: 3.6pt 12pt;
+    text-align: left;
+    border-bottom: .8pt solid var(--rule);
+    vertical-align: baseline;
+  }
+
+  thead th {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 7.4pt;
+    font-weight: 500;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  tbody th { font-weight: 500; }
+  tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
+
+  td.n, th.n {
+    text-align: right;
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  tr.total th, tr.total td {
+    border-top: 1.4pt solid var(--rule-strong);
+    font-weight: 600;
+    background: var(--surface-sunk);
+  }
+
+  .removed { color: var(--ochre); }
+  .kept { color: var(--green); }
+  .none { color: var(--ink-faint); font-style: italic; }
+
+  .illustrative {
+    display: inline-block;
+    margin-left: 7pt;
+    padding: 1pt 6pt;
+    border: .8pt solid var(--ochre);
+    border-radius: 999px;
+    color: var(--ochre);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 6.6pt;
+    font-weight: 500;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    vertical-align: middle;
+  }
+
+  /* --- rule cards ----------------------------------------------- */
+
+  .rules > * + * { margin-top: 8pt; }
+
+  .rule {
+    padding: 9pt 12pt;
+    background: var(--surface);
+    border: .8pt solid var(--rule);
+    border-left: 2.4pt solid var(--navy);
+    border-radius: 3pt;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .rule h3 { font-family: "IBM Plex Sans", sans-serif; font-size: 10.2pt; font-weight: 600; }
+  .rule p { margin-top: 3pt; font-size: 9.4pt; line-height: 1.5; color: var(--ink-soft); }
+
+  /* --- callout -------------------------------------------------- */
+
+  .callout {
+    padding: 11pt 13pt;
+    background: var(--surface-sunk);
+    border-left: 2.4pt solid var(--ochre);
+    border-radius: 0 3pt 3pt 0;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .callout p { font-size: 9.4pt; line-height: 1.5; color: var(--ink-soft); }
+  .callout strong { color: var(--ink); }
+
+  footer {
+    margin-top: 16pt;
+    padding-top: 10pt;
+    border-top: .8pt solid var(--rule);
+    font-size: 8.4pt;
+    line-height: 1.6;
+    color: var(--ink-faint);
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+</style>
+
+<style>
+  /* Additions for the calculation reference: it is a lookup document, so it
+     needs a contents list, numbered rules that can be cited, and formulas
+     that sit next to the field name they produce. */
+
+  .toc {
+    padding: 12pt 14pt;
+    background: var(--surface-sunk);
+    border: .8pt solid var(--rule);
+    border-radius: 4pt;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .toc ol { margin: 0; padding-left: 18pt; font-size: 9.6pt; line-height: 1.7; }
+  .toc li { margin: 0; }
+  .toc .sub { color: var(--ink-faint); }
+
+  .field {
+    margin-top: 12pt;
+    padding: 10pt 12pt;
+    background: var(--surface);
+    border: .8pt solid var(--rule);
+    border-left: 2.4pt solid var(--blue);
+    border-radius: 3pt;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .field h4 {
+    margin: 0 0 5pt;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 9.4pt;
+    font-weight: 600;
+    color: var(--navy);
+  }
+
+  .field .eq {
+    margin: 5pt 0;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 9.2pt;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    color: var(--ink);
+  }
+
+  .field p { font-size: 9.4pt; line-height: 1.55; color: var(--ink-soft); }
+
+  .field .where {
+    margin-top: 6pt;
+    padding-top: 6pt;
+    border-top: .8pt solid var(--rule);
+    font-size: 8.8pt;
+    color: var(--ink-faint);
+  }
+
+  .srcpath {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 8.4pt;
+    color: var(--ink-faint);
+  }
+
+  /* This is a reference, not a handout: it is looked things up in rather
+     than read straight through, so sections flow instead of each starting a
+     new page. Headings still pull their first block with them and every
+     formula, table and rule card stays whole. */
+  section + section {
+    break-before: auto;
+    page-break-before: auto;
+    margin-top: 22pt;
+  }
+
+  ol.rules-list { margin: 0; padding-left: 16pt; }
+  ol.rules-list li { margin-bottom: 6pt; font-size: 9.6pt; line-height: 1.55; color: var(--ink-soft); }
+  ol.rules-list li strong { color: var(--ink); }
+
+  ul.plain { margin: 6pt 0 0; padding-left: 16pt; }
+  ul.plain li { margin-bottom: 4pt; font-size: 9.6pt; line-height: 1.55; color: var(--ink-soft); }
+  ul.plain li strong { color: var(--ink); }
+
+  .verdict { font-weight: 600; }
+  .verdict.pass { color: var(--green); }
+  .verdict.hold { color: var(--ochre); }
+</style>
+
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="kicker">
+      <span>Calculation reference &middot; for independent validation</span>
+    </div>
+
+    <h1>Every number, and where it comes from</h1>
+
+    <p class="standfirst">
+      This is the audit companion to the methodology sheet. That one explains
+      the approach; this one gives the arithmetic. For each figure the
+      dashboard publishes it states the formula, the field it is stored in,
+      the source rows it is built from, and the check that would stop it being
+      published if it were wrong. The last section sets out how to reproduce a
+      figure yourself, from UN Comtrade&rsquo;s own interface, without this code.
+    </p>
+  </header>
+
+  <section>
+    <div class="sechead">
+      <h2>How to read this</h2>
+      <span class="q">Section 1</span>
+    </div>
+
+    <div class="stack">
+      <p class="lede">
+        Four stages sit between a customs filing and a number on screen.
+        Nothing is computed in the browser: the dashboard reads a stored
+        snapshot in which every figure has already been derived, checked and
+        either approved or withheld.
+      </p>
+
+      <div class="tablewrap">
+        <table>
+          <caption>The chain</caption>
+          <thead>
+            <tr>
+              <th scope="col">Stage</th>
+              <th scope="col">Does what</th>
+              <th scope="col">Code</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Pull</th>
+              <td>Requests the aggregate rows and stores them unmodified</td>
+              <td class="srcpath">pipeline/pull_comtrade.py</td>
+            </tr>
+            <tr>
+              <th scope="row">Process</th>
+              <td>Derives every published figure; decides what may be shown</td>
+              <td class="srcpath">pipeline/process_snapshot.py<br>globaltrade.py, coverage.py</td>
+            </tr>
+            <tr>
+              <th scope="row">Validate</th>
+              <td>54 arithmetic and publication checks; blocks on any failure</td>
+              <td class="srcpath">pipeline/validate_snapshot.py</td>
+            </tr>
+            <tr>
+              <th scope="row">Publish</th>
+              <td>12 further checks before the site is allowed to deploy</td>
+              <td class="srcpath">pipeline/launch_sanity.py</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="toc">
+        <ol>
+          <li>How to read this</li>
+          <li>What is requested, and what is discarded <span class="sub">&mdash; the source rows</span></li>
+          <li>Whether a period may be published at all <span class="sub">&mdash; coverage</span></li>
+          <li>The global trade figure <span class="sub">&mdash; netting, ranking, share, mirror gap</span></li>
+          <li>India&rsquo;s own figures <span class="sub">&mdash; gross, netted, partners, concentration</span></li>
+          <li>Headings and chapters <span class="sub">&mdash; and the coverage figure beside them</span></li>
+          <li>Codes that changed in HS 2022 <span class="sub">&mdash; lineage and families</span></li>
+          <li>Tariff lines and rupees</li>
+          <li>HStack <span class="sub">&mdash; combining codes</span></li>
+          <li>Rounding, and what a blank means</li>
+          <li>The checks that can stop a number</li>
+          <li>Reproducing a figure yourself</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================ -->
+
+  <section>
+    <div class="sechead">
+      <h2>What is requested, and what is discarded</h2>
+      <span class="q">Section 2</span>
+    </div>
+
+    <div class="stack">
+      <p class="lede">
+        Every stored row is a reporter&rsquo;s own filing, unmodified. No value is
+        scaled, interpolated, deflated or estimated at any point in the
+        pipeline.
+      </p>
+
+      <div class="tablewrap">
+        <table>
+          <caption>The request, per HS code and period</caption>
+          <tbody>
+            <tr><th scope="row" class="mono">typeCode</th><td class="mono">C</td><td class="soft">commodities</td></tr>
+            <tr><th scope="row" class="mono">freqCode</th><td class="mono">A / M</td><td class="soft">annual and monthly</td></tr>
+            <tr><th scope="row" class="mono">clCode</th><td class="mono">HS</td><td class="soft">as filed, in the reporter&rsquo;s own revision</td></tr>
+            <tr><th scope="row" class="mono">flowCode</th><td class="mono">M, RM, X, RX</td><td class="soft">imports, re-imports, exports, re-exports</td></tr>
+            <tr><th scope="row" class="mono">partnerCode</th><td class="mono">0</td><td class="soft">World, for the reporter frame</td></tr>
+            <tr><th scope="row" class="mono">partner2Code</th><td class="mono">0</td><td class="soft">World &mdash; all second partners as one</td></tr>
+            <tr><th scope="row" class="mono">customsCode</th><td class="mono">C00</td><td class="soft">TOTAL customs procedure</td></tr>
+            <tr><th scope="row" class="mono">motCode</th><td class="mono">0</td><td class="soft">TOTAL modes of transport</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="soft">
+        The last three matter more than they look. Left unset, Comtrade returns
+        the second-partner, customs-procedure and mode-of-transport breakdowns
+        <em>alongside</em> the aggregate row, and summing an unfiltered response
+        double counts by whatever factor the reporter happens to break its
+        filings down by. Two independent defences apply: the request asks only
+        for the aggregate, and <span class="hs">filter_classic()</span> discards
+        anything arriving with a non-aggregate value regardless.
+      </p>
+
+      <div class="rules">
+        <div class="rule">
+          <h3>A truncated response is refused, not stored</h3>
+          <p>
+            A response returned at the record cap looks identical to a complete
+            one. Any chunk arriving at or above 95% of the cap is rejected and
+            the run stops, because storing it would silently lose rows.
+            <span class="srcpath">CAP_WARNING_RATIO = 0.95</span>
+          </p>
+        </div>
+
+        <div class="rule">
+          <h3>Two rows for the same key is a failure, not a sum</h3>
+          <p>
+            Every stored chunk is asserted unique on
+            <span class="hs">cmdCode, period, reporterCode, partnerCode,
+            flowCode</span>. A duplicate would either inflate a world total or
+            silently replace an aggregate with one slice of it.
+          </p>
+        </div>
+
+        <div class="rule">
+          <h3>A failed call stops the run</h3>
+          <p>
+            Three attempts with exponential backoff, every attempt logged to
+            <span class="hs">data/logs/call-errors.jsonl</span> whether or not a
+            later one succeeded. A call that never succeeds halts the refresh:
+            a snapshot missing a flow would publish an understated world total
+            and look entirely normal doing it.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================ -->
+
+  <section>
+    <div class="sechead">
+      <h2>Whether a period may be published at all</h2>
+      <span class="q">Section 3</span>
+    </div>
+
+    <div class="stack">
+      <p class="lede">
+        This test runs before any global figure is derived, and it is the
+        single most consequential rule in the system. UN Comtrade is a rolling
+        collection: a recent period holds whichever economies have filed so
+        far. Summing that as though it were the world understates it, and the
+        shortfall moves month to month &mdash; so the dashboard would appear to
+        report a collapse in trade when it was reporting late paperwork.
+      </p>
+
+      <p class="soft">
+        The test is comparative, not absolute: does this period still contain
+        the economies that mattered in the period before it? Reporters are
+        ranked by value; the previous period supplies the benchmark.
+      </p>
+
+      <div class="tablewrap">
+        <table>
+          <caption>Thresholds &mdash; all four must hold</caption>
+          <thead>
+            <tr>
+              <th scope="col">Test</th>
+              <th scope="col" class="n">VALID</th>
+              <th scope="col" class="n">CAUTION</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Previous largest reporter present</th><td class="n">yes</td><td class="n">yes</td></tr>
+            <tr><th scope="row">Of the previous top 10, present</th><td class="n">&ge; 9</td><td class="n">&ge; 8</td></tr>
+            <tr><th scope="row">Of the previous top-20 value, retained</th><td class="n">&ge; 95%</td><td class="n">&ge; 90%</td></tr>
+            <tr><th scope="row">Reporter count vs previous</th><td class="n">&ge; 80%</td><td class="n">&ge; 75%</td></tr>
+            <tr class="total"><th scope="row">Anything else</th><td class="n removed" colspan="2">INVALID</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="field">
+        <h4>global.coverage.priorTop20ValueCoverage</h4>
+        <div class="eq">= sum of previous top-20 values whose reporter is still present
+  / sum of all previous top-20 values</div>
+        <p class="where">
+          Value-weighted rather than a headcount, so losing one large filer
+          fails the test while losing several small ones does not.
+        </p>
+      </div>
+
+      <div class="rules">
+        <div class="rule">
+          <h3>Only VALID publishes</h3>
+          <p>
+            <span class="verdict pass">VALID</span> &rarr; headline, rank,
+            share and the economy table are published.
+            <span class="verdict hold">CAUTION</span> and
+            <span class="verdict hold">INVALID</span> &rarr; all four are
+            withheld and the page says which status applied. The reported
+            observations remain in the node and in the workbook export, so an
+            analyst can still see them; nothing on the page implies a
+            completeness the data does not have.
+          </p>
+        </div>
+
+        <div class="rule">
+          <h3>India&rsquo;s filing must reconcile with itself</h3>
+          <p>
+            India appears twice in the source: in its own bilateral return, and
+            as one row inside the all-reporters frame. They describe the same
+            trade. If they differ by more than <strong>max(1% of the direct
+            value, US$1 million)</strong> the period is demoted to INVALID,
+            because one of the two extracts is stale.
+          </p>
+        </div>
+
+        <div class="rule">
+          <h3>Two statuses mean &ldquo;not tested&rdquo;, not &ldquo;failed&rdquo;</h3>
+          <p>
+            <span class="hs">BASELINE</span> is the first period inside the
+            analysis window, which has no predecessor to compare against.
+            <span class="hs">HISTORICAL</span> is a period outside that window.
+            Neither publishes a headline. Both are distinguished from INVALID
+            so a blank can be read correctly.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================ -->
+
+  <section>
+    <div class="sechead">
+      <h2>The global trade figure</h2>
+      <span class="q">Section 4</span>
+    </div>
+
+    <div class="stack">
+      <p class="lede">
+        One figure, on the import side, net of re-imports, computed economy by
+        economy rather than as a single global deduction.
+      </p>
+
+      <div class="field">
+        <h4>global.observed.netImports &nbsp;&rarr;&nbsp; global.trade</h4>
+        <div class="eq">for each reporting economy r:
+    counted(r) = M(r)  -  RM(r)     if r filed RM and RM(r) &le; M(r)
+                 M(r)               otherwise
+
+global trade = &Sigma; counted(r)   over all r</div>
+        <p class="where">
+          M is that economy&rsquo;s imports from World; RM is the re-imports it
+          filed as a separate sub-flow. Published as
+          <span class="hs">global.trade</span> only when coverage is VALID;
+          <span class="hs">observed.netImports</span> is present either way.
+        </p>
+      </div>
+
+      <p class="soft">
+        Total imports as filed already contain re-imports &mdash;
+        <span class="mono">M = FM + RM + MIP + MOP</span> &mdash; so a good that
+        left an economy and came back is counted twice unless RM is removed.
+        The removal is per reporter because each files its own sub-flow.
+      </p>
+
+      <div class="rules">
+        <div class="rule">
+          <h3>An inconsistent filing is refused, not negated</h3>
+          <p>
+            Where a reporter files <span class="mono">RM &gt; M</span>, the
+            adjustment is declined for that economy, its gross value is used,
+            and the reporter is recorded in
+            <span class="hs">clamped</span>. Subtracting anyway would produce a
+            negative contribution to a world total: arithmetically valid,
+            economically meaningless.
+          </p>
+        </div>
+
+        <div class="rule">
+          <h3>Nothing is imputed for a reporter that does not file RM</h3>
+          <p>
+            Its total is counted as filed. The shortfall is disclosed rather
+            than modelled, which is what the next field is for.
+          </p>
+        </div>
+      </div>
+
+      <div class="field">
+        <h4>global.observed.adjustmentCoverage</h4>
+        <div class="eq">= &Sigma; M(r) over reporters that filed RM
+  / &Sigma; M(r) over all reporters</div>
+        <p class="where">
+          The share of the gross world total that could be adjusted. Read the
+          published figure as <strong>at or slightly below</strong> the true
+          netted value by the unadjusted remainder. Below 25% the QA gate
+          raises a warning against that code and period.
+        </p>
+      </div>
+
+      <div class="field">
+        <h4>global.indiaShare &nbsp;and&nbsp; global.indiaRank</h4>
+        <div class="eq">indiaShare = counted(India) / &Sigma; counted(r)
+indiaRank  = position of India when all reporters are
+             sorted by counted(r), descending</div>
+        <p class="where">
+          Both computed on the <strong>netted</strong> table, not the gross
+          one, so the rank is consistent with the headline. Rank is India&rsquo;s
+          true position among all reporters even when it falls outside the
+          published top ten.
+        </p>
+      </div>
+
+      <div class="field">
+        <h4>global.mirror.gap</h4>
+        <div class="eq">netExports = &Sigma; ( X(r) - RX(r) )      same rule as above
+mirror gap = netImports / netExports  -  1</div>
+        <p class="where">
+          A reconciliation check, not a component of the headline. A modest
+          positive gap is expected: imports are valued CIF and include freight
+          and insurance that the exporter&rsquo;s FOB valuation excludes. Outside
+          the configured band (default 0.70&ndash;1.50 on the ratio) it is
+          recorded as a QA warning.
+        </p>
+      </div>
+
+      <div class="callout">
+        <p>
+          <strong>Why the import side is the headline.</strong> It matches how
+          import-substitution and PLI analysis is framed, and it has the better
+          coverage &mdash; an economy that imports has every incentive to record
+          it at customs, because duty is assessed on it. The export side is
+          computed in full regardless and published as the gap above.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================ -->
+
+  <section>
+    <div class="sechead">
+      <h2>India&rsquo;s own figures</h2>
+      <span class="q">Section 5</span>
+    </div>
+
+    <div class="stack">
+      <div class="field">
+        <h4>india.imports &nbsp;/&nbsp; india.exports &nbsp;/&nbsp; india.balance</h4>
+        <div class="eq">imports = India's reported imports from World      (gross)
+exports = India's reported exports to World       (gross)
+balance = exports - imports</div>
+        <p class="where">
+          Taken from India&rsquo;s own bilateral return, partner = World. These are
+          gross: they are what India filed, and they are what a reader
+          comparing against DGCIS or a ministry release will expect to see.
+        </p>
+      </div>
+
+      <div class="field">
+        <h4>india.importsNetReImports</h4>
+        <div class="eq">= counted(India) from the netting in Section 4</div>
+        <p class="where">
+          India&rsquo;s own figure net of the re-imports it filed. Carried separately
+          so the headline and the tile can be reconciled to each other, and so
+          the difference between them is visible rather than implied.
+        </p>
+      </div>
+
+      <div class="field">
+        <h4>india.suppliers &nbsp;/&nbsp; india.destinations</h4>
+        <div class="eq">share(partner) = value(partner) / India's gross world total
+coverage       = &Sigma; partner values / India's gross world total</div>
+        <p class="where">
+          <strong>Partner rows are gross, and the denominator is the gross
+          world total.</strong> Re-imports are not filed by partner &mdash; no
+          authority records that a particular return shipment came back from a
+          particular country &mdash; so netting is impossible at this level.
+          Recorded in the data as <span class="hs">basis: "gross"</span> and
+          stated on the page.
+        </p>
+      </div>
+
+      <div class="field">
+        <h4>india.suppliers.hhi &nbsp;and&nbsp; top3Share</h4>
+        <div class="eq">hhi      = &Sigma; ( value(partner) / world total ) &sup2;
+top3Share = &Sigma; the three largest partner shares
+
+both computed only when 0.95 &le; coverage &le; 1.05</div>
+        <p class="where">
+          Concentration is only meaningful when the bilateral rows actually add
+          up to the reported world total. Where they do not, both are
+          <span class="hs">null</span> rather than approximate. Thresholds:
+          &ge; 0.25 high, &ge; 0.15 moderate, below that low.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================ -->
+
+  <section>
+    <div class="sechead">
+      <h2>Headings and chapters</h2>
+      <span class="q">Section 6</span>
+    </div>
+
+    <div class="stack">
+      <p class="lede">
+        HS-4 and HS-2 figures are Comtrade&rsquo;s own aggregates, requested at
+        those levels. They are <strong>not</strong> built by summing the
+        six-digit codes this dashboard tracks.
+      </p>
+
+      <p class="soft">
+        Summing would publish a partial figure under the heading&rsquo;s own name.
+        Of the 106 headings in scope only 30 are fully covered by the sector
+        definition, which holds 418 of the 805 official six-digit lines inside
+        them. Heading 8501 would show one line out of seventeen. It would also
+        destroy the continuous long series, which works precisely because a
+        heading pulled whole contains its own 2022 splits internally.
+      </p>
+
+      <p class="soft">
+        So each parent page publishes the official figure and, beside it, how
+        large a slice of it the definition tracks:
+      </p>
+
+      <div class="field">
+        <h4>definitionShare</h4>
+        <div class="eq">lineShare   = tracked six-digit lines / official six-digit lines
+globalShare = &Sigma; tracked members' global.trade
+              / the heading's own global.trade
+indiaImportShare = &Sigma; tracked members' india.imports
+                   / the heading's own india.imports</div>
+        <p class="where">
+          Official line counts come from Comtrade&rsquo;s own H6 reference table,
+          stored in <span class="hs">config/reference/</span> so the count does
+          not depend on network access. Members whose own period failed
+          coverage are omitted from the sum and counted in
+          <span class="hs">membersWithTrade</span>, so the share is a
+          <strong>lower bound</strong> whenever that number is below
+          <span class="hs">members</span>; the page says so.
+        </p>
+      </div>
+
+      <div class="callout">
+        <p>
+          <strong>A share above 100% is impossible and is treated as such.</strong>
+          The tracked lines are inside the heading, so their sum cannot exceed
+          it. If it does, the heading and its members were built from different
+          data &mdash; the QA gate raises a warning and the page states plainly
+          that the figure cannot be right.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================ -->
+
+  <section>
+    <div class="sechead">
+      <h2>Codes that changed in HS 2022</h2>
+      <span class="q">Section 7</span>
+    </div>
+
+    <div class="stack">
+      <p class="lede">
+        HS 2022 is the base. A code retired by that revision gets no page of
+        its own; it is recorded as its successors&rsquo; classification history.
+      </p>
+
+      <div class="rules">
+        <div class="rule">
+          <h3>A split is never spliced</h3>
+          <p>
+            <span class="hs">851712</span> covered all cellular handsets until
+            HS 2022 split it into <span class="hs">851713</span> smartphones
+            and <span class="hs">851714</span> others. The old total belongs to
+            both successors jointly, and dividing it between them requires a
+            share nobody has published &mdash; an invented share would be
+            indistinguishable from measurement. So the six-digit series
+            genuinely begins in 2022, with the predecessor drawn beside it as a
+            separate dashed line that never joins.
+          </p>
+        </div>
+
+        <div class="rule">
+          <h3>Only an identical code may be joined</h3>
+          <p>
+            Where a code was renumbered with no change of scope, the
+            predecessor&rsquo;s years are joined on and the node records
+            <span class="hs">spliced: true</span>. The QA gate fails any
+            snapshot that sets this on a split or a merge.
+          </p>
+        </div>
+
+        <div class="rule">
+          <h3>Summing a family is legitimate; splitting one is not</h3>
+          <p>
+            <span class="hs">lineage.family</span> lists the code, its
+            predecessors and its siblings. Before the revision only the
+            predecessor carries data; after it, only the successors. They are
+            <strong>time-disjoint</strong>, so their sum needs no apportionment
+            at all &mdash; which is why HStack offers a continuous combined
+            series across the revision while the individual page refuses one.
+          </p>
+        </div>
+      </div>
+
+      <p class="soft">
+        Filings under a dead code after its revision year are stragglers rather
+        than history &mdash; <span class="hs">851712</span> still shows a
+        trickle &mdash; so the predecessor series is truncated at its recorded
+        <span class="hs">validTo</span> year.
+      </p>
+    </div>
+  </section>
+
+  <!-- ================================================================ -->
+
+  <section>
+    <div class="sechead">
+      <h2>Tariff lines and rupees</h2>
+      <span class="q">Section 8</span>
+    </div>
+
+    <div class="stack">
+      <div class="field">
+        <h4>tariffLines.financialYears[fy]</h4>
+        <div class="eq">imports/exports = as filed by DGCIS, per ITC(HS)-8 line
+balance         = exports - imports
+totals          = &Sigma; over the lines beneath this code
+                  (null, never 0, when nothing is convertible)</div>
+        <p class="where">
+          Stored <strong>outside</strong> the calendar-year block. DGCIS reports
+          April&ndash;March and Comtrade reports January&ndash;December; the QA
+          gate fails any snapshot that files one under the other, and the
+          importer refuses a bare four-digit year rather than guess which
+          financial year it meant.
+        </p>
+      </div>
+
+      <div class="field">
+        <h4>Currency conversion</h4>
+        <div class="eq">value(INR) = value(USD) &times; rate(period, basis)
+value(USD) = value(INR) &divide; rate(period, basis)
+
+rate: RBI annual average reference rate
+      FY from Economic Survey Statistical Appendix Table 5.4
+      CY as the mean of that year's RBI monthly averages</div>
+        <p class="where">
+          Each period converts at <strong>its own</strong> rate. A single fixed
+          rate across the history would turn an exchange-rate movement into an
+          apparent trade movement. A value filed in rupees is shown exactly as
+          filed and never round-tripped; the other currency is marked derived.
+        </p>
+      </div>
+
+      <div class="rules">
+        <div class="rule">
+          <h3>No rate, no conversion</h3>
+          <p>
+            A period with no sourced rate is not converted: the figure stays in
+            dollars and the page says the rate is missing. No interpolation, no
+            nearest-year fallback, no carry-forward. A rate row without a
+            <span class="hs">source</span> is refused at load time.
+          </p>
+        </div>
+
+        <div class="rule">
+          <h3>A part year is labelled and excluded from comparison</h3>
+          <p>
+            An export covering fewer than twelve months is marked incomplete,
+            is not chosen as the default view, and is skipped by the
+            reconciliation check &mdash; nine months against a full calendar
+            year tells you nothing.
+          </p>
+        </div>
+
+        <div class="rule">
+          <h3>The reconciliation check is a units check</h3>
+          <p>
+            Summed tariff lines are compared against the Comtrade six-digit
+            India figure with a deliberately wide band (0.5&ndash;2.0). The two
+            are different statistical systems over different twelve-month
+            windows and will never agree closely. Its job is to catch rupees
+            loaded into the dollar column, which would be roughly 85&times; out.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================ -->
+
+  <section>
+    <div class="sechead">
+      <h2>HStack</h2>
+      <span class="q">Section 9</span>
+    </div>
+
+    <div class="stack">
+      <div class="field">
+        <h4>Combined totals</h4>
+        <div class="eq">combined global trade = &Sigma; global.trade over codes where it is published
+india imports/exports = &Sigma; india.imports / india.exports
+shareOfBasket(code)   = code's global.trade / combined global trade</div>
+        <p class="where">
+          A code whose period failed coverage contributes <strong>nothing</strong>
+          and is listed with the reason. The panel states how many of the
+          stacked codes were counted, so a total is never mistaken for a
+          complete one.
+        </p>
+      </div>
+
+      <div class="field">
+        <h4>Aggregated economies and suppliers</h4>
+        <div class="eq">value(partner) = &Sigma; that partner's value across every stacked code
+hhi            = &Sigma; ( merged value(partner) / total ) &sup2;</div>
+        <p class="where">
+          <strong>HHI is computed on merged per-partner totals.</strong> Squaring
+          each product&rsquo;s fragment of a partner&rsquo;s trade separately would
+          report a basket as far less concentrated than it is. The economy
+          ranking is assembled from each product&rsquo;s published top-ten table,
+          so the panel also states what share of basket trade those tables
+          cover.
+        </p>
+      </div>
+
+      <div class="callout">
+        <p>
+          <strong>Overlaps are detected, not silently summed.</strong> Stacking a
+          heading together with a product inside it counts that trade twice.
+          HStack finds these pairs and says so at the top of the panel rather
+          than quietly producing an inflated total.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================ -->
+
+  <section>
+    <div class="sechead">
+      <h2>Rounding, and what a blank means</h2>
+      <span class="q">Section 10</span>
+    </div>
+
+    <div class="stack">
+      <div class="tablewrap">
+        <table>
+          <caption>Precision</caption>
+          <tbody>
+            <tr><th scope="row">Monetary values</th><td>Rounded to whole US dollars on storage</td></tr>
+            <tr><th scope="row">Shares, ratios, coverage</th><td>Six decimal places</td></tr>
+            <tr><th scope="row">Mirror ratio and gap</th><td>Four decimal places</td></tr>
+            <tr><th scope="row">Exchange rates</th><td>Four decimal places, as published</td></tr>
+            <tr><th scope="row">Display</th><td>Two significant decimals with a magnitude suffix; the stored value is the auditable one</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="soft">
+        Rounding happens once, at storage. Nothing is rounded and then used in
+        a further calculation, so a displayed total always equals the sum of
+        the displayed parts to within one dollar &mdash; which is what the QA
+        gate&rsquo;s arithmetic checks assert.
+      </p>
+
+      <div class="tablewrap">
+        <table>
+          <caption>A blank is not a zero</caption>
+          <thead>
+            <tr><th scope="col">On screen</th><th scope="col">Means</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row" class="mono">&mdash;</th><td>Not published. Either no reporter filed it, or coverage validation withheld it. The page states which.</td></tr>
+            <tr><th scope="row" class="mono">0</th><td>A reported value of zero.</td></tr>
+            <tr><th scope="row">A break in a line</th><td>A year that failed coverage. Lines are never drawn through a withheld period.</td></tr>
+            <tr><th scope="row">Dollars in rupee mode</th><td>No sourced rate for that period.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================ -->
+
+  <section>
+    <div class="sechead">
+      <h2>The checks that can stop a number</h2>
+      <span class="q">Section 11</span>
+    </div>
+
+    <div class="stack">
+      <p class="lede">
+        54 failure checks and 6 warning checks run over every node before a
+        snapshot may be promoted, and 12 more before the site may deploy. A
+        single failure blocks the entire snapshot; the previously validated one
+        keeps serving.
+      </p>
+
+      <div class="tablewrap">
+        <table>
+          <caption>What is asserted</caption>
+          <thead>
+            <tr><th scope="col">Group</th><th scope="col">Examples</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Arithmetic</th>
+              <td class="soft">balance = exports &minus; imports; net = gross &minus; removed; no negative totals or removals</td>
+            </tr>
+            <tr>
+              <th scope="row">Bounds</th>
+              <td class="soft">shares within [0, 1]; HHI within [0, 1]; adjustment coverage within [0, 1]; rank &ge; 1</td>
+            </tr>
+            <tr>
+              <th scope="row">Ordering</th>
+              <td class="soft">ranked tables sorted descending; ranks sequential from 1; shares summing to &le; 1</td>
+            </tr>
+            <tr>
+              <th scope="row">Publication</th>
+              <td class="soft">no headline, rank, share or economy table for a period that is not VALID; a VALID period must carry a positive figure equal to net imports</td>
+            </tr>
+            <tr>
+              <th scope="row">Periods</th>
+              <td class="soft">annual keys are four-digit calendar years; tariff lines carry financial-year labels and never appear inside the calendar-year block</td>
+            </tr>
+            <tr>
+              <th scope="row">Lineage</th>
+              <td class="soft">no product node for a retired code; a split or merge may never be spliced</td>
+            </tr>
+            <tr>
+              <th scope="row">Currency</th>
+              <td class="soft">every published rate carries a source and is positive; no derived rupee figure without a sourced rate for that exact period</td>
+            </tr>
+            <tr>
+              <th scope="row">Coverage</th>
+              <td class="soft">tracked lines cannot outnumber the heading&rsquo;s official lines; coverage shares cannot be negative</td>
+            </tr>
+            <tr class="total">
+              <th scope="row">Warnings only</th>
+              <td class="soft">mirror gap outside band; adjustment coverage below 25%; tariff-line total far from the six-digit figure; part years; a coverage share above 100%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="rules">
+        <div class="rule">
+          <h3>Every stage fails closed</h3>
+          <p>
+            An incomplete pull, a QA failure, a schema mismatch or a snapshot
+            built from fixture data all stop the process and leave the live
+            snapshot exactly as it was. A stale but validated dashboard is
+            preferable to a fresh but wrong one, and a partial snapshot is the
+            dangerous case &mdash; it is missing periods rather than visibly
+            broken.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================ -->
+
+  <section>
+    <div class="sechead">
+      <h2>Reproducing a figure yourself</h2>
+      <span class="q">Section 12</span>
+    </div>
+
+    <div class="stack">
+      <p class="lede">
+        Every published figure can be rebuilt from UN Comtrade&rsquo;s own
+        interface without running any of this code. The steps below reproduce a
+        global trade headline; the same approach works for any field.
+      </p>
+
+      <ol class="rules-list">
+        <li>
+          <strong>Read what the dashboard claims.</strong> Open the product page,
+          note the year, and download the workbook. The
+          <span class="hs">Annual</span> sheet carries
+          <span class="hs">grossGlobalImports</span>,
+          <span class="hs">reImportsRemoved</span>,
+          <span class="hs">netGlobalImports</span> and
+          <span class="hs">reImportAdjustmentCoverage</span> for that year.
+        </li>
+        <li>
+          <strong>Fetch the same rows.</strong> In Comtrade Plus, request:
+          reporters = All, partner = World, second partner = World, customs
+          procedure = TOTAL, mode of transport = TOTAL, commodity = the HS code,
+          flow = Imports, period = the year. Then repeat with flow = Re-imports.
+        </li>
+        <li>
+          <strong>Check the gross total.</strong> Sum the Imports rows. It should
+          equal <span class="hs">grossGlobalImports</span> to within a dollar.
+          If it does not, the likely cause is a second-partner or
+          mode-of-transport breakdown left in the export &mdash; the aggregate
+          filters above are what remove it.
+        </li>
+        <li>
+          <strong>Net it reporter by reporter.</strong> Join the two tables on
+          reporter. Subtract Re-imports from Imports where a reporter appears in
+          both <em>and</em> its re-imports do not exceed its imports; otherwise
+          keep the gross value. The sum is
+          <span class="hs">netGlobalImports</span>, which is the headline.
+        </li>
+        <li>
+          <strong>Check the disclosure.</strong> The imports of reporters that
+          appeared in the re-imports table, divided by the gross total, is
+          <span class="hs">reImportAdjustmentCoverage</span>.
+        </li>
+        <li>
+          <strong>Check India.</strong> India&rsquo;s netted value divided by the
+          headline is the published share; its position in the sorted netted
+          table is the published rank.
+        </li>
+      </ol>
+
+      <div class="callout">
+        <p>
+          <strong>If a figure is blank, check the status before the arithmetic.</strong>
+          The workbook&rsquo;s <span class="hs">globalTradeStatus</span> column
+          gives the coverage verdict for that year. A blank against CAUTION or
+          INVALID is the system working: the underlying observations are still
+          in the sheet, and re-running the steps above on them will produce a
+          number the dashboard deliberately declined to publish.
+        </p>
+      </div>
+
+      <p class="soft">
+        Two figures cannot be reproduced from Comtrade alone. Tariff-line
+        detail comes from a DGCIS / TradeStat export, which is committed to the
+        repository and diffable. Rupee conversion uses the rate table in
+        <span class="hs">config/fx_inr_usd.csv</span>, where every rate carries
+        its source; the rates in force travel with the snapshot under
+        <span class="hs">manifest.currency.rates</span>, so any rupee figure on
+        the page can be traced to the exact number that produced it.
+      </p>
+    </div>
+
+    <footer>
+      <p>
+        Source: UN Comtrade, all reporters, partner World, aggregate second
+        partner / customs procedure / mode of transport. India tariff-line
+        detail at ITC(HS) eight digits from DGCIS / TradeStat when supplied, on
+        financial years. Rupee conversion at the RBI annual average reference
+        rate. Official heading line counts from Comtrade&rsquo;s H6 reference
+        table.
+      </p>
+      <p style="margin-top: 7pt;">
+        Field names in this document are the literal keys in the published
+        snapshot. Every figure on the dashboard can be located in
+        <span class="hs">public/data/snapshots/current/</span> and traced back
+        through the code paths named in Section 1.
+      </p>
+    </footer>
+  </section>
+
+</body>
+</html>

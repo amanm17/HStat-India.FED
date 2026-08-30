@@ -1,0 +1,51 @@
+{
+  "id": "plfs",
+  "title": "Periodic Labour Force Survey",
+  "subtitle": "Employment, wages and worker characteristics by NIC industry, occupation and state",
+
+  "_keys": "PLFS is a household survey: the unit is a person, not a factory or a shipment. It carries industry (NIC) and occupation (NCO) of work, so it bridges to trade only through the same HS-NIC concordance ASI uses, and only in aggregate. Person-level microdata is never published to the dashboard; only the aggregates declared below are.",
+  "keys": {
+    "industry": "nic5",
+    "occupation": "nco3",
+    "region": "state",
+    "period": "FY"
+  },
+
+  "periodBasis": "FY",
+  "frequencies": ["A", "Q"],
+
+  "storage": {
+    "raw": "data/raw/plfs",
+    "format": "parquet",
+    "snapshot": "public/data/snapshots/current/datasets/plfs"
+  },
+
+  "_aggregation": "PLFS ships as person-level blocks with survey weights. Weighted estimation happens once, in the dataset's own processing step, and only the estimates land in the snapshot. Anything that reads a PLFS row without applying the multiplier is wrong, so the raw blocks are deliberately not exposed to the frontend at all.",
+  "aggregation": {
+    "weightColumn": "multiplier",
+    "publishes": ["estimates"],
+    "withholdsMicrodata": true
+  },
+
+  "surface": {
+    "route": "/labour",
+    "panels": [
+      {
+        "id": "plfs-employment",
+        "title": "Employment in related industries",
+        "on": "product",
+        "via": "hs6-nic5",
+        "note": "Survey estimates, weighted. Mapped from NIC industries, so a product's figure spans every industry the concordance links to it."
+      }
+    ]
+  },
+
+  "provenance": {
+    "source": "MoSPI, Periodic Labour Force Survey",
+    "url": "https://mospi.gov.in",
+    "licence": "Government of India open data",
+    "refresh": "annual and quarterly, on release"
+  },
+
+  "status": "declared"
+}

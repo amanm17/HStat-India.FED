@@ -6,6 +6,8 @@ import shutil
 import uuid
 from pathlib import Path
 
+from definition import hs6_universe, parent_universe
+
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -103,14 +105,55 @@ def validate_staging(
             "Promotion blocked: no product JSON files found."
         )
 
-    # Current launch contract.
-    # Parent HS-2/4 data will later live in a separate
-    # level-aware structure and will not weaken this check.
-    if len(product_files) != 56:
+    # The expected count comes from the sector definition CSV, not from a
+    # number written into this file. Editing the CSV changes the contract.
+    expected = set(
+        hs6_universe()
+    )
+
+    found = {
+        path.stem
+        for path in product_files
+    }
+
+    missing = sorted(
+        expected - found
+    )
+
+    if missing:
         raise RuntimeError(
             "Promotion blocked: "
-            f"expected 56 HS-6 product files, found {len(product_files)}."
+            f"{len(missing)} HS-6 codes in the sector definition have no "
+            "product file: "
+            + ", ".join(missing[:10])
         )
+
+    parents = (
+        parent_universe()
+    )
+
+    for level, codes in parents.items():
+        directory = (
+            staging
+            / "parents"
+            / level
+        )
+
+        absent = [
+            code
+            for code in codes
+            if not (
+                directory
+                / f"{code}.json"
+            ).exists()
+        ]
+
+        if absent:
+            raise RuntimeError(
+                "Promotion blocked: "
+                f"{len(absent)} HS-{level} parent nodes missing: "
+                + ", ".join(absent[:10])
+            )
 
     malformed = []
 
@@ -120,7 +163,7 @@ def validate_staging(
         )
 
         if (
-            data.get("hs6")
+            data.get("code")
             != path.stem
         ):
             malformed.append(
@@ -138,6 +181,10 @@ def validate_staging(
     return {
         "products":
             len(product_files),
+        "parents": {
+            level: len(codes)
+            for level, codes in parents.items()
+        },
         "failures":
             len(failures),
         "warnings":
@@ -244,6 +291,11 @@ def promote(
     print(
         "HS-6 products:",
         result["products"],
+    )
+
+    print(
+        "Parent nodes:",
+        result["parents"],
     )
 
     print(

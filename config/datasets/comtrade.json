@@ -1,0 +1,38 @@
+{
+  "id": "comtrade",
+  "title": "World trade",
+  "subtitle": "UN Comtrade merchandise trade, reporter-to-world and India bilateral",
+
+  "_keys": "The key space this dataset is indexed by. A join with another dataset is only offered where the two share a key, or where a concordance bridges them. Declaring this is what lets the shell know what can meet what.",
+  "keys": {
+    "product": "hs6",
+    "partner": "m49",
+    "period": "CY"
+  },
+
+  "_periodBasis": "Calendar year and calendar month. See config/scope.json -> periods.",
+  "periodBasis": "CY",
+  "frequencies": ["A", "M"],
+
+  "storage": {
+    "raw": "data/raw/store",
+    "format": "parquet",
+    "snapshot": "public/data/snapshots/current"
+  },
+
+  "surface": {
+    "_route": "The dataset's own page. Comtrade is the incumbent, so its route is the dashboard root rather than a sub-page.",
+    "route": "/",
+    "_panels": "Panels this dataset contributes to pages owned by others, matched on key. Comtrade contributes nothing outward yet; other datasets contribute inward to its product pages.",
+    "panels": []
+  },
+
+  "provenance": {
+    "source": "UN Comtrade",
+    "url": "https://comtradeplus.un.org",
+    "licence": "UN Comtrade terms of use",
+    "refresh": "monthly, see .github/workflows/monthly-refresh.yml"
+  },
+
+  "status": "live"
+}

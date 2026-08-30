@@ -1,0 +1,52 @@
+from_key,from_code,to_key,to_code,weight,basis,source,note
+# ---------------------------------------------------------------------------
+# HS-6 product  <->  NIC-5 industry
+#
+# The bridge between what India *trades* and what India *makes and employs in*.
+# Trade data is classified by product (HS); ASI and PLFS are classified by
+# economic activity (NIC). They are not the same thing and there is no exact
+# mapping between them, so this file is a stated, reviewable judgement rather
+# than a lookup somebody can derive.
+#
+# from_key    product | industry | region | partner   the key space of from_code
+# from_code   the code in that space
+# to_key      the key space of to_code
+# to_code     the code it maps to
+# weight      0-1. What share of from_code belongs to to_code. Rows sharing a
+#             from_code should sum to 1. Leave blank when the share is unknown -
+#             a blank weight means the link exists but nothing may be
+#             apportioned across it.
+# basis       exact | dominant | partial | judgement
+# source      the published concordance or the person who made the call
+# note        why, in one sentence
+#
+# THE RULE THIS FILE EXISTS TO ENFORCE
+#   A join between two datasets happens only where a row here says it may.
+#   Nothing is inferred from a code's digits, nothing is matched on a
+#   description, and a missing row means the panel stays hidden rather than
+#   showing a number built on a guess.
+#
+# WEIGHTS AND WHAT THEY MAY BE USED FOR
+#   A weight apportions a *from* total across *to* codes. It is only valid in
+#   that direction. Going the other way - splitting an industry's output across
+#   the products it makes - needs its own rows with their own weights, because
+#   the two splits are different numbers.
+#
+#   Where weight is blank the pipeline will still link the codes, so a panel
+#   can say "this product relates to industries X and Y", but it will refuse to
+#   compute a share. That is the intended default: a link is cheap to assert
+#   and a weight is not.
+#
+# NIC-2008 is the current revision. When NIC is revised, treat it exactly like
+# an HS revision: record the lineage rather than rewriting history.
+#
+# ---------------------------------------------------------------------------
+# No rows yet. ASI and PLFS are declared but not ingested, and writing
+# speculative mappings before the data exists would be inventing the very thing
+# this file is meant to make explicit. Add rows as the industries are agreed.
+#
+# Worked example of the shape, commented out until it is actually reviewed:
+#
+# product,851713,industry,26301,,dominant,FED review,Smartphones are made under NIC 26301 communication equipment
+# product,851713,industry,26200,,partial,FED review,Some assembly is classified under computers and peripherals
+# ---------------------------------------------------------------------------

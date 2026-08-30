@@ -1,0 +1,529 @@
+code,terms,primary,note
+# ---------------------------------------------------------------------------
+# Everyday vocabulary -> HS code.
+#
+# code     2, 4 or 6 digit HS code.
+# terms    Semicolon-separated words people actually type.
+# primary  yes  = searching any of these terms produces the confident
+#                "<term> sits in HS <code>" answer card.
+#          no   = the terms only boost ranking; no answer card.
+# note     One short plain sentence shown under the answer card.
+#
+# THE ORGANISING RULE
+#   A generic or plural term answers at HS-4:   "batteries"  -> 8507
+#   A specific product term answers at HS-6:    "lithium ion battery" -> 850760
+# That is what makes the 2- and 4-digit codes first-class rather than a
+# by-product of the six-digit list. When someone asks about a category they
+# get the category; when they ask about a product they get the product.
+#
+# A hand-written row here always wins over the automatic rule that promotes
+# a unique product label from fed_sector_definition.csv to an answer term.
+#
+# Lines starting with # are ignored. Edit freely, then re-run
+# `python pipeline/build_hs_library.py`.
+# ---------------------------------------------------------------------------
+
+# ===========================================================================
+# CHAPTER 84 - computing, office and white goods machinery
+# ===========================================================================
+84,machinery;mechanical appliances;computing machinery;industrial machinery,yes,Chapter 84 - machinery and mechanical appliances, including all computing hardware.
+8414,compressors;fans;blowers;air pumps,yes,Air and gas pumps, compressors and fans.
+841430,refrigeration compressor;ac compressor;fridge compressor;hermetic compressor,yes,Compressors of a kind used in refrigerating and air-conditioning equipment.
+841451,ceiling fan;table fan;pedestal fan;exhaust fan;wall fan;household fan,yes,Household fans with a self-contained motor of 125 W or less.
+841459,industrial fan;commercial fan;blower;axial fan,yes,Fans larger than the household type.
+8415,air conditioner;air conditioners;air conditioning;ac units;cooling equipment,yes,Air-conditioning machines of all types.
+841510,window ac;room air conditioner;split ac;self-contained air conditioner,yes,Window and wall-type air-conditioning machines.
+841581,commercial ac with heat pump;reversible air conditioner;ducted ac,yes,Non-window air conditioners incorporating a refrigerating unit and a reversing valve.
+841583,commercial ac without refrigeration;air handling unit,yes,Non-window air conditioners without a refrigerating unit.
+841582,central ac;chiller;packaged air conditioner,yes,Other air conditioners incorporating a refrigerating unit.
+841590,ac parts;air conditioner parts;indoor unit;outdoor unit;evaporator coil,yes,Parts of air-conditioning machines.
+8418,refrigeration;refrigerators;freezers;cold storage,yes,Refrigerating and freezing equipment.
+841810,refrigerator;fridge;double door fridge;combined fridge freezer,yes,Combined refrigerator-freezers with separate external doors.
+841861,heat pump;water source heat pump,yes,Heat pumps other than air-conditioning machines.
+841869,commercial refrigeration;display cooler;visi cooler;bottle cooler,yes,Refrigerating and freezing equipment not covered elsewhere in 8418.
+841899,fridge parts;refrigerator parts;freezer parts;evaporator,yes,Parts of refrigerating and freezing equipment.
+8419,water heater;geyser;non-electric heater,no,
+841911,gas water heater;instant gas geyser,yes,Instantaneous gas water heaters.
+841912,solar water heater;solar geyser,yes,Solar water heaters.
+8422,dishwashers;dish washing,no,
+842211,dishwasher;dish washer;household dishwasher,yes,Household dishwashing machines.
+8423,weighing machines;scales;weighing scales,yes,Weighing machinery of all kinds.
+842310,personal scale;bathroom scale;baby scale;kitchen scale,yes,Personal and household weighing scales.
+842320,conveyor scale;continuous weigher,yes,Scales for continuous weighing of goods on conveyors.
+842330,constant weight scale;bagging scale;filling scale,yes,Constant-weight scales and bagging scales.
+842381,commercial scale small;shop scale;retail weighing scale,yes,Commercial weighing machines of limited capacity.
+842382,platform scale;industrial weighing scale,yes,Commercial weighing machines of higher capacity.
+842389,weighbridge;heavy duty scale,yes,Commercial weighing machines above the 842382 capacity band.
+842390,weighing machine parts;calibration weights,yes,Weights of all kinds and parts of weighing machinery.
+8443,printing machinery;printers;copiers;printing presses,yes,Printing machinery, printers, copiers and facsimile machines.
+844311,offset press reel fed;web offset press,no,
+844312,offset press sheet fed office;small offset press,no,
+844313,offset press;offset printing machine,yes,Offset printing machinery other than reel-fed or office sheet-fed.
+844316,flexographic press;flexo printing machine,yes,Flexographic printing machinery.
+844317,gravure press;rotogravure printing machine,yes,Gravure printing machinery.
+844319,other printing press;letterpress machine;screen printing machine,yes,Printing machinery using plates and cylinders not covered elsewhere.
+844331,multifunction printer;all in one printer;mfp;printer scanner copier,yes,Machines performing two or more of printing, copying or faxing, connectable to a computer or network.
+844332,printer;inkjet printer;laser printer;network printer,yes,Single-function printers and copiers that connect to a computer or network.
+844339,standalone copier;photocopier;non-networked printer,yes,Single-function printers and copiers that do not connect to a computer or network.
+844391,printing press parts;printing components,yes,Parts and accessories of the printing machinery of 8443.1.
+844399,printer parts;printer cartridge assembly;print head;toner assembly,yes,Parts and accessories of printers, copiers and facsimile machines.
+8450,washing machines;laundry machines,yes,Household and laundry-type washing machines.
+845011,washing machine;front load washing machine;top load washing machine;automatic washing machine,yes,Fully automatic household washing machines up to 10 kg dry linen.
+845012,semi automatic washing machine;twin tub washing machine,yes,Household washing machines with a built-in spin drier, not fully automatic.
+845019,manual washing machine;non automatic washer,yes,Household washing machines that are neither fully automatic nor fitted with a spin drier.
+845020,commercial washing machine;industrial washer;laundry washer,yes,Washing machines above 10 kg dry linen capacity.
+8451,clothes dryers;drying machines;tumble dryers,yes,Drying machines for textiles and laundry.
+845121,clothes dryer;tumble dryer;household dryer,yes,Drying machines up to 10 kg dry linen capacity.
+845129,commercial dryer;industrial drying machine,yes,Drying machines above 10 kg dry linen capacity.
+8456,laser cutting machine;machine tools,no,
+845610,laser machine tool;laser cutter;laser marking machine,yes,Machine tools that work material by laser or other light beam.
+8470,calculators;calculating machines;accounting machines,yes,Calculating machines, cash registers and similar.
+847010,pocket calculator;scientific calculator;electronic calculator,yes,Electronic calculators that run without an external power source.
+847021,printing calculator;desktop calculator with printer,yes,Electronic calculating machines with a printing device.
+847029,desktop calculator;mains calculator,yes,Electronic calculating machines without a printing device.
+847030,mechanical calculator;non electronic calculator,yes,Non-electronic calculating machines.
+8471,computer;computers;computing;pc hardware;data processing machines,yes,Computers and their units - laptops, desktops, servers, storage and peripherals.
+847130,laptop;laptops;notebook computer;notebook;portable computer;macbook;chromebook;ultrabook,yes,A laptop is a portable data-processing machine under 10 kg with a CPU, keyboard and display.
+847141,all in one pc;mini pc;small form factor pc;integrated desktop,yes,Machines housing the CPU with an input and output unit together.
+847149,computer system;server;workstation;rack server;pc system,yes,Data-processing machines presented as complete systems.
+847150,desktop;desktop computer;pc;personal computer;tower pc;processing unit,yes,Processing units presented separately - the box in a desktop PC.
+847160,keyboard;mouse;computer mouse;scanner;webcam;input device;output device;trackpad,yes,Input and output units of data-processing machines.
+847170,hard drive;hdd;ssd;solid state drive;external hard disk;nvme;storage unit,yes,Storage units of data-processing machines.
+847180,graphics card;gpu card;video card;expansion card;network card;sound card,yes,Other units of data-processing machines, including add-in cards.
+847190,card reader;optical reader;magnetic reader;barcode reader,yes,Magnetic and optical readers and data-transcribing machines.
+8472,office machines;office equipment,no,
+8473,computer parts;pc parts;peripheral parts;computer accessories,yes,Parts and accessories of computers and office machines.
+847330,motherboard;mainboard;logic board;laptop parts;pc components,yes,Parts and accessories of computers, including motherboards.
+8476,vending machines,yes,Automatic goods and beverage vending machines.
+847621,hot drinks vending machine;coffee vending machine,yes,Beverage vending machines with heating or refrigeration.
+847629,cold drinks vending machine,yes,Beverage vending machines without heating or refrigeration.
+847681,vending machine with cooling;refrigerated vending machine,yes,Goods vending machines incorporating heating or refrigerating devices.
+847689,vending machine;snack vending machine;atm vending,yes,Goods vending machines without heating or refrigerating devices.
+
+# ===========================================================================
+# CHAPTER 85 - electrical machinery and electronics
+# ===========================================================================
+85,electronics;electrical machinery;electrical equipment;electricals,yes,Chapter 85 - electrical machinery and electronics. Most of the FED sector sits here.
+8501,electric motors;motors,no,
+850110,micro motor;small motor;bldc motor;fractional horsepower motor,yes,Electric motors of 37.5 W output or less.
+8504,power supply;converters;transformers;chargers,yes,Transformers, static converters and inductors.
+850421,distribution transformer small;oil filled transformer,no,
+850422,distribution transformer;power transformer medium,no,
+850423,power transformer;grid transformer;large power transformer,yes,Liquid-dielectric transformers above 10000 kVA.
+850431,small transformer;control transformer;low power transformer,yes,Dry-type transformers up to 1 kVA.
+850432,transformer 1 to 16 kva;dry type transformer,no,
+850433,transformer 16 to 500 kva,no,
+850434,transformer above 500 kva,no,
+850440,charger;phone charger;laptop adapter;power adapter;adaptor;smps;inverter;static converter;power supply;ups,yes,Electrical static converters - chargers, adapters, SMPS and inverters.
+850450,inductor;choke;coil,yes,Electrical inductors.
+850490,transformer parts;charger parts;adapter parts;converter parts,yes,Parts of transformers, static converters and inductors.
+8505,magnets;permanent magnets,yes,Permanent magnets and electromagnets.
+850511,permanent magnet;neodymium magnet;rare earth magnet;ndfeb magnet,yes,Metal permanent magnets, including rare-earth types.
+850519,ferrite magnet;ceramic magnet;bonded magnet,yes,Non-metal permanent magnets.
+8506,primary batteries;dry cells;disposable batteries,yes,Primary cells and batteries - the non-rechargeable kind.
+850610,alkaline battery;aa battery;aaa battery;manganese dioxide battery;dry cell,yes,Primary manganese-dioxide cells - ordinary alkaline batteries.
+850630,mercuric oxide battery,no,
+850640,silver oxide battery;button cell silver,yes,Primary silver-oxide cells.
+850650,lithium primary battery;coin cell;cr2032;button cell lithium,yes,Primary lithium cells - coin and button cells.
+850660,zinc air battery;hearing aid battery,yes,Primary air-zinc cells.
+850680,other primary battery,no,
+8507,battery;batteries;rechargeable battery;accumulator;energy storage,yes,Electric accumulators - rechargeable batteries of every chemistry.
+850710,car battery;automotive battery;starter battery;sli battery,yes,Lead-acid accumulators for starting piston engines.
+850720,inverter battery;ups battery;stationary lead acid battery;tubular battery,yes,Lead-acid accumulators other than engine-starting types.
+850730,nickel cadmium battery;nicd battery,yes,Nickel-cadmium accumulators.
+850740,nickel iron battery,no,
+850750,nickel metal hydride battery;nimh battery,yes,Nickel-metal-hydride accumulators.
+850760,lithium ion battery;li-ion battery;lithium battery;battery pack;ev battery;laptop battery;phone battery;cell;power bank cell,yes,Lithium-ion accumulators, including cells, packs and separators.
+850780,other accumulator;sodium ion battery;flow battery,yes,Accumulators of chemistries other than lead-acid, nickel or lithium-ion.
+8508,vacuum cleaners,yes,Vacuum cleaners of all types.
+850811,vacuum cleaner;household vacuum;robot vacuum;bagged vacuum,yes,Vacuum cleaners up to 1500 W with a dust bag or receptacle.
+850819,wet and dry vacuum;shop vacuum,yes,Vacuum cleaners with a self-contained motor not covered by 850811.
+850860,industrial vacuum;central vacuum system,yes,Vacuum cleaners without a self-contained electric motor.
+8509,domestic appliances;kitchen appliances,no,
+850940,mixer grinder;food processor;blender;juicer;food grinder,yes,Food grinders, mixers and juice extractors with a self-contained motor.
+850980,other domestic appliance;electric domestic appliance,yes,Electro-mechanical domestic appliances not covered elsewhere in 8509.
+8510,shavers;grooming appliances,yes,Shavers, hair clippers and hair-removing appliances.
+851010,electric shaver;razor;electric razor,yes,Shavers with a self-contained electric motor.
+851030,epilator;hair removal device;trimmer,yes,Hair-removing appliances with a self-contained electric motor.
+8511,ignition equipment;automotive electrical,no,
+8512,vehicle lighting;automotive lighting;signalling equipment,yes,Electrical lighting and signalling equipment for vehicles.
+851220,headlight;headlamp;vehicle headlight;car light;tail light,yes,Electrical lighting and visual signalling equipment for vehicles.
+851290,vehicle lighting parts;horn parts;wiper motor parts,yes,Parts of vehicle lighting and signalling equipment.
+8513,torches;portable lamps,yes,Portable electric lamps with their own power source.
+851390,torch parts;flashlight parts;portable lamp parts,yes,Parts of portable electric lamps.
+8516,electro-thermic appliances;heating appliances;home appliances,yes,Electric heaters, water heaters and cooking appliances for the home.
+851629,room heater;space heater;convector heater;oil heater,yes,Electric space and soil heating apparatus.
+851650,microwave;microwave oven,yes,Domestic microwave ovens.
+851660,oven;electric oven;cooktop;induction cooktop;griller;roaster;cooker,yes,Ovens, cookers, cooking plates, grillers and roasters for domestic use.
+851671,coffee maker;tea maker;kettle;electric kettle,yes,Domestic coffee and tea makers.
+851679,water heater;geyser;immersion heater;electric water heater,yes,Electro-thermic domestic appliances not covered elsewhere in 8516.
+851680,heating element;heating resistor;heater coil,yes,Electric heating resistors.
+851690,heater parts;appliance heating parts,yes,Parts of electro-thermic appliances.
+8517,telecom;telecommunications;networking;network equipment;phones;telephony,yes,Telephone sets and apparatus for transmitting voice, images and data over networks.
+851711,cordless phone;dect phone,yes,Line telephone sets with cordless handsets.
+851713,smartphone;smart phone;mobile phone;cell phone;cellphone;iphone;android phone;handset,yes,Smartphones for cellular or other wireless networks.
+851714,feature phone;basic phone;keypad phone;button phone,yes,Cellular telephone sets other than smartphones.
+851718,landline;landline phone;desk phone;corded phone;telephone set,yes,Telephone sets other than cellular and cordless handsets.
+851761,base station;cell tower;telecom tower equipment;bts;enodeb;gnodeb,yes,Radio base stations for mobile networks.
+851762,router;wifi router;network switch;ethernet switch;modem;gateway;access point;networking equipment,yes,Communication apparatus for wired and wireless networks - routers, switches and modems.
+851769,set top box;stb;ott box;streaming box;dth box,yes,Set-top boxes and other reception apparatus for networks.
+851770,communication apparatus parts;telephone parts,yes,Parts of telephone sets and communication apparatus.
+851771,phone antenna;handset aerial;communication antenna parts,yes,Aerials, aerial reflectors and their parts.
+851779,pcba;populated circuit board;phone circuit board;telecom board,yes,Populated boards and other parts of communication apparatus.
+8518,audio;sound equipment;speakers;microphones,yes,Microphones, loudspeakers, headphones and audio amplifiers.
+851810,microphone;mic;condenser microphone,yes,Microphones and their stands.
+851821,speaker single;single loudspeaker,yes,Single loudspeakers mounted in their enclosures.
+851822,speaker;speakers;bluetooth speaker;soundbar;multi speaker enclosure,yes,Multiple loudspeakers mounted in one enclosure.
+851829,speaker driver;loudspeaker unit;unmounted speaker,yes,Loudspeakers not mounted in an enclosure.
+851830,headphone;headphones;earphone;earphones;earbuds;tws;headset,yes,Headphones and earphones, with or without a microphone.
+851840,audio amplifier;av amplifier;power amplifier,yes,Audio-frequency electric amplifiers.
+851850,amplifier set;pa system;public address system,yes,Electric sound amplifier sets.
+8519,sound recording;audio players,yes,Sound recording and reproducing apparatus.
+851981,music player;mp3 player;audio recorder;digital audio player,yes,Sound recording and reproducing apparatus using magnetic, optical or semiconductor media.
+851989,turntable;record player;other sound apparatus,yes,Sound recording and reproducing apparatus not covered elsewhere in 8519.
+8521,video recording;video players,yes,Video recording and reproducing apparatus.
+852110,vcr;magnetic tape video recorder,yes,Magnetic tape-type video recording apparatus.
+852190,dvd player;blu ray player;digital video recorder;nvr,yes,Video recording and reproducing apparatus other than magnetic tape.
+8522,audio video parts,no,
+852210,pick-up cartridge;stylus cartridge,yes,Pick-up cartridges for sound reproducing apparatus.
+852290,audio parts;video parts;recorder parts,yes,Parts and accessories of sound and video recording apparatus.
+8523,storage media;memory media;recording media,yes,Magnetic, optical and semiconductor storage media.
+852321,magnetic stripe card;swipe card,yes,Cards incorporating a magnetic stripe.
+852329,magnetic media;magnetic tape;floppy disk,yes,Magnetic media other than magnetic-stripe cards.
+852341,blank disc;blank dvd;blank cd,yes,Unrecorded optical media.
+852349,disc;dvd;cd;recorded optical media,yes,Recorded optical media.
+852351,pen drive;usb drive;flash drive;memory card;sd card;ssd module;solid state media,yes,Solid-state non-volatile storage media.
+8524,display module;display panel;flat panel display,yes,Flat panel display modules, with or without touch.
+852411,lcd module without drivers;bare lcd panel,yes,Liquid-crystal display modules without drivers or control circuits.
+852412,oled module without drivers;bare oled panel,yes,OLED display modules without drivers or control circuits.
+852419,display module without drivers,no,
+852491,lcd panel;lcd display module;touch display;lcd screen,yes,Liquid-crystal display modules with drivers or control circuits.
+852492,oled panel;oled display module;amoled;oled screen,yes,OLED display modules with drivers or control circuits.
+852499,other display module;micro led module,yes,Flat panel display modules other than LCD or OLED.
+8525,cameras;transmission apparatus;broadcast equipment,yes,Broadcast transmission apparatus and cameras.
+852550,broadcast transmitter;radio transmitter,yes,Transmission apparatus without reception apparatus.
+852560,transceiver;walkie talkie;two way radio;transmitter receiver,yes,Transmission apparatus incorporating reception apparatus.
+852580,camera;digital camera;video camera;camcorder;television camera,yes,Television cameras, digital cameras and video camera recorders.
+852581,high speed camera;slow motion camera,yes,High-speed cameras as defined in the subheading note.
+852582,radiation hardened camera;space camera,yes,Radiation-hardened or radiation-tolerant cameras.
+852583,night vision camera;thermal camera;infrared camera,yes,Night-vision cameras as defined in the subheading note.
+852589,camera module;cctv camera;security camera;webcam module;ip camera,yes,Television and image cameras not covered elsewhere in 8525.8.
+8526,radar;navigation aids;remote control,yes,Radar, radio navigational aid and radio remote control apparatus.
+852610,radar;radar apparatus;radar system,yes,Radar apparatus.
+852691,gps;navigation aid;radio navigation;gnss receiver,yes,Radio navigational aid apparatus, including GPS and GNSS receivers.
+852692,remote control;rf remote;radio remote control,yes,Radio remote control apparatus.
+8527,radio receivers;radios,yes,Radio-broadcast receivers.
+852713,portable radio with player;boombox,no,
+852719,portable radio;transistor radio,yes,Radio-broadcast receivers that run without an external power source.
+852721,car stereo;car radio;head unit,yes,Car radio-broadcast receivers combined with sound recording or reproducing.
+852729,car radio without player,no,
+852791,home audio system;hi-fi system;music system,yes,Radio-broadcast receivers combined with sound recording or reproducing apparatus.
+852792,clock radio,no,
+852799,other radio receiver;tuner,yes,Radio-broadcast receivers not covered elsewhere in 8527.
+8528,display;screens;monitors;televisions;projectors,yes,Monitors, projectors and television reception apparatus.
+852842,crt computer monitor,no,
+852849,crt monitor,no,
+852852,monitor;computer monitor;lcd monitor;led monitor;pc monitor;display screen,yes,Monitors designed to connect to a computer.
+852859,industrial monitor;signage display;professional monitor,yes,Monitors other than cathode-ray tube not designed for a computer.
+852871,tv tuner;set top reception apparatus,yes,Television reception apparatus not incorporating a display.
+852872,television;tv;colour tv;led tv;smart tv;tv set,yes,Television reception apparatus incorporating a display.
+8529,broadcast parts;tv parts;reception apparatus parts,yes,Parts of transmission and reception apparatus.
+852910,antenna;aerial;dish antenna;tv antenna,yes,Aerials and aerial reflectors of all kinds.
+852990,tv parts;display parts;broadcast equipment parts;open cell,yes,Parts of the reception and transmission apparatus of 8524 to 8528.
+8530,traffic control;signalling equipment,yes,Signalling, safety and traffic control equipment.
+853010,railway signalling;rail traffic control,yes,Signalling and traffic control equipment for railways and tramways.
+853080,traffic signal;traffic light;road signalling;parking control,yes,Signalling and traffic control equipment for roads, waterways and ports.
+8531,alarms;indicator panels;sirens,yes,Electric sound or visual signalling apparatus.
+8532,capacitors,yes,Electrical capacitors of all types.
+853210,power capacitor;power factor capacitor,yes,Fixed capacitors for 50/60 Hz power circuits.
+853221,tantalum capacitor,yes,Fixed tantalum capacitors.
+853222,electrolytic capacitor;aluminium electrolytic capacitor,yes,Fixed aluminium electrolytic capacitors.
+853223,single layer ceramic capacitor,no,
+853224,mlcc;ceramic capacitor;multilayer ceramic capacitor,yes,Fixed multilayer ceramic capacitors - MLCCs.
+853225,film capacitor;paper capacitor;plastic film capacitor,yes,Fixed capacitors with a paper or plastic dielectric.
+853229,other fixed capacitor,no,
+853230,variable capacitor;trimmer capacitor,yes,Variable and pre-set capacitors.
+8533,resistors,yes,Electrical resistors, rheostats and potentiometers.
+853310,carbon resistor;film resistor,yes,Fixed carbon composition and film resistors.
+853321,resistor;chip resistor;smd resistor;fixed resistor,yes,Fixed resistors rated at 20 W or less.
+853329,power resistor;high power resistor,yes,Fixed resistors rated above 20 W.
+853331,wirewound variable resistor low power,no,
+853339,wirewound variable resistor high power,no,
+853340,potentiometer;variable resistor;rheostat;trimpot,yes,Variable resistors, rheostats and potentiometers.
+8534,printed circuit;bare board manufacturing,yes,Bare printed circuits.
+853400,pcb;printed circuit board;bare board;circuit board;multilayer pcb;flex pcb;hdi pcb,yes,Bare printed circuits before components are mounted.
+8535,high voltage switchgear;switchgear above 1000v,yes,Switching and protection apparatus for above 1000 volts.
+853510,hv fuse;high voltage fuse,yes,Fuses for a voltage exceeding 1000 volts.
+853521,hv circuit breaker medium;circuit breaker below 72.5kv,yes,Automatic circuit breakers above 1000 volts but below 72.5 kV.
+853529,ehv circuit breaker;circuit breaker above 72.5kv,yes,Automatic circuit breakers of 72.5 kV or more.
+853530,isolator switch;hv isolator;disconnector,yes,Isolating and make-and-break switches above 1000 volts.
+853540,lightning arrester;surge arrester;surge suppressor;voltage limiter,yes,Lightning arresters, voltage limiters and surge suppressors.
+853590,other hv switchgear,no,
+8536,switches;sockets;connectors;low voltage switchgear,yes,Switching, protection and connection apparatus up to 1000 volts.
+853610,fuse;low voltage fuse;cartridge fuse,yes,Fuses for a voltage not exceeding 1000 volts.
+853620,circuit breaker;mcb;rccb;rcbo;breaker,yes,Automatic circuit breakers up to 1000 volts.
+853630,surge protector;circuit protection device,yes,Apparatus for protecting electrical circuits up to 1000 volts.
+853641,relay;low voltage relay;signal relay,yes,Relays for a voltage not exceeding 60 volts.
+853649,power relay;contactor;relay above 60v,yes,Relays for a voltage exceeding 60 volts.
+853650,switch;electrical switch;toggle switch;modular switch;rocker switch,yes,Electrical switches up to 1000 volts.
+853661,lamp holder;bulb holder,yes,Lamp-holders.
+853669,plug;socket;power socket;electrical plug;connector;usb connector,yes,Plugs and sockets up to 1000 volts.
+853690,terminal block;wire connector;junction box;connection apparatus,yes,Apparatus for switching or connecting circuits not covered elsewhere in 8536.
+8537,control panels;switchboards;distribution boards,yes,Boards, panels and consoles for electric control.
+853710,control panel;electrical panel;switchboard;distribution board;console,yes,Boards, panels and consoles for electric control up to 1000 volts.
+853720,hv control panel;substation panel,yes,Boards, panels and consoles for electric control above 1000 volts.
+8538,switchgear components,yes,Parts of switching, protection and control apparatus.
+853810,empty panel;panel enclosure,yes,Boards and panels not equipped with their apparatus.
+853890,switchgear parts;phone mechanics;handset parts;electrical apparatus parts,yes,Parts of the apparatus of 8535, 8536 and 8537.
+8539,lamps;bulbs;light bulbs;lighting,yes,Electric filament, discharge, LED and UV lamps.
+853910,sealed beam lamp;sealed beam headlight,yes,Sealed beam lamp units.
+853921,halogen lamp;tungsten halogen bulb,yes,Tungsten halogen filament lamps.
+853922,filament bulb low power;incandescent bulb small,no,
+853929,incandescent bulb;filament lamp;gls bulb,yes,Filament lamps not covered elsewhere in 8539.2.
+853931,fluorescent lamp;tube light;cfl;fluorescent tube,yes,Hot-cathode fluorescent discharge lamps.
+853932,mercury vapour lamp;sodium vapour lamp;metal halide lamp;street light lamp,yes,Mercury, sodium vapour and metal halide discharge lamps.
+853939,other discharge lamp;xenon lamp,yes,Discharge lamps other than fluorescent hot cathode.
+853941,arc lamp;carbon arc lamp,yes,Arc-lamps.
+853949,uv lamp;infrared lamp;ultraviolet lamp;germicidal lamp,yes,Ultra-violet and infra-red lamps.
+853951,led module;led lamp module,yes,Light-emitting diode modules.
+853952,led bulb;led lamp;led light;led tube,yes,Light-emitting diode lamps.
+8540,vacuum tubes;cathode ray tubes,yes,Thermionic, cold cathode and photo-cathode valves and tubes.
+854011,colour crt;colour picture tube,no,
+854012,monochrome crt;black and white picture tube,no,
+854020,image intensifier;camera tube;photo-cathode tube,yes,Television camera tubes, image converters and intensifiers.
+854060,other cathode ray tube,no,
+854079,microwave tube;klystron;travelling wave tube,yes,Microwave tubes other than magnetrons and grid-controlled tubes.
+854081,receiver valve;amplifier valve;vacuum tube,yes,Receiver and amplifier valves and tubes.
+854089,other valve or tube,no,
+854091,crt parts;cathode ray tube parts,yes,Parts of cathode-ray tubes.
+8541,semiconductor;discrete semiconductors;discrete devices;solar cells,yes,Diodes, transistors, LEDs, solar cells and similar discrete semiconductor devices.
+854110,diode;rectifier;zener diode;signal diode,yes,Diodes other than photosensitive or light-emitting.
+854121,transistor low power;small signal transistor;mosfet small,yes,Transistors dissipating less than 1 W.
+854129,transistor;power transistor;mosfet;igbt;power semiconductor,yes,Transistors dissipating 1 W or more.
+854130,thyristor;triac;scr;diac,yes,Thyristors, diacs and triacs.
+854141,led;light emitting diode;led chip;led package;led die,yes,Light-emitting diodes.
+854142,solar cell;photovoltaic cell;pv cell;unassembled solar cell,yes,Photovoltaic cells not assembled into modules or panels.
+854143,solar panel;solar module;pv module;photovoltaic panel;solar pv,yes,Photovoltaic cells assembled into modules or panels.
+854149,photodiode;phototransistor;optocoupler;photosensitive device,yes,Photosensitive semiconductor devices other than LEDs and photovoltaic cells.
+854150,semiconductor device other;photovoltaic device other,no,
+854151,semiconductor transducer;mems sensor;semiconductor sensor,yes,Semiconductor-based transducers and MEMS sensors.
+854159,other photosensitive semiconductor,no,
+854160,crystal oscillator;quartz crystal;piezoelectric crystal;oscillator;resonator,yes,Mounted piezo-electric crystals used for timing.
+854190,semiconductor device parts;diode parts;transistor parts,yes,Parts of diodes, transistors and similar semiconductor devices.
+8542,integrated circuits;chips;semiconductors;ics,yes,Electronic integrated circuits - processors, memory and other chips.
+854231,processor;cpu;gpu;microprocessor;microcontroller;soc;system on chip;application processor;logic chip,yes,Processor and controller integrated circuits.
+854232,memory chip;dram;sram;nand;flash memory;ram;memory ic;ddr;hbm,yes,Memory integrated circuits.
+854233,amplifier ic;operational amplifier;op amp;audio amplifier chip,yes,Amplifier integrated circuits.
+854239,integrated circuit;ic;chip;analog ic;power management ic;pmic;mixed signal ic,yes,Integrated circuits other than processor, memory or amplifier types.
+854290,chip parts;ic parts;semiconductor package;lead frame,yes,Parts of electronic integrated circuits.
+8543,electrical machines with individual functions,yes,Electrical machines and apparatus having individual functions.
+854310,particle accelerator,yes,Particle accelerators.
+854320,signal generator;function generator,yes,Electrical signal generators.
+854330,electroplating machine;electrolysis equipment,yes,Machines for electroplating, electrolysis or electrophoresis.
+854370,electronic machine;e-cigarette;electric fence energiser;electronic apparatus,yes,Electrical machines with individual functions not covered elsewhere - a broad residual line.
+854390,electrical machine parts,yes,Parts of the electrical machines of 8543.
+8544,cable;cables;wire;wires;insulated conductors,yes,Insulated electric conductors and optical fibre cables.
+854411,winding wire;copper winding wire;magnet wire;enamelled copper wire,yes,Copper winding wire.
+854419,winding wire other metal;aluminium winding wire,yes,Winding wire of metals other than copper.
+854420,coaxial cable;co-axial cable;rf cable,yes,Co-axial cable and other co-axial conductors.
+854430,wiring harness;ignition wiring set;automotive wiring;vehicle wiring loom,yes,Wiring sets for vehicles, aircraft and ships.
+854442,data cable;usb cable;patch cable;cable with connectors;power cord,yes,Insulated conductors up to 1000 V fitted with connectors.
+854449,electric wire;house wiring cable;insulated cable;building wire,yes,Insulated conductors up to 1000 V without connectors.
+854460,high voltage cable;power cable;ht cable;xlpe cable,yes,Insulated conductors for more than 1000 V.
+854470,optical fibre cable;fiber optic cable;fibre cable;ofc,yes,Optical fibre cables.
+8545,carbon electrodes;graphite electrodes,yes,Carbon electrodes, brushes and other graphite articles.
+854511,furnace electrode;graphite electrode;eaf electrode,yes,Carbon electrodes for furnaces.
+854519,carbon electrode;carbon brush;motor brush,yes,Carbon electrodes for uses other than furnaces.
+8546,insulators,yes,Electrical insulators.
+854610,glass insulator,yes,Electrical insulators of glass.
+854620,ceramic insulator;porcelain insulator,yes,Electrical insulators of ceramics.
+854690,polymer insulator;composite insulator,yes,Electrical insulators other than glass or ceramic.
+8547,insulating fittings,yes,Insulating fittings for electrical machines and equipment.
+854710,ceramic insulating fitting,yes,Insulating fittings of ceramics.
+854720,plastic insulating fitting;plastic insulator part,yes,Insulating fittings of plastics.
+854790,other insulating fitting;conduit tubing,yes,Insulating fittings other than ceramic or plastic.
+8548,battery scrap;electrical waste,yes,Waste and scrap of primary cells, batteries and accumulators.
+
+# ===========================================================================
+# CHAPTER 90 - optical, measuring and medical instruments
+# ===========================================================================
+90,instruments;optical instruments;measuring instruments;medical devices;instrumentation,yes,Chapter 90 - optical, measuring, precision and medical instruments.
+9012,electron microscope;microscopes,yes,Microscopes other than optical, and diffraction apparatus.
+9013,lasers;optical devices,yes,Lasers and other optical appliances.
+901320,laser;laser module;industrial laser;laser source,yes,Lasers other than laser diodes.
+9014,navigation instruments;compass,yes,Navigational instruments and appliances.
+9015,surveying equipment;total station;theodolite,yes,Surveying, hydrographic and meteorological instruments.
+9016,precision balance;analytical balance,yes,Balances sensitive to 50 mg or better.
+9017,drawing instruments;measuring rules,no,
+9018,medical electronics;diagnostic equipment;medical devices,yes,Medical, surgical and electro-diagnostic instruments.
+901811,ecg;electrocardiograph;ekg machine,yes,Electro-cardiographs.
+901813,mri;magnetic resonance imaging;mri scanner,yes,Magnetic resonance imaging apparatus.
+901814,gamma camera;scintigraphic apparatus;nuclear imaging,yes,Scintigraphic apparatus.
+901819,patient monitor;ultrasound scanner;eeg;electro-diagnostic apparatus,yes,Electro-diagnostic apparatus not covered elsewhere in 9018.1.
+901820,uv therapy device;infrared therapy device,yes,Ultra-violet and infra-red ray apparatus.
+9021,hearing aid;orthopaedic appliances,yes,Orthopaedic appliances and hearing aids.
+9022,x ray equipment;radiography;radiotherapy,yes,Apparatus based on X-rays and other radiation.
+902212,ct scanner;computed tomography;x ray machine,yes,X-ray apparatus including computed tomography.
+902213,dental x ray,yes,X-ray apparatus for dental use.
+902221,radiotherapy equipment;gamma therapy,yes,Apparatus based on alpha, beta or gamma radiation for medical use.
+902290,x ray tube;x ray generator;xray parts,yes,X-ray tubes, generators and parts.
+9025,thermometer;pyrometer;hygrometer,yes,Thermometers, pyrometers and hygrometers.
+9027,analysis instruments;spectrometer;chromatograph,yes,Instruments for physical and chemical analysis.
+902710,gas analyser;smoke analyser;gas detector,yes,Gas and smoke analysis apparatus.
+902750,spectrophotometer;optical radiation instrument;colorimeter,yes,Instruments using optical radiation - UV, visible and IR.
+9030,test and measurement;instrumentation;electrical test equipment,yes,Instruments for measuring and checking electrical quantities.
+903031,multimeter;digital multimeter;dmm,yes,Multimeters without a recording device.
+903032,recording multimeter;logging multimeter,yes,Multimeters with a recording device.
+903033,voltmeter;ammeter;ohmmeter;power meter;electrical tester,yes,Instruments for measuring voltage, current, resistance or power, without a recording device.
+903039,recording electrical instrument;power analyser,yes,Instruments for measuring voltage, current, resistance or power, with a recording device.
+903040,telecom test equipment;network analyser;spectrum analyser;bit error tester,yes,Instruments designed specifically for telecommunications.
+903082,wafer prober;ic tester;semiconductor test equipment;ate,yes,Instruments for measuring or checking semiconductor wafers and devices.
+903084,other recording instrument,no,
+903089,other electrical test instrument,no,
+903090,oscilloscope;test equipment parts;measurement instrument parts,yes,Instruments for measuring electrical quantities not elsewhere specified, and their parts.
+9032,automatic controls;regulators;controllers,yes,Automatic regulating and controlling instruments.
+903220,manostat;pressure regulator,yes,Automatic manostats.
+903281,hydraulic controller;pneumatic controller,yes,Automatic hydraulic and pneumatic regulating instruments.
+903289,controller;plc;thermostat;automatic regulator;process controller,yes,Automatic regulating and controlling instruments not covered elsewhere in 9032.8.
+
+# ===========================================================================
+# CHAPTER 91 - clocks and watches
+# ===========================================================================
+91,clocks;watches;timekeeping;horology,yes,Chapter 91 - clocks, watches and their movements.
+9101,luxury watch;precious metal watch,yes,Wrist-watches with a case of precious metal.
+9102,watch;wrist watch;quartz watch,yes,Wrist-watches other than precious metal.
+910211,analog watch;mechanical display watch,yes,Electrically operated wrist-watches with a mechanical display.
+910212,smartwatch;smart watch;digital watch;fitness band;wearable,yes,Electrically operated wrist-watches with an opto-electronic display.
+9103,clock with watch movement,yes,Clocks with watch movements.
+910310,alarm clock small;travel clock,no,
+9105,clocks;clock,yes,Clocks other than those with watch movements.
+910511,alarm clock;digital alarm clock,yes,Electrically operated alarm clocks.
+910591,wall clock;desk clock;electric clock,yes,Electrically operated clocks other than alarm or wall clocks.
+9106,time recorder;attendance machine,yes,Time recording apparatus.
+910610,time register;punch clock;attendance recorder,yes,Time registers and time recorders.
+910690,other time recording apparatus,no,
+9108,watch movements,yes,Complete assembled watch movements.
+910811,watch movement mechanical display,yes,Electrically operated watch movements with a mechanical display.
+910819,solar watch movement,yes,Solar-cell watch movements without a mechanical display.
+9109,clock movements,yes,Complete assembled clock movements.
+
+# ===========================================================================
+# CHAPTERS 32-76, 95, 96 - inputs, consumables and enclosures
+# These are in the definition because electronics manufacturing consumes
+# them, not because they are electronics. The vocabulary reflects that.
+# ===========================================================================
+32,paints;coatings;varnishes,yes,Chapter 32 - paints, varnishes and coatings.
+3208,paint;varnish;coating,yes,Paints and varnishes in a non-aqueous medium.
+34,lubricants;lubricating preparations,yes,Chapter 34 - lubricating and surface-active preparations.
+3403,lubricant;lubricating preparation,yes,Lubricating preparations.
+35,adhesives;glues,yes,Chapter 35 - glues, adhesives and enzymes.
+3506,adhesive;glue;bonding agent,yes,Prepared glues and adhesives.
+39,plastics;polymers;plastic materials,yes,Chapter 39 - plastics and plastic articles.
+3903,styrene polymer;polystyrene;abs resin,yes,Styrene polymers in primary form.
+3907,polyester resin;pet resin;polycarbonate resin,yes,Polyesters in primary form.
+3908,polyamide;nylon resin,yes,Polyamides in primary form.
+3919,adhesive film;self adhesive plastic tape,yes,Self-adhesive plastic sheet, film and tape.
+391910,adhesive tape roll;narrow adhesive film,yes,Self-adhesive plastic film in rolls up to 20 cm wide.
+391990,adhesive sheet;protective film;die cut film,yes,Self-adhesive plastic sheet other than narrow rolls.
+3920,plastic sheet;plastic film,yes,Non-adhesive plastic plates, sheet and film.
+392099,plastic sheet other;camera lens film,yes,Plastic sheet and film not covered elsewhere in 3920.
+3923,plastic packaging;plastic containers,yes,Plastic articles for conveying and packing goods.
+392329,plastic bag;poly bag;esd bag,yes,Plastic sacks and bags for packing goods.
+392350,plastic cap;plastic lid;closure,yes,Plastic stoppers, lids and closures.
+392390,plastic tray;plastic packaging other;component tray,yes,Plastic packing articles not covered elsewhere in 3923.
+3926,plastic parts;plastic components,yes,Plastic articles not specified elsewhere in chapter 39.
+392690,plastic part;plastic housing;plastic enclosure;plastic moulding,yes,Plastic articles not elsewhere specified - the residual plastics line.
+40,rubber;rubber articles,yes,Chapter 40 - rubber and rubber articles.
+4016,rubber parts;rubber components,yes,Articles of vulcanised rubber.
+401693,gasket;o-ring;rubber seal;washer rubber,yes,Rubber gaskets, washers and seals.
+401699,rubber part;rubber moulding;rubber foot,yes,Rubber articles not elsewhere specified.
+42,cases;bags;carrying cases,yes,Chapter 42 - cases, bags and similar containers.
+4202,carry case;laptop bag;equipment case,yes,Cases, bags and similar containers.
+48,paper;paperboard;paper packaging,yes,Chapter 48 - paper, paperboard and packaging.
+4819,carton;packaging box;corrugated box,yes,Paper and paperboard cartons, boxes and cases.
+481910,corrugated box;shipping carton,yes,Cartons and boxes of corrugated paper or paperboard.
+481920,folding carton;printed box;retail box,yes,Folding cartons and boxes of non-corrugated paperboard.
+4821,label;paper label,yes,Paper and paperboard labels.
+482110,printed label;barcode label,yes,Printed paper labels.
+482190,blank label;unprinted label,yes,Unprinted paper labels.
+4823,paper articles;paper packaging other,yes,Paper, paperboard and cellulose articles not elsewhere specified.
+49,printed matter;printed materials,yes,Chapter 49 - printed books, manuals and other printed matter.
+4901,manual;printed book;user guide,yes,Printed books, brochures and leaflets.
+4911,printed matter;printed sheet;instruction sheet,yes,Printed matter not elsewhere specified.
+59,technical textiles;industrial fabrics,yes,Chapter 59 - textile products for technical uses.
+5911,technical textile;filter fabric;polishing cloth,yes,Textile products for technical uses.
+73,iron and steel articles;steel components;metal fabrication,yes,Chapter 73 - articles of iron or steel.
+7318,fastener;screw;bolt;nut;washer,yes,Iron or steel screws, bolts, nuts and washers.
+731815,screw;bolt;machine screw,yes,Threaded iron or steel screws and bolts.
+731816,nut;hex nut;threaded nut,yes,Threaded iron or steel nuts.
+7326,steel part;metal fabrication,yes,Iron or steel articles not elsewhere specified.
+732690,metal part;steel bracket;chassis;metal stamping;sheet metal part,yes,Iron or steel articles not elsewhere specified - brackets, chassis and stampings.
+74,copper;copper articles,yes,Chapter 74 - copper and copper articles.
+7410,copper foil;copper laminate,yes,Copper foil.
+741021,copper clad laminate;ccl;backed copper foil,yes,Copper foil backed with paper, plastic or similar material - CCL for PCBs.
+75,nickel;nickel articles,yes,Chapter 75 - nickel and nickel articles.
+7508,nickel part;nickel article,yes,Nickel articles.
+750890,nickel component;nickel strip,yes,Nickel articles not elsewhere specified.
+76,aluminium;aluminum;aluminium articles,yes,Chapter 76 - aluminium and aluminium articles.
+7616,aluminium part;aluminium article,yes,Aluminium articles.
+761699,aluminium enclosure;heat sink;aluminium casting;aluminium bracket,yes,Aluminium articles not elsewhere specified - enclosures and heat sinks.
+83,base metal fittings;metal mountings,yes,Chapter 83 - miscellaneous articles of base metal.
+8311,welding electrode;soldering wire;brazing rod,yes,Wire and rods for soldering, brazing and welding.
+95,toys;games;gaming,yes,Chapter 95 - toys, games and sports equipment.
+9504,gaming console;video game console;playstation;xbox;nintendo,yes,Video game consoles and machines.
+96,miscellaneous manufactured articles,yes,Chapter 96 - miscellaneous manufactured articles.
+9612,printer ribbon;ink ribbon,yes,Typewriter and printer ribbons.
+9613,lighter;ignition device,yes,Cigarette and other lighters.
+
+# ---- gaps filled after the first coverage pass -----------------------------
+841821,upright freezer;standalone refrigerator;single door fridge,yes,Refrigerators of the household compression type other than combined fridge-freezers.
+841830,chest freezer;horizontal freezer,yes,Chest-type freezers up to 800 litres.
+841840,vertical freezer;upright freezer cabinet,yes,Upright freezers up to 900 litres.
+482390,paper article;paper insert;paper packaging other,yes,Paper and cellulose articles not elsewhere specified.
+850421,distribution transformer small;pole transformer,yes,Liquid-dielectric transformers up to 650 kVA.
+850422,distribution transformer;liquid transformer medium,yes,Liquid-dielectric transformers from 650 to 10000 kVA.
+853590,high voltage apparatus other;hv switching apparatus,yes,Switching and protection apparatus above 1000 V not covered elsewhere in 8535.
+901210,electron microscope;scanning electron microscope;sem;diffraction apparatus,yes,Electron and other non-optical microscopes and diffraction apparatus.
+854159,photosensitive device other;optical semiconductor other,yes,Photosensitive semiconductor devices not covered elsewhere in 8541.
+853229,fixed capacitor other;special capacitor,yes,Fixed capacitors not covered elsewhere in 8532.
+903089,electrical instrument other;non recording test instrument,yes,Electrical measuring instruments without a recording device not covered elsewhere.
+903084,recording test instrument;data logger,yes,Electrical measuring instruments with a recording device not covered elsewhere.
+852729,car radio receiver other,yes,Vehicle radio receivers not covered elsewhere in 8527.2.
+851310,torch;flashlight;portable lamp;head torch,yes,Portable electric lamps with their own source of energy.
+852713,portable radio with recorder;boombox;pocket radio,yes,Self-powered radio receivers combined with a recorder or clock.
+853922,filament bulb small;low wattage incandescent lamp,yes,Filament lamps up to 200 W for above 100 V.
+853331,wirewound potentiometer;wirewound variable resistor,yes,Wirewound variable resistors up to the lower power band.
+853339,wirewound rheostat;high power variable resistor,yes,Wirewound variable resistors above the lower power band.
+854011,colour picture tube;colour crt,yes,Colour cathode-ray television picture tubes.
+854012,monochrome picture tube;black and white crt,yes,Monochrome cathode-ray television picture tubes.
+854060,cathode ray tube other,yes,Cathode-ray tubes not covered elsewhere in 8540.
+854089,valve or tube other;special purpose tube,yes,Valves and tubes not covered elsewhere in 8540.
+854150,semiconductor device unspecified,yes,Photosensitive semiconductor devices and photovoltaic cells not otherwise specified.
+850630,mercuric oxide cell,yes,Primary mercuric-oxide cells.
+850680,primary cell other;special primary battery,yes,Primary cells of chemistries not otherwise specified.
+850740,nickel iron battery,yes,Nickel-iron accumulators.
+852419,display module without drivers other,yes,Display modules without drivers, other than LCD or OLED.
+852842,crt computer monitor;cathode ray computer monitor,yes,Cathode-ray monitors designed for a computer.
+852849,crt monitor;cathode ray monitor,yes,Cathode-ray monitors not designed for a computer.
+852792,clock radio;radio alarm,yes,Radio receivers combined with a clock.
+853223,single layer ceramic capacitor;slcc,yes,Fixed single-layer ceramic capacitors.
+850432,transformer small dry type;control transformer medium,yes,Dry-type transformers from 1 to 16 kVA.
+850433,transformer medium dry type,yes,Dry-type transformers from 16 to 500 kVA.
+850434,transformer large dry type,yes,Dry-type transformers above 500 kVA.
+910310,clock with watch movement;instrument clock,yes,Electrically operated clocks fitted with a watch movement.
+910690,time recording apparatus other,yes,Time recording apparatus not covered elsewhere in 9106.
+844311,offset press reel fed;web offset press,yes,Reel-fed offset printing machinery.
+844312,office offset press;small sheet offset press,yes,Sheet-fed office-type offset printing machinery.
+
+# ---- codes carrying pre-HS-2022 history ------------------------------------
+# The workbook mixes HS vintages. These lines were split or retired in
+# HS 2022, so they return data for earlier years only. That is not a defect:
+# they carry the history of their successors, which is exactly what a long
+# series needs. Flagged here so search says so rather than looking broken.
+851712,mobile phone pre-2022;cellular telephone hs2017,yes,Retired in HS 2022 - split into 851713 smartphones and 851714 other cellular phones. Carries pre-2022 history.
+854140,photosensitive semiconductor pre-2022;led hs2017;solar cell hs2017,yes,Retired in HS 2022 - split into 854141 LEDs, 854142/854143 photovoltaic cells and 854149. Carries pre-2022 history.
+910291,other electric watch,yes,Wrist-watches, electrically operated, not covered by 910211 or 910212.
+910812,watch movement opto-electronic display,yes,Complete assembled watch movements with an opto-electronic display only.
+910910,clock movement complete,yes,Complete assembled clock movements, electrically operated.
+831120,welding wire;cored wire;mig wire,yes,Cored wire of base metal for electric arc welding.
+340391,textile lubricant;treatment lubricant,yes,Lubricating preparations for treating textiles and leather.

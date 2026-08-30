@@ -1,593 +1,240 @@
-import { useEffect, useMemo, useState } from 'react'
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Legend,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
-import {
-  Download,
-  Moon,
-  Search,
-  Sun,
-} from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Layers, Moon, Sun } from 'lucide-react'
 
 import type {
-  Product,
+  CatalogueEntry,
+  CurrencyMode,
+  HsNode,
+  Manifest,
+  Methodology,
   SearchItem,
 } from './types'
 
 import {
   loadCatalogue,
-  loadManifest,
-  loadProduct,
+  loadHsNodes,
   loadHsNode,
+  loadManifest,
+  loadMethodology,
   loadSearch,
+  type SnapshotName,
 } from './lib/data'
 
 import {
-  usd,
-  pct,
-} from './lib/format'
-
-import {
-  downloadChart,
-  downloadCsv,
-  downloadJson,
-  downloadXlsx,
-} from './lib/export'
-
-
-import {
+  buildIndex,
   readRecentSearches,
   saveRecentSearch,
 } from './lib/search'
 
+import {
+  readBasket,
+  saveBasket,
+  type BasketEntry,
+} from './lib/hstack'
 
-type CatalogueItem = {
-  hs6: string
-  description: string
-  years: number[]
-  latestIndiaYear?: number | null
-}
+import { SearchHub } from './components/SearchHub'
+import { ProductView } from './components/ProductView'
+import { HStackPanel } from './components/HStackPanel'
 
+const DEFAULT_CODE = '851713'
 
-const QUICK_HS = [
-  {
-    level: 2,
-    code: '84',
-    label: 'Computing'
-  },
-  {
-    level: 2,
-    code: '85',
-    label: 'Electronics'
-  },
-
-  {
-    level: 4,
-    code: '8471',
-    label: 'Computers'
-  },
-  {
-    level: 4,
-    code: '8517',
-    label: 'Telecom'
-  },
-  {
-    level: 4,
-    code: '8542',
-    label: 'Integrated circuits'
-  },
-
-  {
-    level: 6,
-    code: '847130',
-    label: 'Laptops'
-  },
-  {
-    level: 6,
-    code: '851762',
-    label: 'Routers'
-  },
-  {
-    level: 6,
-    code: '854231',
-    label: 'Processors'
-  },
-]
-const SUGGESTED_SEARCHES = [
-  'laptop',
-  'processor',
-  'GPU',
-  'memory',
-  'router',
-  'PCB',
-  'battery',
-  'monitor',
-]
+/*
+ * The 2.0 dashboard reads a 2.0 snapshot. Deploying the new frontend over
+ * a snapshot built by the old pipeline would otherwise fail with a wall of
+ * console errors and an empty page; this says what to run instead.
+ */
+const SCHEMA = '2.0.0'
 
 function App() {
-  const [snapshot, setSnapshot] =
-    useState('current')
+  const [snapshot, setSnapshot] = useState<SnapshotName>('current')
+  const [manifest, setManifest] = useState<Manifest | null>(null)
+  const [catalogue, setCatalogue] = useState<CatalogueEntry[]>([])
+  const [methodology, setMethodology] = useState<Methodology | null>(null)
+  const [library, setLibrary] = useState<SearchItem[]>([])
 
-  const [manifest, setManifest] =
-    useState<any>(null)
+  const [node, setNode] = useState<HsNode | null>(null)
+  const [year, setYear] = useState<number | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
-  const [catalogue, setCatalogue] =
-    useState<CatalogueItem[]>([])
+  const [recent, setRecent] = useState<string[]>([])
+  const [dark, setDark] = useState(false)
 
-  const [searchLib, setSearchLib] =
-    useState<SearchItem[]>([])
+  /*
+   * Two viewing modes, both in the topbar where the 1.x "IND" button used to
+   * sit. HS-8 pulls India's tariff-line detail up through the page instead of
+   * leaving it stranded at the bottom; the currency switch reads the same
+   * figures in rupees. Neither changes any number - they change what is shown
+   * and in which unit, and every block keeps saying which period it is on.
+   */
+  const [showHs8, setShowHs8] = useState(false)
+  const [currency, setCurrency] = useState<CurrencyMode>('USD')
 
-  const [product, setProduct] =
-    useState<Product | null>(null)
+  const [basket, setBasket] = useState<BasketEntry[]>([])
+  const [basketNodes, setBasketNodes] = useState<HsNode[]>([])
+  const [basketLoading, setBasketLoading] = useState(false)
+  const [stackOpen, setStackOpen] = useState(false)
 
-  const [query, setQuery] =
-    useState('')
+  const index = useMemo(() => buildIndex(library), [library])
 
-  const [recentSearches, setRecentSearches] =
-    useState<string[]>([])
-
-  const [year, setYear] =
-    useState<number | null>(null)
-
-  const [indiaDetail, setIndiaDetail] =
-    useState(false)
-
-  const [
-    historyHorizon,
-    setHistoryHorizon,
-  ] = useState<
-    '1Y' | '5Y' | '10Y' | 'ALL'
-  >('5Y')
-
-
-  const [dark, setDark] =
-    useState(false)
-
+  /*
+   * The toggle is offered only when there is something behind it. Nothing is
+   * more confusing than a control that does nothing, and a snapshot with no
+   * DGCIS file is the normal state until one is supplied.
+   */
+  const tariffAvailable = Boolean(manifest?.tariffLines?.present)
 
   useEffect(() => {
-    setRecentSearches(
-      readRecentSearches()
-    )
+    if (!tariffAvailable) setShowHs8(false)
+  }, [tariffAvailable])
+
+  const inBasket = useCallback(
+    (code: string) => basket.some(entry => entry.code === code),
+    [basket],
+  )
+
+  useEffect(() => {
+    setRecent(readRecentSearches())
+
+    setBasket(readBasket())
 
     ;(async () => {
-      const m = await loadManifest()
+      const loaded = await loadManifest()
 
-      setManifest(m.manifest)
-      setSnapshot(m.snapshot)
+      setManifest(loaded.manifest)
+      setSnapshot(loaded.snapshot)
 
-      const cat =
-        await loadCatalogue(m.snapshot)
+      const [entries, terms, method] = await Promise.all([
+        loadCatalogue(loaded.snapshot),
+        loadSearch(),
+        loadMethodology(loaded.snapshot),
+      ])
 
-      setCatalogue(cat)
+      setCatalogue(entries)
+      setLibrary(terms)
+      setMethodology(method)
 
-      setSearchLib(
-        await loadSearch()
-      )
+      const opening =
+        entries.find(entry => entry.code === DEFAULT_CODE) ??
+        entries.find(entry => entry.level === 6 && entry.globalTrade !== null) ??
+        entries[0]
 
-      if (cat.length) {
-        const first =
-          cat.find(
-            (x: CatalogueItem) =>
-              x.hs6 === '847130'
-          ) ?? cat[0]
-
-        const p =
-          await loadProduct(
-            m.snapshot,
-            first.hs6,
-          )
-
-        setProduct(p)
-
-        setYear(
-          p.latestIndiaYear ??
-          Math.max(...p.years)
+      if (opening) {
+        const first = await loadHsNode(
+          loaded.snapshot,
+          opening.code,
+          opening.level,
         )
+
+        setNode(first)
+        setYear(first.latestIndiaYear ?? Math.max(...first.years))
       }
-    })().catch(console.error)
+    })().catch(reason => {
+      console.error(reason)
+      setError(String(reason))
+    })
   }, [])
 
+  useEffect(() => {
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+  }, [dark])
+
+  /* Drives the tariff-line emphasis rules already in the stylesheet. */
+  useEffect(() => {
+    if (showHs8) {
+      document.documentElement.dataset.india = 'active'
+    } else {
+      delete document.documentElement.dataset.india
+    }
+  }, [showHs8])
 
   useEffect(() => {
-    document.documentElement.dataset.theme =
-      dark ? 'dark' : 'light'
+    saveBasket(basket)
 
-    document.documentElement.dataset.india =
-      indiaDetail ? 'active' : 'default'
-
-  }, [dark, indiaDetail])
-
-
-  const results = useMemo(() => {
-    const q =
-      query.trim().toLowerCase()
-
-    if (!q) return []
-
-    const tokens =
-      q.split(/\s+/)
-
-    return searchLib
-      .map(item => {
-        let score = 0
-
-        const description =
-          item.description.toLowerCase()
-
-        const tags =
-          item.tags.map(
-            x => x.toLowerCase()
-          )
-
-        if (item.code === q)
-          score += 2000
-
-        if (
-          /^\d+$/.test(q) &&
-          item.code.startsWith(q)
-        )
-          score += 900
-
-        if (description === q)
-          score += 700
-
-        if (description.includes(q))
-          score += 400
-
-        for (const token of tokens) {
-          if (
-            tags.some(
-              x => x === token
-            )
-          )
-            score += 300
-
-          if (
-            tags.some(
-              x => x.includes(token)
-            )
-          )
-            score += 100
-
-          if (
-            description.includes(token)
-          )
-            score += 70
-        }
-
-        if (
-          catalogue.some(
-            c => c.hs6 === item.code
-          )
-        )
-          score += 150
-
-        return {
-          item,
-          score,
-        }
-      })
-      .filter(x => x.score > 0)
-      .sort(
-        (a, b) =>
-          b.score - a.score
-      )
-      .slice(0, 10)
-  }, [
-    query,
-    searchLib,
-    catalogue,
-  ])
-
-
-  async function openHs(
-    code: string
-  ) {
-    const clean =
-      code.trim()
-
-    const exact =
-      searchLib.find(
-        item =>
-          item.loaded
-          && item.code === clean
-          && (
-            item.level === 2
-            || item.level === 4
-            || item.level === 6
-          )
-      )
-
-    if (!exact) {
-      console.warn(
-        `No loaded HStat node found for ${clean}`
-      )
+    if (!basket.length) {
+      setBasketNodes([])
       return
     }
 
-    try {
-      const next =
-        await loadHsNode(
-          snapshot,
-          exact.code,
-          exact.level
-        )
+    let cancelled = false
 
-      setProduct(next)
+    setBasketLoading(true)
 
-      setYear(
-        next.latestIndiaYear
-        ?? Math.max(
-          ...next.years
-        )
-      )
+    loadHsNodes(snapshot, basket)
+      .then(loaded => {
+        if (!cancelled) setBasketNodes(loaded)
+      })
+      .catch(console.error)
+      .finally(() => {
+        if (!cancelled) setBasketLoading(false)
+      })
 
-      saveRecentSearch(
-        exact.code
-      )
-
-      setRecentSearches(
-        readRecentSearches()
-      )
-
-      setQuery('')
-    } catch (error) {
-      console.error(
-        `Failed to load HS-${exact.level} ${exact.code}`,
-        error
-      )
+    return () => {
+      cancelled = true
     }
-  }
+  }, [basket, snapshot])
 
+  const openCode = useCallback(
+    async (code: string, level: 2 | 4 | 6) => {
+      try {
+        const next = await loadHsNode(snapshot, code, level)
 
-  if (
-    !manifest ||
-    !product ||
-    year === null
-  ) {
+        setNode(next)
+        setYear(next.latestIndiaYear ?? Math.max(...next.years))
+        setStackOpen(false)
+
+        saveRecentSearch(code)
+        setRecent(readRecentSearches())
+
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      } catch (reason) {
+        console.error(`Failed to open HS-${level} ${code}`, reason)
+      }
+    },
+    [snapshot],
+  )
+
+  const addToBasket = useCallback((entry: BasketEntry) => {
+    setBasket(current =>
+      current.some(item => item.code === entry.code)
+        ? current
+        : [...current, entry],
+    )
+  }, [])
+
+  const removeFromBasket = useCallback((code: string) => {
+    setBasket(current => current.filter(entry => entry.code !== code))
+  }, [])
+
+  if (error) {
     return (
       <div className="boot">
-        HStat.India
+        <strong>HStat.India</strong>
+        <p>Could not load the snapshot. {error}</p>
       </div>
     )
   }
 
-
-  const currentProduct = product
-
-  const annual =
-    currentProduct.annual[String(year)]
-
-  if (!annual) {
+  if (manifest && manifest.schemaVersion !== SCHEMA) {
     return (
       <div className="boot">
-        Data unavailable
+        <strong>HStat.India</strong>
+
+        <p>
+          The published snapshot is schema{' '}
+          {manifest.schemaVersion ?? 'unknown'}; this build reads {SCHEMA}.
+        </p>
+
+        <p>
+          Run <code>python pipeline/refresh_monthly.py</code> to rebuild it, or{' '}
+          <code>./scripts/dev-fixture.sh</code> for a synthetic one.
+        </p>
       </div>
     )
   }
 
-
-  const globalImportBenchmark =
-    product.benchmarks
-      ?.globalImports ?? null
-
-  const globalExportBenchmark =
-    product.benchmarks
-      ?.globalExports ?? null
-
-
-  const trend =
-    product.years.map(y => ({
-      year: y,
-
-      imports:
-        product.annual[
-          String(y)
-        ]?.india.imports ?? null,
-
-      exports:
-        product.annual[
-          String(y)
-        ]?.india.exports ?? null,
-    }))
-
-
-  const suppliers =
-    annual.india.suppliers.rows
-      .slice(
-        0,
-        10,
-      )
-      .map(x => ({
-        ...x,
-        sharePct:
-          x.share * 100,
-      }))
-
-
-  const destinations =
-    annual.india.destinations.rows
-      .slice(
-        0,
-        10,
-      )
-      .map(x => ({
-        ...x,
-        sharePct:
-          x.share * 100,
-      }))
-
-
-  const historyRows =
-    product.years
-      .slice()
-      .sort(
-        (a, b) => a - b
-      )
-      .filter(y => {
-        if (
-          historyHorizon === 'ALL'
-        ) {
-          return true
-        }
-
-        const latest =
-          Math.max(
-            ...product.years
-          )
-
-        const yearsBack =
-          historyHorizon === '1Y'
-            ? 1
-            : historyHorizon === '5Y'
-              ? 5
-              : 10
-
-        return (
-          y >
-          latest - yearsBack
-        )
-      })
-      .map(y => {
-        const row =
-          product.annual[
-            String(y)
-          ]
-
-        return {
-          year: y,
-          imports:
-            row?.india.imports
-            ?? null,
-          exports:
-            row?.india.exports
-            ?? null,
-        }
-      })
-
-
-
-  const perspective =
-    buildPerspective(
-      product,
-      year,
-    )
-
-  const dependency =
-    buildDependency(
-      product,
-      year,
-    )
-
-
-  function exportWorkbook() {
-    const annualRows =
-      currentProduct.years.map(y => {
-        const r =
-          currentProduct.annual[
-            String(y)
-          ]
-
-        return {
-          year: y,
-
-          indiaImports:
-            r.india.imports,
-
-          indiaExports:
-            r.india.exports,
-
-          indiaBalance:
-            r.india.balance,
-
-          observedGlobalImports:
-            r.global
-              .observedImports,
-
-          publishableGlobalImports:
-            r.global.imports,
-
-          globalImportCoverage:
-            r.global
-              .importCoverage.status,
-
-          observedGlobalExports:
-            r.global
-              .observedExports,
-
-          publishableGlobalExports:
-            r.global.exports,
-
-          globalExportCoverage:
-            r.global
-              .exportCoverage.status,
-
-          indiaImportRank:
-            r.global
-              .importRankIndia,
-
-          indiaImportShare:
-            r.global
-              .importShareIndia,
-
-          indiaExportRank:
-            r.global
-              .exportRankIndia,
-
-          indiaExportShare:
-            r.global
-              .exportShareIndia,
-
-          mirrorRatio:
-            r.global.mirror
-              ?.importExportRatio ??
-            null,
-
-          mirrorStatus:
-            r.global.mirror
-              ?.status ??
-            null,
-        }
-      })
-
-
-    downloadXlsx(
-      `HStat-${currentProduct.hs6}`,
-      {
-        Annual:
-          annualRows,
-
-        Suppliers:
-          annual.india
-            .suppliers.rows,
-
-        Destinations:
-          annual.india
-            .destinations.rows,
-
-        TopImporters:
-          globalImportBenchmark
-            ?.top10 ?? [],
-
-        TopExporters:
-          globalExportBenchmark
-            ?.top10 ?? [],
-
-        IndiaHS8:
-          annual.india.hs8,
-      },
-    )
+  if (!manifest || !node || year === null) {
+    return <div className="boot">HStat.India</div>
   }
-
 
   return (
     <div className="app">
@@ -598,1674 +245,119 @@ function App() {
           </div>
 
           <div className="refresh">
-            Updated{' '}
-            {new Date(
-              manifest.refreshedAt,
-            ).toLocaleDateString()}
+            {manifest.products} products · updated{' '}
+            {new Date(manifest.refreshedAt).toLocaleDateString()}
+            {snapshot === 'previous' && ' · showing last validated snapshot'}
           </div>
         </div>
 
-
-        <div className="searchwrap">
-          <Search size={16} />
-
-          <input
-            value={query}
-            onChange={
-              e =>
-                setQuery(
-                  e.target.value
-                )
-            }
-            placeholder="Search HS code or product — laptop, GPU, router, battery…"
-          />
-
-          {results.length > 0 && (
-            <div className="results">
-              {results.map(
-                ({ item }) => (
-                  <button
-                    key={item.code}
-                    onClick={() =>
-                      openHs(
-                        item.code
-                      )
-                    }
-                  >
-                    <span className="hsbadge">
-                      HS-{item.level}
-                    </span>
-
-                    <strong>
-                      {item.code}
-                    </strong>
-
-                    <span>
-                      {
-                        item.description
-                      }
-                    </span>
-                  </button>
-                ),
-              )}
-            </div>
-          )}
-        </div>
-<div className="toggles">
+        <div className="toggles">
           <button
-            className={
-              indiaDetail
-                ? 'active ind-toggle'
-                : 'ind-toggle'
+            className={showHs8 ? 'ind-toggle active' : 'ind-toggle'}
+            aria-pressed={showHs8}
+            title={
+              tariffAvailable
+                ? 'Show India ITC(HS)-8 tariff-line detail alongside the six-digit figures'
+                : 'No DGCIS tariff-line data in this snapshot'
             }
-            title="Bring India tariff-line detail to the top"
-            aria-pressed={indiaDetail}
-            onClick={() =>
-              setIndiaDetail(
-                !indiaDetail
-              )
-            }
+            disabled={!tariffAvailable}
+            onClick={() => setShowHs8(value => !value)}
           >
-            IND
+            HS-8
           </button>
 
           <button
-            title="Theme"
+            className="currency-toggle"
+            aria-label={
+              currency === 'USD'
+                ? 'Show India figures in rupees'
+                : 'Show India figures in US dollars'
+            }
+            title={
+              currency === 'USD'
+                ? 'Show India and tariff-line figures in rupees'
+                : 'Show India and tariff-line figures in US dollars'
+            }
             onClick={() =>
-              setDark(!dark)
+              setCurrency(value => (value === 'USD' ? 'INR' : 'USD'))
             }
           >
-            {dark ? (
-              <Sun size={16} />
-            ) : (
-              <Moon size={16} />
+            <span className={currency === 'USD' ? 'active' : ''}>$</span>
+            <span className="divider">/</span>
+            <span className={currency === 'INR' ? 'active' : ''}>₹</span>
+          </button>
+
+          <button
+            className={basket.length ? 'stack-toggle active' : 'stack-toggle'}
+            onClick={() => setStackOpen(true)}
+            title="Open HStack"
+          >
+            <Layers size={16} />
+            HStack
+            {basket.length > 0 && (
+              <span className="stack-count">{basket.length}</span>
             )}
+          </button>
+
+          <button
+            title={dark ? 'Light theme' : 'Dark theme'}
+            aria-label={dark ? 'Switch to light theme' : 'Switch to dark theme'}
+            onClick={() => setDark(!dark)}
+          >
+            {dark ? <Sun size={16} /> : <Moon size={16} />}
           </button>
         </div>
       </header>
 
-
       <main>
-
-        <section className="search-hub">
-          <div className="search-primary">
-            <Search size={22} />
-
-            <input
-              value={query}
-              onChange={
-                e =>
-                  setQuery(
-                    e.target.value
-                  )
-              }
-              onKeyDown={
-                e => {
-                  if (
-                    e.key === 'Enter'
-                    && results[0]
-                  ) {
-                    openHs(
-                      results[0].item.code
-                    )
-                  }
-                }
-              }
-              placeholder="Search HS code or product — laptop, processor, GPU, router, battery…"
-            />
-
-            <button
-              className="search-open"
-              disabled={!results[0]}
-              onClick={() => {
-                if (results[0]) {
-                  openHs(
-                    results[0].item.code
-                  )
-                }
-              }}
-            >
-              Open
-            </button>
-
-            {query.trim() && (
-              <div className="search-results-large">
-                {results.map(
-                  ({ item }) => (
-                    <button
-                      key={
-                        item.code
-                      }
-                      onClick={() =>
-                        openHs(
-                          item.code
-                        )
-                      }
-                    >
-                      <span className="result-level">
-                        HS-{item.level}
-                      </span>
-
-                      <strong>
-                        {item.code}
-                      </strong>
-
-                      <span>
-                        {item.description}
-                      </span>
-                    </button>
-                  )
-                )}
-              </div>
-            )}
-          </div>
-
-
-          <div className="quick-access">
-            <span className="quick-title">
-              QUICK ACCESS
-            </span>
-
-            {QUICK_HS.map(item => (
-              <button
-                key={item.code}
-                onClick={() =>
-                  openHs(
-                    item.code
-                  )
-                }
-                title={
-                  `HS-${item.level} · ${item.label}`
-                }
-              >
-                {item.code}
-              </button>
-            ))}
-          </div>
-
-
-          <div className="smart-suggestions">
-            <span>Suggested</span>
-
-            {SUGGESTED_SEARCHES.map(
-              keyword => (
-                <button
-                  key={keyword}
-                  onClick={() =>
-                    setQuery(
-                      keyword
-                    )
-                  }
-                >
-                  {keyword}
-                </button>
-              )
-            )}
-          </div>
-        </section>
-        <section className="product-head">
-          <div className="product-copy">
-            <div className="eyebrow">
-              GLOBAL → INDIA ·
-              HS-{product.level} · {product.code}
-            </div>
-
-            <h1>
-              {product.description}
-            </h1>
-
-            <div className="subline">
-              <span>
-                HS-{product.level} {product.code}
-              </span>
-
-              <span>•</span>
-
-              <span>
-                {product.classification}
-              </span>
-
-              <span>•</span>
-
-              <span>
-                India latest{' '}
-                {
-                  product.latestIndiaYear
-                }
-              </span>
-            </div>
-          </div>
-
-
-          <div className="head-actions">
-            <div className="yearpicker">
-              <label>
-                India report year
-              </label>
-
-              <select
-                value={year}
-                onChange={
-                  e =>
-                    setYear(
-                      Number(
-                        e.target.value
-                      ),
-                    )
-                }
-              >
-                {product.years
-                  .slice()
-                  .reverse()
-                  .map(y => (
-                    <option key={y}>
-                      {y}
-                    </option>
-                  ))}
-              </select>
-            </div>
-
-            <button
-              className="download-master"
-              onClick={
-                exportWorkbook
-              }
-            >
-              <Download size={15} />
-              XLSX
-            </button>
-          </div>
-        </section>
-
-
-        {
-          product.level < 6 && (
-            <div className="parent-category-context">
-              <strong>
-                Parent-category context
-              </strong>
-
-              <span>
-                HS-{product.level} {product.code}
-                is an official Comtrade aggregate.
-                Values are pulled directly at this
-                HS level and are not constructed by
-                summing HStat's selected child products.
-              </span>
-            </div>
-          )
-        }
-
-
-
-        {
-          indiaDetail
-          && product.level === 6
-          && (
-            <div className="ind-priority">
-              <IndiaTariffLines
-                product={product}
-                year={year}
-              />
-            </div>
-          )
-        }
-
-
-        <section
-          className="release-section selected-year-summary"
-        >
-          <div className="release-section-head">
-            <div>
-              <div className="eyebrow">
-                SELECTED YEAR · {year}
-              </div>
-
-              <h2>
-                Reported trade position
-              </h2>
-            </div>
-
-            <div className="coverage-pair">
-              <span
-                data-status={
-                  annual.global
-                    .importCoverage.status
-                }
-              >
-                Imports · {
-                  annual.global
-                    .importCoverage.status
-                }
-              </span>
-
-              <span
-                data-status={
-                  annual.global
-                    .exportCoverage.status
-                }
-              >
-                Exports · {
-                  annual.global
-                    .exportCoverage.status
-                }
-              </span>
-            </div>
-          </div>
-
-          <div className="release-metric-grid">
-            <article className="release-metric">
-              <span>
-                Reported global imports
-              </span>
-              <strong>
-                {usd(
-                  annual.global
-                    .observedImports
-                )}
-              </strong>
-              <small>
-                UN Comtrade · {year}
-              </small>
-            </article>
-
-            <article className="release-metric">
-              <span>
-                Reported global exports
-              </span>
-              <strong>
-                {usd(
-                  annual.global
-                    .observedExports
-                )}
-              </strong>
-              <small>
-                UN Comtrade · {year}
-              </small>
-            </article>
-
-            <article className="release-metric">
-              <span>
-                India imports
-              </span>
-              <strong>
-                {usd(
-                  annual.india.imports
-                )}
-              </strong>
-              <small>
-                Reporter · India
-              </small>
-            </article>
-
-            <article className="release-metric">
-              <span>
-                India exports
-              </span>
-              <strong>
-                {usd(
-                  annual.india.exports
-                )}
-              </strong>
-              <small>
-                Reporter · India
-              </small>
-            </article>
-
-            <article className="release-metric">
-              <span>
-                India trade balance
-              </span>
-              <strong>
-                {usd(
-                  annual.india.balance
-                )}
-              </strong>
-              <small>
-                Exports − imports
-              </small>
-            </article>
-          </div>
-
-          {
-            (
-              annual.global
-                .importCoverage.status
-                !== 'VALID'
-              ||
-              annual.global
-                .exportCoverage.status
-                !== 'VALID'
-            ) && (
-              <div className="coverage-note">
-                Selected-year global figures are
-                reported observations. Rank and share
-                are shown separately only from a
-                validated benchmark year.
-              </div>
-            )
-          }
-        </section>
-
-
-        <section
-          className="release-section validated-position"
-        >
-          <div className="release-section-head">
-            <div>
-              <div className="eyebrow">
-                VALIDATED GLOBAL POSITION
-              </div>
-
-              <h2>
-                India rank and share
-              </h2>
-            </div>
-          </div>
-
-          <div className="benchmark-grid">
-            <article className="benchmark-card">
-              <div className="benchmark-title">
-                Import benchmark
-              </div>
-
-              <strong>
-                {
-                  globalImportBenchmark
-                    ?.year ?? '—'
-                }
-              </strong>
-
-              <div className="benchmark-stat">
-                <span>India rank</span>
-                <b>
-                  {
-                    globalImportBenchmark
-                      ?.indiaRank
-                    ?? '—'
-                  }
-                </b>
-              </div>
-
-              <div className="benchmark-stat">
-                <span>India share</span>
-                <b>
-                  {
-                    globalImportBenchmark
-                      ?.indiaShare
-                      != null
-                      ? pct(
-                          globalImportBenchmark
-                            .indiaShare
-                        )
-                      : '—'
-                  }
-                </b>
-              </div>
-
-              <small>
-                VALID benchmark only
-              </small>
-            </article>
-
-            <article className="benchmark-card">
-              <div className="benchmark-title">
-                Export benchmark
-              </div>
-
-              <strong>
-                {
-                  globalExportBenchmark
-                    ?.year ?? '—'
-                }
-              </strong>
-
-              <div className="benchmark-stat">
-                <span>India rank</span>
-                <b>
-                  {
-                    globalExportBenchmark
-                      ?.indiaRank
-                    ?? '—'
-                  }
-                </b>
-              </div>
-
-              <div className="benchmark-stat">
-                <span>India share</span>
-                <b>
-                  {
-                    globalExportBenchmark
-                      ?.indiaShare
-                      != null
-                      ? pct(
-                          globalExportBenchmark
-                            .indiaShare
-                        )
-                      : '—'
-                  }
-                </b>
-              </div>
-
-              <small>
-                VALID benchmark only
-              </small>
-            </article>
-          </div>
-        </section>
-
-
-
-        <section className="primary-metrics legacy-primary-metrics">
-          <Metric
-            label={
-              globalImportBenchmark
-                ? `Reported global imports · ${globalImportBenchmark.year}`
-                : 'Reported global imports'
-            }
-            value={
-              globalImportBenchmark
-                ? usd(
-                    globalImportBenchmark.value,
-                  )
-                : '—'
-            }
-            note="Validated benchmark"
-            emphasis
-          />
-
-          <Metric
-            label={`India exports · ${year}`}
-            value={usd(
-              annual.india.exports,
-            )}
-            note="UN Comtrade"
-            emphasis
-          />
-
-          <Metric
-            label={
-              globalExportBenchmark
-                ? `India export rank · ${globalExportBenchmark.year}`
-                : 'India export rank'
-            }
-            value={
-              globalExportBenchmark
-                ?.indiaRank
-                ? `#${globalExportBenchmark.indiaRank}`
-                : '—'
-            }
-            note="Validated export benchmark"
-          />
-
-          <Metric
-            label={
-              globalExportBenchmark
-                ? `India export share · ${globalExportBenchmark.year}`
-                : 'India export share'
-            }
-            value={pct(
-              globalExportBenchmark
-                ?.indiaShare ??
-                null,
-            )}
-            note="Share of reported exports"
-          />
-        </section>
-
-
-        <section className="secondary-metrics">
-          <MiniMetric
-            label={`India imports · ${year}`}
-            value={usd(
-              annual.india.imports,
-            )}
-          />
-
-          <MiniMetric
-            label="Trade balance"
-            value={usd(
-              annual.india.balance,
-            )}
-          />
-
-          <MiniMetric
-            label="Largest supplier"
-            value={
-              annual.india
-                .suppliers.rows[0]
-                ?.name ?? '—'
-            }
-            detail={
-              annual.india
-                .suppliers.rows[0]
-                ? pct(
-                    annual.india
-                      .suppliers
-                      .rows[0]
-                      .share,
-                  )
-                : undefined
-            }
-          />
-
-          <MiniMetric
-            label="Top-3 supplier share"
-            value={pct(
-              annual.india
-                .suppliers
-                .top3Share,
-            )}
-          />
-
-          <MiniMetric
-            label="Supplier HHI"
-            value={
-              annual.india
-                .suppliers.hhi !=
-              null
-                ? annual.india
-                    .suppliers.hhi
-                    .toFixed(3)
-                : '—'
-            }
-          />
-        </section>
-
-
-        <section className="insight-grid">
-          <InsightPanel
-            eyebrow="PERSPECTIVE"
-            title="What stands out"
-            rows={perspective}
-          />
-
-          <InsightPanel
-            eyebrow="DEPENDENCY"
-            title="Sourcing concentration"
-            rows={dependency}
-          />
-        </section>
-
-
-        <section className="chart-grid">
-          <article
-            className="panel chart-panel"
-            id="trade-trend"
-          >
-            <PanelHead
-              eyebrow="TRADE TRAJECTORY"
-              title="India imports & exports"
-              onPng={() =>
-                downloadChart(
-                  'trade-trend',
-                  `HS-${product.hs6}-India-trade`,
-                  'png',
-                )
-              }
-              onSvg={() =>
-                downloadChart(
-                  'trade-trend',
-                  `HS-${product.hs6}-India-trade`,
-                  'svg',
-                )
-              }
-            />
-
-            <div className="chart-shell">
-              <div className="history-range-controls">
-                {
-                  (
-                    [
-                      '1Y',
-                      '5Y',
-                      '10Y',
-                      'ALL',
-                    ] as const
-                  ).map(range => (
-                    <button
-                      key={range}
-                      className={
-                        historyHorizon
-                          === range
-                          ? 'active'
-                          : ''
-                      }
-                      onClick={() =>
-                        setHistoryHorizon(
-                          range
-                        )
-                      }
-                    >
-                      {
-                        range === 'ALL'
-                          ? 'All'
-                          : range
-                      }
-                    </button>
-                  ))
-                }
-              </div>
-
-              <ResponsiveContainer
-                width="100%"
-                height="100%"
-              >
-                <AreaChart
-                  data={historyRows}
-                  margin={{
-                    top: 12,
-                    right: 20,
-                    bottom: 12,
-                    left: 10,
-                  }}
-                >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    vertical={false}
-                  />
-
-                  <XAxis
-                    dataKey="year"
-                    tickMargin={8}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-
-                  <YAxis
-                    width={58}
-                    tickFormatter={
-                      value =>
-                        `${(
-                          Number(value) /
-                          1e9
-                        ).toFixed(1)}`
-                    }
-                    axisLine={false}
-                    tickLine={false}
-                  />
-
-                  <Tooltip
-                    formatter={
-                      value =>
-                        usd(
-                          Number(value),
-                        )
-                    }
-                  />
-
-                  <Legend
-                    verticalAlign="top"
-                    align="right"
-                    height={34}
-                  />
-
-                  <Area
-                    type="monotone"
-                    dataKey="imports"
-                    name="India imports"
-                    stroke="#1f5f99"
-                    fill="#1f5f99"
-                    fillOpacity={0.08}
-                    strokeWidth={2.4}
-                    dot={{
-                      r: 2.5,
-                      fill: '#1f5f99',
-                    }}
-                    activeDot={{
-                      r: 4,
-                    }}
-                    connectNulls
-                  />
-
-                  <Area
-                    type="monotone"
-                    dataKey="exports"
-                    name="India exports"
-                    stroke="#2f8f6b"
-                    fill="#2f8f6b"
-                    fillOpacity={0.06}
-                    strokeWidth={2.4}
-                    dot={{
-                      r: 2.5,
-                      fill: '#2f8f6b',
-                    }}
-                    activeDot={{
-                      r: 4,
-                    }}
-                    connectNulls
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-
-              <div className="axis-note">
-                USD bn
-              </div>
-            </div>
-          </article>
-
-
-          <article
-            className="panel chart-panel"
-            id="supplier-chart"
-          >
-            <PanelHead
-              eyebrow="PARTNER NETWORK"
-              title="India import sources"
-              onPng={() =>
-                downloadChart(
-                  'supplier-chart',
-                  `HS-${product.hs6}-suppliers`,
-                  'png',
-                )
-              }
-              onSvg={() =>
-                downloadChart(
-                  'supplier-chart',
-                  `HS-${product.hs6}-suppliers`,
-                  'svg',
-                )
-              }
-              onCsv={() =>
-                downloadCsv(
-                  `HS-${product.hs6}-suppliers-${year}`,
-                  annual.india
-                    .suppliers.rows,
-                )
-              }
-            />
-
-            <div className="chart-shell">
-              <ResponsiveContainer
-                width="100%"
-                height="100%"
-              >
-                <BarChart
-                  data={suppliers}
-                  layout="vertical"
-                  margin={{
-                    top: 8,
-                    right: 18,
-                    bottom: 10,
-                    left: 12,
-                  }}
-                >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    horizontal={false}
-                  />
-
-                  <XAxis
-                    type="number"
-                    domain={[0, 100]}
-                    tickFormatter={
-                      value =>
-                        `${value}%`
-                    }
-                    axisLine={false}
-                    tickLine={false}
-                  />
-
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    width={118}
-                    tick={{
-                      fontSize: 11,
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-
-                  <Tooltip
-                    formatter={
-                      value =>
-                        `${Number(
-                          value,
-                        ).toFixed(
-                          1,
-                        )}%`
-                    }
-                  />
-
-                  <Bar
-                    dataKey="sharePct"
-                    name="Import share"
-                    fill="#1f5f99"
-                    radius={[
-                      0,
-                      4,
-                      4,
-                      0,
-                    ]}
-                    maxBarSize={24}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-
-              <div className="axis-note">
-                Share of India imports
-              </div>
-            </div>
-          </article>
-        </section>
-
-
-        <section className="table-grid">
-          <Table
-            eyebrow={
-              globalImportBenchmark
-                ? `TOP 10 · ${globalImportBenchmark.year}`
-                : 'TOP 10'
-            }
-            title="Importing economies"
-            rows={
-              globalImportBenchmark
-                ?.top10 ?? []
-            }
-            name={`HS-${product.hs6}-global-importers`}
-          />
-
-          <Table
-            eyebrow={
-              globalExportBenchmark
-                ? `TOP 10 · ${globalExportBenchmark.year}`
-                : 'TOP 10'
-            }
-            title="Exporting economies"
-            rows={
-              globalExportBenchmark
-                ?.top10 ?? []
-            }
-            name={`HS-${product.hs6}-global-exporters`}
-          />
-        </section>
-
-
-
-        {
-          !indiaDetail
-          && product.level === 6
-          && (
-            <div className="tariff-standard-position">
-              <IndiaTariffLines
-                product={product}
-                year={year}
-              />
-            </div>
-          )
-        }
-
-
-        {indiaDetail && (
-          <>
-            <section className="section-head">
-              <div>
-                <div className="eyebrow">
-                  INDIA DETAIL
-                </div>
-
-                <h2>
-                  Bilateral and
-                  tariff-line view
-                </h2>
-              </div>
-
-              <button
-                className="download-master"
-                onClick={
-                  exportWorkbook
-                }
-              >
-                <Download
-                  size={15}
-                />
-                Download workbook
-              </button>
-            </section>
-
-
-            <section className="chart-grid">
-              <article
-                className="panel"
-              >
-                <PanelHead
-                  eyebrow="DESTINATIONS"
-                  title="India export markets"
-                />
-
-                <DataTable
-                  rows={
-                    annual.india
-                      .destinations
-                      .rows
-                  }
-                  name={`HS-${product.hs6}-destinations-${year}`}
-                />
-              </article>
-
-
-              <article
-                className="panel"
-              >
-                <PanelHead
-                  eyebrow="SOURCES"
-                  title="India import partners"
-                />
-
-                <DataTable
-                  rows={
-                    annual.india
-                      .suppliers.rows
-                  }
-                  name={`HS-${product.hs6}-suppliers-${year}`}
-                />
-              </article>
-            </section>
-
-
-            <article className="panel hs8-panel">
-              <PanelHead
-                eyebrow="INDIA TARIFF LINES"
-                title={`ITC(HS)-8 beneath HS ${product.hs6}`}
-              />
-
-              {annual.india.hs8.length ? (
-                <DataTable
-                  rows={
-                    annual.india.hs8
-                  }
-                  name={`HS-${product.hs6}-India-HS8-${year}`}
-                />
-              ) : (
-                <div className="empty">
-                  DGCIS / TradeStat
-                  HS-8 data is not
-                  available in the
-                  current snapshot.
-                </div>
-              )}
-            </article>
-          </>
-        )}
-
-
-        <footer className="footerbar">
-          <div>
-            UN Comtrade · HS-6
-            global comparison
-            {annual.india.hs8.length
-              ? ' · DGCIS / TradeStat HS-8'
-              : ''}
-          </div>
-
-          <div className="actions">
-            <button
-              onClick={() =>
-                downloadJson(
-                  `HStat-${product.hs6}-${year}`,
-                  annual,
-                )
-              }
-            >
-              JSON
-            </button>
-
-            <button
-              onClick={() =>
-                downloadCsv(
-                  `HStat-${product.hs6}-${year}-suppliers`,
-                  annual.india
-                    .suppliers.rows,
-                )
-              }
-            >
-              CSV
-            </button>
-
-            <button
-              onClick={
-                exportWorkbook
-              }
-            >
-              XLSX
-            </button>
-          </div>
-        </footer>
-      </main>
-    </div>
-  )
-}
-
-
-function buildPerspective(
-  product: Product,
-  year: number,
-): string[] {
-  const current =
-    product.annual[
-      String(year)
-    ]
-
-  const rows: string[] = []
-
-  const exports =
-    current.india.exports
-
-  const imports =
-    current.india.imports
-
-  const balance =
-    current.india.balance
-
-  const prior =
-    product.annual[
-      String(year - 1)
-    ]
-
-
-  if (
-    exports != null &&
-    prior?.india.exports != null &&
-    prior.india.exports > 0
-  ) {
-    const growth =
-      exports /
-        prior.india.exports -
-      1
-
-    rows.push(
-      `India exports changed ${growth >= 0 ? '+' : ''}${(
-        growth * 100
-      ).toFixed(1)}% from ${year - 1}.`,
-    )
-  }
-
-
-  if (
-    imports != null &&
-    prior?.india.imports != null &&
-    prior.india.imports > 0
-  ) {
-    const growth =
-      imports /
-        prior.india.imports -
-      1
-
-    rows.push(
-      `India imports changed ${growth >= 0 ? '+' : ''}${(
-        growth * 100
-      ).toFixed(1)}% from ${year - 1}.`,
-    )
-  }
-
-
-  if (balance != null) {
-    rows.push(
-      balance < 0
-        ? `India records a ${usd(Math.abs(balance))} trade deficit in ${year}.`
-        : `India records a ${usd(balance)} trade surplus in ${year}.`,
-    )
-  }
-
-
-  if (
-    product.benchmarks
-      .globalImports
-  ) {
-    const b =
-      product.benchmarks
-        .globalImports
-
-    rows.push(
-      `The latest validated global-import benchmark is ${b.year}, with reported imports of ${usd(b.value)}.`,
-    )
-  }
-
-
-  return rows.slice(0, 4)
-}
-
-
-function buildDependency(
-  product: Product,
-  year: number,
-): string[] {
-  const current =
-    product.annual[
-      String(year)
-    ]
-
-  const rows: string[] = []
-
-  const suppliers =
-    current.india
-      .suppliers
-
-  const largest =
-    suppliers.rows[0]
-
-
-  if (largest) {
-    rows.push(
-      `${largest.name} is the largest source at ${pct(largest.share)} of India’s imports.`,
-    )
-  }
-
-
-  if (
-    suppliers.top3Share != null
-  ) {
-    rows.push(
-      `The top three suppliers account for ${pct(suppliers.top3Share)} of India’s imports.`,
-    )
-  }
-
-
-  if (
-    suppliers.hhi != null
-  ) {
-    let label = 'Low'
-
-    if (
-      suppliers.hhi >= 0.25
-    )
-      label = 'High'
-    else if (
-      suppliers.hhi >= 0.15
-    )
-      label = 'Moderate'
-
-    rows.push(
-      `Supplier HHI is ${suppliers.hhi.toFixed(3)} (${label} concentration).`,
-    )
-  }
-
-
-  if (
-    suppliers.coverage != null
-  ) {
-    rows.push(
-      `Partner rows reconcile to ${(suppliers.coverage * 100).toFixed(1)}% of India’s reported world imports.`,
-    )
-  }
-
-
-  return rows.slice(0, 4)
-}
-
-
-function Metric({
-  label,
-  value,
-  note,
-  emphasis = false,
-}: {
-  label: string
-  value: string
-  note?: string
-  emphasis?: boolean
-}) {
-  return (
-    <article
-      className={
-        emphasis
-          ? 'metric emphasis'
-          : 'metric'
-      }
-    >
-      <span>{label}</span>
-
-      <strong>{value}</strong>
-
-      {note && (
-        <small>{note}</small>
-      )}
-    </article>
-  )
-}
-
-
-function MiniMetric({
-  label,
-  value,
-  detail,
-}: {
-  label: string
-  value: string
-  detail?: string
-}) {
-  return (
-    <div className="mini-metric">
-      <span>{label}</span>
-
-      <strong>{value}</strong>
-
-      {detail && (
-        <small>{detail}</small>
-      )}
-    </div>
-  )
-}
-
-
-function InsightPanel({
-  eyebrow,
-  title,
-  rows,
-}: {
-  eyebrow: string
-  title: string
-  rows: string[]
-}) {
-  return (
-    <article className="insight-panel">
-      <div className="eyebrow">
-        {eyebrow}
-      </div>
-
-      <h3>{title}</h3>
-
-      <div className="insight-lines">
-        {rows.length ? (
-          rows.map(
-            (row, index) => (
-              <div
-                key={index}
-                className="insight-line"
-              >
-                {row}
-              </div>
-            ),
-          )
-        ) : (
-          <div className="empty-inline">
-            Insufficient data for
-            this signal.
-          </div>
-        )}
-      </div>
-    </article>
-  )
-}
-
-
-function PanelHead({
-  eyebrow,
-  title,
-  onPng,
-  onSvg,
-  onCsv,
-}: {
-  eyebrow?: string
-  title: string
-  onPng?: () => void
-  onSvg?: () => void
-  onCsv?: () => void
-}) {
-  return (
-    <div className="panelhead">
-      <div>
-        {eyebrow && (
-          <div className="eyebrow">
-            {eyebrow}
-          </div>
-        )}
-
-        <h3>{title}</h3>
-      </div>
-
-      <div className="panel-actions">
-        {onPng && (
-          <button onClick={onPng}>
-            PNG
-          </button>
-        )}
-
-        {onSvg && (
-          <button onClick={onSvg}>
-            SVG
-          </button>
-        )}
-
-        {onCsv && (
-          <button onClick={onCsv}>
-            CSV
-          </button>
-        )}
-      </div>
-    </div>
-  )
-}
-
-
-function Table({
-  eyebrow,
-  title,
-  rows,
-  name,
-}: {
-  eyebrow: string
-  title: string
-  rows: any[]
-  name: string
-}) {
-  return (
-    <article className="panel">
-      <PanelHead
-        eyebrow={eyebrow}
-        title={title}
-      />
-
-      <DataTable
-        rows={rows}
-        name={name}
-      />
-    </article>
-  )
-}
-
-
-function IndiaTariffLines({
-  product,
-  year,
-}: {
-  product: Product
-  year: number
-}) {
-  const annual =
-    product.annual[String(year)]
-
-  const rows =
-    annual?.india.hs8 ?? []
-
-  return (
-    <article
-      className="panel hs8-panel tariff-focus"
-      id="india-tariff-lines"
-    >
-      <PanelHead
-        eyebrow="INDIA TARIFF LINES"
-        title={`ITC(HS)-8 beneath HS ${product.hs6}`}
-      />
-
-      <div className="tariff-context">
-        <span>
-          India national tariff-line view
-        </span>
-
-        <strong>
-          {rows.length}
-          {' '}
-          {rows.length === 1
-            ? 'line'
-            : 'lines'}
-        </strong>
-      </div>
-
-      {rows.length ? (
-        <DataTable
-          rows={rows}
-          name={`HS-${product.hs6}-India-HS8-${year}`}
+        <SearchHub
+          index={index}
+          recent={recent}
+          inBasket={inBasket}
+          onOpen={item => {
+            if (item.retired) return
+
+            openCode(item.code, item.level)
+          }}
+          onAdd={item => addToBasket({ code: item.code, level: item.level })}
         />
-      ) : (
-        <div className="empty">
-          DGCIS / TradeStat HS-8 data is
-          not available in the current
-          snapshot.
-        </div>
+
+        <ProductView
+          node={node}
+          year={year}
+          onYearChange={setYear}
+          methodology={methodology}
+          dark={dark}
+          showHs8={showHs8}
+          currency={currency}
+          currencyBlock={manifest.currency}
+          inBasket={inBasket(node.code)}
+          onOpen={openCode}
+          onAddToStack={() =>
+            addToBasket({ code: node.code, level: node.level })
+          }
+        />
+      </main>
+
+      {stackOpen && (
+        <HStackPanel
+          entries={basket}
+          nodes={basketNodes}
+          loading={basketLoading}
+          dark={dark}
+          onAdd={(code, level) => addToBasket({ code, level })}
+          onRemove={removeFromBasket}
+          onClear={() => setBasket([])}
+          onOpen={openCode}
+          onClose={() => setStackOpen(false)}
+        />
       )}
-    </article>
+
+      {catalogue.length === 0 && (
+        <div className="coverage-note">Catalogue is empty.</div>
+      )}
+    </div>
   )
 }
-
-
-function DataTable({
-  rows,
-  name = 'table',
-}: {
-  rows: any[]
-  name?: string
-}) {
-  if (!rows.length) {
-    return (
-      <div className="empty">
-        Data unavailable for
-        this selection.
-      </div>
-    )
-  }
-
-
-  const cols =
-    Object.keys(rows[0])
-      .filter(
-        c =>
-          ![
-            'code',
-          ].includes(c),
-      )
-
-
-  function formatCell(
-    column: string,
-    value: any,
-  ) {
-    if (value == null)
-      return '—'
-
-    if (
-      typeof value !==
-      'number'
-    )
-      return String(value)
-
-    const key =
-      column.toLowerCase()
-
-    if (
-      key.includes('share')
-    )
-      return pct(value)
-
-    if (
-      key.includes('value') ||
-      key.includes('imports') ||
-      key.includes('exports') ||
-      key === 'balance'
-    )
-      return usd(value)
-
-    return value.toLocaleString()
-  }
-
-
-  return (
-    <>
-      <div className="tablewrap">
-        <table>
-          <thead>
-            <tr>
-              {cols.map(c => (
-                <th key={c}>
-                  {humanize(c)}
-                </th>
-              ))}
-            </tr>
-          </thead>
-
-          <tbody>
-            {rows.map(
-              (row, index) => (
-                <tr key={index}>
-                  {cols.map(c => (
-                    <td key={c}>
-                      {formatCell(
-                        c,
-                        row[c],
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              ),
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="tableactions">
-        <button
-          onClick={() =>
-            downloadCsv(
-              name,
-              rows,
-            )
-          }
-        >
-          CSV
-        </button>
-
-        <button
-          onClick={() =>
-            downloadJson(
-              name,
-              rows,
-            )
-          }
-        >
-          JSON
-        </button>
-
-        <button
-          onClick={() =>
-            downloadXlsx(
-              name,
-              {
-                Data: rows,
-              },
-            )
-          }
-        >
-          XLSX
-        </button>
-      </div>
-    </>
-  )
-}
-
-
-function humanize(
-  value: string,
-) {
-  return value
-    .replace(
-      /([a-z])([A-Z])/g,
-      '$1 $2',
-    )
-    .replace(/^./, c =>
-      c.toUpperCase(),
-    )
-}
-
 
 export default App
