@@ -1,0 +1,1411 @@
+{
+  "schemaVersion": "1.0.0",
+  "hs6": "850710",
+  "description": "Electric accumulators; lead-acid, of a kind used for starting piston engines, including separators, whether or not rectangular (including square)",
+  "classification": "HS 2022 (H6)",
+  "refreshedAt": "2026-08-21T06:50:01.856137+00:00",
+  "years": [
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "latestIndiaYear": 2025,
+  "benchmarks": {
+    "globalImports": {
+      "year": 2024,
+      "status": "VALID",
+      "value": 12670581545.765999,
+      "indiaRank": 31,
+      "indiaShare": 0.006024542358239896,
+      "top10": [
+        {
+          "rank": 1,
+          "code": "842",
+          "name": "USA",
+          "value": 2628371003.0,
+          "share": 0.20743886091623762
+        },
+        {
+          "rank": 2,
+          "code": "251",
+          "name": "France",
+          "value": 881062591.129,
+          "share": 0.06953608150869885
+        },
+        {
+          "rank": 3,
+          "code": "276",
+          "name": "Germany",
+          "value": 717020714.217,
+          "share": 0.05658940843615814
+        },
+        {
+          "rank": 4,
+          "code": "124",
+          "name": "Canada",
+          "value": 609880972.54,
+          "share": 0.04813362120255623
+        },
+        {
+          "rank": 5,
+          "code": "826",
+          "name": "United Kingdom",
+          "value": 544951615.153,
+          "share": 0.0430092031044227
+        },
+        {
+          "rank": 6,
+          "code": "380",
+          "name": "Italy",
+          "value": 499816590.855,
+          "share": 0.03944701267654275
+        },
+        {
+          "rank": 7,
+          "code": "724",
+          "name": "Spain",
+          "value": 422012969.642,
+          "share": 0.03330651936674681
+        },
+        {
+          "rank": 8,
+          "code": "616",
+          "name": "Poland",
+          "value": 369255937.0,
+          "share": 0.0291427773592121
+        },
+        {
+          "rank": 9,
+          "code": "36",
+          "name": "Australia",
+          "value": 317678567.453,
+          "share": 0.025072137873510272
+        },
+        {
+          "rank": 10,
+          "code": "203",
+          "name": "Czechia",
+          "value": 305178380.0,
+          "share": 0.024085585882360577
+        }
+      ]
+    },
+    "globalExports": {
+      "year": 2024,
+      "status": "VALID",
+      "value": 13307130095.014,
+      "indiaRank": 14,
+      "indiaShare": 0.020556141162735977,
+      "top10": [
+        {
+          "rank": 1,
+          "code": "410",
+          "name": "Rep. of Korea",
+          "value": 2232712837.0,
+          "share": 0.16778319750827167
+        },
+        {
+          "rank": 2,
+          "code": "276",
+          "name": "Germany",
+          "value": 1492675983.471,
+          "share": 0.11217114229838974
+        },
+        {
+          "rank": 3,
+          "code": "156",
+          "name": "China",
+          "value": 1167252015.0,
+          "share": 0.08771628492888586
+        },
+        {
+          "rank": 4,
+          "code": "484",
+          "name": "Mexico",
+          "value": 1013387680.0,
+          "share": 0.07615373658815454
+        },
+        {
+          "rank": 5,
+          "code": "724",
+          "name": "Spain",
+          "value": 957526062.344,
+          "share": 0.07195586542757043
+        },
+        {
+          "rank": 6,
+          "code": "203",
+          "name": "Czechia",
+          "value": 847055767.0,
+          "share": 0.0636542786424986
+        },
+        {
+          "rank": 7,
+          "code": "842",
+          "name": "USA",
+          "value": 699868604.0,
+          "share": 0.052593504309560425
+        },
+        {
+          "rank": 8,
+          "code": "380",
+          "name": "Italy",
+          "value": 479573683.445,
+          "share": 0.03603885135418415
+        },
+        {
+          "rank": 9,
+          "code": "792",
+          "name": "Türkiye",
+          "value": 472465565.0,
+          "share": 0.0355046927193585
+        },
+        {
+          "rank": 10,
+          "code": "616",
+          "name": "Poland",
+          "value": 466006622.0,
+          "share": 0.035019318115376834
+        }
+      ]
+    }
+  },
+  "annual": {
+    "2022": {
+      "india": {
+        "imports": 45227717.777,
+        "exports": 225085857.205,
+        "balance": 179858139.428,
+        "suppliers": {
+          "rows": [
+            {
+              "code": "842",
+              "name": "USA",
+              "value": 9230195.941,
+              "share": 0.2040827261395423
+            },
+            {
+              "code": "276",
+              "name": "Germany",
+              "value": 7561299.536,
+              "share": 0.1671828672249566
+            },
+            {
+              "code": "156",
+              "name": "China",
+              "value": 6257727.994,
+              "share": 0.13836046348512174
+            },
+            {
+              "code": "410",
+              "name": "Rep. of Korea",
+              "value": 4438583.755,
+              "share": 0.09813857459898599
+            },
+            {
+              "code": "764",
+              "name": "Thailand",
+              "value": 3666175.483,
+              "share": 0.08106036880031095
+            },
+            {
+              "code": "702",
+              "name": "Singapore",
+              "value": 2242833.488,
+              "share": 0.0495898001985978
+            },
+            {
+              "code": "50",
+              "name": "Bangladesh",
+              "value": 2212867.063,
+              "share": 0.04892723249735423
+            },
+            {
+              "code": "826",
+              "name": "United Kingdom",
+              "value": 1997699.481,
+              "share": 0.04416980513697079
+            },
+            {
+              "code": "704",
+              "name": "Viet Nam",
+              "value": 1896623.907,
+              "share": 0.04193499031614866
+            },
+            {
+              "code": "360",
+              "name": "Indonesia",
+              "value": 1695068.437,
+              "share": 0.037478531314750665
+            },
+            {
+              "code": "392",
+              "name": "Japan",
+              "value": 1106846.778,
+              "share": 0.024472753267308862
+            },
+            {
+              "code": "144",
+              "name": "Sri Lanka",
+              "value": 633741.491,
+              "share": 0.014012236790826563
+            },
+            {
+              "code": "752",
+              "name": "Sweden",
+              "value": 576761.312,
+              "share": 0.012752385933859897
+            },
+            {
+              "code": "380",
+              "name": "Italy",
+              "value": 485432.892,
+              "share": 0.010733083955141793
+            },
+            {
+              "code": "458",
+              "name": "Malaysia",
+              "value": 317270.283,
+              "share": 0.0070149523034598905
+            }
+          ],
+          "coverage": 1.0000000000442206,
+          "hhi": 0.11613235164756111,
+          "top3Share": 0.5096260568496206
+        },
+        "destinations": {
+          "rows": [
+            {
+              "code": "458",
+              "name": "Malaysia",
+              "value": 31866456.438,
+              "share": 0.14157467214378197
+            },
+            {
+              "code": "784",
+              "name": "United Arab Emirates",
+              "value": 30474158.799,
+              "share": 0.13538904299635868
+            },
+            {
+              "code": "682",
+              "name": "Saudi Arabia",
+              "value": 16091938.517,
+              "share": 0.0714924461128806
+            },
+            {
+              "code": "608",
+              "name": "Philippines",
+              "value": 15083650.276,
+              "share": 0.06701287439069244
+            },
+            {
+              "code": "414",
+              "name": "Kuwait",
+              "value": 13112439.408,
+              "share": 0.05825527898919774
+            },
+            {
+              "code": "524",
+              "name": "Nepal",
+              "value": 11429818.188,
+              "share": 0.050779815000060784
+            },
+            {
+              "code": "764",
+              "name": "Thailand",
+              "value": 11259728.126,
+              "share": 0.05002414752227213
+            },
+            {
+              "code": "512",
+              "name": "Oman",
+              "value": 9356890.631,
+              "share": 0.04157031786532053
+            },
+            {
+              "code": "360",
+              "name": "Indonesia",
+              "value": 8986346.122,
+              "share": 0.03992408156419869
+            },
+            {
+              "code": "490",
+              "name": "Other Asia, nes",
+              "value": 8857322.941,
+              "share": 0.03935086393692462
+            },
+            {
+              "code": "842",
+              "name": "USA",
+              "value": 8759652.249,
+              "share": 0.0389169375533978
+            },
+            {
+              "code": "702",
+              "name": "Singapore",
+              "value": 8053998.946,
+              "share": 0.03578189694372806
+            },
+            {
+              "code": "144",
+              "name": "Sri Lanka",
+              "value": 7619332.097,
+              "share": 0.03385078117129585
+            },
+            {
+              "code": "104",
+              "name": "Myanmar",
+              "value": 6394623.717,
+              "share": 0.02840970906126727
+            },
+            {
+              "code": "48",
+              "name": "Bahrain",
+              "value": 5928830.193,
+              "share": 0.026340305280043594
+            }
+          ],
+          "coverage": 0.999999999982229,
+          "hhi": 0.06832634000383989,
+          "top3Share": 0.3484561612530212
+        },
+        "hs8": []
+      },
+      "global": {
+        "observedImports": 11253361446.953001,
+        "observedExports": 12048511715.434,
+        "imports": null,
+        "exports": null,
+        "importRankIndia": null,
+        "importShareIndia": null,
+        "exportRankIndia": null,
+        "exportShareIndia": null,
+        "topImporters": [],
+        "topExporters": [],
+        "mirror": {
+          "importExportRatio": 0.934004274780061,
+          "status": "OK"
+        },
+        "importCoverage": {
+          "status": "BASELINE",
+          "reason": "No preceding year inside validation window"
+        },
+        "exportCoverage": {
+          "status": "BASELINE",
+          "reason": "No preceding year inside validation window"
+        }
+      }
+    },
+    "2023": {
+      "india": {
+        "imports": 79832916.551,
+        "exports": 225902439.008,
+        "balance": 146069522.457,
+        "suppliers": {
+          "rows": [
+            {
+              "code": "410",
+              "name": "Rep. of Korea",
+              "value": 28216849.269,
+              "share": 0.3534488089380289
+            },
+            {
+              "code": "156",
+              "name": "China",
+              "value": 13904866.558,
+              "share": 0.17417460314276625
+            },
+            {
+              "code": "276",
+              "name": "Germany",
+              "value": 11133894.817,
+              "share": 0.1394649638020839
+            },
+            {
+              "code": "842",
+              "name": "USA",
+              "value": 10660108.993,
+              "share": 0.13353024608827813
+            },
+            {
+              "code": "764",
+              "name": "Thailand",
+              "value": 4589986.027,
+              "share": 0.05749490592727825
+            },
+            {
+              "code": "360",
+              "name": "Indonesia",
+              "value": 2262871.758,
+              "share": 0.02834509693197041
+            },
+            {
+              "code": "392",
+              "name": "Japan",
+              "value": 1608671.05,
+              "share": 0.020150473257134805
+            },
+            {
+              "code": "704",
+              "name": "Viet Nam",
+              "value": 1395235.249,
+              "share": 0.01747694195925657
+            },
+            {
+              "code": "458",
+              "name": "Malaysia",
+              "value": 1356207.565,
+              "share": 0.01698807488930469
+            },
+            {
+              "code": "826",
+              "name": "United Kingdom",
+              "value": 1163788.13,
+              "share": 0.014577797984576101
+            },
+            {
+              "code": "752",
+              "name": "Sweden",
+              "value": 965833.206,
+              "share": 0.012098182651049618
+            },
+            {
+              "code": "380",
+              "name": "Italy",
+              "value": 438257.613,
+              "share": 0.005489685607565471
+            },
+            {
+              "code": "203",
+              "name": "Czechia",
+              "value": 362555.993,
+              "share": 0.004541434895070968
+            },
+            {
+              "code": "616",
+              "name": "Poland",
+              "value": 361286.118,
+              "share": 0.004525528235827362
+            },
+            {
+              "code": "144",
+              "name": "Sri Lanka",
+              "value": 292821.565,
+              "share": 0.00366793019284139
+            }
+          ],
+          "coverage": 0.9999999999624216,
+          "hhi": 0.19812562310547094,
+          "top3Share": 0.667088375882879
+        },
+        "destinations": {
+          "rows": [
+            {
+              "code": "784",
+              "name": "United Arab Emirates",
+              "value": 28663468.015,
+              "share": 0.12688427863315335
+            },
+            {
+              "code": "458",
+              "name": "Malaysia",
+              "value": 24855687.916,
+              "share": 0.11002841768839766
+            },
+            {
+              "code": "764",
+              "name": "Thailand",
+              "value": 19879559.101,
+              "share": 0.08800063951631791
+            },
+            {
+              "code": "414",
+              "name": "Kuwait",
+              "value": 15318350.52,
+              "share": 0.0678095844704781
+            },
+            {
+              "code": "608",
+              "name": "Philippines",
+              "value": 15154369.031,
+              "share": 0.06708368930210325
+            },
+            {
+              "code": "524",
+              "name": "Nepal",
+              "value": 12697924.038,
+              "share": 0.05620976955255593
+            },
+            {
+              "code": "842",
+              "name": "USA",
+              "value": 10920822.716,
+              "share": 0.048343093434299995
+            },
+            {
+              "code": "490",
+              "name": "Other Asia, nes",
+              "value": 10372078.483,
+              "share": 0.0459139729900512
+            },
+            {
+              "code": "682",
+              "name": "Saudi Arabia",
+              "value": 10186482.682,
+              "share": 0.045092397969369695
+            },
+            {
+              "code": "144",
+              "name": "Sri Lanka",
+              "value": 9161162.477,
+              "share": 0.04055362357851998
+            },
+            {
+              "code": "702",
+              "name": "Singapore",
+              "value": 8752783.616,
+              "share": 0.03874585708076412
+            },
+            {
+              "code": "360",
+              "name": "Indonesia",
+              "value": 8616512.988,
+              "share": 0.038142629295360816
+            },
+            {
+              "code": "512",
+              "name": "Oman",
+              "value": 7962378.95,
+              "share": 0.03524698088681559
+            },
+            {
+              "code": "634",
+              "name": "Qatar",
+              "value": 6346495.433,
+              "share": 0.02809396596543718
+            },
+            {
+              "code": "48",
+              "name": "Bahrain",
+              "value": 5802060.058,
+              "share": 0.025683919498516478
+            }
+          ],
+          "coverage": 0.99999999998672,
+          "hhi": 0.06306460896459605,
+          "top3Share": 0.3249133358378689
+        },
+        "hs8": []
+      },
+      "global": {
+        "observedImports": 11601461272.326,
+        "observedExports": 12460225439.267,
+        "imports": 11601461272.326,
+        "exports": 12460225439.267,
+        "importRankIndia": 29,
+        "importShareIndia": 0.006881281131492683,
+        "exportRankIndia": 13,
+        "exportShareIndia": 0.018129883773699135,
+        "topImporters": [
+          {
+            "rank": 1,
+            "code": "842",
+            "name": "USA",
+            "value": 2031638511.0,
+            "share": 0.17511919087695
+          },
+          {
+            "rank": 2,
+            "code": "251",
+            "name": "France",
+            "value": 813440440.779,
+            "share": 0.07011534337655999
+          },
+          {
+            "rank": 3,
+            "code": "276",
+            "name": "Germany",
+            "value": 669514561.915,
+            "share": 0.057709502811689135
+          },
+          {
+            "rank": 4,
+            "code": "124",
+            "name": "Canada",
+            "value": 554406832.222,
+            "share": 0.04778767253608612
+          },
+          {
+            "rank": 5,
+            "code": "826",
+            "name": "United Kingdom",
+            "value": 477307312.358,
+            "share": 0.04114199937007622
+          },
+          {
+            "rank": 6,
+            "code": "380",
+            "name": "Italy",
+            "value": 432294887.89,
+            "share": 0.037262106707298286
+          },
+          {
+            "rank": 7,
+            "code": "724",
+            "name": "Spain",
+            "value": 423858730.456,
+            "share": 0.03653494335813265
+          },
+          {
+            "rank": 8,
+            "code": "616",
+            "name": "Poland",
+            "value": 365675521.0,
+            "share": 0.031519781208275754
+          },
+          {
+            "rank": 9,
+            "code": "392",
+            "name": "Japan",
+            "value": 293382500.118,
+            "share": 0.025288409212538717
+          },
+          {
+            "rank": 10,
+            "code": "484",
+            "name": "Mexico",
+            "value": 251147784.0,
+            "share": 0.02164794400504402
+          }
+        ],
+        "topExporters": [
+          {
+            "rank": 1,
+            "code": "410",
+            "name": "Rep. of Korea",
+            "value": 1859725635.0,
+            "share": 0.1492529685008173
+          },
+          {
+            "rank": 2,
+            "code": "276",
+            "name": "Germany",
+            "value": 1466392305.236,
+            "share": 0.11768585667919214
+          },
+          {
+            "rank": 3,
+            "code": "156",
+            "name": "China",
+            "value": 1023667589.0,
+            "share": 0.0821548208729857
+          },
+          {
+            "rank": 4,
+            "code": "724",
+            "name": "Spain",
+            "value": 960092398.491,
+            "share": 0.07705257045072209
+          },
+          {
+            "rank": 5,
+            "code": "484",
+            "name": "Mexico",
+            "value": 928677030.0,
+            "share": 0.07453131843613188
+          },
+          {
+            "rank": 6,
+            "code": "203",
+            "name": "Czechia",
+            "value": 859377972.0,
+            "share": 0.06896969691188466
+          },
+          {
+            "rank": 7,
+            "code": "842",
+            "name": "USA",
+            "value": 674279822.0,
+            "share": 0.054114576440574096
+          },
+          {
+            "rank": 8,
+            "code": "616",
+            "name": "Poland",
+            "value": 488469830.0,
+            "share": 0.03920232682633833
+          },
+          {
+            "rank": 9,
+            "code": "380",
+            "name": "Italy",
+            "value": 452262238.663,
+            "share": 0.03629647319523982
+          },
+          {
+            "rank": 10,
+            "code": "792",
+            "name": "Türkiye",
+            "value": 413177817.0,
+            "share": 0.03315973848257324
+          }
+        ],
+        "mirror": {
+          "importExportRatio": 0.9310795642400899,
+          "status": "OK"
+        },
+        "importCoverage": {
+          "status": "VALID",
+          "candidateReporters": 165,
+          "previousReporters": 167,
+          "reporterCountRatio": 0.9880239520958084,
+          "priorTop1Present": true,
+          "priorTop10Present": 10,
+          "priorTop20ValueCoverage": 1.0,
+          "missingPriorTop10": []
+        },
+        "exportCoverage": {
+          "status": "VALID",
+          "candidateReporters": 127,
+          "previousReporters": 133,
+          "reporterCountRatio": 0.9548872180451128,
+          "priorTop1Present": true,
+          "priorTop10Present": 10,
+          "priorTop20ValueCoverage": 1.0,
+          "missingPriorTop10": []
+        }
+      }
+    },
+    "2024": {
+      "india": {
+        "imports": 76334455.226,
+        "exports": 273543244.704,
+        "balance": 197208789.478,
+        "suppliers": {
+          "rows": [
+            {
+              "code": "410",
+              "name": "Rep. of Korea",
+              "value": 30769928.872,
+              "share": 0.40309358049259475
+            },
+            {
+              "code": "156",
+              "name": "China",
+              "value": 14096479.981,
+              "share": 0.18466732931105861
+            },
+            {
+              "code": "842",
+              "name": "USA",
+              "value": 7159597.699,
+              "share": 0.09379247782410839
+            },
+            {
+              "code": "764",
+              "name": "Thailand",
+              "value": 6209063.374,
+              "share": 0.08134024610010125
+            },
+            {
+              "code": "276",
+              "name": "Germany",
+              "value": 5912827.754,
+              "share": 0.07745948715418426
+            },
+            {
+              "code": "392",
+              "name": "Japan",
+              "value": 2288320.046,
+              "share": 0.029977551280415557
+            },
+            {
+              "code": "458",
+              "name": "Malaysia",
+              "value": 1882423.256,
+              "share": 0.02466020423446783
+            },
+            {
+              "code": "704",
+              "name": "Viet Nam",
+              "value": 1870993.854,
+              "share": 0.024510476277856866
+            },
+            {
+              "code": "360",
+              "name": "Indonesia",
+              "value": 1825133.915,
+              "share": 0.023909699880563868
+            },
+            {
+              "code": "826",
+              "name": "United Kingdom",
+              "value": 1224499.588,
+              "share": 0.016041243556067557
+            },
+            {
+              "code": "752",
+              "name": "Sweden",
+              "value": 1131772.171,
+              "share": 0.01482649175459775
+            },
+            {
+              "code": "616",
+              "name": "Poland",
+              "value": 417792.326,
+              "share": 0.005473181471762142
+            },
+            {
+              "code": "203",
+              "name": "Czechia",
+              "value": 392786.421,
+              "share": 0.005145598011240073
+            },
+            {
+              "code": "50",
+              "name": "Bangladesh",
+              "value": 260858.119,
+              "share": 0.003417305045640125
+            },
+            {
+              "code": "380",
+              "name": "Italy",
+              "value": 253629.749,
+              "share": 0.003322611633882626
+            }
+          ],
+          "coverage": 0.9999999999868997,
+          "hhi": 0.2212470633711929,
+          "top3Share": 0.6815533876277617
+        },
+        "destinations": {
+          "rows": [
+            {
+              "code": "842",
+              "name": "USA",
+              "value": 33884704.964,
+              "share": 0.1238733020099491
+            },
+            {
+              "code": "784",
+              "name": "United Arab Emirates",
+              "value": 26553952.309,
+              "share": 0.09707405619807545
+            },
+            {
+              "code": "458",
+              "name": "Malaysia",
+              "value": 25215708.325,
+              "share": 0.09218179872175536
+            },
+            {
+              "code": "764",
+              "name": "Thailand",
+              "value": 20950225.763,
+              "share": 0.0765883499907671
+            },
+            {
+              "code": "608",
+              "name": "Philippines",
+              "value": 18570353.196,
+              "share": 0.06788818059131711
+            },
+            {
+              "code": "414",
+              "name": "Kuwait",
+              "value": 15146832.295,
+              "share": 0.055372715606230104
+            },
+            {
+              "code": "524",
+              "name": "Nepal",
+              "value": 13229182.62,
+              "share": 0.04836230788413453
+            },
+            {
+              "code": "682",
+              "name": "Saudi Arabia",
+              "value": 12114229.5,
+              "share": 0.04428634131728881
+            },
+            {
+              "code": "144",
+              "name": "Sri Lanka",
+              "value": 11882717.777,
+              "share": 0.04343999717433432
+            },
+            {
+              "code": "490",
+              "name": "Other Asia, nes",
+              "value": 10297781.073,
+              "share": 0.037645897942547205
+            },
+            {
+              "code": "360",
+              "name": "Indonesia",
+              "value": 10084386.906,
+              "share": 0.03686578667629783
+            },
+            {
+              "code": "702",
+              "name": "Singapore",
+              "value": 9517622.437,
+              "share": 0.03479384931365781
+            },
+            {
+              "code": "512",
+              "name": "Oman",
+              "value": 8914645.778,
+              "share": 0.03258952999422999
+            },
+            {
+              "code": "48",
+              "name": "Bahrain",
+              "value": 6888878.443,
+              "share": 0.02518387339615872
+            },
+            {
+              "code": "643",
+              "name": "Russian Federation",
+              "value": 6669606.078,
+              "share": 0.0243822730304203
+            }
+          ],
+          "coverage": 0.9999999999963446,
+          "hhi": 0.061043914110427644,
+          "top3Share": 0.31312915692977994
+        },
+        "hs8": []
+      },
+      "global": {
+        "observedImports": 12670581545.765999,
+        "observedExports": 13307130095.014,
+        "imports": 12670581545.765999,
+        "exports": 13307130095.014,
+        "importRankIndia": 31,
+        "importShareIndia": 0.006024542358239896,
+        "exportRankIndia": 14,
+        "exportShareIndia": 0.020556141162735977,
+        "topImporters": [
+          {
+            "rank": 1,
+            "code": "842",
+            "name": "USA",
+            "value": 2628371003.0,
+            "share": 0.20743886091623762
+          },
+          {
+            "rank": 2,
+            "code": "251",
+            "name": "France",
+            "value": 881062591.129,
+            "share": 0.06953608150869885
+          },
+          {
+            "rank": 3,
+            "code": "276",
+            "name": "Germany",
+            "value": 717020714.217,
+            "share": 0.05658940843615814
+          },
+          {
+            "rank": 4,
+            "code": "124",
+            "name": "Canada",
+            "value": 609880972.54,
+            "share": 0.04813362120255623
+          },
+          {
+            "rank": 5,
+            "code": "826",
+            "name": "United Kingdom",
+            "value": 544951615.153,
+            "share": 0.0430092031044227
+          },
+          {
+            "rank": 6,
+            "code": "380",
+            "name": "Italy",
+            "value": 499816590.855,
+            "share": 0.03944701267654275
+          },
+          {
+            "rank": 7,
+            "code": "724",
+            "name": "Spain",
+            "value": 422012969.642,
+            "share": 0.03330651936674681
+          },
+          {
+            "rank": 8,
+            "code": "616",
+            "name": "Poland",
+            "value": 369255937.0,
+            "share": 0.0291427773592121
+          },
+          {
+            "rank": 9,
+            "code": "36",
+            "name": "Australia",
+            "value": 317678567.453,
+            "share": 0.025072137873510272
+          },
+          {
+            "rank": 10,
+            "code": "203",
+            "name": "Czechia",
+            "value": 305178380.0,
+            "share": 0.024085585882360577
+          }
+        ],
+        "topExporters": [
+          {
+            "rank": 1,
+            "code": "410",
+            "name": "Rep. of Korea",
+            "value": 2232712837.0,
+            "share": 0.16778319750827167
+          },
+          {
+            "rank": 2,
+            "code": "276",
+            "name": "Germany",
+            "value": 1492675983.471,
+            "share": 0.11217114229838974
+          },
+          {
+            "rank": 3,
+            "code": "156",
+            "name": "China",
+            "value": 1167252015.0,
+            "share": 0.08771628492888586
+          },
+          {
+            "rank": 4,
+            "code": "484",
+            "name": "Mexico",
+            "value": 1013387680.0,
+            "share": 0.07615373658815454
+          },
+          {
+            "rank": 5,
+            "code": "724",
+            "name": "Spain",
+            "value": 957526062.344,
+            "share": 0.07195586542757043
+          },
+          {
+            "rank": 6,
+            "code": "203",
+            "name": "Czechia",
+            "value": 847055767.0,
+            "share": 0.0636542786424986
+          },
+          {
+            "rank": 7,
+            "code": "842",
+            "name": "USA",
+            "value": 699868604.0,
+            "share": 0.052593504309560425
+          },
+          {
+            "rank": 8,
+            "code": "380",
+            "name": "Italy",
+            "value": 479573683.445,
+            "share": 0.03603885135418415
+          },
+          {
+            "rank": 9,
+            "code": "792",
+            "name": "Türkiye",
+            "value": 472465565.0,
+            "share": 0.0355046927193585
+          },
+          {
+            "rank": 10,
+            "code": "616",
+            "name": "Poland",
+            "value": 466006622.0,
+            "share": 0.035019318115376834
+          }
+        ],
+        "mirror": {
+          "importExportRatio": 0.952164851120941,
+          "status": "OK"
+        },
+        "importCoverage": {
+          "status": "VALID",
+          "candidateReporters": 139,
+          "previousReporters": 165,
+          "reporterCountRatio": 0.8424242424242424,
+          "priorTop1Present": true,
+          "priorTop10Present": 10,
+          "priorTop20ValueCoverage": 0.9515619190847818,
+          "missingPriorTop10": []
+        },
+        "exportCoverage": {
+          "status": "VALID",
+          "candidateReporters": 120,
+          "previousReporters": 127,
+          "reporterCountRatio": 0.9448818897637795,
+          "priorTop1Present": true,
+          "priorTop10Present": 10,
+          "priorTop20ValueCoverage": 0.9720382852113869,
+          "missingPriorTop10": []
+        }
+      }
+    },
+    "2025": {
+      "india": {
+        "imports": 66280452.667,
+        "exports": 262607739.141,
+        "balance": 196327286.474,
+        "suppliers": {
+          "rows": [
+            {
+              "code": "156",
+              "name": "China",
+              "value": 16979954.073,
+              "share": 0.2561834355342907
+            },
+            {
+              "code": "764",
+              "name": "Thailand",
+              "value": 14418169.032,
+              "share": 0.21753274837210912
+            },
+            {
+              "code": "276",
+              "name": "Germany",
+              "value": 9081390.49,
+              "share": 0.1370146117683575
+            },
+            {
+              "code": "410",
+              "name": "Rep. of Korea",
+              "value": 8471597.175,
+              "share": 0.12781441336199376
+            },
+            {
+              "code": "458",
+              "name": "Malaysia",
+              "value": 4018361.276,
+              "share": 0.06062664200844662
+            },
+            {
+              "code": "608",
+              "name": "Philippines",
+              "value": 2564654.733,
+              "share": 0.038693983366183335
+            },
+            {
+              "code": "360",
+              "name": "Indonesia",
+              "value": 2298799.79,
+              "share": 0.03468292230213654
+            },
+            {
+              "code": "392",
+              "name": "Japan",
+              "value": 1817117.543,
+              "share": 0.027415587399944152
+            },
+            {
+              "code": "704",
+              "name": "Viet Nam",
+              "value": 1504640.893,
+              "share": 0.022701125783788394
+            },
+            {
+              "code": "826",
+              "name": "United Kingdom",
+              "value": 1316095.725,
+              "share": 0.019856468567168727
+            },
+            {
+              "code": "842",
+              "name": "USA",
+              "value": 870913.168,
+              "share": 0.01313981925222448
+            },
+            {
+              "code": "380",
+              "name": "Italy",
+              "value": 727232.505,
+              "share": 0.010972050970347064
+            },
+            {
+              "code": "752",
+              "name": "Sweden",
+              "value": 658342.024,
+              "share": 0.009932672417123943
+            },
+            {
+              "code": "203",
+              "name": "Czechia",
+              "value": 609350.753,
+              "share": 0.009193521294452266
+            },
+            {
+              "code": "50",
+              "name": "Bangladesh",
+              "value": 256325.806,
+              "share": 0.003867291119567453
+            }
+          ],
+          "coverage": 1.0000000000150875,
+          "hhi": 0.15660487287121072,
+          "top3Share": 0.6107307956747573
+        },
+        "destinations": {
+          "rows": [
+            {
+              "code": "784",
+              "name": "United Arab Emirates",
+              "value": 33687016.755,
+              "share": 0.12827884229608588
+            },
+            {
+              "code": "842",
+              "name": "USA",
+              "value": 26112416.416,
+              "share": 0.09943506044953099
+            },
+            {
+              "code": "608",
+              "name": "Philippines",
+              "value": 21470319.097,
+              "share": 0.08175813541227017
+            },
+            {
+              "code": "458",
+              "name": "Malaysia",
+              "value": 20556460.085,
+              "share": 0.07827819603580981
+            },
+            {
+              "code": "414",
+              "name": "Kuwait",
+              "value": 18386306.67,
+              "share": 0.07001433670668776
+            },
+            {
+              "code": "764",
+              "name": "Thailand",
+              "value": 14684175.776,
+              "share": 0.055916767053524406
+            },
+            {
+              "code": "524",
+              "name": "Nepal",
+              "value": 11034414.088,
+              "share": 0.042018617288637386
+            },
+            {
+              "code": "490",
+              "name": "Other Asia, nes",
+              "value": 10460506.554,
+              "share": 0.03983319984482071
+            },
+            {
+              "code": "360",
+              "name": "Indonesia",
+              "value": 10301227.277,
+              "share": 0.039226670587453785
+            },
+            {
+              "code": "144",
+              "name": "Sri Lanka",
+              "value": 9223425.726,
+              "share": 0.03512244443431172
+            },
+            {
+              "code": "702",
+              "name": "Singapore",
+              "value": 8316036.509,
+              "share": 0.03166714178417618
+            },
+            {
+              "code": "682",
+              "name": "Saudi Arabia",
+              "value": 8178420.707,
+              "share": 0.03114310619234577
+            },
+            {
+              "code": "512",
+              "name": "Oman",
+              "value": 7587775.825,
+              "share": 0.02889395358194662
+            },
+            {
+              "code": "634",
+              "name": "Qatar",
+              "value": 6365046.221,
+              "share": 0.02423784707114996
+            },
+            {
+              "code": "48",
+              "name": "Bahrain",
+              "value": 5589564.164,
+              "share": 0.021284841727375128
+            }
+          ],
+          "coverage": 1.000000000003808,
+          "hhi": 0.05929024994363211,
+          "top3Share": 0.30947203815788704
+        },
+        "hs8": []
+      },
+      "global": {
+        "observedImports": 12297736295.656,
+        "observedExports": 12161141288.472998,
+        "imports": null,
+        "exports": null,
+        "importRankIndia": null,
+        "importShareIndia": null,
+        "exportRankIndia": null,
+        "exportShareIndia": null,
+        "topImporters": [],
+        "topExporters": [],
+        "mirror": {
+          "importExportRatio": 1.0112320878396894,
+          "status": "OK"
+        },
+        "importCoverage": {
+          "status": "INVALID",
+          "candidateReporters": 97,
+          "previousReporters": 139,
+          "reporterCountRatio": 0.697841726618705,
+          "priorTop1Present": true,
+          "priorTop10Present": 10,
+          "priorTop20ValueCoverage": 1.0,
+          "missingPriorTop10": []
+        },
+        "exportCoverage": {
+          "status": "INVALID",
+          "candidateReporters": 83,
+          "previousReporters": 120,
+          "reporterCountRatio": 0.6916666666666667,
+          "priorTop1Present": true,
+          "priorTop10Present": 9,
+          "priorTop20ValueCoverage": 0.9028340046871022,
+          "missingPriorTop10": [
+            {
+              "reporterCode": "156",
+              "reporterDesc": "China",
+              "primaryValue": 1167252015.0
+            }
+          ]
+        }
+      }
+    }
+  },
+  "sources": {
+    "global": "UN Comtrade",
+    "indiaHs6": "UN Comtrade",
+    "indiaHs8": "DGCIS / TradeStat official export when supplied"
+  }
+}

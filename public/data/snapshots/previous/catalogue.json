@@ -1,0 +1,730 @@
+[
+  {
+    "hs6": "847130",
+    "description": "Automatic data processing machines; portable, weighing not more than 10kg, consisting of at least a central processing unit, a keyboard and a display",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2023
+  },
+  {
+    "hs6": "847141",
+    "description": "Automatic data processing machines; comprising in the same housing at least a central processing unit and an input and output unit, whether or not combined, n.e.c. in item no. 8471.30",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2023,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "847149",
+    "description": "Automatic data processing machines; presented in the form of systems, n.e.c. in item no. 8471.30 or 8471.41",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2023,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "847150",
+    "description": "Units of automatic data processing machines; processing units other than those of item no. 8471.41 or 8471.49, whether or not containing in the same housing one or two of the following types of unit: storage units, input units or output units",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "847160",
+    "description": "Units of automatic data processing machines; input or output units, whether or not containing storage units in the same housing",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2023,
+    "globalExportBenchmarkYear": 2023
+  },
+  {
+    "hs6": "847170",
+    "description": "Units of automatic data processing machines; storage units",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "847180",
+    "description": "Units of automatic data processing machines; n.e.c. in item no. 8471.50, 8471.60 or 8471.70",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "847190",
+    "description": "Magnetic or optical readers, machines for transcribing data onto data media in coded form and machines for processing such data, not elsewhere specified or included",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2023
+  },
+  {
+    "hs6": "847321",
+    "description": "Calculating machines; parts and accessories of the electronic calculating machines of item no. 8470.10, 8470.21 or 8470.29 (other than covers, carrying cases and the like)",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2023
+  },
+  {
+    "hs6": "847329",
+    "description": "Machinery; parts and accessories of the machines of item no. 8470.30. 8470.50 or 8470.90 (other than covers, carrying cases and the like)",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "847330",
+    "description": "Machinery; parts and accessories (other than covers, carrying cases and the like) of the machines of heading no. 8471",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2023
+  },
+  {
+    "hs6": "847340",
+    "description": "Machinery; parts and accessories (other than covers, carrying cases and the like) of the machines of heading no. 8472",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "847350",
+    "description": "Machines; parts and accessories (other than covers, carrying cases and the like) equally suitable for use with machines of two or more of the headings 8470 to 8472",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "850710",
+    "description": "Electric accumulators; lead-acid, of a kind used for starting piston engines, including separators, whether or not rectangular (including square)",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "850720",
+    "description": "Electric accumulators; lead-acid, (other than for starting piston engines), including separators, whether or not rectangular (including square)",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2023
+  },
+  {
+    "hs6": "850730",
+    "description": "Electric accumulators; nickel-cadmium, including separators, whether or not rectangular (including square)",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "850750",
+    "description": "Electric accumulators; nickel-metal hydride, including separators, whether or not rectangular (including square)",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "850760",
+    "description": "Electric accumulators; lithium-ion, including separators, whether or not rectangular (including square)",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "850780",
+    "description": "Electric accumulators; other than lead-acid, nickel-cadmium, nickel-metal hydride and lithium-ion, including separators, whether or not rectangular (including square)",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "850790",
+    "description": "Electric accumulators; parts n.e.c. in heading no. 8507",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "851711",
+    "description": "Line telephone sets with cordless handsets",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "851713",
+    "description": "Telephone sets; smartphones for cellular or other wireless networks",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2023,
+    "globalExportBenchmarkYear": 2023
+  },
+  {
+    "hs6": "851714",
+    "description": "Telephone sets; other than smartphones, for cellular or other wireless networks",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2023,
+    "globalExportBenchmarkYear": 2023
+  },
+  {
+    "hs6": "851718",
+    "description": "Telephone sets n.e.c. in item no. 8517.1",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2023
+  },
+  {
+    "hs6": "851761",
+    "description": "Base stations",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2023
+  },
+  {
+    "hs6": "851762",
+    "description": "Communication apparatus (excluding telephone sets or base stations); machines for the reception, conversion and transmission or regeneration of voice, images or other data, including switching and routing apparatus",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2023
+  },
+  {
+    "hs6": "851769",
+    "description": "Communication apparatus (excluding telephone sets or base stations); machines for the transmission or reception of voice, images or other data (including wired/wireless networks), n.e.c. in item no. 8517.6",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2023
+  },
+  {
+    "hs6": "851771",
+    "description": "Communication apparatus; parts, aerials and aerial reflectors of all kinds, part suitable for use therewith",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2023,
+    "globalExportBenchmarkYear": 2023
+  },
+  {
+    "hs6": "851779",
+    "description": "Communication apparatus; parts, other than aerials and aerial reflectors of all kinds",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2023,
+    "globalExportBenchmarkYear": 2023
+  },
+  {
+    "hs6": "852842",
+    "description": "Monitors; cathode-ray tube, capable of directly connecting to and designed for use with an automatic data processing machine of heading 84.71",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2025
+  },
+  {
+    "hs6": "852849",
+    "description": "Monitors; cathode-ray tube, n.e.c. in subheading 8528.42, whether or not colour",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2023,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "852852",
+    "description": "Monitors; other than cathode-ray tube; capable of directly connecting to and designed for use with an automatic data processing machine of heading 84.71",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2023
+  },
+  {
+    "hs6": "852859",
+    "description": "Monitors other than cathode-ray tube; n.e.c. in subheading 8528.52, whether or not colour",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2023,
+    "globalExportBenchmarkYear": 2023
+  },
+  {
+    "hs6": "852862",
+    "description": "Projectors; capable of directly connecting to and designed for use with an automatic data processing machine of heading 84.71",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2023,
+    "globalExportBenchmarkYear": 2023
+  },
+  {
+    "hs6": "852869",
+    "description": "Projectors; n.e.c. in subheading 8528.62, whether or not colour",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "852871",
+    "description": "Reception apparatus for television, whether or not incorporating radio-broadcast receivers or sound or video recording or reproducing apparatus; not designed to incorporate a video display or screen",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2023
+  },
+  {
+    "hs6": "852872",
+    "description": "Reception apparatus for television, whether or not incorporating radio-broadcast receivers or sound or video recording or reproducing apparatus; incorporating a colour video display or screen",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2023
+  },
+  {
+    "hs6": "852873",
+    "description": "Reception apparatus for television, whether or not incorporating radio-broadcast receivers or sound or video recording or reproducing apparatus; incorporating a monochrome video display or screen",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "853400",
+    "description": "Circuits; printed",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2023,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "854110",
+    "description": "Electrical apparatus; diodes, other than photosensitive or light-emitting diodes (LED)",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "854121",
+    "description": "Electrical apparatus; transistors, (other than photosensitive), with a dissipation rate of less than 1W",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2023
+  },
+  {
+    "hs6": "854129",
+    "description": "Electrical apparatus; transistors, (other than photosensitive), with a dissipation rate of 1W or more",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "854130",
+    "description": "Electrical apparatus; thyristors, diacs and triacs, other than photosensitive devices",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "854141",
+    "description": "Electrical apparatus; photosensitive semiconductor devices, light emitting diodes (LED)",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "854142",
+    "description": "Electrical apparatus; photosensitive semiconductor devices, photovoltaic cells not assembled in modules or made up into panels",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2023,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "854143",
+    "description": "Electrical apparatus; photosensitive semiconductor devices, photovoltaic cells assembled in modules or made up into panels",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2023
+  },
+  {
+    "hs6": "854149",
+    "description": "Electrical apparatus; photosensitive semiconductor devices, diodes other than light emitting diodes and photovoltaic cells whether or not assembled in modules or made up into panels",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2023,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "854151",
+    "description": "Electrical apparatus; photosensitive semiconductor devices, semiconductor-based transducers",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "854159",
+    "description": "Electrical apparatus; photosensitive semiconductor devices n.e.c. in heading no. 8541",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2023,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "854160",
+    "description": "Crystals; mounted piezo-electric",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "854190",
+    "description": "Electrical apparatus; parts for diodes, transistors and similar semiconductor devices and photosensitive semiconductor devices",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "854231",
+    "description": "Electronic integrated circuits; processors and controllers, whether or not combined with memories, converters, logic circuits, amplifiers, clock and timing circuits, or other circuits",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "854232",
+    "description": "Electronic integrated circuits; memories",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "854233",
+    "description": "Electronic integrated circuits; amplifiers",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "854239",
+    "description": "Electronic integrated circuits; n.e.c. in heading no. 8542",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2023,
+    "globalExportBenchmarkYear": 2024
+  },
+  {
+    "hs6": "854290",
+    "description": "Parts of electronic integrated circuits",
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "latestIndiaYear": 2025,
+    "globalImportBenchmarkYear": 2024,
+    "globalExportBenchmarkYear": 2024
+  }
+]

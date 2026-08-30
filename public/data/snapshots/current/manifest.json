@@ -1,8 +1,241 @@
 {
-  "schemaVersion": "1.0.0",
-  "refreshedAt": "2026-08-21T06:50:05.611983+00:00",
+  "schemaVersion": "2.0.0",
+  "refreshedAt": "2026-08-30T15:44:09.259346+00:00",
+  "fixture": false,
   "classification": "HS 2022 (H6)",
-  "startYear": 2022,
-  "endYear": 2025,
-  "products": 56
+  "startYear": 1996,
+  "endYear": 2026,
+  "analysisStartYear": 2022,
+  "months": [
+    "202408",
+    "202409",
+    "202410",
+    "202411",
+    "202412",
+    "202501",
+    "202502",
+    "202503",
+    "202504",
+    "202505",
+    "202506",
+    "202507"
+  ],
+  "financialYears": [],
+  "registry": {
+    "datasets": [
+      {
+        "id": "asi",
+        "title": "Annual Survey of Industries",
+        "subtitle": "Factory-sector output, employment and value added, by NIC industry and state",
+        "keys": {
+          "industry": "nic5",
+          "region": "state",
+          "period": "FY"
+        },
+        "periodBasis": "FY",
+        "frequencies": [
+          "A"
+        ],
+        "route": "/industry",
+        "status": "declared",
+        "provenance": {
+          "source": "MoSPI, Annual Survey of Industries",
+          "url": "https://mospi.gov.in",
+          "licence": "Government of India open data",
+          "refresh": "annual, on release"
+        }
+      },
+      {
+        "id": "comtrade",
+        "title": "World trade",
+        "subtitle": "UN Comtrade merchandise trade, reporter-to-world and India bilateral",
+        "keys": {
+          "product": "hs6",
+          "partner": "m49",
+          "period": "CY"
+        },
+        "periodBasis": "CY",
+        "frequencies": [
+          "A",
+          "M"
+        ],
+        "route": "/",
+        "status": "live",
+        "provenance": {
+          "source": "UN Comtrade",
+          "url": "https://comtradeplus.un.org",
+          "licence": "UN Comtrade terms of use",
+          "refresh": "monthly, see .github/workflows/monthly-refresh.yml"
+        }
+      },
+      {
+        "id": "plfs",
+        "title": "Periodic Labour Force Survey",
+        "subtitle": "Employment, wages and worker characteristics by NIC industry, occupation and state",
+        "keys": {
+          "industry": "nic5",
+          "occupation": "nco3",
+          "region": "state",
+          "period": "FY"
+        },
+        "periodBasis": "FY",
+        "frequencies": [
+          "A",
+          "Q"
+        ],
+        "route": "/labour",
+        "status": "declared",
+        "provenance": {
+          "source": "MoSPI, Periodic Labour Force Survey",
+          "url": "https://mospi.gov.in",
+          "licence": "Government of India open data",
+          "refresh": "annual and quarterly, on release"
+        }
+      }
+    ],
+    "concordances": [
+      {
+        "id": "hs6-nic5",
+        "rows": 0,
+        "problems": []
+      }
+    ],
+    "panels": [
+      {
+        "dataset": "asi",
+        "panel": "asi-production",
+        "title": "Domestic factory output",
+        "on": "product",
+        "via": "hs6-nic5",
+        "note": "Mapped from NIC industries; a product may draw on several industries and an industry on several products.",
+        "available": false,
+        "blockedBy": "asi has no data ingested yet"
+      },
+      {
+        "dataset": "plfs",
+        "panel": "plfs-employment",
+        "title": "Employment in related industries",
+        "on": "product",
+        "via": "hs6-nic5",
+        "note": "Survey estimates, weighted. Mapped from NIC industries, so a product's figure spans every industry the concordance links to it.",
+        "available": false,
+        "blockedBy": "plfs has no data ingested yet"
+      }
+    ]
+  },
+  "tariffLines": {
+    "present": false,
+    "basis": "FY",
+    "financialYears": {}
+  },
+  "currency": {
+    "base": "USD",
+    "display": [
+      "USD",
+      "INR"
+    ],
+    "applies": [
+      "india",
+      "tariffLines"
+    ],
+    "rates": {
+      "FY": {
+        "2013-14": {
+          "rate": 60.502,
+          "status": "verified",
+          "source": "Economic Survey Statistical Appendix Table 5.4 (indiabudget.gov.in) - RBI annual average reference rate",
+          "note": "Carried over from Sectoral_Debt_INR_to_USD.xlsx"
+        },
+        "2015-16": {
+          "rate": 65.468,
+          "status": "verified",
+          "source": "Economic Survey Statistical Appendix Table 5.4 (indiabudget.gov.in) - RBI annual average reference rate",
+          "note": "Carried over from Sectoral_Debt_INR_to_USD.xlsx"
+        },
+        "2017-18": {
+          "rate": 64.455,
+          "status": "verified",
+          "source": "Economic Survey Statistical Appendix Table 5.4 (indiabudget.gov.in) - RBI annual average reference rate",
+          "note": "Carried over from Sectoral_Debt_INR_to_USD.xlsx"
+        },
+        "2019-20": {
+          "rate": 70.897,
+          "status": "verified",
+          "source": "Economic Survey Statistical Appendix Table 5.4 (indiabudget.gov.in) - RBI annual average reference rate",
+          "note": "Carried over from Sectoral_Debt_INR_to_USD.xlsx"
+        },
+        "2021-22": {
+          "rate": 74.504,
+          "status": "verified",
+          "source": "Economic Survey Statistical Appendix Table 5.4 (indiabudget.gov.in) - RBI annual average reference rate",
+          "note": "Carried over from Sectoral_Debt_INR_to_USD.xlsx"
+        },
+        "2023-24": {
+          "rate": 82.79,
+          "status": "verified",
+          "source": "Economic Survey Statistical Appendix Table 5.4 (indiabudget.gov.in) - RBI annual average reference rate",
+          "note": "Carried over from Sectoral_Debt_INR_to_USD.xlsx"
+        }
+      }
+    },
+    "coverage": {
+      "periods": 43,
+      "convertible": 0,
+      "missing": [
+        "CY 1996",
+        "CY 1997",
+        "CY 1998",
+        "CY 1999",
+        "CY 2000",
+        "CY 2001",
+        "CY 2002",
+        "CY 2003",
+        "CY 2004",
+        "CY 2005",
+        "CY 2006",
+        "CY 2007",
+        "CY 2008",
+        "CY 2009",
+        "CY 2010",
+        "CY 2011",
+        "CY 2012",
+        "CY 2013",
+        "CY 2014",
+        "CY 2015",
+        "CY 2016",
+        "CY 2017",
+        "CY 2018",
+        "CY 2019",
+        "CY 2020",
+        "CY 2021",
+        "CY 2022",
+        "CY 2023",
+        "CY 2024",
+        "CY 2025",
+        "CY 2026",
+        "MONTH 2024-08",
+        "MONTH 2024-09",
+        "MONTH 2024-10",
+        "MONTH 2024-11",
+        "MONTH 2024-12",
+        "MONTH 2025-01",
+        "MONTH 2025-02",
+        "MONTH 2025-03",
+        "MONTH 2025-04",
+        "MONTH 2025-05",
+        "MONTH 2025-06",
+        "MONTH 2025-07"
+      ],
+      "complete": false,
+      "fraction": 0.0
+    }
+  },
+  "products": 418,
+  "parents": {
+    "2": 20,
+    "4": 106
+  },
+  "nodes": 544,
+  "globalTradeBasis": "imports",
+  "monthlyEnabled": true
 }
