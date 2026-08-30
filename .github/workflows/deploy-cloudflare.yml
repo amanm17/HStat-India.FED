@@ -1,42 +1,10 @@
 name: Deploy HStat India
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
-permissions:
-  contents: read
-  deployments: write
-
 jobs:
-  deploy:
+  disabled:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: "24"
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run data sanity checks
-        run: python pipeline/launch_sanity.py
-
-      - name: Build production site
-        run: npm run build
-
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v4
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=hstat-india
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+      - run: echo "Deployment is handled directly by Cloudflare Pages from the GitHub repository."
