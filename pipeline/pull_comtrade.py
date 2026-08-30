@@ -733,7 +733,11 @@ def main():
 
     jobs = build_jobs(args, scope_config, window)
 
-    index = load_index() if args.mode == "incremental" else {}
+    # Always load the raw-store index so a multi-day full cold build can
+    # resume from chunks already fetched. In full mode we still set the
+    # refresh window empty below, meaning every matching cached chunk is
+    # reusable rather than deliberately refreshed.
+    index = load_index()
 
     if args.mode != "incremental":
         window = set()
