@@ -3,7 +3,12 @@
   "indiaReporterCode": "699",
 
   "historyStartYear": 1996,
+
+  "_analysisStartYear": "The DETAIL window. Years from here carry partner tables, top-ten economies and the definition-coverage figure. Widening it is what costs bytes: a detailed year is roughly ten times the size of a headline year, so all 31 years detailed would take the product files from about 15 MB to about 72 MB.",
   "analysisStartYear": 2022,
+
+  "_validationStartYear": "The PUBLICATION window. Reporter coverage is assessed from here, so this is the first year a global trade figure, rank or share can appear. Coverage validation is comparative - it asks whether a year still holds the economies that mattered in the year before it - so it works for every year that has a predecessor and cannot include the first year of history. Before this was separated from analysisStartYear, 26 years of global trade were pulled, netted and written into every node under `observed`, then withheld as HISTORICAL.",
+  "validationStartYear": 1997,
 
   "monthly": {
     "enabled": true,

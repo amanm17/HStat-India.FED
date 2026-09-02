@@ -23,12 +23,23 @@ period,basis,inr_per_usd,status,source,note
 #   used is carried into the published snapshot and shown on the page.
 #
 # THE CONVENTION
-#   RBI annual average reference rate, following the same basis FED already
-#   uses in Sectoral_Debt_INR_to_USD.xlsx (see sources/): Economic Survey
-#   Statistical Appendix, Table 5.4. Financial-year rates come straight from
-#   that table. Calendar-year rates are the mean of the twelve RBI monthly
-#   average reference rates in that year, and must be cited as such - the
-#   Economic Survey does not publish a calendar-year average.
+#   One published period average per row, cited per row. Three sources, each
+#   authoritative for its own basis and never mixed inside one basis:
+#
+#   CY     World Bank WDI series PA.NUS.FCRF, "official exchange rate, LCU per
+#          US$, period average", underlying source IMF International Financial
+#          Statistics. This is a published calendar-year average, which is what
+#          the Comtrade calendar-year figures need. The Economic Survey does not
+#          publish one, which is why it is not the source here.
+#   MONTH  FRED series EXINUS, Board of Governors of the Federal Reserve System
+#          (H.10), monthly average of daily rates.
+#   FY     Economic Survey Statistical Appendix Table 5.4, the RBI annual
+#          average reference rate - the same basis FED already uses in
+#          Sectoral_Debt_INR_to_USD.xlsx (see sources/). Indian financial years
+#          are a DGCIS/tariff-line concept and only tariff lines use them.
+#
+#   A calendar year converts at its calendar-year rate and a month at its own
+#   month's rate. Nothing is ever converted at a neighbouring period's rate.
 #
 # FAILS CLOSED
 #   A period with no rate is not converted. The dashboard shows dollars for it
@@ -42,6 +53,48 @@ period,basis,inr_per_usd,status,source,note
 # The six financial-year rates below are the ones already verified in the FED
 # workbook. Everything else is deliberately absent rather than guessed.
 # ---------------------------------------------------------------------------
+1996,CY,35.4332,verified,World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics),Calendar-year period average
+1997,CY,36.3133,verified,World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics),Calendar-year period average
+1998,CY,41.2594,verified,World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics),Calendar-year period average
+1999,CY,43.0554,verified,World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics),Calendar-year period average
+2000,CY,44.9416,verified,World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics),Calendar-year period average
+2001,CY,47.1864,verified,World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics),Calendar-year period average
+2002,CY,48.6103,verified,World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics),Calendar-year period average
+2003,CY,46.5833,verified,World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics),Calendar-year period average
+2004,CY,45.3165,verified,World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics),Calendar-year period average
+2005,CY,44.1000,verified,World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics),Calendar-year period average
+2006,CY,45.3070,verified,World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics),Calendar-year period average
+2007,CY,41.3485,verified,World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics),Calendar-year period average
+2008,CY,43.5052,verified,World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics),Calendar-year period average
+2009,CY,48.4053,verified,World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics),Calendar-year period average
+2010,CY,45.7258,verified,World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics),Calendar-year period average
+2011,CY,46.6705,verified,World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics),Calendar-year period average
+2012,CY,53.4372,verified,World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics),Calendar-year period average
+2013,CY,58.5978,verified,World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics),Calendar-year period average
+2014,CY,61.0295,verified,World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics),Calendar-year period average
+2015,CY,64.1519,verified,World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics),Calendar-year period average
+2016,CY,67.1953,verified,World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics),Calendar-year period average
+2017,CY,65.1216,verified,World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics),Calendar-year period average
+2018,CY,68.3895,verified,World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics),Calendar-year period average
+2019,CY,70.4203,verified,World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics),Calendar-year period average
+2020,CY,74.0996,verified,World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics),Calendar-year period average
+2021,CY,73.9180,verified,World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics),Calendar-year period average
+2022,CY,78.6045,verified,World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics),Calendar-year period average
+2023,CY,82.5993,verified,World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics),Calendar-year period average
+2024,CY,83.6693,verified,World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics),Calendar-year period average
+2025,CY,87.1584,verified,World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics),Calendar-year period average
+2024-08,MONTH,83.8855,verified,FRED EXINUS (Board of Governors of the Federal Reserve System, H.10) - monthly average of daily noon rates,Monthly average
+2024-09,MONTH,83.7910,verified,FRED EXINUS (Board of Governors of the Federal Reserve System, H.10) - monthly average of daily noon rates,Monthly average
+2024-10,MONTH,84.0050,verified,FRED EXINUS (Board of Governors of the Federal Reserve System, H.10) - monthly average of daily noon rates,Monthly average
+2024-11,MONTH,84.3326,verified,FRED EXINUS (Board of Governors of the Federal Reserve System, H.10) - monthly average of daily noon rates,Monthly average
+2024-12,MONTH,84.9686,verified,FRED EXINUS (Board of Governors of the Federal Reserve System, H.10) - monthly average of daily noon rates,Monthly average
+2025-01,MONTH,86.2652,verified,FRED EXINUS (Board of Governors of the Federal Reserve System, H.10) - monthly average of daily noon rates,Monthly average
+2025-02,MONTH,87.0637,verified,FRED EXINUS (Board of Governors of the Federal Reserve System, H.10) - monthly average of daily noon rates,Monthly average
+2025-03,MONTH,86.5214,verified,FRED EXINUS (Board of Governors of the Federal Reserve System, H.10) - monthly average of daily noon rates,Monthly average
+2025-04,MONTH,85.5768,verified,FRED EXINUS (Board of Governors of the Federal Reserve System, H.10) - monthly average of daily noon rates,Monthly average
+2025-05,MONTH,85.2462,verified,FRED EXINUS (Board of Governors of the Federal Reserve System, H.10) - monthly average of daily noon rates,Monthly average
+2025-06,MONTH,85.8765,verified,FRED EXINUS (Board of Governors of the Federal Reserve System, H.10) - monthly average of daily noon rates,Monthly average
+2025-07,MONTH,86.1714,verified,FRED EXINUS (Board of Governors of the Federal Reserve System, H.10) - monthly average of daily noon rates,Monthly average
 2013-14,FY,60.502,verified,Economic Survey Statistical Appendix Table 5.4 (indiabudget.gov.in) - RBI annual average reference rate,Carried over from Sectoral_Debt_INR_to_USD.xlsx
 2015-16,FY,65.468,verified,Economic Survey Statistical Appendix Table 5.4 (indiabudget.gov.in) - RBI annual average reference rate,Carried over from Sectoral_Debt_INR_to_USD.xlsx
 2017-18,FY,64.455,verified,Economic Survey Statistical Appendix Table 5.4 (indiabudget.gov.in) - RBI annual average reference rate,Carried over from Sectoral_Debt_INR_to_USD.xlsx

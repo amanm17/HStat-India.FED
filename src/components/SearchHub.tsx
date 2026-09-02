@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Plus, Search } from 'lucide-react'
 
 import type { SearchIndex, SearchOutcome } from '../lib/search'
@@ -164,14 +164,48 @@ export function SearchHub({
   onAdd,
   inBasket,
   recent,
+  variant = 'hub',
 }: {
   index: SearchIndex
   onOpen: (item: SearchItem) => void
   onAdd: (item: SearchItem) => void
   inBasket: (code: string) => boolean
   recent: string[]
+  /*
+   * 'bar' lives in the title strip and keeps everything it knows - answer
+   * card, related codes, suggestions, recent - in a panel that opens under
+   * the input. The page below then belongs to the product, which is what a
+   * reader is actually here to read.
+   */
+  variant?: 'hub' | 'bar'
 }) {
   const [query, setQuery] = useState('')
+
+  const [open, setOpen] = useState(false)
+
+  const shell = useRef<HTMLDivElement>(null)
+
+  const bar = variant === 'bar'
+
+  useEffect(() => {
+    if (!bar || !open) return
+
+    function onPointer(event: MouseEvent) {
+      if (!shell.current?.contains(event.target as Node)) setOpen(false)
+    }
+
+    function onKey(event: KeyboardEvent) {
+      if (event.key === 'Escape') setOpen(false)
+    }
+
+    document.addEventListener('mousedown', onPointer)
+    document.addEventListener('keydown', onKey)
+
+    return () => {
+      document.removeEventListener('mousedown', onPointer)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [bar, open])
 
   const outcome = useMemo(() => search(index, query), [index, query])
 
@@ -183,10 +217,16 @@ export function SearchHub({
       )
     : outcome.results
 
+  /* In the bar, nothing is shown until the reader asks for it. */
+  const showPanel = bar ? open : true
+
   return (
-    <section className="search-hub">
+    <section
+      className={bar ? 'search-hub bar' : 'search-hub'}
+      ref={shell}
+    >
       <div className="search-primary">
-        <Search size={22} />
+        <Search size={bar ? 16 : 22} />
 
         <input
           value={query}
@@ -199,10 +239,17 @@ export function SearchHub({
             if (first) {
               onOpen(first)
               setQuery('')
+              setOpen(false)
             }
           }}
-          placeholder="Search a product or an HS code — laptop, smartphone, 854231, solar panel…"
+          onFocus={() => setOpen(true)}
+          placeholder={
+            bar
+              ? 'Search a product or HS code…'
+              : 'Search a product or an HS code — laptop, smartphone, 854231, solar panel…'
+          }
           aria-label="Search products and HS codes"
+          aria-expanded={bar ? open : undefined}
         />
 
         {query && (
@@ -212,6 +259,8 @@ export function SearchHub({
         )}
       </div>
 
+      <div className={bar ? 'search-drop' : 'search-body'} hidden={!showPanel}>
+
       {query.trim() && (
         <div className="search-output">
           <AnswerCard
@@ -220,6 +269,7 @@ export function SearchHub({
             onOpen={item => {
               onOpen(item)
               setQuery('')
+              setOpen(false)
             }}
             onAdd={onAdd}
             inBasket={inBasket}
@@ -241,6 +291,7 @@ export function SearchHub({
                       onClick={() => {
                         onOpen(item)
                         setQuery('')
+                        setOpen(false)
                       }}
                       disabled={item.retired}
                     >
@@ -307,6 +358,8 @@ export function SearchHub({
           )}
         </>
       )}
+
+      </div>
     </section>
   )
 }

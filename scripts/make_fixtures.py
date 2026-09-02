@@ -454,7 +454,11 @@ def main():
         help="Number of HS-6 codes to fabricate. 0 means the whole universe.",
     )
 
-    parser.add_argument("--start-year", type=int, default=2016)
+    # The fixture is the only surface the long history can be exercised on
+    # without a Comtrade key, so it covers the same span the real pull does.
+    # A fixture that started in 2016 could not have caught a change that only
+    # shows up before 2022.
+    parser.add_argument("--start-year", type=int, default=1996)
 
     parser.add_argument("--end-year", type=int, default=2025)
 

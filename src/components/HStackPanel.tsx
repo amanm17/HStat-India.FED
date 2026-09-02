@@ -204,16 +204,33 @@ export function HStackPanel({
 
         {summary && !loading && (
           <>
-            {summary.overlaps.length > 0 && (
-              <div className="hstack-warning">
-                <strong>Overlapping codes</strong>
+            {summary.containedCodes.length > 0 && (
+              <div className="hstack-warning" data-tone="resolved">
+                <strong>Counted once, not twice</strong>
 
                 <span>
-                  {summary.overlaps
-                    .map(pair => `${pair.child} sits inside ${pair.parent}`)
+                  {summary.lines
+                    .filter(line => line.containedIn)
+                    .map(
+                      line =>
+                        `HS ${line.code} sits inside HS ${line.containedIn}` +
+                        /* Only when it reads as a share. A figure above
+                         * 100% means the two codes disagree, which is a
+                         * data question, not something to print as a
+                         * fraction. */
+                        (line.shareOfParent !== null &&
+                        line.shareOfParent > 0 &&
+                        line.shareOfParent <= 1
+                          ? ` (${pct(line.shareOfParent)} of it)`
+                          : ''),
+                    )
                     .join('; ')}
-                  . Their trade is counted twice in the totals below — remove
-                  the parent or the child to fix it.
+                  . A heading already contains every line beneath it, so the
+                  narrower {summary.containedCodes.length === 1 ? 'code is' : 'codes are'}{' '}
+                  shown in the table below with{' '}
+                  {summary.containedCodes.length === 1 ? 'its' : 'their'} own
+                  figures but left out of every total. Remove the broader code
+                  to total the narrower {summary.containedCodes.length === 1 ? 'one' : 'ones'} instead.
                 </span>
               </div>
             )}

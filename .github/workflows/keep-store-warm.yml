@@ -1,0 +1,48 @@
+name: Keep the raw store warm
+
+# GitHub deletes a cache entry that has not been read for 7 days. The refresh
+# runs on the 5th, 6th and 7th, which leaves a gap of about 28 - so the raw
+# Comtrade store was being evicted every single month and every refresh was
+# secretly a cold rebuild of the whole history.
+#
+# Reading a cache resets its clock. This job reads it and writes it back under
+# a fresh key, costs no API calls and takes seconds. It is the cheapest
+# possible fix for the most expensive recurring problem in the pipeline.
+
+on:
+  schedule:
+    - cron: "40 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  touch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Restore the raw store
+        id: restore
+        uses: actions/cache/restore@v4
+        with:
+          path: data/raw/store
+          key: comtrade-store-warm-${{ github.run_id }}
+          restore-keys: |
+            comtrade-store-
+
+      - name: Report what was found
+        run: |
+          if [ -d data/raw/store ]; then
+            echo "Store present: $(find data/raw/store -name '*.parquet' | wc -l) chunks, $(du -sh data/raw/store | cut -f1)."
+          else
+            echo "::warning::No raw store in the cache. The next refresh will be a cold rebuild."
+            exit 0
+          fi
+
+      - name: Write it back under a fresh key
+        if: hashFiles('data/raw/store/index.json') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: data/raw/store
+          key: comtrade-store-warm-${{ github.run_id }}

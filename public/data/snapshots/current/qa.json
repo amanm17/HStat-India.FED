@@ -2,7 +2,18 @@
   "nodes": 544,
   "hs6": 418,
   "withPublishedGlobalTrade": 530,
-  "failures": [],
+  "failures": [
+    {
+      "code": null,
+      "period": "2024",
+      "message": "period reported for only 49 of 544 nodes (9%); a period is either filed or it is not, so this is the signature of requests that were rejected and stored as empty rather than of a quiet year"
+    },
+    {
+      "code": null,
+      "period": "2025",
+      "message": "period reported for only 49 of 544 nodes (9%); a period is either filed or it is not, so this is the signature of requests that were rejected and stored as empty rather than of a quiet year"
+    }
+  ],
   "warnings": [
     {
       "code": "350699",

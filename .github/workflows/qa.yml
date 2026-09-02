@@ -1,0 +1,49 @@
+name: QA
+
+# The gates that already existed, on the path a code change actually takes.
+#
+# validate_snapshot and launch_sanity ran only inside the monthly data job, so
+# they guarded data changes and nothing else. Cloudflare builds this repo on
+# push and runs `npm run build`, which knows nothing about either. A frontend
+# change that moved the schema constant could therefore reach production with
+# the one check written to stop it never having run.
+#
+# This does not touch deployment. It runs beside it.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - run: npm ci
+
+      # Does the published snapshot hold together?
+      - name: Snapshot QA
+        run: python pipeline/validate_snapshot.py public/data/snapshots/current
+
+      # Can this build read it, and is it real rather than a fixture?
+      - name: Launch sanity
+        run: python pipeline/launch_sanity.py
+
+      # Exactly what Cloudflare will run.
+      - name: Build
+        run: npm run build

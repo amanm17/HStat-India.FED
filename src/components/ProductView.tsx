@@ -48,13 +48,18 @@ import {
   DataTable,
   Disclosure,
   Empty,
+  ExplainMetric,
   InsightPanel,
   MiniMetric,
   PanelHead,
   StatusPill,
+  Tabs,
 } from './primitives'
 
 type Horizon = '5Y' | '10Y' | 'ALL'
+
+/* Comtrade's reporter code for India; also its partner code on its own rows. */
+const INDIA_REPORTER = '699'
 
 /*
  * Only the last point of each series is labelled. A number on every point
@@ -88,6 +93,92 @@ function lastPointLabel(colour: string, total: number) {
   }
 }
 
+/*
+ * What a mirror gap of this size actually tells the reader.
+ *
+ * The gap exists because of how trade is valued, not because of an error:
+ * imports are reported CIF and exports FOB, so the world's imports of a
+ * product always exceed its exports. The number is only useful once someone
+ * knows which band it falls in and what that implies about the tables below.
+ */
+function mirrorReading(gap: number | null): string {
+  if (gap === null) {
+    return 'Not computable this year: one side has no reported total.'
+  }
+
+  if (gap < 0) {
+    return (
+      'The export side is larger, which is the wrong way round. Exporters are ' +
+      'reporting more of this product than importers are - usually a sign that ' +
+      'some large importing economies have not filed, so the import ranking is ' +
+      'the incomplete one here.'
+    )
+  }
+
+  if (gap <= 0.1) {
+    return (
+      'Close agreement. The two sides differ by about what freight and ' +
+      'insurance alone would explain, so both league tables can be read at ' +
+      'face value.'
+    )
+  }
+
+  if (gap <= 0.25) {
+    return (
+      'Wide but ordinary. Bulky or low-value goods carry proportionally more ' +
+      'freight, and a gap this size is normal for them. Nothing here argues ' +
+      'against using the figure.'
+    )
+  }
+
+  return (
+    'Wider than freight and insurance explain on their own. One side is ' +
+    'probably missing filings for this product. The import side shown above ' +
+    'is the fuller of the two; treat the export ranking as incomplete rather ' +
+    'than treating the product as mis-measured.'
+  )
+}
+
+/*
+ * How much of the re-import double count could actually be removed.
+ *
+ * Goods that left a country and came back sit inside its import total twice
+ * unless the reporter files them separately and we subtract them. Not every
+ * reporter does, so this says how much of the world total was cleanable -
+ * and therefore in which direction the published figure can be wrong.
+ */
+function adjustmentReading(coverage: number | null): string {
+  if (coverage === null || coverage === 0) {
+    return (
+      'No reporter filed re-imports as a separate line this year, so none ' +
+      'could be removed. The figure above is gross, and sits above the true ' +
+      'total by however much of this trade was goods coming home.'
+    )
+  }
+
+  if (coverage < 0.25) {
+    return (
+      'Only a small part of the world total came from reporters who file ' +
+      're-imports separately, so most of the double count could not be ' +
+      'removed. Read the figure above as an upper bound: the true total is at ' +
+      'or below it, never above.'
+    )
+  }
+
+  if (coverage < 0.6) {
+    return (
+      'Between a quarter and three-fifths of the world total was cleaned of ' +
+      're-imports. The figure above is close to right and errs high.'
+    )
+  }
+
+  return (
+    'Most of the world total came from reporters who file re-imports ' +
+    'separately, so the adjustment is substantially complete and the figure ' +
+    'above needs no mental discount.'
+  )
+}
+
 function GlobalTradeCard({
   node,
   methodology,
@@ -117,6 +208,11 @@ function GlobalTradeCard({
   }
 
   const mirrorGap = benchmark.mirror?.gap ?? null
+
+  /* The concrete amount taken out, for the year the headline is on. */
+  const removed =
+    node.annual[String(benchmark.year)]?.global.observed.reImportsRemoved ??
+    null
 
   return (
     <section className="release-section global-trade-card">
@@ -154,17 +250,51 @@ function GlobalTradeCard({
             detail="of global trade"
           />
 
-          <MiniMetric
+          <ExplainMetric
             label="Mirror gap"
             value={mirrorGap === null ? '—' : delta(mirrorGap)}
             detail="import side vs export side"
-          />
+            verdict={mirrorReading(mirrorGap)}
+          >
+            <p>
+              Every economy reports what it buys including freight and
+              insurance, and what it sells without them. The same shipment is
+              therefore worth more on the import side than on the export side,
+              and the world's imports of a product always exceed the world's
+              exports of it. This is that wedge, measured against the export
+              side.
+            </p>
 
-          <MiniMetric
+            <p className="explain-use">
+              A gap is expected. What is worth acting on is a gap far outside
+              the ordinary range, which points at missing filings on one side
+              rather than at a problem with the product.
+            </p>
+          </ExplainMetric>
+
+          <ExplainMetric
             label="Re-import adjustment"
             value={pct(benchmark.adjustmentCoverage, 0)}
             detail="of the total could be adjusted"
-          />
+            verdict={adjustmentReading(benchmark.adjustmentCoverage)}
+          >
+            <p>
+              Goods that leave a country and come back are re-imports, and a
+              country's import total already contains them. Summed across the
+              world they are counted twice. HStat subtracts them — but only
+              from reporters who file them as a separate line, which not every
+              reporter does. This is the share of the world total those
+              reporters account for
+              {removed ? `, and ${usd(removed)} was removed on that basis` : ''}
+              .
+            </p>
+
+            <p className="explain-use">
+              The adjustment can only ever pull the figure down, so this number
+              tells you which direction any remaining error runs in: always
+              down, never up.
+            </p>
+          </ExplainMetric>
         </div>
       </div>
 
@@ -453,6 +583,14 @@ export function ProductView({
 
   const [frequency, setFrequency] = useState<'annual' | 'monthly'>('annual')
 
+  /* One panel, two series: India's own trade, or the market it sits in. */
+  const [series, setSeries] = useState<'india' | 'market'>('india')
+
+  /* Same rows, two readings. The chart is the default; the table is the one
+   * people copy figures out of. */
+  const [sourceView, setSourceView] = useState<'chart' | 'table'>('chart')
+  const [marketView, setMarketView] = useState<'chart' | 'table'>('chart')
+
   const colours = palette(dark)
 
   const annual: PeriodRecord | undefined = node.annual[String(year)]
@@ -555,7 +693,30 @@ export function ProductView({
       }))
   }, [node, predecessorCode])
 
-  const suppliers = (annual?.india.suppliers?.rows ?? [])
+  /*
+   * India appears in India's own supplier list because Comtrade files goods
+   * returning to their country of origin as a partner row against that same
+   * country. It is a real row and it belongs in the download, but on a chart
+   * headed "import sources" a bar labelled India reads as an error, so it is
+   * named for what it is.
+   */
+  const supplierRows = (annual?.india.suppliers?.rows ?? []).map(row =>
+    row.code === INDIA_REPORTER
+      ? { ...row, name: 'India (re-imports)' }
+      : row,
+  )
+
+  const destinationRows = (annual?.india.destinations?.rows ?? []).map(row =>
+    row.code === INDIA_REPORTER
+      ? { ...row, name: 'India (re-exports)' }
+      : row,
+  )
+
+  const suppliers = supplierRows
+    .slice(0, 10)
+    .map(row => ({ ...row, sharePct: row.share * 100 }))
+
+  const destinations = destinationRows
     .slice(0, 10)
     .map(row => ({ ...row, sharePct: row.share * 100 }))
 
@@ -649,7 +810,19 @@ export function ProductView({
     Source: row.native === 'inr' ? 'Filed in ₹' : 'Filed in $',
   }))
 
-  const tariffPanel = (
+  /*
+   * With no DGCIS file loaded there is nothing to disclose, and a full panel
+   * wrapped around an empty box is the same defunct bubble as a disabled
+   * toggle. It shrinks to one line that says what is missing and where it
+   * comes from, at the foot of the page, for whoever goes looking.
+   */
+  const tariffPanel = tariffYears.length === 0 ? (
+    <p className="tariff-absent">
+      India ITC(HS)-8 tariff-line detail is not in this snapshot. It is
+      supplied from a static DGCIS / TradeStat export, in Indian financial
+      years; the six-digit figures above are Comtrade calendar years.
+    </p>
+  ) : (
     <article
       className={
         showHs8 ? 'panel hs8-panel tariff-focus' : 'panel hs8-panel'
@@ -760,42 +933,43 @@ export function ProductView({
 
   return (
     <>
+      {/*
+        * What this code is, said once.
+        *
+        * This used to be a name over a run of four dot-separated facts, most
+        * of which repeated each other: the code appeared twice, the
+        * classification is the same on every page, and the freshness date
+        * belongs with the data rather than with the product's identity. What
+        * a reader needs here is the code, the name, and the official
+        * definition in language they can check a product against.
+        */}
       <section className="product-head">
         <div className="product-copy">
-          <div className="eyebrow">
-            {node.category || 'HStat'} · HS-{node.level} · {node.code}
-            {!node.inFedDefinition && ' · reference only'}
+          <div className="product-idline">
+            <span className="code-chip">
+              HS-{node.level} {node.code}
+            </span>
+
+            {node.category && <span className="id-cat">{node.category}</span>}
+
+            {!node.inFedDefinition && (
+              <span className="id-flag">Reference only</span>
+            )}
           </div>
 
           <h1>{node.product || node.description}</h1>
 
-          <div className="subline">
-            <span>
-              HS-{node.level} {node.code}
-            </span>
-
-            <span>•</span>
-
-            <span>{node.classification}</span>
-
-            {node.segment && (
-              <>
-                <span>•</span>
-                <span>{node.segment}</span>
-              </>
-            )}
-
-            {node.latestIndiaMonth && (
-              <>
-                <span>•</span>
-                <span>India through {monthLabel(node.latestIndiaMonth)}</span>
-              </>
-            )}
-          </div>
-
           {node.product && node.product !== node.description && (
             <p className="product-official">{node.description}</p>
           )}
+
+          <div className="product-meta">
+            {node.classification}
+            {node.segment ? ` · ${node.segment}` : ''}
+            {node.latestIndiaMonth
+              ? ` · India reported through ${monthLabel(node.latestIndiaMonth)}`
+              : ''}
+          </div>
         </div>
 
         <div className="head-actions">
@@ -915,12 +1089,31 @@ export function ProductView({
 
         {annual.global.coverage?.status !== 'VALID' && (
           <div className="coverage-note">
-            {year} did not pass reporter-coverage validation
-            {annual.global.coverage?.reason
-              ? ` (${annual.global.coverage.reason})`
-              : ''}
-            , so no global figure, rank or share is shown for it. The headline
-            above uses {node.globalTrade?.year ?? 'the latest validated year'}.
+            {annual.global.coverage?.status === 'HISTORICAL' ? (
+              <>
+                {year} is before the first year coverage is assessed for, so no
+                global figure is published for it. Nothing failed — the
+                reported observations for {year} are in the annual detail and
+                the workbook export.
+              </>
+            ) : annual.global.coverage?.status === 'BASELINE' ? (
+              <>
+                {year} is the first year in the series. Coverage is judged by
+                comparing a year with the one before it, and there is no year
+                before this one, so no global figure is published for it.
+              </>
+            ) : (
+              <>
+                {year} did not hold enough of the economies that reported in{' '}
+                {year - 1} for a world total to be trustworthy
+                {annual.global.coverage?.reason
+                  ? ` (${annual.global.coverage.reason})`
+                  : ''}
+                , so no global figure, rank or share is shown for it.
+              </>
+            )}{' '}
+            The headline above uses{' '}
+            {node.globalTrade?.year ?? 'the latest validated year'}.
           </div>
         )}
       </section>
@@ -952,332 +1145,510 @@ export function ProductView({
         </section>
       )}
 
-      <section className="chart-grid">
-        <article className="panel chart-panel" id="trade-trend">
+      {/*
+        * One panel, two series.
+        *
+        * India's trade and the market it sits in were two panels side by side
+        * showing two lines each. They answer the same question at different
+        * scales and a reader wants one at a time, so they share a panel and
+        * the tab decides which. It also gives each chart the full width,
+        * which is what a thirty-year series needs.
+        */}
+      <section className="panel-stack">
+        <article
+          className="panel chart-panel wide"
+          id={series === 'india' ? 'trade-trend' : 'global-trend'}
+        >
           <PanelHead
-            eyebrow="TRADE TRAJECTORY"
-            title="India imports and exports"
+            eyebrow="TRADE OVER TIME"
+            title={
+              series === 'india'
+                ? 'India imports and exports'
+                : 'Global trade, net of re-imports'
+            }
             note={
-              frequency === 'monthly'
-                ? 'Monthly filings. Recent months are incomplete until every reporter files.'
-                : undefined
+              series === 'india'
+                ? frequency === 'monthly'
+                  ? 'Monthly filings. Recent months are incomplete until every reporter files.'
+                  : undefined
+                : predecessorCode
+                  ? `The dashed line is HS ${predecessorCode}, the code this replaced. It is shown alongside, never added: its total covers every successor and cannot be divided between them.`
+                  : 'A year is drawn only where its reporter coverage was assessed and passed. Gaps are years that did not pass, never estimates.'
+            }
+            actions={
+              <Tabs
+                label="Which series to chart"
+                active={series}
+                onChange={id => setSeries(id as 'india' | 'market')}
+                tabs={[
+                  { id: 'india', label: 'India trade' },
+                  { id: 'market', label: 'Global market' },
+                ]}
+              />
             }
             onPng={() =>
-              downloadChart('trade-trend', `HS-${node.code}-India-trade`, 'png')
-            }
-            onSvg={() =>
-              downloadChart('trade-trend', `HS-${node.code}-India-trade`, 'svg')
-            }
-          />
-
-          <div className="chart-shell">
-            <div className="chart-controls">
-              {hasMonthly && (
-                <div className="control-group">
-                  {(['annual', 'monthly'] as const).map(option => (
-                    <button
-                      key={option}
-                      className={frequency === option ? 'active' : ''}
-                      onClick={() => setFrequency(option)}
-                    >
-                      {option === 'annual' ? 'Annual' : 'Monthly'}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {frequency === 'annual' && (
-                <div className="control-group">
-                  {(['5Y', '10Y', 'ALL'] as const).map(option => (
-                    <button
-                      key={option}
-                      className={horizon === option ? 'active' : ''}
-                      onClick={() => setHorizon(option)}
-                    >
-                      {option === 'ALL' ? 'All' : option}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart
-                data={trend}
-                margin={{ top: 24, right: 28, bottom: 12, left: 10 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  vertical={false}
-                  stroke={colours.grid}
-                />
-
-                <XAxis
-                  dataKey="label"
-                  tickMargin={8}
-                  axisLine={false}
-                  tickLine={false}
-                  stroke={colours.axis}
-                  minTickGap={12}
-                />
-
-                <YAxis
-                  width={58}
-                  tickFormatter={value => `${(Number(value) / 1e9).toFixed(1)}`}
-                  axisLine={false}
-                  tickLine={false}
-                  stroke={colours.axis}
-                />
-
-                <Tooltip
-                  formatter={(value: unknown) => usd(Number(value))}
-                  labelFormatter={(_, payload) =>
-                    payload?.[0]?.payload?.full ?? ''
-                  }
-                  contentStyle={{
-                    background: colours.surface,
-                    border: `1px solid ${colours.grid}`,
-                    borderRadius: 8,
-                  }}
-                />
-
-                <Legend verticalAlign="top" align="right" height={34} />
-
-                <Area
-                  type="monotone"
-                  dataKey="imports"
-                  name="India imports"
-                  stroke={colours.imports}
-                  fill={colours.imports}
-                  fillOpacity={0.08}
-                  strokeWidth={2}
-                  dot={{ r: 2.5, fill: colours.imports }}
-                  activeDot={{ r: 4.5, stroke: colours.surface, strokeWidth: 2 }}
-                  label={lastPointLabel(colours.imports, trend.length)}
-                  connectNulls
-                />
-
-                <Area
-                  type="monotone"
-                  dataKey="exports"
-                  name="India exports"
-                  stroke={colours.exports}
-                  fill={colours.exports}
-                  fillOpacity={0.06}
-                  strokeWidth={2}
-                  dot={{ r: 2.5, fill: colours.exports }}
-                  activeDot={{ r: 4.5, stroke: colours.surface, strokeWidth: 2 }}
-                  label={lastPointLabel(colours.exports, trend.length)}
-                  connectNulls
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-
-            <div className="axis-note">USD bn</div>
-          </div>
-        </article>
-
-        <article className="panel chart-panel" id="global-trend">
-          <PanelHead
-            eyebrow="MARKET SIZE"
-            title="Global trade, net of re-imports"
-            note={
-              predecessorCode
-                ? `The dashed line is HS ${predecessorCode}, the code this replaced. It is shown alongside, never added: its total covers every successor and cannot be divided between them.`
-                : 'Years that failed coverage validation are left blank rather than estimated.'
-            }
-            onPng={() =>
-              downloadChart('global-trend', `HS-${node.code}-global-trade`, 'png')
-            }
-            onCsv={() =>
-              downloadCsv(`HS-${node.code}-global-trade`, globalTrend)
-            }
-          />
-
-          <div className="chart-shell">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={globalTrend}
-                margin={{ top: 24, right: 28, bottom: 12, left: 10 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  vertical={false}
-                  stroke={colours.grid}
-                />
-
-                <XAxis
-                  dataKey="label"
-                  tickMargin={8}
-                  axisLine={false}
-                  tickLine={false}
-                  stroke={colours.axis}
-                />
-
-                <YAxis
-                  width={58}
-                  tickFormatter={value => `${(Number(value) / 1e9).toFixed(0)}`}
-                  axisLine={false}
-                  tickLine={false}
-                  stroke={colours.axis}
-                />
-
-                <Tooltip
-                  formatter={(value: unknown) => usd(Number(value))}
-                  contentStyle={{
-                    background: colours.surface,
-                    border: `1px solid ${colours.grid}`,
-                    borderRadius: 8,
-                  }}
-                />
-
-                {predecessorCode && (
-                  <Legend verticalAlign="top" align="right" height={34} />
-                )}
-
-                {predecessorCode && (
-                  <Line
-                    type="monotone"
-                    dataKey="predecessor"
-                    name={`HS ${predecessorCode} (before HS 2022)`}
-                    stroke={colours.primary}
-                    strokeWidth={2}
-                    strokeDasharray="5 4"
-                    dot={{ r: 2.5, fill: colours.surface, stroke: colours.primary }}
-                    activeDot={{ r: 4.5 }}
-                    connectNulls={false}
-                  />
-                )}
-
-                <Line
-                  type="monotone"
-                  dataKey="trade"
-                  name={
-                    predecessorCode ? `HS ${node.code}` : 'Global trade'
-                  }
-                  stroke={colours.primary}
-                  strokeWidth={2}
-                  dot={{ r: 3, fill: colours.primary }}
-                  activeDot={{ r: 5, stroke: colours.surface, strokeWidth: 2 }}
-                  label={lastPointLabel(colours.primary, globalTrend.length)}
-                  connectNulls={false}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-
-            <div className="axis-note">USD bn</div>
-          </div>
-        </article>
-      </section>
-
-      <section className="chart-grid">
-        <article className="panel chart-panel" id="supplier-chart">
-          <PanelHead
-            eyebrow="PARTNER NETWORK"
-            title="India import sources"
-            onPng={() =>
-              downloadChart('supplier-chart', `HS-${node.code}-suppliers`, 'png')
-            }
-            onCsv={() =>
-              downloadCsv(
-                `HS-${node.code}-suppliers-${year}`,
-                annual.india.suppliers?.rows ?? [],
+              downloadChart(
+                series === 'india' ? 'trade-trend' : 'global-trend',
+                `HS-${node.code}-${series === 'india' ? 'India-trade' : 'global-trade'}`,
+                'png',
               )
             }
+            onCsv={() =>
+              series === 'india'
+                ? downloadCsv(`HS-${node.code}-India-trade`, trend)
+                : downloadCsv(`HS-${node.code}-global-trade`, globalTrend)
+            }
           />
 
-          <div className="chart-shell">
-            {suppliers.length ? (
+          <div className="chart-shell tall">
+            {series === 'india' ? (
+              <>
+                <div className="chart-controls">
+                  {hasMonthly && (
+                    <div className="control-group">
+                      {(['annual', 'monthly'] as const).map(option => (
+                        <button
+                          key={option}
+                          className={frequency === option ? 'active' : ''}
+                          onClick={() => setFrequency(option)}
+                        >
+                          {option === 'annual' ? 'Annual' : 'Monthly'}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {frequency === 'annual' && (
+                    <div className="control-group">
+                      {(['5Y', '10Y', 'ALL'] as const).map(option => (
+                        <button
+                          key={option}
+                          className={horizon === option ? 'active' : ''}
+                          onClick={() => setHorizon(option)}
+                        >
+                          {option === 'ALL' ? 'All' : option}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={trend}
+                    margin={{ top: 24, right: 28, bottom: 12, left: 10 }}
+                  >
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      vertical={false}
+                      stroke={colours.grid}
+                    />
+
+                    <XAxis
+                      dataKey="label"
+                      tickMargin={8}
+                      axisLine={false}
+                      tickLine={false}
+                      stroke={colours.axis}
+                      minTickGap={12}
+                    />
+
+                    <YAxis
+                      width={58}
+                      tickFormatter={value =>
+                        `${(Number(value) / 1e9).toFixed(1)}`
+                      }
+                      axisLine={false}
+                      tickLine={false}
+                      stroke={colours.axis}
+                    />
+
+                    <Tooltip
+                      formatter={(value: unknown) => usd(Number(value))}
+                      labelFormatter={(_, payload) =>
+                        payload?.[0]?.payload?.full ?? ''
+                      }
+                      contentStyle={{
+                        background: colours.surface,
+                        border: `1px solid ${colours.grid}`,
+                        borderRadius: 8,
+                      }}
+                    />
+
+                    <Legend verticalAlign="top" align="right" height={34} />
+
+                    <Area
+                      type="monotone"
+                      dataKey="imports"
+                      name="India imports"
+                      stroke={colours.imports}
+                      fill={colours.imports}
+                      fillOpacity={0.08}
+                      strokeWidth={2}
+                      dot={{ r: 2.5, fill: colours.imports }}
+                      activeDot={{
+                        r: 4.5,
+                        stroke: colours.surface,
+                        strokeWidth: 2,
+                      }}
+                      label={lastPointLabel(colours.imports, trend.length)}
+                      connectNulls
+                    />
+
+                    <Area
+                      type="monotone"
+                      dataKey="exports"
+                      name="India exports"
+                      stroke={colours.exports}
+                      fill={colours.exports}
+                      fillOpacity={0.06}
+                      strokeWidth={2}
+                      dot={{ r: 2.5, fill: colours.exports }}
+                      activeDot={{
+                        r: 4.5,
+                        stroke: colours.surface,
+                        strokeWidth: 2,
+                      }}
+                      label={lastPointLabel(colours.exports, trend.length)}
+                      connectNulls
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </>
+            ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={suppliers}
-                  layout="vertical"
-                  margin={{ top: 8, right: 18, bottom: 10, left: 12 }}
+                <LineChart
+                  data={globalTrend}
+                  margin={{ top: 24, right: 28, bottom: 12, left: 10 }}
                 >
                   <CartesianGrid
                     strokeDasharray="3 3"
-                    horizontal={false}
+                    vertical={false}
                     stroke={colours.grid}
                   />
 
                   <XAxis
-                    type="number"
-                    domain={[0, (max: number) => Math.ceil(max / 5) * 5]}
-                    allowDecimals={false}
-                    tickFormatter={value => `${Math.round(Number(value))}%`}
+                    dataKey="label"
+                    tickMargin={8}
                     axisLine={false}
                     tickLine={false}
                     stroke={colours.axis}
+                    minTickGap={14}
                   />
 
                   <YAxis
-                    type="category"
-                    dataKey="name"
-                    width={124}
-                    tick={{ fontSize: 11 }}
+                    width={58}
+                    tickFormatter={value =>
+                      `${(Number(value) / 1e9).toFixed(0)}`
+                    }
                     axisLine={false}
                     tickLine={false}
                     stroke={colours.axis}
                   />
 
                   <Tooltip
-                    formatter={(value: unknown) =>
-                      `${Number(value).toFixed(1)}%`
-                    }
+                    formatter={(value: unknown) => usd(Number(value))}
                     contentStyle={{
                       background: colours.surface,
                       border: `1px solid ${colours.grid}`,
                       borderRadius: 8,
                     }}
-                    cursor={{ fillOpacity: 0.06 }}
                   />
 
-                  <Bar
-                    dataKey="sharePct"
-                    name="Share of India imports"
-                    fill={colours.primary}
-                    radius={[0, 4, 4, 0]}
-                    maxBarSize={22}
+                  {predecessorCode && (
+                    <Legend verticalAlign="top" align="right" height={34} />
+                  )}
+
+                  {predecessorCode && (
+                    <Line
+                      type="monotone"
+                      dataKey="predecessor"
+                      name={`HS ${predecessorCode} (before HS 2022)`}
+                      stroke={colours.primary}
+                      strokeWidth={2}
+                      strokeDasharray="5 4"
+                      dot={{
+                        r: 2.5,
+                        fill: colours.surface,
+                        stroke: colours.primary,
+                      }}
+                      activeDot={{ r: 4.5 }}
+                      connectNulls={false}
+                    />
+                  )}
+
+                  <Line
+                    type="monotone"
+                    dataKey="trade"
+                    name={predecessorCode ? `HS ${node.code}` : 'Global trade'}
+                    stroke={colours.primary}
+                    strokeWidth={2}
+                    dot={{ r: 2.5, fill: colours.primary }}
+                    activeDot={{
+                      r: 5,
+                      stroke: colours.surface,
+                      strokeWidth: 2,
+                    }}
+                    label={lastPointLabel(colours.primary, globalTrend.length)}
+                    connectNulls={false}
                   />
-                </BarChart>
+                </LineChart>
               </ResponsiveContainer>
-            ) : (
-              <Empty>No bilateral partner detail for {year}.</Empty>
             )}
+
+            <div className="axis-note">USD bn</div>
           </div>
         </article>
+      </section>
 
+      {/*
+        * Who buys the most of this product, and who sells the most of it.
+        *
+        * These are two different totals and must never be merged into one
+        * league table: the buying side is measured with freight and insurance
+        * in it, the selling side without. Each economy's share is taken
+        * against its own side's total, and each table says which side and
+        * which year it is on.
+        */}
+      <section className="chart-grid leaders">
         <article className="panel">
           <PanelHead
-            eyebrow={`TOP ECONOMIES · ${node.globalTrade?.year ?? '—'}`}
-            title="Largest importing economies"
-            note="Ranked on trade net of re-imports."
+            eyebrow={`LARGEST IMPORTERS · ${node.globalTrade?.year ?? '—'}`}
+            title="Who buys the most of this product"
+            note={
+              node.globalTrade
+                ? `Share of ${usd(node.globalTrade.value)} of world imports, net of re-imports. Valued CIF.`
+                : 'No year has a validated world total, so no ranking is published.'
+            }
           />
 
           <DataTable
             rows={node.globalTrade?.topEconomies ?? []}
-            name={`HS-${node.code}-top-economies`}
+            name={`HS-${node.code}-largest-importers`}
+          />
+        </article>
+
+        <article className="panel">
+          <PanelHead
+            eyebrow={`LARGEST EXPORTERS · ${node.globalTrade?.year ?? '—'}`}
+            title="Who sells the most of this product"
+            note={
+              node.globalTrade?.netExports
+                ? `Share of ${usd(node.globalTrade.netExports)} of world exports, net of re-exports. Valued FOB, so this total is not the same as the import total beside it.`
+                : 'The export side is not published for this code and year.'
+            }
+          />
+
+          <DataTable
+            rows={node.globalTrade?.topExporters ?? []}
+            name={`HS-${node.code}-largest-exporters`}
           />
         </article>
       </section>
 
+      {/*
+        * Import sources and export markets, each as one panel the reader
+        * flips between a chart and the rows behind it. Two panels showing the
+        * same numbers twice is not two findings.
+        */}
       <section className="chart-grid">
-        <article className="panel">
-          <PanelHead eyebrow="SOURCES" title="India import partners" />
-
-          <DataTable
-            rows={annual.india.suppliers?.rows ?? []}
-            name={`HS-${node.code}-suppliers-${year}`}
+        <article className="panel chart-panel" id="supplier-chart">
+          <PanelHead
+            eyebrow={`INDIA'S IMPORT SOURCES · ${year}`}
+            title="Where India buys this from"
+            actions={
+              <Tabs
+                label="Import sources view"
+                active={sourceView}
+                onChange={id => setSourceView(id as 'chart' | 'table')}
+                tabs={[
+                  { id: 'chart', label: 'Chart' },
+                  { id: 'table', label: 'Table' },
+                ]}
+              />
+            }
+            onPng={
+              sourceView === 'chart'
+                ? () =>
+                    downloadChart(
+                      'supplier-chart',
+                      `HS-${node.code}-suppliers`,
+                      'png',
+                    )
+                : undefined
+            }
+            onCsv={() =>
+              downloadCsv(`HS-${node.code}-suppliers-${year}`, supplierRows)
+            }
           />
+
+          {sourceView === 'chart' ? (
+            <div className="chart-shell">
+              {suppliers.length ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={suppliers}
+                    layout="vertical"
+                    margin={{ top: 8, right: 18, bottom: 10, left: 12 }}
+                  >
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      horizontal={false}
+                      stroke={colours.grid}
+                    />
+
+                    <XAxis
+                      type="number"
+                      domain={[0, (max: number) => Math.ceil(max / 5) * 5]}
+                      allowDecimals={false}
+                      tickFormatter={value => `${Math.round(Number(value))}%`}
+                      axisLine={false}
+                      tickLine={false}
+                      stroke={colours.axis}
+                    />
+
+                    <YAxis
+                      type="category"
+                      dataKey="name"
+                      width={132}
+                      tick={{ fontSize: 11 }}
+                      axisLine={false}
+                      tickLine={false}
+                      stroke={colours.axis}
+                    />
+
+                    <Tooltip
+                      formatter={(value: unknown) =>
+                        `${Number(value).toFixed(1)}%`
+                      }
+                      contentStyle={{
+                        background: colours.surface,
+                        border: `1px solid ${colours.grid}`,
+                        borderRadius: 8,
+                      }}
+                      cursor={{ fillOpacity: 0.06 }}
+                    />
+
+                    <Bar
+                      dataKey="sharePct"
+                      name="Share of India imports"
+                      fill={colours.imports}
+                      radius={[0, 4, 4, 0]}
+                      maxBarSize={22}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <Empty>No bilateral partner detail for {year}.</Empty>
+              )}
+            </div>
+          ) : (
+            <DataTable
+              rows={supplierRows}
+              name={`HS-${node.code}-suppliers-${year}`}
+            />
+          )}
         </article>
 
-        <article className="panel">
-          <PanelHead eyebrow="DESTINATIONS" title="India export markets" />
-
-          <DataTable
-            rows={annual.india.destinations?.rows ?? []}
-            name={`HS-${node.code}-destinations-${year}`}
+        <article className="panel chart-panel" id="destination-chart">
+          <PanelHead
+            eyebrow={`INDIA'S EXPORT MARKETS · ${year}`}
+            title="Where India sells this"
+            actions={
+              <Tabs
+                label="Export markets view"
+                active={marketView}
+                onChange={id => setMarketView(id as 'chart' | 'table')}
+                tabs={[
+                  { id: 'chart', label: 'Chart' },
+                  { id: 'table', label: 'Table' },
+                ]}
+              />
+            }
+            onPng={
+              marketView === 'chart'
+                ? () =>
+                    downloadChart(
+                      'destination-chart',
+                      `HS-${node.code}-destinations`,
+                      'png',
+                    )
+                : undefined
+            }
+            onCsv={() =>
+              downloadCsv(
+                `HS-${node.code}-destinations-${year}`,
+                destinationRows,
+              )
+            }
           />
+
+          {marketView === 'chart' ? (
+            <div className="chart-shell">
+              {destinations.length ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={destinations}
+                    layout="vertical"
+                    margin={{ top: 8, right: 18, bottom: 10, left: 12 }}
+                  >
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      horizontal={false}
+                      stroke={colours.grid}
+                    />
+
+                    <XAxis
+                      type="number"
+                      domain={[0, (max: number) => Math.ceil(max / 5) * 5]}
+                      allowDecimals={false}
+                      tickFormatter={value => `${Math.round(Number(value))}%`}
+                      axisLine={false}
+                      tickLine={false}
+                      stroke={colours.axis}
+                    />
+
+                    <YAxis
+                      type="category"
+                      dataKey="name"
+                      width={132}
+                      tick={{ fontSize: 11 }}
+                      axisLine={false}
+                      tickLine={false}
+                      stroke={colours.axis}
+                    />
+
+                    <Tooltip
+                      formatter={(value: unknown) =>
+                        `${Number(value).toFixed(1)}%`
+                      }
+                      contentStyle={{
+                        background: colours.surface,
+                        border: `1px solid ${colours.grid}`,
+                        borderRadius: 8,
+                      }}
+                      cursor={{ fillOpacity: 0.06 }}
+                    />
+
+                    <Bar
+                      dataKey="sharePct"
+                      name="Share of India exports"
+                      fill={colours.exports}
+                      radius={[0, 4, 4, 0]}
+                      maxBarSize={22}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <Empty>No bilateral partner detail for {year}.</Empty>
+              )}
+            </div>
+          ) : (
+            <DataTable
+              rows={destinationRows}
+              name={`HS-${node.code}-destinations-${year}`}
+            />
+          )}
         </article>
       </section>
 

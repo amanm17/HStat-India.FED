@@ -35,6 +35,15 @@ export type BasketLine = {
   indiaRank: number | null
   /* Why this line contributes nothing to the basket total, if it doesn't. */
   withheldReason: string | null
+  /*
+   * The broader code in the stack that already contains this one. When set,
+   * the line's own figures are still shown - they are what the reader asked
+   * to see - but nothing from it enters any total, because the containing
+   * code already carries it.
+   */
+  containedIn: string | null
+  /* This line's global trade as a share of the code that contains it. */
+  shareOfParent: number | null
 }
 
 export type AggregateRow = {
@@ -68,6 +77,8 @@ export type BasketSummary = {
   supplierTop3: number | null
 
   overlaps: { parent: string; child: string }[]
+  /* Codes excluded from every total because a broader code covers them. */
+  containedCodes: string[]
 }
 
 function record(node: HsNode, year: number): PeriodRecord | undefined {
@@ -312,6 +323,17 @@ export function bestYear(nodes: HsNode[]): number | null {
   return ordered[0] ?? null
 }
 
+/*
+ * Nesting inside the stack.
+ *
+ * HS 8517 is not a sibling of HS 851713, it is the heading that contains it,
+ * and Comtrade's figure for 8517 already includes every six-digit line under
+ * it. Adding both and summing reports the smartphone trade twice and inflates
+ * the basket by exactly the smaller code.
+ *
+ * The stack used to notice this and say so, then sum them anyway. It now
+ * notices, says so, and counts the containing code once.
+ */
 export function findOverlaps(nodes: HsNode[]) {
   const codes = nodes.map(node => node.code)
 
@@ -326,6 +348,34 @@ export function findOverlaps(nodes: HsNode[]) {
   }
 
   return overlaps
+}
+
+/*
+ * For each contained code, the narrowest code in the stack that contains it.
+ *
+ * Narrowest matters: with 84, 8471 and 847130 all stacked, 847130 is reported
+ * as sitting inside 8471 rather than inside 84, because that is the more
+ * useful thing to tell someone, and 8471 is itself reported inside 84. Only
+ * the outermost code is counted, which is right - it contains both.
+ */
+export function containment(nodes: HsNode[]): Map<string, string> {
+  const codes = nodes.map(node => node.code)
+
+  const inside = new Map<string, string>()
+
+  for (const child of codes) {
+    let holder: string | null = null
+
+    for (const parent of codes) {
+      if (parent === child || !child.startsWith(parent)) continue
+
+      if (holder === null || parent.length > holder.length) holder = parent
+    }
+
+    if (holder !== null) inside.set(child, holder)
+  }
+
+  return inside
 }
 
 function aggregate(
@@ -381,14 +431,30 @@ export function summarise(
 
   let withheld = 0
 
+  /*
+   * Codes already covered by a broader code in the same stack. Their figures
+   * are shown; none of them are added to anything.
+   */
+  const inside = containment(nodes)
+
+  const parentTrade = new Map<string, number | null>()
+
+  for (const node of nodes) {
+    parentTrade.set(node.code, record(node, year)?.global.trade ?? null)
+  }
+
   for (const node of nodes) {
     const entry = record(node, year)
 
     const trade = entry?.global.trade ?? null
 
+    const holder = inside.get(node.code) ?? null
+
     let reason: string | null = null
 
-    if (!entry) {
+    if (holder) {
+      reason = `Inside HS ${holder}, which is already in this stack`
+    } else if (!entry) {
       reason = `No data for ${year}`
     } else if (trade === null) {
       const status = entry.global.coverage?.status ?? 'unknown'
@@ -399,39 +465,54 @@ export function summarise(
           : `Reporter coverage ${status.toLowerCase()} for ${year}`
     }
 
-    if (trade !== null) {
-      globalTrade += trade
-
-      for (const economy of entry?.global.topEconomies ?? []) {
-        economyRows.push({
-          code: economy.code,
-          name: economy.name,
-          value: economy.value,
-        })
-      }
-    } else {
-      withheld += 1
-    }
-
     const imports = entry?.india.imports ?? null
     const exports = entry?.india.exports ?? null
 
-    if (imports !== null) indiaImports += imports
-    if (exports !== null) indiaExports += exports
+    /*
+     * The one branch that matters. A contained code contributes nothing -
+     * not its global trade, not India's figures, not a single row to the
+     * aggregated economy or partner tables, all of which the containing
+     * code already carries.
+     */
+    if (!holder) {
+      if (trade !== null) {
+        globalTrade += trade
 
-    if (entry?.india.importsNetReImports != null) {
-      indiaNetImports += entry.india.importsNetReImports
+        for (const economy of entry?.global.topEconomies ?? []) {
+          economyRows.push({
+            code: economy.code,
+            name: economy.name,
+            value: economy.value,
+          })
+        }
+      } else {
+        withheld += 1
+      }
+
+      if (imports !== null) indiaImports += imports
+      if (exports !== null) indiaExports += exports
+
+      if (entry?.india.importsNetReImports != null) {
+        indiaNetImports += entry.india.importsNetReImports
+      }
+
+      for (const supplier of entry?.india.suppliers?.rows ?? []) {
+        supplierRows.push({
+          code: supplier.code,
+          name: supplier.name,
+          value: supplier.value,
+        })
+      }
     }
 
-    for (const supplier of entry?.india.suppliers?.rows ?? []) {
-      supplierRows.push({
-        code: supplier.code,
-        name: supplier.name,
-        value: supplier.value,
-      })
-    }
+    const holderTrade = holder ? parentTrade.get(holder) ?? null : null
 
     lines.push({
+      containedIn: holder,
+      shareOfParent:
+        holder && trade !== null && holderTrade
+          ? trade / holderTrade
+          : null,
       code: node.code,
       level: node.level,
       label: label(node),
@@ -450,7 +531,7 @@ export function summarise(
 
   for (const line of lines) {
     line.shareOfBasket =
-      line.globalTrade !== null && globalTrade > 0
+      line.containedIn === null && line.globalTrade !== null && globalTrade > 0
         ? line.globalTrade / globalTrade
         : null
   }
@@ -479,7 +560,7 @@ export function summarise(
     lines,
 
     globalTrade,
-    linesCounted: lines.length - withheld,
+    linesCounted: lines.length - withheld - inside.size,
     linesWithheld: withheld,
 
     indiaImports,
@@ -503,6 +584,7 @@ export function summarise(
       .reduce((sum, row) => sum + row.share, 0),
 
     overlaps: findOverlaps(nodes),
+    containedCodes: [...inside.keys()].sort(),
   }
 }
 

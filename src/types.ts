@@ -186,6 +186,9 @@ export type GlobalTradeBenchmark = {
   adjustmentCoverage: number | null
   mirror: Mirror | null
   topEconomies: EconomyRow[]
+  /* Export side, ranked on its own FOB total - never merged with the above. */
+  netExports?: number | null
+  topExporters?: EconomyRow[]
 }
 
 export type LineagePredecessor = {

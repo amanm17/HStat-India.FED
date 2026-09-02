@@ -247,3 +247,92 @@ export function DataTable({
     </>
   )
 }
+
+/*
+ * A metric that can explain itself.
+ *
+ * Mirror gap and re-import adjustment are the two figures on this page that
+ * a reader cannot act on without knowing what produced them. Left bare they
+ * read as noise, or worse as an error in the data. So the number stays where
+ * it is and the reading sits one click underneath it - not a tooltip, which
+ * vanishes and cannot be quoted in a note to someone else.
+ */
+export function ExplainMetric({
+  label,
+  value,
+  detail,
+  verdict,
+  children,
+}: {
+  label: string
+  value: string
+  detail?: string
+  /* One line: what this particular value means, not what the metric is. */
+  verdict?: string
+  children: ReactNode
+}) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div className="mini-metric explain" data-open={open}>
+      <span>{label}</span>
+
+      <strong>{value}</strong>
+
+      {detail && <small>{detail}</small>}
+
+      <button
+        type="button"
+        className="explain-toggle"
+        aria-expanded={open}
+        onClick={() => setOpen(!open)}
+      >
+        {open ? 'Hide' : 'What this means'}
+      </button>
+
+      {open && (
+        <div className="explain-body">
+          {verdict && <p className="explain-verdict">{verdict}</p>}
+          {children}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/*
+ * Two views of one thing, in one panel.
+ *
+ * A chart and a table of the same rows are not two findings, and giving them
+ * two panels doubles the page for no extra information. Same for a trade
+ * series and the market it sits in: the reader wants one at a time.
+ */
+export function Tabs({
+  tabs,
+  active,
+  onChange,
+  label,
+}: {
+  tabs: { id: string; label: string; disabled?: boolean }[]
+  active: string
+  onChange: (id: string) => void
+  label: string
+}) {
+  return (
+    <div className="tabstrip" role="tablist" aria-label={label}>
+      {tabs.map(tab => (
+        <button
+          key={tab.id}
+          role="tab"
+          type="button"
+          aria-selected={active === tab.id}
+          disabled={tab.disabled}
+          className={active === tab.id ? 'active' : ''}
+          onClick={() => onChange(tab.id)}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  )
+}

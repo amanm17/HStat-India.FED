@@ -95,6 +95,22 @@ CAP_WARNING_RATIO = 0.95
 # Rows a request returns are roughly codes x periods x reporting economies.
 ROWS_PER_ECONOMY = 220
 
+# The hard ceiling on codes in one request, whatever the row estimate says.
+#
+# This is not a tuning knob, it is a correctness guard. Comtrade rejects a
+# request whose URL is too long, and the rejection does not arrive as an
+# error - the call returns no rows, which run_job() cannot tell apart from
+# "this period genuinely has nothing". The August 2026 build lost 2024, 2025
+# and 2026 for 500 of 549 codes exactly this way: a single-period group sized
+# itself at 55000 // 220 = 250 codes, about 1.8 KB of cmdCode before the rest
+# of the query string, and every chunk but the short 49-code tail came back
+# empty and was filed as fact.
+#
+# 50 is the number --probe already treats as safe, for the same reason and
+# with the same comment. The cost of the cap is a handful of extra calls on a
+# single-period group; the cost of not having it is silent data loss.
+MAX_CODES_PER_REQUEST = 50
+
 INDEX_PATH = RAW_STORE / "index.json"
 
 # Exit code meaning "the pull is fine but unfinished": the call budget ran
@@ -137,6 +153,11 @@ class Job:
     @property
     def period_group(self) -> str:
         return f"{self.periods[0]}-{self.periods[-1]}"
+
+    @property
+    def group_key(self) -> str:
+        """Every chunk of the same flow and periods shares this."""
+        return f"{self.freq}/{self.scope}/{self.flow}/{self.period_group}"
 
     @property
     def key(self) -> str:
@@ -220,7 +241,26 @@ def group_periods(periods, volatile: set[str], per_call: int):
     # anyway, so sequential chunking is right for them.
     groups.extend(group for group in chunked(monthly, per_call) if group)
 
-    groups.extend([period] for period in periods if period in volatile)
+    # Volatile periods used to get a group each, which was one call per period
+    # per flow. They are all re-pulled on every run by definition, so grouping
+    # them together costs nothing in reuse and saves two calls in three: three
+    # revisable years fetched as one request instead of three.
+    #
+    # They are grouped only with each other. Mixing a volatile period into a
+    # settled group is what would actually be expensive - it would invalidate
+    # the settled chunk every month.
+    volatile_annual = [
+        period for period in periods
+        if period in volatile and len(str(period)) == 4
+    ]
+
+    volatile_monthly = [
+        period for period in periods
+        if period in volatile and len(str(period)) != 4
+    ]
+
+    groups.extend(group for group in chunked(volatile_annual, per_call) if group)
+    groups.extend(group for group in chunked(volatile_monthly, per_call) if group)
 
     return groups
 
@@ -239,13 +279,21 @@ def codes_per_call(
     override,
     target_rows: int,
 ) -> int:
-    """How many HS codes one request can carry for a group of this length."""
+    """
+    How many HS codes one request can carry for a group of this length.
+
+    Two ceilings apply and the smaller wins: the row estimate, which keeps a
+    response inside the record cap, and MAX_CODES_PER_REQUEST, which keeps the
+    request inside Comtrade's URL limit. An explicit override is clamped too -
+    a configured chunk size that produces an over-long URL fails silently, so
+    it is not a decision worth honouring.
+    """
     if override:
-        return int(override)
+        return max(1, min(int(override), total_codes, MAX_CODES_PER_REQUEST))
 
     estimate = target_rows // max(periods * ROWS_PER_ECONOMY, 1)
 
-    return max(1, min(total_codes, estimate))
+    return max(1, min(total_codes, estimate, MAX_CODES_PER_REQUEST))
 
 
 def build_jobs(args, scope_config, volatile: set[str]) -> list[Job]:
@@ -433,6 +481,34 @@ def fetch(job: Job, key: str, limits: dict):
     return with_retry(call, label=job.key, on_error=note)
 
 
+def tally(stats: dict, job: Job) -> dict:
+    """Per-group record of which chunks came back with rows and which did not."""
+    groups = stats.setdefault("groups", {})
+
+    return groups.setdefault(
+        job.group_key,
+        {"withRows": 0, "empty": []},
+    )
+
+
+def suspect_empties(stats: dict) -> list[tuple[str, list[str]]]:
+    """
+    Chunks that returned nothing while their siblings returned rows.
+
+    An empty response is a legitimate answer - not every reporter files
+    re-imports, and a period can genuinely have no filings yet. What is not
+    legitimate is one chunk of a flow coming back empty while another chunk of
+    the same flow, same periods, different codes comes back full. That is the
+    signature of a rejected request, and it is invisible otherwise: the empty
+    is stored as fact and the snapshot is built around the hole.
+    """
+    return [
+        (group, record["empty"])
+        for group, record in sorted(stats.get("groups", {}).items())
+        if record["withRows"] > 0 and record["empty"]
+    ]
+
+
 def run_job(job: Job, key: str, index: dict, stats: dict, limits: dict) -> None:
     frame = fetch(job, key, limits)
 
@@ -466,6 +542,8 @@ def run_job(job: Job, key: str, index: dict, stats: dict, limits: dict) -> None:
         }
 
         stats["empty"] += 1
+
+        tally(stats, job)["empty"].append(job.key)
 
         return
 
@@ -515,6 +593,8 @@ def run_job(job: Job, key: str, index: dict, stats: dict, limits: dict) -> None:
 
     stats["rows"] += int(len(cleaned))
     stats["fetched"] += 1
+
+    tally(stats, job)["withRows"] += 1
 
 
 def probe(scope_config: dict) -> None:
@@ -879,6 +959,23 @@ def main():
             + f". Full detail in {CALL_LOG.name}."
         )
 
+    mixed = suspect_empties(stats)
+
+    if mixed:
+        empties = sum(len(keys) for _, keys in mixed)
+
+        print(
+            f"\n  WARNING: {empties} chunk(s) across {len(mixed)} flow group(s) "
+            "returned no rows while sibling chunks of the same flow and periods "
+            "returned data. That is what a rejected request looks like, not what "
+            "an empty period looks like. The snapshot QA gate checks the same "
+            "thing at node level and will refuse to promote if it is real."
+        )
+
+        for group, keys in mixed[:6]:
+            print(f"    {group}: {', '.join(keys[:4])}"
+                  + (f" and {len(keys) - 4} more" if len(keys) > 4 else ""))
+
     if stats["disaggregated"]:
         print(
             f"  {stats['disaggregated']:,} rows arrived broken down by second "
@@ -911,6 +1008,9 @@ def main():
                 "rows": stats["rows"],
                 "disaggregatedRowsDropped": stats["disaggregated"],
                 "failedAttempts": stats["retries"],
+                "suspectEmptyChunks": [
+                    {"group": group, "chunks": keys} for group, keys in mixed
+                ],
                 "outstanding": remaining,
                 "complete": remaining == 0,
                 "store": str(RAW_STORE),

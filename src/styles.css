@@ -3330,3 +3330,390 @@ main {
 .chart-grid.single {
   grid-template-columns: 1fr;
 }
+
+
+/* =======================================================================
+ * Title-strip search
+ *
+ * The search used to own the top of the page and pushed the product it
+ * found below the fold. In the strip it keeps everything it knew - answer
+ * card, related codes, suggestions, recent - in a panel that opens under
+ * the input and closes on Escape, a click outside, or a choice.
+ * ===================================================================== */
+
+.search-hub.bar {
+  position: relative;
+
+  max-width: none;
+
+  margin: 0;
+  padding: 0;
+
+  min-width: 0;
+}
+
+.search-hub.bar .search-primary {
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+
+  gap: 9px;
+
+  min-height: 40px;
+
+  padding: 0 12px 0 14px;
+
+  border-radius: 10px;
+
+  border: 1px solid var(--border);
+
+  background: var(--panel-soft);
+
+  box-shadow: none;
+}
+
+.search-hub.bar .search-primary:focus-within {
+  background: var(--panel);
+  border-color: var(--border-strong);
+}
+
+.search-hub.bar .search-primary input {
+  font-size: 14px;
+  letter-spacing: 0;
+}
+
+.search-hub.bar .search-drop {
+  position: absolute;
+  z-index: 60;
+
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+
+  max-height: min(72vh, 720px);
+  overflow-y: auto;
+
+  padding: 14px 16px 16px;
+
+  background: var(--panel);
+
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+
+  box-shadow: 0 18px 44px rgba(18, 43, 65, 0.16);
+}
+
+.search-hub.bar .smart-suggestions {
+  margin: 0 0 6px;
+}
+
+.search-hub.bar .answer-card {
+  margin-top: 0;
+}
+
+
+/* =======================================================================
+ * What this code is
+ *
+ * One chip for the code, the name, the official definition, and a single
+ * quiet line of context. The definition is the part someone checks a real
+ * product against, so it is set as prose rather than as a caption.
+ * ===================================================================== */
+
+.product-idline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+
+  gap: 10px;
+
+  margin-bottom: 10px;
+}
+
+.code-chip {
+  padding: 3px 9px;
+
+  color: var(--panel);
+  background: var(--navy);
+
+  border-radius: 6px;
+
+  font-size: 11.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+:root[data-theme="dark"] .code-chip {
+  color: #0e151d;
+  background: #8fb4dd;
+}
+
+.id-cat {
+  color: var(--green);
+
+  font-size: 10px;
+  font-weight: 800;
+
+  letter-spacing: 0.095em;
+  text-transform: uppercase;
+}
+
+.id-flag {
+  padding: 2px 7px;
+
+  color: var(--muted);
+
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.product-head h1 {
+  margin: 0 0 10px;
+
+  font-size: clamp(25px, 2.7vw, 36px);
+}
+
+.product-official {
+  max-width: 62ch;
+
+  margin: 0 0 12px;
+
+  color: var(--text);
+
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.product-meta {
+  color: var(--faint);
+
+  font-size: 11.5px;
+  letter-spacing: 0.01em;
+}
+
+
+/* =======================================================================
+ * Tabs — two readings of one thing, in one panel
+ * ===================================================================== */
+
+.tabstrip {
+  display: inline-flex;
+
+  padding: 2px;
+
+  background: var(--panel-soft);
+
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.tabstrip button {
+  padding: 5px 12px;
+
+  color: var(--muted);
+  background: transparent;
+
+  border: 0;
+  border-radius: 6px;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.tabstrip button:hover:not(:disabled) {
+  color: var(--text);
+}
+
+.tabstrip button.active {
+  color: var(--text);
+  background: var(--panel);
+
+  box-shadow: 0 1px 3px rgba(18, 43, 65, 0.12);
+}
+
+.tabstrip button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.tabstrip button:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 1px;
+}
+
+
+/* =======================================================================
+ * A metric that explains itself
+ * ===================================================================== */
+
+.mini-metric.explain {
+  position: relative;
+}
+
+.explain-toggle {
+  margin-top: 6px;
+  padding: 0;
+
+  color: var(--blue);
+  background: none;
+
+  border: 0;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  text-align: left;
+  cursor: pointer;
+}
+
+.explain-toggle:hover {
+  text-decoration: underline;
+}
+
+.explain-toggle:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.explain-body {
+  margin-top: 10px;
+  padding-top: 10px;
+
+  border-top: 1px solid var(--border);
+}
+
+.explain-body p {
+  margin: 0 0 8px;
+
+  max-width: 52ch;
+
+  color: var(--muted);
+
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.explain-body p:last-child {
+  margin-bottom: 0;
+}
+
+.explain-verdict {
+  color: var(--text) !important;
+
+  font-weight: 600;
+}
+
+.explain-use {
+  color: var(--faint) !important;
+}
+
+
+/* =======================================================================
+ * Full-width series panel and the leaders pair
+ * ===================================================================== */
+
+.panel-stack {
+  display: flex;
+  flex-direction: column;
+
+  gap: 18px;
+
+  margin-bottom: 18px;
+}
+
+.chart-panel.wide {
+  width: 100%;
+}
+
+.chart-shell.tall {
+  height: 360px;
+}
+
+.chart-grid.leaders .panel {
+  min-width: 0;
+}
+
+.panelhead .panel-actions {
+  align-items: center;
+}
+
+
+/* A resolved warning is not a warning: it says what was done, not what is
+ * wrong, so it does not wear the alarm colour. */
+.hstack-warning[data-tone="resolved"] {
+  border-left-color: var(--blue);
+}
+
+
+.tariff-absent {
+  max-width: 74ch;
+
+  margin: 6px 0 0;
+
+  color: var(--faint);
+
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+
+/* =======================================================================
+ * Header layout, restated
+ *
+ * Two earlier rules collapsed the strip to "identity | controls" when the
+ * search was taken out of it. The search is back, so the strip is three
+ * columns again: who we are, what you are looking for, what you can change.
+ * Declared after them because they are unconditional.
+ * ===================================================================== */
+
+.topbar {
+  grid-template-columns: minmax(150px, 220px) minmax(220px, 1fr) auto;
+
+  align-items: center;
+
+  min-height: 64px;
+  height: auto;
+
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.topbar > .search-hub.bar {
+  grid-column: 2;
+  justify-self: stretch;
+
+  max-width: 560px;
+}
+
+.topbar > .toggles {
+  grid-column: 3;
+  justify-self: end;
+}
+
+.explain-toggle {
+  display: block;
+}
+
+@media (max-width: 900px) {
+  .topbar {
+    grid-template-columns: 1fr auto;
+
+    row-gap: 10px;
+  }
+
+  .topbar > .search-hub.bar {
+    grid-column: 1 / -1;
+    grid-row: 2;
+
+    max-width: none;
+  }
+
+  .topbar > .toggles {
+    grid-row: 1;
+  }
+}

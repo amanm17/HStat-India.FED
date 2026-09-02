@@ -97,6 +97,20 @@ def main():
     )
 
     parser.add_argument(
+        "--build-only",
+        action="store_true",
+        help=(
+            "Check only what decides whether this build can ship: schema "
+            "agreement and the fixture stamp. Existing QA failures in the "
+            "published snapshot are reported but do not block. Used by "
+            "scripts/ship.sh, because a data fault is fixed by rebuilding "
+            "the data, and rebuilding the data needs the code pushed first. "
+            "Promotion is gated separately, in refresh_monthly.py, which "
+            "never publishes a snapshot that fails QA."
+        ),
+    )
+
+    parser.add_argument(
         "--sample",
         type=int,
         default=25,
@@ -153,10 +167,21 @@ def main():
     check.note(f"schema           : {expected} (frontend and snapshot agree)")
 
     if qa is not None:
-        check.require(
-            not qa.get("failures"),
-            f"snapshot carries {len(qa.get('failures', []))} QA failures",
-        )
+        failures = qa.get("failures", [])
+
+        if failures and args.build_only:
+            check.note(
+                f"QA failures in the published snapshot: {len(failures)} "
+                "(not blocking this build - rebuild the data to clear them)"
+            )
+
+            for failure in failures[:5]:
+                check.note(f"  {failure.get('period') or '-'}: {failure.get('message')}")
+        else:
+            check.require(
+                not failures,
+                f"snapshot carries {len(failures)} QA failures",
+            )
 
         check.note(f"QA warnings: {len(qa.get('warnings', []))}")
 

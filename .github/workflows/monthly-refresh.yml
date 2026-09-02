@@ -25,9 +25,9 @@ on:
   workflow_dispatch:
     inputs:
       depth:
-        description: "probe = 3 calls, measure the key's real limits and stop. light / deep / full as below."
+        description: "reprocess = rebuild the snapshot from the stored raw data, no API calls. probe = 3 calls, measure the key's real limits and stop. light / deep / full as below."
         type: choice
-        options: [auto, probe, light, deep, full]
+        options: [auto, reprocess, probe, light, deep, full]
         default: auto
       max_calls:
         description: "Ceiling for this run. 200 leaves 300 calls of headroom for retries; a cold build finishes in 3 days at that rate."
@@ -87,7 +87,11 @@ jobs:
           fi
 
           case "$DEPTH" in
-            probe) echo "args=" >> "$GITHUB_OUTPUT" ;;
+            probe)     echo "args=" >> "$GITHUB_OUTPUT" ;;
+            # Everything needed to republish is already in the raw store.
+            # A processing change - a wider validation window, a new
+            # exchange-rate table - costs nothing to apply.
+            reprocess) echo "args=--skip-pull" >> "$GITHUB_OUTPUT" ;;
             light) echo "args=--refresh-years 1 --refresh-months 3" >> "$GITHUB_OUTPUT" ;;
             deep)  echo "args=--refresh-years 3 --refresh-months 6" >> "$GITHUB_OUTPUT" ;;
             full)  echo "args=--mode full" >> "$GITHUB_OUTPUT" ;;
@@ -128,7 +132,10 @@ jobs:
       # every ordinary month.
       - name: Is anything outstanding?
         id: outstanding
-        if: steps.depth.outputs.day != '05' && steps.depth.outputs.depth != 'probe'
+        if: >-
+          steps.depth.outputs.day != '05'
+          && steps.depth.outputs.depth != 'probe'
+          && steps.depth.outputs.depth != 'reprocess'
         env:
           COMTRADE_API_KEY: ${{ secrets.COMTRADE_API_KEY }}
         run: |
@@ -153,6 +160,9 @@ jobs:
           if [ "${{ steps.depth.outputs.depth }}" = "probe" ]; then
             echo "run=false" >> "$GITHUB_OUTPUT"
             echo "Probe only; no pull."
+          elif [ "${{ steps.depth.outputs.depth }}" = "reprocess" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "Reprocessing the existing store; no calls will be made."
           elif [ "${{ steps.depth.outputs.day }}" = "05" ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
           else
@@ -162,7 +172,9 @@ jobs:
       # Print the plan before spending anything, so a run that is about to
       # cost far more than expected is visible in the log.
       - name: Show the call plan
-        if: steps.gate.outputs.run == 'true'
+        if: >-
+          steps.gate.outputs.run == 'true'
+          && steps.depth.outputs.depth != 'reprocess'
         env:
           COMTRADE_API_KEY: ${{ secrets.COMTRADE_API_KEY }}
         run: python pipeline/pull_comtrade.py --dry-run ${{ steps.depth.outputs.args }}

@@ -836,6 +836,15 @@ def latest_benchmark(annual: dict, analysis_start: int):
             "topEconomies": record.get("topEconomies", [])[
                 :TOP_ECONOMIES_BENCHMARK
             ],
+
+            # The export side, carried so the page can name the largest
+            # suppliers to the world as well as the largest buyers from it.
+            # Ranked on its own total: the two sides measure the same trade
+            # from opposite ends and are never mixed into one league table.
+            "netExports": record["observed"].get("netExports"),
+            "topExporters": record.get("topExporters", [])[
+                :TOP_ECONOMIES_BENCHMARK
+            ],
         }
 
     return None
@@ -974,7 +983,27 @@ def build_node(
     hs6_values: dict | None = None,
     official_children: dict | None = None,
 ) -> dict:
-    analysis_start = scope["analysisStartYear"]
+    # Two different questions, which used to share one answer and should not.
+    #
+    #   analytical  may this year's global figure be published at all?
+    #   detailed    does it also carry partner tables and a top-ten?
+    #
+    # Coverage validation is comparative - it asks whether this year still
+    # holds the economies that mattered in the year before it - so it works
+    # for any year that has a predecessor. Tying it to analysisStartYear meant
+    # 26 years of global trade were pulled, netted, written into every node
+    # under `observed`, and then withheld as HISTORICAL. The data was there
+    # the whole time; only the verdict was missing.
+    #
+    # Detail is the expensive half: partner tables and top-ten economies are
+    # roughly ten times the bytes of a headline. That one stays where it was
+    # unless someone moves it deliberately.
+    detail_start = scope["analysisStartYear"]
+
+    validation_start = int(
+        scope.get("validationStartYear")
+        or (int(years[0]) + 1 if years else detail_start)
+    )
 
     annual: dict[str, dict] = {}
 
@@ -986,8 +1015,8 @@ def build_node(
             global_index,
             india_index,
             scope,
-            analytical=int(year) >= analysis_start,
-            detailed=int(year) >= analysis_start,
+            analytical=int(year) >= validation_start,
+            detailed=int(year) >= detail_start,
         )
 
     monthly: dict[str, dict] = {}
@@ -1024,7 +1053,7 @@ def build_node(
         scope,
     )
 
-    benchmark = latest_benchmark(annual, analysis_start)
+    benchmark = latest_benchmark(annual, detail_start)
 
     latest_india_year = None
 
@@ -1053,7 +1082,7 @@ def build_node(
         hs6_values or {},
         annual,
         official_children or {},
-        analysis_start,
+        detail_start,
     )
 
     return {
@@ -1074,8 +1103,16 @@ def build_node(
         ),
         "classification": "HS 2022 (H6)",
         "years": [int(year) for year in years],
+        # Every year whose coverage was actually assessed. The market-size
+        # chart draws this range, so widening it is what turns a two-point
+        # line into a thirty-year one.
         "analyticalYears": [
-            int(year) for year in years if int(year) >= analysis_start
+            int(year) for year in years if int(year) >= validation_start
+        ],
+
+        # The narrower window that carries partner tables and top-ten lists.
+        "detailedYears": [
+            int(year) for year in years if int(year) >= detail_start
         ],
         "months": sorted(monthly),
         "latestIndiaYear": latest_india_year,
@@ -1209,6 +1246,18 @@ def main():
         default=scope["analysisStartYear"],
     )
 
+    parser.add_argument(
+        "--validation-start-year",
+        type=int,
+        default=scope.get("validationStartYear")
+        or scope["historyStartYear"] + 1,
+        help=(
+            "First year whose reporter coverage is assessed, and therefore "
+            "the first year a global figure can be published for. Coverage is "
+            "comparative, so this cannot be the first year of history."
+        ),
+    )
+
     parser.add_argument("--end-year", type=int, required=True)
 
     parser.add_argument(
@@ -1233,6 +1282,7 @@ def main():
     args = parser.parse_args()
 
     scope["analysisStartYear"] = args.analysis_start_year
+    scope["validationStartYear"] = args.validation_start_year
 
     if args.fx_csv:
         fx.use(args.fx_csv)
@@ -1541,6 +1591,7 @@ def main():
             "startYear": args.start_year,
             "endYear": args.end_year,
             "analysisStartYear": args.analysis_start_year,
+            "validationStartYear": args.validation_start_year,
             "months": months,
             "financialYears": sorted(hs8["financialYears"]),
             "registry": dataset_registry.manifest(),

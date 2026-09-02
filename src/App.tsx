@@ -251,20 +251,38 @@ function App() {
           </div>
         </div>
 
+        <SearchHub
+          variant="bar"
+          index={index}
+          recent={recent}
+          inBasket={inBasket}
+          onOpen={item => {
+            if (item.retired) return
+
+            openCode(item.code, item.level)
+          }}
+          onAdd={item => addToBasket({ code: item.code, level: item.level })}
+        />
+
         <div className="toggles">
-          <button
-            className={showHs8 ? 'ind-toggle active' : 'ind-toggle'}
-            aria-pressed={showHs8}
-            title={
-              tariffAvailable
-                ? 'Show India ITC(HS)-8 tariff-line detail alongside the six-digit figures'
-                : 'No DGCIS tariff-line data in this snapshot'
-            }
-            disabled={!tariffAvailable}
-            onClick={() => setShowHs8(value => !value)}
-          >
-            HS-8
-          </button>
+          {/*
+            * A control that cannot do anything is worse than no control: it
+            * reads as a broken feature rather than an absent one. Tariff
+            * lines arrive with a DGCIS file, and until one does the toggle
+            * simply is not part of the interface. The panel at the foot of
+            * the product page is where the absence gets explained, in one
+            * line, to whoever goes looking for it.
+            */}
+          {tariffAvailable && (
+            <button
+              className={showHs8 ? 'ind-toggle active' : 'ind-toggle'}
+              aria-pressed={showHs8}
+              title="Show India ITC(HS)-8 tariff-line detail alongside the six-digit figures"
+              onClick={() => setShowHs8(value => !value)}
+            >
+              HS-8
+            </button>
+          )}
 
           <button
             className="currency-toggle"
@@ -310,18 +328,6 @@ function App() {
       </header>
 
       <main>
-        <SearchHub
-          index={index}
-          recent={recent}
-          inBasket={inBasket}
-          onOpen={item => {
-            if (item.retired) return
-
-            openCode(item.code, item.level)
-          }}
-          onAdd={item => addToBasket({ code: item.code, level: item.level })}
-        />
-
         <ProductView
           node={node}
           year={year}

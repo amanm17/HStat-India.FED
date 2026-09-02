@@ -19,6 +19,7 @@ The checks fall into four groups:
 from __future__ import annotations
 
 from pathlib import Path
+from datetime import datetime, timezone
 import argparse
 import json
 import re
@@ -435,6 +436,60 @@ def check_definition_share(report, code, node):
                 )
 
 
+def period_presence(node: dict) -> dict[str, bool]:
+    """Which annual periods this node actually received reporter rows for."""
+    presence: dict[str, bool] = {}
+
+    for period, record in (node.get("annual") or {}).items():
+        observed = ((record or {}).get("global") or {}).get("observed") or {}
+
+        presence[period] = bool(observed.get("reporters"))
+
+    return presence
+
+
+def check_pull_coverage(report, presence: dict, nodes: int, current_year: int):
+    """
+    A period is either reported or it is not. It is never reported for 6% of
+    the universe.
+
+    This is the gate that would have caught the August 2026 build. An
+    over-long request returns no rows, the pull stores that as "this period
+    has nothing", and every downstream check passes because each individual
+    node is internally consistent. The tell is only visible across nodes: 34
+    nodes with 2024 data and 515 without is not something the world does.
+
+    The current year and later are exempt. Filing genuinely is ragged while a
+    year is still in progress, so a partial period there is reported as a
+    warning rather than treated as a broken pull.
+    """
+    if not nodes:
+        return
+
+    for period in sorted(presence):
+        with_data = presence[period]
+
+        if not with_data:
+            continue
+
+        share = with_data / nodes
+
+        if share >= 0.5:
+            continue
+
+        detail = (
+            f"period reported for only {with_data} of {nodes} nodes "
+            f"({share:.0%}); a period is either filed or it is not, so this "
+            "is the signature of requests that were rejected and stored as "
+            "empty rather than of a quiet year"
+        )
+
+        if int(period) >= current_year:
+            report.warn(None, period, detail + " (year still in progress)")
+        else:
+            report.fail(None, period, detail)
+
+
 def check_node(report, path: Path, expected_level: int, mirror_bounds, rates):
     node = json.loads(path.read_text())
 
@@ -515,7 +570,7 @@ def check_node(report, path: Path, expected_level: int, mirror_bounds, rates):
 
     check_definition_share(report, code, node)
 
-    return node
+    return period_presence(node)
 
 
 def main():
@@ -539,6 +594,10 @@ def main():
     mirror_bounds = tuple(scope["globalTrade"]["mirrorWarnRatio"])
 
     report = Report()
+
+    # Counted across every node, then checked once: see check_pull_coverage.
+    presence: dict[str, int] = {}
+    nodes_checked = 0
 
     catalogue_path = root / "catalogue.json"
 
@@ -597,7 +656,12 @@ def main():
             report.fail(code, None, "node file missing")
             continue
 
-        check_node(report, path, level, mirror_bounds, rates)
+        for period, present in (
+            check_node(report, path, level, mirror_bounds, rates) or {}
+        ).items():
+            presence[period] = presence.get(period, 0) + (1 if present else 0)
+
+        nodes_checked += 1
 
         if level == 6:
             found_hs6.add(code)
@@ -663,6 +727,13 @@ def main():
             )
 
         del entries
+
+    check_pull_coverage(
+        report,
+        presence,
+        nodes_checked,
+        datetime.now(timezone.utc).year,
+    )
 
     published = sum(
         1 for entry in catalogue if entry.get("globalTrade") is not None

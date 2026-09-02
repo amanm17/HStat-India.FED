@@ -7,7 +7,7 @@ set -euo pipefail
 CODES="${1:-0}"      # 0 = the whole 549-code universe
 MONTHS="${2:-6}"
 
-python scripts/make_fixtures.py --out data/raw/store-fixture --codes "$CODES" --months "$MONTHS"
+python scripts/make_fixtures.py --out data/raw/store-fixture --codes "$CODES" --months "$MONTHS" --start-year "${START:-1996}"
 python pipeline/build_hs_library.py
 python pipeline/process_snapshot.py \
   --fixture \
@@ -15,6 +15,7 @@ python pipeline/process_snapshot.py \
   --hs8-csv data/dgcis/india_hs8.fixture.csv \
   --fx-csv config/fx_inr_usd.fixture.csv \
   --out data/staging/fixture \
+  --start-year "${START:-1996}" \
   --end-year "$(date -u +%Y)" \
   --months "$MONTHS"
 python pipeline/validate_snapshot.py data/staging/fixture
