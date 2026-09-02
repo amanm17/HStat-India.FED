@@ -176,15 +176,16 @@ def main():
             pull += ["--refresh-months", args.refresh_months]
 
         if run(*pull, ok_codes=(EXIT_INCOMPLETE,)) == EXIT_INCOMPLETE:
-            # The store is consistent but short. Building from it would
-            # publish a snapshot missing whole periods, so the run stops at
-            # a validated staging copy and leaves `current` alone.
-            incomplete = True
-        else:
-            incomplete = False
-    else:
-        incomplete = False
-
+            # The raw store is consistent but incomplete. Do not build or
+            # validate a snapshot from partial data. Exit with the dedicated
+            # status so GitHub Actions can save the store and continue on the
+            # next run without touching the live snapshot.
+            print(
+                "\nPull was cut short by the call budget. "
+                "Raw store progress has been preserved; snapshot processing "
+                "and promotion are deferred until the pull is complete."
+            )
+            raise SystemExit(EXIT_INCOMPLETE)
     run(
         sys.executable,
         "pipeline/process_snapshot.py",
@@ -196,15 +197,6 @@ def main():
     )
 
     run(sys.executable, "pipeline/validate_snapshot.py", staging)
-
-    if incomplete:
-        print(
-            f"\nPull was cut short by the call budget. Staging snapshot at "
-            f"{staging} validated but NOT promoted - it would be missing "
-            "periods the budget did not reach. Re-run to finish the pull, "
-            "then this will promote normally."
-        )
-        raise SystemExit(EXIT_INCOMPLETE)
 
     if args.no_promote:
         print(f"\nValidated staging snapshot left at {staging}")
