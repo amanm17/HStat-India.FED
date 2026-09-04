@@ -909,6 +909,188 @@
     "convention": "RBI annual average reference rate. Financial-year rates come from the Economic Survey Statistical Appendix, Table 5.4; calendar-year rates are the mean of that year's RBI monthly averages.",
     "missingRatePolicy": "A period with no rate is not converted. It shows dollars and says the rate is missing. No interpolation, no nearest-year fallback, no carry-forward.",
     "rates": {
+      "CY": {
+        "1996": {
+          "rate": 35.4332,
+          "status": "verified",
+          "source": "World Bank WDI PA.NUS.FCRF (official exchange rate",
+          "note": "LCU per US$"
+        },
+        "1997": {
+          "rate": 36.3133,
+          "status": "verified",
+          "source": "World Bank WDI PA.NUS.FCRF (official exchange rate",
+          "note": "LCU per US$"
+        },
+        "1998": {
+          "rate": 41.2594,
+          "status": "verified",
+          "source": "World Bank WDI PA.NUS.FCRF (official exchange rate",
+          "note": "LCU per US$"
+        },
+        "1999": {
+          "rate": 43.0554,
+          "status": "verified",
+          "source": "World Bank WDI PA.NUS.FCRF (official exchange rate",
+          "note": "LCU per US$"
+        },
+        "2000": {
+          "rate": 44.9416,
+          "status": "verified",
+          "source": "World Bank WDI PA.NUS.FCRF (official exchange rate",
+          "note": "LCU per US$"
+        },
+        "2001": {
+          "rate": 47.1864,
+          "status": "verified",
+          "source": "World Bank WDI PA.NUS.FCRF (official exchange rate",
+          "note": "LCU per US$"
+        },
+        "2002": {
+          "rate": 48.6103,
+          "status": "verified",
+          "source": "World Bank WDI PA.NUS.FCRF (official exchange rate",
+          "note": "LCU per US$"
+        },
+        "2003": {
+          "rate": 46.5833,
+          "status": "verified",
+          "source": "World Bank WDI PA.NUS.FCRF (official exchange rate",
+          "note": "LCU per US$"
+        },
+        "2004": {
+          "rate": 45.3165,
+          "status": "verified",
+          "source": "World Bank WDI PA.NUS.FCRF (official exchange rate",
+          "note": "LCU per US$"
+        },
+        "2005": {
+          "rate": 44.1,
+          "status": "verified",
+          "source": "World Bank WDI PA.NUS.FCRF (official exchange rate",
+          "note": "LCU per US$"
+        },
+        "2006": {
+          "rate": 45.307,
+          "status": "verified",
+          "source": "World Bank WDI PA.NUS.FCRF (official exchange rate",
+          "note": "LCU per US$"
+        },
+        "2007": {
+          "rate": 41.3485,
+          "status": "verified",
+          "source": "World Bank WDI PA.NUS.FCRF (official exchange rate",
+          "note": "LCU per US$"
+        },
+        "2008": {
+          "rate": 43.5052,
+          "status": "verified",
+          "source": "World Bank WDI PA.NUS.FCRF (official exchange rate",
+          "note": "LCU per US$"
+        },
+        "2009": {
+          "rate": 48.4053,
+          "status": "verified",
+          "source": "World Bank WDI PA.NUS.FCRF (official exchange rate",
+          "note": "LCU per US$"
+        },
+        "2010": {
+          "rate": 45.7258,
+          "status": "verified",
+          "source": "World Bank WDI PA.NUS.FCRF (official exchange rate",
+          "note": "LCU per US$"
+        },
+        "2011": {
+          "rate": 46.6705,
+          "status": "verified",
+          "source": "World Bank WDI PA.NUS.FCRF (official exchange rate",
+          "note": "LCU per US$"
+        },
+        "2012": {
+          "rate": 53.4372,
+          "status": "verified",
+          "source": "World Bank WDI PA.NUS.FCRF (official exchange rate",
+          "note": "LCU per US$"
+        },
+        "2013": {
+          "rate": 58.5978,
+          "status": "verified",
+          "source": "World Bank WDI PA.NUS.FCRF (official exchange rate",
+          "note": "LCU per US$"
+        },
+        "2014": {
+          "rate": 61.0295,
+          "status": "verified",
+          "source": "World Bank WDI PA.NUS.FCRF (official exchange rate",
+          "note": "LCU per US$"
+        },
+        "2015": {
+          "rate": 64.1519,
+          "status": "verified",
+          "source": "World Bank WDI PA.NUS.FCRF (official exchange rate",
+          "note": "LCU per US$"
+        },
+        "2016": {
+          "rate": 67.1953,
+          "status": "verified",
+          "source": "World Bank WDI PA.NUS.FCRF (official exchange rate",
+          "note": "LCU per US$"
+        },
+        "2017": {
+          "rate": 65.1216,
+          "status": "verified",
+          "source": "World Bank WDI PA.NUS.FCRF (official exchange rate",
+          "note": "LCU per US$"
+        },
+        "2018": {
+          "rate": 68.3895,
+          "status": "verified",
+          "source": "World Bank WDI PA.NUS.FCRF (official exchange rate",
+          "note": "LCU per US$"
+        },
+        "2019": {
+          "rate": 70.4203,
+          "status": "verified",
+          "source": "World Bank WDI PA.NUS.FCRF (official exchange rate",
+          "note": "LCU per US$"
+        },
+        "2020": {
+          "rate": 74.0996,
+          "status": "verified",
+          "source": "World Bank WDI PA.NUS.FCRF (official exchange rate",
+          "note": "LCU per US$"
+        },
+        "2021": {
+          "rate": 73.918,
+          "status": "verified",
+          "source": "World Bank WDI PA.NUS.FCRF (official exchange rate",
+          "note": "LCU per US$"
+        },
+        "2022": {
+          "rate": 78.6045,
+          "status": "verified",
+          "source": "World Bank WDI PA.NUS.FCRF (official exchange rate",
+          "note": "LCU per US$"
+        },
+        "2023": {
+          "rate": 82.5993,
+          "status": "verified",
+          "source": "World Bank WDI PA.NUS.FCRF (official exchange rate",
+          "note": "LCU per US$"
+        },
+        "2024": {
+          "rate": 83.6693,
+          "status": "verified",
+          "source": "World Bank WDI PA.NUS.FCRF (official exchange rate",
+          "note": "LCU per US$"
+        },
+        "2025": {
+          "rate": 87.1584,
+          "status": "verified",
+          "source": "World Bank WDI PA.NUS.FCRF (official exchange rate",
+          "note": "LCU per US$"
+        }
+      },
       "FY": {
         "2013-14": {
           "rate": 60.502,
@@ -946,58 +1128,101 @@
           "source": "Economic Survey Statistical Appendix Table 5.4 (indiabudget.gov.in) - RBI annual average reference rate",
           "note": "Carried over from Sectoral_Debt_INR_to_USD.xlsx"
         }
+      },
+      "MONTH": {
+        "2024-08": {
+          "rate": 83.8855,
+          "status": "verified",
+          "source": "FRED EXINUS (Board of Governors of the Federal Reserve System",
+          "note": "H.10) - monthly average of daily noon rates"
+        },
+        "2024-09": {
+          "rate": 83.791,
+          "status": "verified",
+          "source": "FRED EXINUS (Board of Governors of the Federal Reserve System",
+          "note": "H.10) - monthly average of daily noon rates"
+        },
+        "2024-10": {
+          "rate": 84.005,
+          "status": "verified",
+          "source": "FRED EXINUS (Board of Governors of the Federal Reserve System",
+          "note": "H.10) - monthly average of daily noon rates"
+        },
+        "2024-11": {
+          "rate": 84.3326,
+          "status": "verified",
+          "source": "FRED EXINUS (Board of Governors of the Federal Reserve System",
+          "note": "H.10) - monthly average of daily noon rates"
+        },
+        "2024-12": {
+          "rate": 84.9686,
+          "status": "verified",
+          "source": "FRED EXINUS (Board of Governors of the Federal Reserve System",
+          "note": "H.10) - monthly average of daily noon rates"
+        },
+        "2025-01": {
+          "rate": 86.2652,
+          "status": "verified",
+          "source": "FRED EXINUS (Board of Governors of the Federal Reserve System",
+          "note": "H.10) - monthly average of daily noon rates"
+        },
+        "2025-02": {
+          "rate": 87.0637,
+          "status": "verified",
+          "source": "FRED EXINUS (Board of Governors of the Federal Reserve System",
+          "note": "H.10) - monthly average of daily noon rates"
+        },
+        "2025-03": {
+          "rate": 86.5214,
+          "status": "verified",
+          "source": "FRED EXINUS (Board of Governors of the Federal Reserve System",
+          "note": "H.10) - monthly average of daily noon rates"
+        },
+        "2025-04": {
+          "rate": 85.5768,
+          "status": "verified",
+          "source": "FRED EXINUS (Board of Governors of the Federal Reserve System",
+          "note": "H.10) - monthly average of daily noon rates"
+        },
+        "2025-05": {
+          "rate": 85.2462,
+          "status": "verified",
+          "source": "FRED EXINUS (Board of Governors of the Federal Reserve System",
+          "note": "H.10) - monthly average of daily noon rates"
+        },
+        "2025-06": {
+          "rate": 85.8765,
+          "status": "verified",
+          "source": "FRED EXINUS (Board of Governors of the Federal Reserve System",
+          "note": "H.10) - monthly average of daily noon rates"
+        },
+        "2025-07": {
+          "rate": 86.1714,
+          "status": "verified",
+          "source": "FRED EXINUS (Board of Governors of the Federal Reserve System",
+          "note": "H.10) - monthly average of daily noon rates"
+        }
       }
     },
     "coverage": {
-      "periods": 43,
-      "convertible": 0,
+      "periods": 53,
+      "convertible": 41,
       "missing": [
-        "CY 1996",
-        "CY 1997",
-        "CY 1998",
-        "CY 1999",
-        "CY 2000",
-        "CY 2001",
-        "CY 2002",
-        "CY 2003",
-        "CY 2004",
-        "CY 2005",
-        "CY 2006",
-        "CY 2007",
-        "CY 2008",
-        "CY 2009",
-        "CY 2010",
-        "CY 2011",
-        "CY 2012",
-        "CY 2013",
-        "CY 2014",
-        "CY 2015",
-        "CY 2016",
-        "CY 2017",
-        "CY 2018",
-        "CY 2019",
-        "CY 2020",
-        "CY 2021",
-        "CY 2022",
-        "CY 2023",
-        "CY 2024",
-        "CY 2025",
         "CY 2026",
-        "MONTH 2024-08",
-        "MONTH 2024-09",
-        "MONTH 2024-10",
-        "MONTH 2024-11",
-        "MONTH 2024-12",
-        "MONTH 2025-01",
-        "MONTH 2025-02",
-        "MONTH 2025-03",
-        "MONTH 2025-04",
-        "MONTH 2025-05",
-        "MONTH 2025-06",
-        "MONTH 2025-07"
+        "MONTH 2025-08",
+        "MONTH 2025-09",
+        "MONTH 2025-10",
+        "MONTH 2025-11",
+        "MONTH 2025-12",
+        "MONTH 2026-01",
+        "MONTH 2026-02",
+        "MONTH 2026-03",
+        "MONTH 2026-04",
+        "MONTH 2026-05",
+        "MONTH 2026-06"
       ],
       "complete": false,
-      "fraction": 0.0
+      "fraction": 0.7735849056603774
     }
   }
 }
