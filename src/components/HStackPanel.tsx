@@ -13,7 +13,7 @@ import {
 import { Download, Layers, Trash2, X } from 'lucide-react'
 
 import type { HsNode } from '../types'
-import type { BasketEntry } from '../lib/hstack'
+import type { BasketEntry, BasketLine } from '../lib/hstack'
 import {
   bestYear,
   combinedSeries,
@@ -24,7 +24,7 @@ import {
 import { concentrationLabel, pct, usd } from '../lib/format'
 import { palette } from '../lib/palette'
 import { downloadCsv, downloadXlsx } from '../lib/export'
-import { DataTable, Empty, MiniMetric, PanelHead } from './primitives'
+import { DataTable, Empty, MiniMetric, PanelHead, Tabs } from './primitives'
 
 /*
  * HStack reads a basket of HS codes the way a checkout reads a cart: the
@@ -93,18 +93,51 @@ export function HStackPanel({
     [nodes, activeYear],
   )
 
+  /*
+   * Which combined figure the composition is a composition of.
+   *
+   * A stack's split is not one number. Two products can be near-equal in
+   * world trade and nine-to-one in what India actually buys, and that
+   * difference is usually the point of stacking them in the first place.
+   */
+  const [metric, setMetric] = useState<'trade' | 'imports' | 'exports'>('trade')
+
+  const METRICS = {
+    trade: {
+      label: 'Global trade',
+      phrase: 'global trade',
+      value: (line: BasketLine) => line.globalTrade,
+      share: (line: BasketLine) => line.shareOfBasket,
+    },
+    imports: {
+      label: 'India imports',
+      phrase: 'India imports',
+      value: (line: BasketLine) => line.indiaImports,
+      share: (line: BasketLine) => line.shareOfIndiaImports,
+    },
+    exports: {
+      label: 'India exports',
+      phrase: 'India exports',
+      value: (line: BasketLine) => line.indiaExports,
+      share: (line: BasketLine) => line.shareOfIndiaExports,
+    },
+  } as const
+
+  const active = METRICS[metric]
+
   const composition = useMemo(
     () =>
       (summary?.lines ?? [])
-        .filter(line => line.shareOfBasket !== null)
+        .filter(line => active.share(line) !== null)
+        .sort((a, b) => (active.share(b) ?? 0) - (active.share(a) ?? 0))
         .slice(0, 12)
         .map(line => ({
           name: `${line.code} · ${line.label}`.slice(0, 42),
           code: line.code,
-          sharePct: (line.shareOfBasket ?? 0) * 100,
-          value: line.globalTrade ?? 0,
+          sharePct: (active.share(line) ?? 0) * 100,
+          value: active.value(line) ?? 0,
         })),
-    [summary],
+    [summary, metric],
   )
 
   function exportStack() {
@@ -407,8 +440,22 @@ export function HStackPanel({
               <article className="panel chart-panel" id="hstack-composition">
                 <PanelHead
                   eyebrow="COMPOSITION"
-                  title="Share of the stack"
-                  note="Each code's global trade as a share of the basket."
+                  title={`Share of ${active.phrase}`}
+                  note={`Each code's ${active.phrase} as a share of the stack's combined figure.`}
+                  actions={
+                    <Tabs
+                      label="Which figure to split"
+                      active={metric}
+                      onChange={id =>
+                        setMetric(id as 'trade' | 'imports' | 'exports')
+                      }
+                      tabs={[
+                        { id: 'trade', label: 'Global' },
+                        { id: 'imports', label: 'Imports' },
+                        { id: 'exports', label: 'Exports' },
+                      ]}
+                    />
+                  }
                   onCsv={() => downloadCsv('HStack-composition', composition)}
                 />
 
@@ -528,48 +575,108 @@ export function HStackPanel({
                 />
               </article>
 
+              {/*
+                * What each code contributes, on every figure at once.
+                *
+                * The combined total answers "how big is this together"; this
+                * answers "and which of them is it". A stack where one line is
+                * 90% of world trade but 20% of what India buys is telling you
+                * something, and a single share column would hide it.
+                */}
               <article className="panel">
                 <PanelHead
-                  eyebrow="LINE ITEMS"
-                  title="What is in the stack"
-                  note="Click a code to open it."
+                  eyebrow="CONTRIBUTION"
+                  title="What each code contributes"
+                  note={`Share of the stack's combined figure, for CY ${summary.year}. Click a code to open it.`}
+                  onCsv={() => downloadCsv(`HStack-contribution-${summary.year}`, toRows(summary))}
                 />
 
-                <div className="hstack-lines">
-                  {summary.lines.map(line => (
-                    <div className="hstack-line" key={line.code}>
-                      <button
-                        className="hstack-line-open"
-                        onClick={() => onOpen(line.code, line.level)}
-                      >
-                        <span className="result-level">HS-{line.level}</span>
+                <div className="tablewrap">
+                  <table className="contribution">
+                    <thead>
+                      <tr>
+                        <th scope="col">Code</th>
+                        <th scope="col" className="num">Global trade</th>
+                        <th scope="col" className="num">India imports</th>
+                        <th scope="col" className="num">India exports</th>
+                        <th scope="col"><span className="sr-only">Remove</span></th>
+                      </tr>
+                    </thead>
 
-                        <strong>{line.code}</strong>
+                    <tbody>
+                      {summary.lines.map(line => (
+                        <tr key={line.code} data-excluded={line.containedIn ? 'yes' : undefined}>
+                          <th scope="row">
+                            <button
+                              className="hstack-line-open"
+                              onClick={() => onOpen(line.code, line.level)}
+                            >
+                              <span className="result-level">HS-{line.level}</span>
+                              <strong>{line.code}</strong>
+                              <span className="hstack-line-label">{line.label}</span>
+                            </button>
 
-                        <span className="hstack-line-label">{line.label}</span>
-                      </button>
+                            {line.containedIn && (
+                              <span className="contribution-note">
+                                inside HS {line.containedIn} — not added again
+                              </span>
+                            )}
 
-                      <div className="hstack-line-figures">
-                        <span className="hstack-line-value">
-                          {usd(line.globalTrade)}
-                        </span>
+                            {!line.containedIn && line.withheldReason && (
+                              <span className="contribution-note">
+                                {line.withheldReason}
+                              </span>
+                            )}
+                          </th>
 
-                        <span className="hstack-line-share">
-                          {line.shareOfBasket === null
-                            ? line.withheldReason
-                            : pct(line.shareOfBasket)}
-                        </span>
-                      </div>
+                          <td className="num">
+                            <span className="cell-value">{usd(line.globalTrade)}</span>
+                            <span className="cell-share">
+                              {line.shareOfBasket === null ? '—' : pct(line.shareOfBasket)}
+                            </span>
+                          </td>
 
-                      <button
-                        className="hstack-line-remove"
-                        onClick={() => onRemove(line.code)}
-                        aria-label={`Remove ${line.code}`}
-                      >
-                        <X size={14} />
-                      </button>
-                    </div>
-                  ))}
+                          <td className="num">
+                            <span className="cell-value">{usd(line.indiaImports)}</span>
+                            <span className="cell-share">
+                              {line.shareOfIndiaImports === null
+                                ? '—'
+                                : pct(line.shareOfIndiaImports)}
+                            </span>
+                          </td>
+
+                          <td className="num">
+                            <span className="cell-value">{usd(line.indiaExports)}</span>
+                            <span className="cell-share">
+                              {line.shareOfIndiaExports === null
+                                ? '—'
+                                : pct(line.shareOfIndiaExports)}
+                            </span>
+                          </td>
+
+                          <td>
+                            <button
+                              className="hstack-line-remove"
+                              onClick={() => onRemove(line.code)}
+                              aria-label={`Remove ${line.code}`}
+                            >
+                              <X size={14} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+
+                    <tfoot>
+                      <tr>
+                        <th scope="row">Combined</th>
+                        <td className="num"><span className="cell-value">{usd(summary.globalTrade)}</span></td>
+                        <td className="num"><span className="cell-value">{usd(summary.indiaImports)}</span></td>
+                        <td className="num"><span className="cell-value">{usd(summary.indiaExports)}</span></td>
+                        <td></td>
+                      </tr>
+                    </tfoot>
+                  </table>
                 </div>
               </article>
             </section>

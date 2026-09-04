@@ -336,3 +336,51 @@ export function Tabs({
     </div>
   )
 }
+
+/*
+ * A pinnable region of the page.
+ *
+ * Two jobs, and they are the same job. It gives every panel a stable DOM id
+ * so a report can capture it, and it gives the reader a way to take it off
+ * the page. A tile that is not pinned is not rendered at all - hiding it with
+ * CSS would leave it in the report captures and in the tab order.
+ */
+export function Tile({
+  id,
+  label,
+  hidden,
+  onUnpin,
+  className,
+  children,
+}: {
+  id: string
+  label: string
+  hidden?: boolean
+  onUnpin?: (id: string) => void
+  className?: string
+  children: ReactNode
+}) {
+  if (hidden) return null
+
+  return (
+    <div
+      id={`tile-${id}`}
+      className={className ? `tile ${className}` : 'tile'}
+      data-tile={id}
+    >
+      {onUnpin && (
+        <button
+          type="button"
+          className="tile-unpin"
+          title={`Remove ${label} from the page`}
+          aria-label={`Remove ${label} from the page`}
+          onClick={() => onUnpin(id)}
+        >
+          ×
+        </button>
+      )}
+
+      {children}
+    </div>
+  )
+}

@@ -1,4 +1,5 @@
 import type {
+  RateEntry,
   CatalogueEntry,
   HsNode,
   Manifest,
@@ -113,5 +114,34 @@ export async function loadSearch(): Promise<SearchItem[]> {
     return await getJson<SearchItem[]>('/data/hs-library.json')
   } catch {
     return []
+  }
+}
+
+/*
+ * The exchange-rate table, shipped with the frontend.
+ *
+ * Conversion is a render-time operation: every figure is stored once in US
+ * dollars and multiplied by its own period's average rate when the reader
+ * asks for rupees. Nothing rupee-denominated is stored.
+ *
+ * The rates used to arrive only inside the published snapshot, which meant a
+ * rate correction could not reach the page without rebuilding the whole
+ * dataset. This file is generated from the same CSV by
+ * scripts/build_fx_asset.py and ships with the build, so the table is current
+ * as soon as the site is. Where the snapshot carries a rate for a period it
+ * still wins - it is what the published figures were checked against.
+ */
+export type FxAsset = {
+  base: string
+  quote: string
+  convention: string
+  rates: Record<string, Record<string, RateEntry>>
+}
+
+export async function loadFxRates(): Promise<FxAsset | null> {
+  try {
+    return await getJson<FxAsset>('/data/fx-rates.json')
+  } catch {
+    return null
   }
 }

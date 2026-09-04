@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Area,
   AreaChart,
@@ -13,14 +13,17 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { Download, Plus } from 'lucide-react'
+import { Download, Pin, PinOff, Plus } from 'lucide-react'
 
 import type {
+  CatalogueEntry,
   CurrencyBlock,
   CurrencyMode,
   HsNode,
   PeriodRecord,
 } from '../types'
+import { loadHsNodes } from '../lib/data'
+import type { Workspace } from '../lib/workspace'
 import type { Methodology } from '../types'
 import {
   concentrationLabel,
@@ -33,8 +36,10 @@ import {
   usd,
 } from '../lib/format'
 import {
+  convertibleCount,
   defaultFinancialYear,
   money,
+  rateFor,
   rateNote,
 } from '../lib/currency'
 import { palette } from '../lib/palette'
@@ -44,6 +49,7 @@ import {
   downloadJson,
   downloadXlsx,
 } from '../lib/export'
+import { TileDeck } from './TileDeck'
 import {
   DataTable,
   Disclosure,
@@ -54,6 +60,7 @@ import {
   PanelHead,
   StatusPill,
   Tabs,
+  Tile,
 } from './primitives'
 
 type Horizon = '5Y' | '10Y' | 'ALL'
@@ -66,7 +73,7 @@ const INDIA_REPORTER = '699'
  * turns a trend line into a table; a number on the last one tells you
  * where it ended up without any of that.
  */
-function lastPointLabel(colour: string, total: number) {
+function lastPointLabel(colour: string, total: number, rupees = false) {
   return function render(props: unknown) {
     const { x, y, value, index } = props as {
       x: number
@@ -87,7 +94,7 @@ function lastPointLabel(colour: string, total: number) {
         className="chart-point-label"
         fill={colour}
       >
-        {usd(value, 1)}
+        {rupees ? inr(value) : usd(value, 1)}
       </text>
     )
   }
@@ -250,6 +257,28 @@ function GlobalTradeCard({
             detail="of global trade"
           />
 
+        </div>
+      </div>
+
+      <Disclosure summary="How this figure is calculated">
+        <p className="method-formula">
+          global trade = Σ over reporting economies of (imports from World −
+          re-imports filed by that reporter)
+        </p>
+
+        <ul>
+          {(methodology?.globalTrade.notes ?? []).map(note => (
+            <li key={note}>{note}</li>
+          ))}
+        </ul>
+
+        {/*
+          * The two diagnostics live here rather than beside the headline.
+          * They are how the figure was arrived at, not what it says, and on
+          * the front of the card they read as two more results - which is
+          * exactly the confusion they caused.
+          */}
+        <div className="method-diagnostics">
           <ExplainMetric
             label="Mirror gap"
             value={mirrorGap === null ? '—' : delta(mirrorGap)}
@@ -296,19 +325,6 @@ function GlobalTradeCard({
             </p>
           </ExplainMetric>
         </div>
-      </div>
-
-      <Disclosure summary="How this figure is calculated">
-        <p className="method-formula">
-          global trade = Σ over reporting economies of (imports from World −
-          re-imports filed by that reporter)
-        </p>
-
-        <ul>
-          {(methodology?.globalTrade.notes ?? []).map(note => (
-            <li key={note}>{note}</li>
-          ))}
-        </ul>
 
         <p className="method-caveat">
           {benchmark.adjustmentCoverage !== null &&
@@ -566,6 +582,17 @@ export function ProductView({
   showHs8 = false,
   currency = 'USD',
   currencyBlock,
+  snapshot = 'current',
+  catalogue = [],
+  hiddenTiles = [],
+  onUnpinTile,
+  pinned = false,
+  onTogglePin,
+  workspace,
+  onReorder,
+  onArrange,
+  onAuto,
+  onYearLead,
 }: {
   node: HsNode
   year: number
@@ -578,8 +605,92 @@ export function ProductView({
   showHs8?: boolean
   currency?: CurrencyMode
   currencyBlock?: CurrencyBlock
+  snapshot?: string
+  catalogue?: CatalogueEntry[]
+  hiddenTiles?: string[]
+  onUnpinTile?: (id: string) => void
+  pinned?: boolean
+  onTogglePin?: () => void
+  workspace: Workspace
+  onReorder: (dragged: string, before: string | null) => void
+  onArrange: (groups: string[][]) => void
+  onAuto: () => void
+  onYearLead: () => void
 }) {
+  const off = useCallback(
+    (id: string) => hiddenTiles.includes(id),
+    [hiddenTiles],
+  )
+
+  /*
+   * The deck shuffle.
+   *
+   * The global-trade headline sits above India's position until the reader
+   * changes the year. Changing the year is a statement that the year is what
+   * they came for, so the two cards trade places and the selected year takes
+   * the top slot. The swap is animated because two cards silently exchanging
+   * position reads as a glitch; a half-second shuffle reads as an answer to
+   * what was just asked.
+   */
+  const [seenYear, setSeenYear] = useState(year)
+
+  useEffect(() => {
+    if (year === seenYear) return
+
+    setSeenYear(year)
+    onYearLead()
+  }, [year, seenYear, onYearLead])
+
   const [horizon, setHorizon] = useState<Horizon>('10Y')
+
+  /*
+   * What sits inside a heading.
+   *
+   * An HS-4 page shows the six-digit lines the sector definition tracks
+   * inside it; an HS-2 page shows the headings, because 85 alone contains
+   * 242 six-digit lines and a list that long is a directory, not a
+   * breakdown. Either way the figures come from the child nodes themselves,
+   * so a share here is the child's own published number over the heading's
+   * own published number - nothing is apportioned.
+   */
+  const childCodes = useMemo<{ code: string; level: 2 | 4 | 6 }[]>(() => {
+    if (node.level === 4) {
+      return (node.members ?? []).map(code => ({ code, level: 6 as const }))
+    }
+
+    if (node.level === 2) {
+      return catalogue
+        .filter(
+          entry => entry.level === 4 && entry.code.startsWith(node.code),
+        )
+        .map(entry => ({ code: entry.code, level: 4 as const }))
+    }
+
+    return []
+  }, [node, catalogue])
+
+  const [children, setChildren] = useState<HsNode[]>([])
+
+  useEffect(() => {
+    if (!childCodes.length || childCodes.length > 40) {
+      setChildren([])
+      return
+    }
+
+    let cancelled = false
+
+    loadHsNodes(snapshot, childCodes)
+      .then(loaded => {
+        if (!cancelled) setChildren(loaded)
+      })
+      .catch(() => {
+        if (!cancelled) setChildren([])
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [childCodes, snapshot])
 
   const [frequency, setFrequency] = useState<'annual' | 'monthly'>('annual')
 
@@ -643,6 +754,8 @@ export function ProductView({
   const trend = useMemo(() => {
     if (frequency === 'monthly') {
       return node.months.map(period => ({
+        period,
+        basis: 'MONTH' as const,
         label: monthShort(period),
         full: monthLabel(period),
         imports: node.monthly[period]?.india.imports ?? null,
@@ -659,12 +772,87 @@ export function ProductView({
     return years
       .filter(item => item > latest - back)
       .map(item => ({
+        period: String(item),
+        basis: 'CY' as const,
         label: String(item),
         full: String(item),
         imports: node.annual[String(item)]?.india.imports ?? null,
         exports: node.annual[String(item)]?.india.exports ?? null,
       }))
   }, [node, horizon, frequency])
+
+  /*
+   * The chart in rupees, or not at all.
+   *
+   * Each point converts at its own period's rate, so the series is only
+   * drawn in rupees when every visible point has one. A line with some
+   * points in rupees and some in dollars is not a series, it is two series
+   * on one axis - and the reader has no way to tell which is which. When a
+   * rate is missing anywhere in the window the whole chart stays in dollars
+   * and says so.
+   */
+  const chart = useMemo(() => {
+    const rates = trend.map(point =>
+      rateFor(currencyBlock, point.period, point.basis),
+    )
+
+    /*
+     * Only the points that actually draw something need a rate. A window
+     * ending in the current year always carries an empty trailing period -
+     * the year is not over, so no average rate exists for it - and letting
+     * that one blank block the whole chart would mean the rupee view never
+     * worked in the year you are standing in.
+     */
+    const drawn = trend
+      .map((point, index) => ({ point, rate: rates[index] }))
+      .filter(item => item.point.imports !== null || item.point.exports !== null)
+
+    const convertible =
+      currency === 'INR' &&
+      drawn.length > 0 &&
+      drawn.every(item => item.rate !== null)
+
+    if (!convertible) {
+      return {
+        data: trend,
+        inr: false,
+        unit: 'USD bn',
+        divisor: 1e9,
+        missing:
+          currency === 'INR'
+            ? drawn
+                .filter(item => !item.rate)
+                .map(item => item.point.full)
+                .slice(0, 3)
+            : [],
+      }
+    }
+
+    return {
+      data: trend.map((point, index) => ({
+        ...point,
+        imports:
+          point.imports === null ? null : point.imports * rates[index]!.rate,
+        exports:
+          point.exports === null ? null : point.exports * rates[index]!.rate,
+      })),
+      inr: true,
+      unit: '₹ crore',
+      divisor: 1e7,
+      missing: [] as (string | null)[],
+    }
+  }, [trend, currency, currencyBlock])
+
+  const unitNote = chart.unit
+
+  /* Nothing in the snapshot can be converted at all - a different problem
+   * from one missing year, and worth saying once rather than per figure. */
+  const noRates =
+    currency === 'INR' &&
+    convertibleCount(
+      currencyBlock,
+      node.years.map(item => ({ period: String(item), basis: 'CY' as const })),
+    ) === 0
 
   const predecessorCode = node.lineage?.predecessors.find(
     item => item.code,
@@ -712,6 +900,70 @@ export function ProductView({
       : row,
   )
 
+  /*
+   * The rows of the breakdown, on the selected year. A child with no figure
+   * for that year keeps its row and shows a dash: dropping it would silently
+   * change what the shares are shares of.
+   */
+  const breakdown = useMemo(() => {
+    const period = String(year)
+
+    const heading = node.annual[period]
+
+    const headingTrade = heading?.global.trade ?? null
+    const headingImports = heading?.india.imports ?? null
+
+    const rows = children.map(child => {
+      const record = child.annual[period]
+
+      const trade = record?.global.trade ?? null
+      const imports = record?.india.imports ?? null
+
+      return {
+        code: child.code,
+        level: child.level,
+        label: child.product || child.description,
+        trade,
+        imports,
+        tradeShare:
+          trade !== null && headingTrade ? trade / headingTrade : null,
+        importShare:
+          imports !== null && headingImports
+            ? imports / headingImports
+            : null,
+      }
+    })
+
+    rows.sort((a, b) => (b.trade ?? -1) - (a.trade ?? -1))
+
+    const trackedTrade = rows.reduce((sum, row) => sum + (row.trade ?? 0), 0)
+
+    const trackedImports = rows.reduce(
+      (sum, row) => sum + (row.imports ?? 0),
+      0,
+    )
+
+    return {
+      rows,
+      headingTrade,
+      headingImports,
+      trackedTrade,
+      trackedImports,
+      /* The part of the heading the definition does not track. Negative
+       * would mean the parts exceed the whole, which is a data question,
+       * not a number to print. */
+      restTrade:
+        headingTrade !== null && headingTrade - trackedTrade > 0
+          ? headingTrade - trackedTrade
+          : null,
+      restImports:
+        headingImports !== null && headingImports - trackedImports > 0
+          ? headingImports - trackedImports
+          : null,
+      overrun: headingTrade !== null && trackedTrade > headingTrade,
+    }
+  }, [children, node, year])
+
   const suppliers = supplierRows
     .slice(0, 10)
     .map(row => ({ ...row, sharePct: row.share * 100 }))
@@ -727,76 +979,138 @@ export function ProductView({
 
   const current = annual
 
-  function exportWorkbook() {
-    const annualRows = node.years.map(item => {
-      const record = node.annual[String(item)]
-
-      return {
-        year: item,
-        globalTrade: record.global.trade,
-        globalTradeStatus: record.global.coverage?.status,
-        grossGlobalImports: record.global.observed.grossImports,
-        reImportsRemoved: record.global.observed.reImportsRemoved,
-        netGlobalImports: record.global.observed.netImports,
-        grossGlobalExports: record.global.observed.grossExports,
-        reExportsRemoved: record.global.observed.reExportsRemoved,
-        netGlobalExports: record.global.observed.netExports,
-        mirrorGap: record.global.mirror?.gap ?? null,
-        reImportAdjustmentCoverage:
-          record.global.observed.adjustmentCoverage,
-        indiaRank: record.global.indiaRank,
-        indiaShare: record.global.indiaShare,
-        indiaImports: record.india.imports,
-        indiaExports: record.india.exports,
-        indiaBalance: record.india.balance,
-      }
-    })
-
-    const monthlyRows = node.months.map(period => ({
-      period: monthLabel(period),
-      globalTrade: node.monthly[period]?.global.trade ?? null,
-      globalTradeStatus: node.monthly[period]?.global.coverage?.status ?? null,
-      indiaImports: node.monthly[period]?.india.imports ?? null,
-      indiaExports: node.monthly[period]?.india.exports ?? null,
-      indiaBalance: node.monthly[period]?.india.balance ?? null,
-    }))
-
-    downloadXlsx(`HStat-${node.code}`, {
-      Annual: annualRows,
-      Monthly: monthlyRows,
-      TopEconomies: node.globalTrade?.topEconomies ?? [],
-      Suppliers: current.india.suppliers?.rows ?? [],
-      Destinations: current.india.destinations?.rows ?? [],
-
-      /* Financial years, so the sheet carries its own period column and
-       * cannot be mistaken for the calendar-year sheets beside it. */
-      IndiaHS8: tariffYears.flatMap(fy => {
-        const block = node.tariffLines?.financialYears?.[fy]
-
-        return (block?.rows ?? []).map(row => ({
-          financialYear: fy,
-          monthsCovered: block?.meta.monthsCovered ?? null,
-          hs8: row.hs8,
-          description: row.description,
-          importsUsd: row.imports,
-          exportsUsd: row.exports,
-          balanceUsd: row.balance,
-          importsInr: row.importsInr,
-          exportsInr: row.exportsInr,
-          filedIn: row.native.toUpperCase(),
-          rateInrPerUsd: block?.meta.rate ?? null,
-        }))
-      }),
-    })
+  /*
+   * The workbook.
+   *
+   * Column headings are written out with their units because that is what a
+   * reader opening this a month later has to go on, and because the export
+   * layer keys its number formats off them. Every sheet carries the period
+   * it belongs to, and the coverage status travels with the figure so a
+   * blank year is readable as withheld rather than as zero.
+   */
+  const exportMeta = {
+    title: `${node.product || node.description} — HS-${node.level} ${node.code}`,
+    code: node.code,
+    level: node.level,
+    description: node.description,
+    currency: currency === 'INR' ? 'Indian rupees where a rate exists, otherwise US dollars' : 'US dollars',
+    snapshot: node.sources ? undefined : undefined,
+    notes: [
+      'Global trade is every reporting economy\'s imports from the world, less re-imports where the reporter files them separately. Valued CIF.',
+      'Import-side and export-side totals measure the same trade from opposite ends and are not comparable line for line: imports include freight and insurance, exports do not.',
+      'A blank global figure is a year whose reporter coverage was not sufficient to publish. It is withheld, not zero.',
+      'Comtrade figures are calendar years. Any ITC(HS)-8 sheet is Indian financial years and must not be compared row for row with them.',
+    ],
   }
 
-  /* ---------------------------------------------------------------
-   * The tariff-line panel.
-   *
-   * Built once and placed in one of two positions: promoted directly under
-   * India's position when HS-8 mode is on, or left at the foot of the page
-   * when it is off. Same panel either way, so the two modes cannot drift.
-   * ------------------------------------------------------------- */
+  function exportWorkbook() {
+    const annualRows = [...node.years]
+      .sort((a, b) => b - a)
+      .map(item => {
+        const record = node.annual[String(item)]
+
+        return {
+          'Calendar year': item,
+          'Global trade (USD)': record.global.trade,
+          'Coverage status': record.global.coverage?.status ?? null,
+          'India rank': record.global.indiaRank,
+          'India share of global trade': record.global.indiaShare,
+          'India imports (USD)': record.india.imports,
+          'India exports (USD)': record.india.exports,
+          'India trade balance (USD)': record.india.balance,
+          'Reporting economies': record.global.observed.reporters,
+          'Gross world imports (USD)': record.global.observed.grossImports,
+          'Re-imports removed (USD)': record.global.observed.reImportsRemoved,
+          'Gross world exports (USD)': record.global.observed.grossExports,
+          'Re-exports removed (USD)': record.global.observed.reExportsRemoved,
+          'Re-import adjustment share': record.global.observed.adjustmentCoverage,
+          'Mirror gap': record.global.mirror?.gap ?? null,
+        }
+      })
+
+    const monthlyRows = [...node.months]
+      .sort()
+      .reverse()
+      .map(period => ({
+        Month: monthLabel(period),
+        'India imports (USD)': node.monthly[period]?.india.imports ?? null,
+        'India exports (USD)': node.monthly[period]?.india.exports ?? null,
+        'India trade balance (USD)': node.monthly[period]?.india.balance ?? null,
+      }))
+
+    const economyRows = (node.globalTrade?.topEconomies ?? []).map(row => ({
+      Rank: row.rank,
+      Economy: row.name,
+      'Comtrade code': row.code,
+      'Imports (USD)': row.value,
+      'Share of world imports': row.share,
+    }))
+
+    const exporterRows = (node.globalTrade?.topExporters ?? []).map(row => ({
+      Rank: row.rank,
+      Economy: row.name,
+      'Comtrade code': row.code,
+      'Exports (USD)': row.value,
+      'Share of world exports': row.share,
+    }))
+
+    const partnerRows = (rows: typeof supplierRows, direction: string) =>
+      rows.map((row, index) => ({
+        Rank: index + 1,
+        Partner: row.name,
+        'Comtrade code': row.code,
+        [`${direction} (USD)`]: row.value,
+        [`Share of India ${direction.toLowerCase()}`]: row.share,
+      }))
+
+    const insideRows = breakdown.rows.map(row => ({
+      'HS code': row.code,
+      Level: `HS-${row.level}`,
+      Product: row.label,
+      'Global trade (USD)': row.trade,
+      'Share of heading': row.tradeShare,
+      'India imports (USD)': row.imports,
+      'Share of heading imports': row.importShare,
+    }))
+
+    downloadXlsx(
+      `HStat-${node.code}`,
+      {
+        Annual: annualRows,
+        Monthly: monthlyRows,
+        [`Largest importers ${node.globalTrade?.year ?? ''}`.trim()]: economyRows,
+        [`Largest exporters ${node.globalTrade?.year ?? ''}`.trim()]: exporterRows,
+        [`India sources ${year}`]: partnerRows(supplierRows, 'Imports'),
+        [`India destinations ${year}`]: partnerRows(destinationRows, 'Exports'),
+        'Inside this heading': insideRows,
+
+        /* Financial years, so the sheet carries its own period column and
+         * cannot be mistaken for the calendar-year sheets beside it. */
+        'India ITC(HS)-8': tariffYears.flatMap(fy => {
+          const block = node.tariffLines?.financialYears?.[fy]
+
+          return (block?.rows ?? []).map(row => ({
+            'Financial year': fy,
+            'Months covered': block?.meta.monthsCovered ?? null,
+            'ITC(HS)-8': row.hs8,
+            Description: row.description,
+            'Imports (USD)': row.imports,
+            'Exports (USD)': row.exports,
+            'Balance (USD)': row.balance,
+            'Imports (₹)': row.importsInr,
+            'Exports (₹)': row.exportsInr,
+            'Filed in': row.native.toUpperCase(),
+            'Rate (₹ per USD)': block?.meta.rate ?? null,
+          }))
+        }),
+      },
+      {
+        ...exportMeta,
+        period: `Annual ${Math.min(...node.years)}–${Math.max(...node.years)}; partner detail for ${year}`,
+        rate: cyNote ?? undefined,
+      },
+    )
+  }
 
   const meta = tariff?.meta
   const showInr = currency === 'INR'
@@ -943,6 +1257,22 @@ export function ProductView({
         * a reader needs here is the code, the name, and the official
         * definition in language they can check a product against.
         */}
+      {noRates && (
+        <div className="rate-banner">
+          <strong>Rupee view unavailable in this snapshot.</strong> No exchange
+          rate is published for any period it covers, so every figure stays in
+          US dollars. Rates are part of the snapshot, not the page — they
+          arrive when the data is next rebuilt.
+        </div>
+      )}
+
+      <TileDeck
+        workspace={workspace}
+        onReorder={onReorder}
+        onArrange={onArrange}
+        onAuto={onAuto}
+      >
+      <Tile id="identity" label="Product">
       <section className="product-head">
         <div className="product-copy">
           <div className="product-idline">
@@ -998,6 +1328,21 @@ export function ProductView({
             {inBasket ? 'In HStack' : 'Add to HStack'}
           </button>
 
+          {onTogglePin && (
+            <button
+              className={pinned ? 'stack-add pinned' : 'stack-add'}
+              onClick={onTogglePin}
+              title={
+                pinned
+                  ? 'Remove from the quick-view rail'
+                  : 'Pin to the quick-view rail'
+              }
+            >
+              {pinned ? <PinOff size={15} /> : <Pin size={15} />}
+              {pinned ? 'Pinned' : 'Pin'}
+            </button>
+          )}
+
           <button className="download-master" onClick={exportWorkbook}>
             <Download size={15} />
             XLSX
@@ -1017,11 +1362,173 @@ export function ProductView({
           </span>
         </div>
       )}
+      </Tile>
 
-      <LineageNote node={node} onOpen={onOpen} />
+      {node.level < 6 && breakdown.rows.length > 0 && !off('whats-inside') && (
+        <Tile id="whats-inside" label="What's inside" onUnpin={onUnpinTile}>
+        <section className="release-section breakdown">
+          <div className="release-section-head">
+            <div>
+              <div className="eyebrow">
+                INSIDE HS-{node.level} {node.code} · {year}
+              </div>
 
-      <GlobalTradeCard node={node} methodology={methodology} />
+              <h2>
+                {node.level === 2
+                  ? 'The headings within this chapter'
+                  : 'The six-digit lines within this heading'}
+              </h2>
+            </div>
+          </div>
 
+          <p className="panel-note">
+            {node.level === 2
+              ? 'Headings HStat tracks inside this chapter, each with its own published figure and its share of the chapter.'
+              : 'Six-digit lines the sector definition tracks inside this heading, each with its own published figure and its share of the heading.'}{' '}
+            Shares are each line's own number over the heading's own number;
+            nothing is divided up or estimated.
+          </p>
+
+          <div className="tablewrap">
+            <table className="contribution">
+              <thead>
+                <tr>
+                  <th scope="col">Code</th>
+                  <th scope="col" className="num">Global trade</th>
+                  <th scope="col" className="num">India imports</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {breakdown.rows.map(row => (
+                  <tr key={row.code}>
+                    <th scope="row">
+                      <button
+                        className="hstack-line-open"
+                        onClick={() => onOpen?.(row.code, row.level)}
+                      >
+                        <span className="result-level">HS-{row.level}</span>
+                        <strong>{row.code}</strong>
+                        <span className="hstack-line-label">{row.label}</span>
+                      </button>
+                    </th>
+
+                    <td className="num">
+                      <span className="cell-value">{usd(row.trade)}</span>
+                      <span className="cell-share">
+                        {row.tradeShare === null ? '—' : pct(row.tradeShare)}
+                      </span>
+                    </td>
+
+                    <td className="num">
+                      <span className="cell-value">{cy(row.imports).text}</span>
+                      <span className="cell-share">
+                        {row.importShare === null ? '—' : pct(row.importShare)}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+
+                {(breakdown.restTrade !== null ||
+                  breakdown.restImports !== null) && (
+                  <tr data-excluded="yes">
+                    <th scope="row">
+                      <span className="hstack-line-label">
+                        Everything else in HS-{node.level} {node.code}
+                      </span>
+
+                      <span className="contribution-note">
+                        Lines outside the FED sector definition. Present in the
+                        heading's own total, not tracked as products.
+                      </span>
+                    </th>
+
+                    <td className="num">
+                      <span className="cell-value">
+                        {usd(breakdown.restTrade)}
+                      </span>
+                      <span className="cell-share">
+                        {breakdown.restTrade !== null && breakdown.headingTrade
+                          ? pct(breakdown.restTrade / breakdown.headingTrade)
+                          : '—'}
+                      </span>
+                    </td>
+
+                    <td className="num">
+                      <span className="cell-value">
+                        {cy(breakdown.restImports).text}
+                      </span>
+                      <span className="cell-share">
+                        {breakdown.restImports !== null &&
+                        breakdown.headingImports
+                          ? pct(
+                              breakdown.restImports / breakdown.headingImports,
+                            )
+                          : '—'}
+                      </span>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+
+              <tfoot>
+                <tr>
+                  <th scope="row">
+                    HS-{node.level} {node.code} total
+                  </th>
+
+                  <td className="num">
+                    <span className="cell-value">
+                      {usd(breakdown.headingTrade)}
+                    </span>
+                  </td>
+
+                  <td className="num">
+                    <span className="cell-value">
+                      {cy(breakdown.headingImports).text}
+                    </span>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          {breakdown.overrun && (
+            <div className="coverage-note">
+              The tracked lines add up to more than the heading's own figure
+              for {year}. A subset cannot exceed its heading, so one of the two
+              is wrong for this year — treat the shares above as unreliable
+              until that is resolved.
+            </div>
+          )}
+        </section>
+        </Tile>
+      )}
+
+      {/* Only codes with a predecessor have a history to show. An empty tile
+        * is a stray unpin button on the page and a blank half of a slide in
+        * Glance View, so it is not rendered at all. */}
+      {!off('lineage') && !!node.lineage?.predecessors?.length && (
+        <Tile id="lineage" label="Code history" onUnpin={onUnpinTile}>
+          <LineageNote node={node} onOpen={onOpen} />
+        </Tile>
+      )}
+
+      {!off('global') && (
+        <Tile
+          id="global"
+          label="World market"
+          onUnpin={onUnpinTile}
+        >
+          <GlobalTradeCard node={node} methodology={methodology} />
+        </Tile>
+      )}
+
+      {!off('year') && (
+        <Tile
+          id="year"
+          label="India this year"
+        >
       <section className="release-section selected-year-summary">
         <div className="release-section-head">
           <div>
@@ -1112,14 +1619,16 @@ export function ProductView({
                 , so no global figure, rank or share is shown for it.
               </>
             )}{' '}
-            The headline above uses{' '}
+            The headline card uses{' '}
             {node.globalTrade?.year ?? 'the latest validated year'}.
           </div>
         )}
       </section>
+        </Tile>
+      )}
 
-      {showHs8 && tariffPanel}
-
+      {!off('signals') && (
+        <Tile id="signals" label="Signals" onUnpin={onUnpinTile}>
       <section className="insight-grid">
         <InsightPanel
           eyebrow="PERSPECTIVE"
@@ -1133,8 +1642,11 @@ export function ProductView({
           rows={buildDependency(node, year)}
         />
       </section>
+        </Tile>
+      )}
 
-      {node.definitionShare && (
+      {node.definitionShare && !off('coverage') && (
+        <Tile id="coverage" label="Coverage" onUnpin={onUnpinTile}>
         <section className="insight-grid single">
           <InsightPanel
             eyebrow="DEFINITION COVERAGE"
@@ -1143,6 +1655,7 @@ export function ProductView({
             note={node.definitionShare.basis}
           />
         </section>
+        </Tile>
       )}
 
       {/*
@@ -1154,6 +1667,8 @@ export function ProductView({
         * the tab decides which. It also gives each chart the full width,
         * which is what a thirty-year series needs.
         */}
+      {!off('trends') && (
+        <Tile id="trends" label="Trends" onUnpin={onUnpinTile}>
       <section className="panel-stack">
         <article
           className="panel chart-panel wide"
@@ -1168,9 +1683,11 @@ export function ProductView({
             }
             note={
               series === 'india'
-                ? frequency === 'monthly'
-                  ? 'Monthly filings. Recent months are incomplete until every reporter files.'
-                  : undefined
+                ? chart.missing.length
+                  ? `Shown in US dollars: no rupee rate for ${chart.missing.join(', ')}${chart.missing.length >= 3 ? ' and others' : ''}, and a series cannot mix currencies.`
+                  : frequency === 'monthly'
+                    ? 'Monthly filings. Recent months are incomplete until every reporter files.'
+                    : undefined
                 : predecessorCode
                   ? `The dashed line is HS ${predecessorCode}, the code this replaced. It is shown alongside, never added: its total covers every successor and cannot be divided between them.`
                   : 'A year is drawn only where its reporter coverage was assessed and passed. Gaps are years that did not pass, never estimates.'
@@ -1195,8 +1712,26 @@ export function ProductView({
             }
             onCsv={() =>
               series === 'india'
-                ? downloadCsv(`HS-${node.code}-India-trade`, trend)
-                : downloadCsv(`HS-${node.code}-global-trade`, globalTrend)
+                ? downloadCsv(
+                    `HS-${node.code}-India-trade`,
+                    trend.map(point => ({
+                      Period: point.full,
+                      'India imports (USD)': point.imports,
+                      'India exports (USD)': point.exports,
+                    })),
+                    { ...exportMeta, period: frequency === 'monthly' ? 'Monthly' : 'Annual' },
+                  )
+                : downloadCsv(
+                    `HS-${node.code}-global-trade`,
+                    globalTrend.map(point => ({
+                      'Calendar year': Number(point.label),
+                      'Global trade (USD)': point.trade,
+                      ...(predecessorCode
+                        ? { [`HS ${predecessorCode} (USD)`]: point.predecessor }
+                        : {}),
+                    })),
+                    { ...exportMeta, period: 'Annual, validated years only' },
+                  )
             }
           />
 
@@ -1235,7 +1770,7 @@ export function ProductView({
 
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart
-                    data={trend}
+                    data={chart.data}
                     margin={{ top: 24, right: 28, bottom: 12, left: 10 }}
                   >
                     <CartesianGrid
@@ -1256,7 +1791,9 @@ export function ProductView({
                     <YAxis
                       width={58}
                       tickFormatter={value =>
-                        `${(Number(value) / 1e9).toFixed(1)}`
+                        `${(Number(value) / chart.divisor).toFixed(
+                          chart.inr ? 0 : 1,
+                        )}`
                       }
                       axisLine={false}
                       tickLine={false}
@@ -1264,7 +1801,9 @@ export function ProductView({
                     />
 
                     <Tooltip
-                      formatter={(value: unknown) => usd(Number(value))}
+                      formatter={(value: unknown) =>
+                        chart.inr ? inr(Number(value)) : usd(Number(value))
+                      }
                       labelFormatter={(_, payload) =>
                         payload?.[0]?.payload?.full ?? ''
                       }
@@ -1291,7 +1830,11 @@ export function ProductView({
                         stroke: colours.surface,
                         strokeWidth: 2,
                       }}
-                      label={lastPointLabel(colours.imports, trend.length)}
+                      label={lastPointLabel(
+                        colours.imports,
+                        chart.data.length,
+                        chart.inr,
+                      )}
                       connectNulls
                     />
 
@@ -1309,7 +1852,11 @@ export function ProductView({
                         stroke: colours.surface,
                         strokeWidth: 2,
                       }}
-                      label={lastPointLabel(colours.exports, trend.length)}
+                      label={lastPointLabel(
+                        colours.exports,
+                        chart.data.length,
+                        chart.inr,
+                      )}
                       connectNulls
                     />
                   </AreaChart>
@@ -1396,10 +1943,12 @@ export function ProductView({
               </ResponsiveContainer>
             )}
 
-            <div className="axis-note">USD bn</div>
+            <div className="axis-note">{unitNote}</div>
           </div>
         </article>
       </section>
+        </Tile>
+      )}
 
       {/*
         * Who buys the most of this product, and who sells the most of it.
@@ -1410,7 +1959,9 @@ export function ProductView({
         * against its own side's total, and each table says which side and
         * which year it is on.
         */}
-      <section className="chart-grid leaders">
+      {!off('importers') && (
+        <Tile id="importers" label="Who buys" onUnpin={onUnpinTile}>
+      <section className="chart-grid leaders single">
         <article className="panel">
           <PanelHead
             eyebrow={`LARGEST IMPORTERS · ${node.globalTrade?.year ?? '—'}`}
@@ -1428,6 +1979,13 @@ export function ProductView({
           />
         </article>
 
+      </section>
+        </Tile>
+      )}
+
+      {!off('exporters') && (
+        <Tile id="exporters" label="Who sells" onUnpin={onUnpinTile}>
+      <section className="chart-grid leaders single">
         <article className="panel">
           <PanelHead
             eyebrow={`LARGEST EXPORTERS · ${node.globalTrade?.year ?? '—'}`}
@@ -1445,12 +2003,16 @@ export function ProductView({
           />
         </article>
       </section>
+        </Tile>
+      )}
 
       {/*
         * Import sources and export markets, each as one panel the reader
         * flips between a chart and the rows behind it. Two panels showing the
         * same numbers twice is not two findings.
         */}
+      {!off('partners') && (
+        <Tile id="partners" label="Trade partners" onUnpin={onUnpinTile}>
       <section className="chart-grid">
         <article className="panel chart-panel" id="supplier-chart">
           <PanelHead
@@ -1478,7 +2040,17 @@ export function ProductView({
                 : undefined
             }
             onCsv={() =>
-              downloadCsv(`HS-${node.code}-suppliers-${year}`, supplierRows)
+              downloadCsv(
+                `HS-${node.code}-import-sources-${year}`,
+                supplierRows.map((row, index) => ({
+                  Rank: index + 1,
+                  Partner: row.name,
+                  'Comtrade code': row.code,
+                  'Imports (USD)': row.value,
+                  'Share of India imports': row.share,
+                })),
+                { ...exportMeta, period: `CY ${year}` },
+              )
             }
           />
 
@@ -1577,8 +2149,15 @@ export function ProductView({
             }
             onCsv={() =>
               downloadCsv(
-                `HS-${node.code}-destinations-${year}`,
-                destinationRows,
+                `HS-${node.code}-export-markets-${year}`,
+                destinationRows.map((row, index) => ({
+                  Rank: index + 1,
+                  Partner: row.name,
+                  'Comtrade code': row.code,
+                  'Exports (USD)': row.value,
+                  'Share of India exports': row.share,
+                })),
+                { ...exportMeta, period: `CY ${year}` },
               )
             }
           />
@@ -1651,8 +2230,16 @@ export function ProductView({
           )}
         </article>
       </section>
+        </Tile>
+      )}
 
-      {!showHs8 && tariffPanel}
+      {!off('tariff') && (
+        <Tile id="tariff" label="Tariff lines" onUnpin={onUnpinTile}>
+          {tariffPanel}
+        </Tile>
+      )}
+
+      </TileDeck>
 
       <footer className="footerbar">
         <div>
@@ -1662,7 +2249,12 @@ export function ProductView({
 
         <div className="actions">
           <button
-            onClick={() => downloadJson(`HStat-${node.code}-${year}`, annual)}
+            onClick={() =>
+              downloadJson(`HStat-${node.code}-${year}`, annual, {
+                ...exportMeta,
+                period: `CY ${year}`,
+              })
+            }
           >
             JSON
           </button>
@@ -1670,8 +2262,25 @@ export function ProductView({
           <button
             onClick={() =>
               downloadCsv(
-                `HStat-${node.code}-${year}-suppliers`,
-                annual.india.suppliers?.rows ?? [],
+                `HStat-${node.code}-annual`,
+                [...node.years]
+                  .sort((a, b) => b - a)
+                  .map(item => ({
+                    'Calendar year': item,
+                    'Global trade (USD)': node.annual[String(item)].global.trade,
+                    'Coverage status':
+                      node.annual[String(item)].global.coverage?.status ?? null,
+                    'India imports (USD)':
+                      node.annual[String(item)].india.imports,
+                    'India exports (USD)':
+                      node.annual[String(item)].india.exports,
+                    'India share of global trade':
+                      node.annual[String(item)].global.indiaShare,
+                  })),
+                {
+                  ...exportMeta,
+                  period: `Annual ${Math.min(...node.years)}–${Math.max(...node.years)}`,
+                },
               )
             }
           >

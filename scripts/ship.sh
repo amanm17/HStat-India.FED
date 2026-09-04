@@ -84,6 +84,13 @@ fi
 
 say "2/4  Building the frontend"
 
+# Dependencies first, and not only for this machine's sake. Cloudflare
+# installs from package-lock.json; if package.json has gained a dependency
+# the lockfile has not, that build fails outright. Running install here keeps
+# the two in step and commits the lockfile alongside the change that needed
+# it.
+npm install
+
 # The same command Cloudflare runs. If it fails here it would have failed
 # there, with the difference that here it has not been pushed yet.
 npm run build
@@ -107,6 +114,28 @@ else
 fi
 
 say "4/4  Pushing to $BRANCH"
+
+# The refresh workflow commits the published snapshot to this same branch, so
+# the remote moves without me touching it. Rebase onto whatever it did before
+# pushing, rather than meeting a rejected push and working out why.
+git fetch origin "$BRANCH"
+
+if ! git rebase "origin/$BRANCH"; then
+  cat <<'CONFLICT'
+
+  The rebase stopped on a conflict. Almost always this is
+  public/data/snapshots, where a data refresh landed while I was working -
+  and in that case the refresh's version is the right one:
+
+      git checkout --theirs public/data/snapshots
+      git add public/data/snapshots
+      git rebase --continue
+
+  Anything else, resolve it on its merits. `git rebase --abort` backs out.
+
+CONFLICT
+  exit 1
+fi
 
 git push origin "$BRANCH"
 

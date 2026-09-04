@@ -3717,3 +3717,1438 @@ main {
     grid-row: 1;
   }
 }
+
+
+/* =======================================================================
+ * Contribution table — value over share, one row per stacked code
+ * ===================================================================== */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+table.contribution th[scope="row"] {
+  text-align: left;
+  font-weight: 500;
+  vertical-align: top;
+}
+
+table.contribution td.num,
+table.contribution th.num {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+table.contribution .cell-value {
+  display: block;
+
+  color: var(--text);
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* The share is the point of the table, so it reads as a second line rather
+ * than competing with the value for the same eye position. */
+table.contribution .cell-share {
+  display: block;
+
+  margin-top: 1px;
+
+  color: var(--blue);
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+table.contribution tr[data-excluded] .cell-value,
+table.contribution tr[data-excluded] .hstack-line-label {
+  color: var(--faint);
+}
+
+.contribution-note {
+  display: block;
+
+  margin-top: 2px;
+
+  color: var(--faint);
+
+  font-size: 10.5px;
+  line-height: 1.4;
+}
+
+table.contribution tfoot th,
+table.contribution tfoot td {
+  padding-top: 10px;
+
+  border-top: 2px solid var(--border-strong);
+}
+
+table.contribution tfoot th {
+  color: var(--muted);
+
+  font-size: 10.5px;
+  font-weight: 700;
+
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+
+/* =======================================================================
+ * Tiles — a pinnable region, with its own remove control
+ * ===================================================================== */
+
+.tile {
+  position: relative;
+}
+
+.tile-unpin {
+  position: absolute;
+  z-index: 3;
+
+  top: 8px;
+  right: 8px;
+
+  width: 22px;
+  height: 22px;
+
+  display: grid;
+  place-items: center;
+
+  padding: 0;
+
+  color: var(--faint);
+  background: var(--panel);
+
+  border: 1px solid var(--border);
+  border-radius: 6px;
+
+  font-size: 14px;
+  line-height: 1;
+
+  opacity: 0;
+  cursor: pointer;
+
+  transition: opacity 0.12s;
+}
+
+.tile:hover .tile-unpin,
+.tile-unpin:focus-visible {
+  opacity: 1;
+}
+
+.tile-unpin:hover {
+  color: var(--panel);
+  background: var(--muted);
+  border-color: var(--muted);
+}
+
+
+/* =======================================================================
+ * The deck — global headline and selected year trade places
+ *
+ * The reader changing the year is a statement about what they came for, so
+ * the year card takes the top slot and the pair shuffles to get there.
+ * ===================================================================== */
+
+.deck {
+  display: flex;
+  flex-direction: column;
+
+  gap: 18px;
+
+  margin-bottom: 18px;
+}
+
+.deck[data-lead="year"] .deck-global {
+  order: 2;
+}
+
+.deck[data-lead="year"] .deck-year {
+  order: 1;
+}
+
+@keyframes deck-rise {
+  0% {
+    transform: translateY(26px) scale(0.985);
+    opacity: 0.35;
+  }
+
+  60% {
+    transform: translateY(-4px) scale(1.004);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes deck-settle {
+  0% {
+    transform: translateY(-22px) scale(1.008);
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.deck.shuffling .deck-year {
+  animation: deck-rise 0.5s cubic-bezier(0.22, 0.9, 0.3, 1) both;
+}
+
+.deck.shuffling .deck-global {
+  animation: deck-settle 0.5s cubic-bezier(0.22, 0.9, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deck.shuffling .deck-year,
+  .deck.shuffling .deck-global {
+    animation: none;
+  }
+}
+
+
+/* A snapshot with no rates at all is one fact, said once, at the top. */
+.rate-banner {
+  margin-bottom: 16px;
+  padding: 11px 15px;
+
+  color: var(--text);
+  background: var(--panel);
+
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--blue);
+  border-radius: 8px;
+
+  font-size: 13px;
+  line-height: 1.5;
+
+  max-width: 88ch;
+}
+
+.stack-add.pinned {
+  color: var(--navy);
+  border-color: var(--border-strong);
+}
+
+
+/* A short-lived confirmation, bottom-centre, out of the way of everything. */
+.flash {
+  position: fixed;
+  z-index: 90;
+
+  left: 50%;
+  bottom: 26px;
+
+  transform: translateX(-50%);
+
+  padding: 10px 18px;
+
+  color: var(--panel);
+  background: var(--text);
+
+  border-radius: 8px;
+
+  font-size: 13px;
+
+  box-shadow: 0 10px 30px rgba(18, 43, 65, 0.28);
+}
+
+
+/* =======================================================================
+ * The workspace rail
+ *
+ * Personal, local and collapsible. It is a rail rather than a page because
+ * none of what it holds is the subject — the product is — and collapsing to
+ * a handle is what keeps that true.
+ * ===================================================================== */
+
+.rail-handle {
+  position: fixed;
+  z-index: 70;
+
+  right: 0;
+  top: 50%;
+
+  transform: translateY(-50%);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  gap: 3px;
+
+  width: 34px;
+
+  padding: 12px 0;
+
+  color: var(--panel);
+  background: var(--navy);
+
+  border: 0;
+  border-radius: 9px 0 0 9px;
+
+  cursor: pointer;
+
+  box-shadow: -3px 0 14px rgba(18, 43, 65, 0.18);
+}
+
+.rail-handle span {
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.rail {
+  position: fixed;
+  z-index: 70;
+
+  top: 0;
+  right: 0;
+  bottom: 0;
+
+  width: min(360px, 92vw);
+
+  display: flex;
+  flex-direction: column;
+
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  background: var(--panel);
+
+  border-left: 1px solid var(--border);
+
+  box-shadow: -10px 0 34px rgba(18, 43, 65, 0.14);
+}
+
+.rail-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 14px 16px;
+
+  background: var(--panel);
+
+  border-bottom: 1px solid var(--border);
+}
+
+.rail-head strong {
+  font-size: 14px;
+  letter-spacing: -0.2px;
+}
+
+.rail-head button {
+  display: grid;
+  place-items: center;
+
+  width: 28px;
+  height: 28px;
+
+  padding: 0;
+
+  color: var(--muted);
+  background: transparent;
+
+  border: 1px solid var(--border);
+  border-radius: 7px;
+
+  cursor: pointer;
+}
+
+.rail-block {
+  padding: 14px 16px;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.rail-subhead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+
+  gap: 8px;
+
+  margin-bottom: 9px;
+
+  color: var(--muted);
+
+  font-size: 10px;
+  font-weight: 800;
+
+  letter-spacing: 0.095em;
+  text-transform: uppercase;
+}
+
+.rail-subhead em {
+  margin-left: auto;
+
+  color: var(--faint);
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+}
+
+.rail-reset {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 4px;
+
+  margin-left: auto;
+  padding: 2px 7px;
+
+  color: var(--muted);
+  background: transparent;
+
+  border: 1px solid var(--border);
+  border-radius: 999px;
+
+  font: inherit;
+  font-size: 9.5px;
+
+  cursor: pointer;
+}
+
+.rail-reset:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.rail-empty {
+  margin: 0;
+
+  color: var(--faint);
+
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.rail-pins,
+.rail-reports {
+  display: flex;
+  flex-direction: column;
+
+  gap: 5px;
+}
+
+.rail-pin {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24px;
+
+  align-items: center;
+
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.rail-pin.active {
+  border-color: var(--navy);
+  background: var(--panel-soft);
+}
+
+.rail-pin-open {
+  display: flex;
+  align-items: baseline;
+
+  gap: 7px;
+
+  min-width: 0;
+
+  padding: 8px 10px;
+
+  color: var(--text);
+  background: transparent;
+
+  border: 0;
+
+  font-size: 12px;
+
+  text-align: left;
+  cursor: pointer;
+}
+
+.rail-pin-open strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.rail-pin-open span:last-child,
+.rail-recent button span {
+  overflow: hidden;
+
+  color: var(--muted);
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.rail-pin-drop {
+  display: grid;
+  place-items: center;
+
+  height: 100%;
+
+  padding: 0;
+
+  color: var(--faint);
+  background: transparent;
+
+  border: 0;
+  border-left: 1px solid var(--border);
+
+  cursor: pointer;
+}
+
+.rail-recent {
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+}
+
+.rail-recent button {
+  display: flex;
+  align-items: baseline;
+
+  gap: 8px;
+
+  min-width: 0;
+
+  padding: 5px 7px;
+
+  color: var(--text);
+  background: transparent;
+
+  border: 0;
+  border-radius: 6px;
+
+  font-size: 12px;
+
+  text-align: left;
+  cursor: pointer;
+}
+
+.rail-recent button:hover,
+.rail-tile:hover:not(:disabled) {
+  background: var(--panel-soft);
+}
+
+.rail-recent button strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.rail-tiles {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 5px;
+}
+
+.rail-tile {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 5px;
+
+  padding: 4px 8px;
+
+  color: var(--text);
+  background: transparent;
+
+  border: 1px solid var(--border);
+  border-radius: 999px;
+
+  font-size: 11px;
+
+  cursor: pointer;
+}
+
+.rail-tile.off {
+  color: var(--faint);
+  border-style: dashed;
+}
+
+.rail-tile.off svg {
+  opacity: 0.4;
+}
+
+.rail-tile:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* --- report builder --- */
+
+.rail-scope {
+  display: flex;
+
+  padding: 2px;
+
+  background: var(--panel-soft);
+
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.rail-scope button {
+  flex: 1;
+
+  padding: 5px 8px;
+
+  color: var(--muted);
+  background: transparent;
+
+  border: 0;
+  border-radius: 6px;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.rail-scope button.active {
+  color: var(--text);
+  background: var(--panel);
+}
+
+.rail-scope button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.rail-subject {
+  margin: 8px 0 10px;
+
+  color: var(--muted);
+
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.rail-field {
+  display: block;
+
+  margin-bottom: 10px;
+}
+
+.rail-field span {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: var(--muted);
+
+  font-size: 11px;
+}
+
+.rail-field input,
+.rail-rename input {
+  width: 100%;
+
+  padding: 7px 9px;
+
+  color: var(--text);
+  background: var(--panel);
+
+  border: 1px solid var(--border-strong);
+  border-radius: 7px;
+
+  font: inherit;
+  font-size: 12.5px;
+}
+
+.rail-tilepick {
+  max-height: 210px;
+
+  margin-bottom: 10px;
+
+  overflow-y: auto;
+}
+
+.rail-check {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+
+  gap: 8px;
+
+  padding: 4px 2px;
+
+  font-size: 12px;
+
+  cursor: pointer;
+}
+
+.rail-check em {
+  display: block;
+
+  color: var(--faint);
+
+  font-size: 10.5px;
+  font-style: normal;
+  line-height: 1.35;
+}
+
+.rail-generate {
+  display: flex;
+
+  gap: 7px;
+}
+
+.rail-generate button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+
+  flex: 1;
+
+  padding: 8px 10px;
+
+  color: var(--text);
+  background: var(--panel);
+
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+
+  font-size: 12.5px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.rail-generate button.primary {
+  color: #fff;
+  background: var(--navy);
+  border-color: var(--navy);
+}
+
+.rail-generate button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.rail-hint {
+  margin: 9px 0 0;
+
+  color: var(--faint);
+
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+.rail-report-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+
+  align-items: center;
+
+  gap: 8px;
+
+  padding: 8px 9px;
+
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.rail-report-name {
+  min-width: 0;
+}
+
+.rail-report-name strong {
+  display: block;
+
+  overflow: hidden;
+
+  font-size: 12.5px;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.rail-report-name span {
+  color: var(--faint);
+
+  font-size: 10.5px;
+}
+
+.rail-report-actions {
+  display: flex;
+
+  gap: 2px;
+}
+
+.rail-report-actions button {
+  display: grid;
+  place-items: center;
+
+  width: 24px;
+  height: 24px;
+
+  padding: 0;
+
+  color: var(--muted);
+  background: transparent;
+
+  border: 0;
+  border-radius: 6px;
+
+  cursor: pointer;
+}
+
+.rail-report-actions button:hover {
+  color: var(--text);
+  background: var(--panel-soft);
+}
+
+@media (max-width: 700px) {
+  .rail {
+    width: 100vw;
+  }
+}
+
+
+/* The rail takes its own column on a wide screen rather than covering the
+ * page. Below that there is no room to give, so it overlays. */
+@media (min-width: 1180px) {
+  :root[data-rail="open"] .app {
+    padding-right: 360px;
+  }
+
+  :root[data-rail="open"] .topbar {
+    padding-right: max(22px, 372px);
+  }
+}
+
+
+/* =======================================================================
+ * The tile deck — one set of tiles, two ways of reading them
+ * ===================================================================== */
+
+.tiledeck.report-view {
+  display: flex;
+  flex-direction: column;
+
+  gap: 18px;
+}
+
+.tile-slot {
+  position: relative;
+}
+
+.tile-slot.dragging {
+  opacity: 0.42;
+}
+
+/* Where the dragged tile will land. A line rather than a box: the tile is
+ * going between two things, not into one. */
+.tile-slot.over::before {
+  content: "";
+
+  position: absolute;
+  z-index: 4;
+
+  left: 0;
+  right: 0;
+  top: -10px;
+
+  height: 3px;
+
+  background: var(--blue);
+  border-radius: 2px;
+}
+
+.tile-grip {
+  position: absolute;
+  z-index: 3;
+
+  top: 8px;
+  right: 36px;
+
+  width: 22px;
+  height: 22px;
+
+  display: grid;
+  place-items: center;
+
+  padding: 0;
+
+  color: var(--faint);
+  background: var(--panel);
+
+  border: 1px solid var(--border);
+  border-radius: 6px;
+
+  opacity: 0;
+  cursor: grab;
+
+  transition: opacity 0.12s;
+}
+
+.tile-slot:hover .tile-grip,
+.tile-grip:focus-visible {
+  opacity: 1;
+}
+
+.tile-grip:active {
+  cursor: grabbing;
+}
+
+.tile-end {
+  min-height: 0;
+
+  color: var(--faint);
+
+  font-size: 12px;
+  text-align: center;
+
+  transition: min-height 0.12s;
+}
+
+.tile-end.over {
+  min-height: 54px;
+
+  padding: 16px;
+
+  border: 2px dashed var(--blue);
+  border-radius: 10px;
+}
+
+
+/* --- Glance View ----------------------------------------------------
+ *
+ * The same tiles, one frame at a time. The first attempt was a horizontal
+ * scroller wrapped around panels designed for a vertical document, and it
+ * showed: the panel ran full-bleed with a stray label dangling under it, the
+ * position pill sat in the page flow rather than the viewport, and the dots
+ * were driven by clicks instead of by where the deck actually was.
+ *
+ * This version gives a slide its own frame: a card of fixed height that
+ * scrolls its own overflow, a strip above it saying where you are, and the
+ * neighbouring cards just visible at the edges so it reads as a deck.
+ * ------------------------------------------------------------------- */
+
+.tiledeck.glance-view {
+  display: flex;
+  flex-direction: column;
+
+  /* Header, then the deck, and nothing below it. */
+  height: calc(100vh - 92px);
+
+  margin: 0 -18px;
+
+  /* One number decides the deck's width. The slide is a fixed share of the
+   * track, the card fills the slide, and the track is capped - so the amount
+   * of the next card you can see stays the same on a laptop and on a large
+   * monitor instead of vanishing as the window grows. */
+  --glance-width: 1500px;
+  --glance-slide: 84%;
+}
+
+.glance-bar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+
+  align-items: center;
+
+  gap: 14px;
+
+  /* Lines up with the card below it rather than with the window. */
+  width: 100%;
+  max-width: var(--glance-width);
+
+  margin: 0 auto;
+  padding: 0 30px 10px;
+}
+
+.glance-pos {
+  display: flex;
+  align-items: baseline;
+
+  gap: 4px;
+
+  color: var(--text);
+
+  font-size: 17px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.glance-pos em {
+  color: var(--faint);
+
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+}
+
+.glance-bar h2 {
+  overflow: hidden;
+
+  margin: 0;
+
+  color: var(--muted);
+
+  font-size: 11px;
+  font-weight: 800;
+
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.glance-bar-actions button {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 6px;
+
+  padding: 4px 11px;
+
+  color: var(--muted);
+  background: var(--panel);
+
+  border: 1px solid var(--border);
+  border-radius: 999px;
+
+  font-size: 11.5px;
+
+  cursor: pointer;
+}
+
+.glance-bar-actions button:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.glance-track {
+  flex: 1;
+
+  display: flex;
+
+  width: 100%;
+  max-width: var(--glance-width);
+
+  min-height: 0;
+
+  margin: 0 auto;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.glance-track::-webkit-scrollbar {
+  display: none;
+}
+
+/*
+ * A slide is narrower than the track, so the cards either side stay just in
+ * view. That is what makes it read as a deck you are moving through rather
+ * than a page that happens to scroll sideways - and it is why the
+ * neighbouring cards are drawn faded and slightly back rather than hidden.
+ */
+.glance-slide {
+  flex: 0 0 var(--glance-slide);
+
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+
+  min-width: var(--glance-slide);
+  height: 100%;
+
+  padding: 2px 16px 8px;
+
+  scroll-snap-align: center;
+}
+
+/* Runway either end, so the first and last cards can still sit in the
+ * middle of the frame with their neighbour showing on one side. */
+.glance-track::before,
+.glance-track::after {
+  content: "";
+
+  flex: 0 0 calc((100% - var(--glance-slide)) / 2);
+}
+
+/*
+ * Every card is the same size and fills its frame, the way slides in a deck
+ * are the same size. The first version let the card hug its content, which
+ * meant a short panel floated in the middle of a lot of empty paper and the
+ * frame changed shape as you moved across - the two things that stopped it
+ * reading as a deck.
+ */
+.glance-card {
+  display: flex;
+  flex-direction: column;
+
+  /* The content sits in the middle of the frame: a slide with a short panel
+   * is a headline in the middle of the card, not one stuck to the ceiling
+   * with a screen of white below it. Content taller than the frame scrolls,
+   * and the frame itself never moves. */
+  justify-content: safe center;
+
+  width: 100%;
+  height: 100%;
+
+  padding: 22px 26px;
+
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  background: var(--panel);
+
+  border: 1px solid var(--border);
+  border-radius: 16px;
+
+  box-shadow: 0 2px 10px rgba(18, 43, 65, 0.05);
+
+  /* Cards either side sit back, so the deck has depth without motion. */
+  opacity: 0.4;
+  transform: scale(0.975);
+
+  transition: opacity 0.28s ease, transform 0.28s ease;
+}
+
+/*
+ * The content of a slide: two columns, and every tile says how many it
+ * takes. A tile that reads well in half a slide - a note, a list, a ranked
+ * table - takes one when it has a neighbour; everything else takes both.
+ * The card's own height is exactly what these tiles need, which is what the
+ * deck measures when it packs and scales a slide.
+ */
+.glance-fill {
+  display: grid;
+
+  gap: 18px 22px;
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: min-content;
+
+  align-items: start;
+
+  width: 100%;
+}
+
+.glance-fill > .tile-slot {
+  min-width: 0;
+  min-height: 0;
+
+  grid-column: span 2;
+}
+
+@media (min-width: 1000px) {
+  .glance-fill > .tile-slot[data-span="1"] {
+    grid-column: span 1;
+  }
+
+  /* Separated from what it sits next to, along whichever axis that is. */
+  .glance-fill > .tile-slot[data-edge="col"] {
+    padding-left: 22px;
+
+    border-left: 1px solid var(--border);
+  }
+}
+
+.glance-fill > .tile-slot[data-edge="row"] {
+  padding-top: 18px;
+
+  border-top: 1px solid var(--border);
+}
+
+/*
+ * Where tiles are measured before the deck decides what goes on a slide.
+ * It carries the card's class because the rules above change what a tile is
+ * - panels lose their frames, charts change height - and a measurement
+ * taken anywhere else would be of a different tile.
+ */
+.glance-stage {
+  position: fixed;
+  left: -10000px;
+  top: 0;
+  z-index: -1;
+
+  display: block;
+
+  height: auto;
+  max-height: none;
+
+  padding: 0;
+
+  overflow: visible;
+  visibility: hidden;
+  pointer-events: none;
+
+  opacity: 0;
+  transform: none;
+  box-shadow: none;
+  border: 0;
+}
+
+.glance-card::-webkit-scrollbar {
+  width: 6px;
+}
+
+.glance-card::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+}
+
+
+.glance-card.current {
+  opacity: 1;
+  transform: none;
+
+  box-shadow: 0 10px 34px rgba(18, 43, 65, 0.1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glance-card {
+    transition: none;
+  }
+}
+
+
+/*
+ * A chart on a slide should use the slide. In the page a chart is one band
+ * of a long document and 295px is right; on a screen of its own that leaves
+ * a plot floating in the middle of a card, so it grows with the frame.
+ */
+/*
+ * One height, whatever else is on the slide. A chart that changed size
+ * depending on its company would be measured at one height and drawn at
+ * another, and the slide that was packed to fit would not; a chart with the
+ * slide to itself is filled out by the scale-to-frame pass instead.
+ */
+.glance-card .chart-shell {
+  height: clamp(230px, 34vh, 390px);
+}
+
+/* Inside a card the panels are already framed by the card itself. */
+.glance-card .panel,
+.glance-card .release-section,
+.glance-card .insight-panel,
+.glance-card .lineage-note {
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.glance-card .product-head {
+  margin-bottom: 0;
+}
+
+/*
+ * The control from the reference: one pill, chevrons either side of the
+ * position. Pinned to the deck rather than the document, so it is in the
+ * same place on every slide.
+ */
+.glance-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 4px;
+
+  width: fit-content;
+
+  margin: 14px auto 0;
+  padding: 7px 10px;
+
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+
+  box-shadow: 0 8px 26px rgba(18, 43, 65, 0.16);
+
+  backdrop-filter: blur(9px);
+}
+
+.glance-nav > button {
+  display: grid;
+  place-items: center;
+
+  width: 30px;
+  height: 30px;
+
+  padding: 0;
+
+  color: var(--muted);
+  background: transparent;
+
+  border: 0;
+  border-radius: 50%;
+
+  cursor: pointer;
+}
+
+.glance-nav > button:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--panel-soft);
+}
+
+.glance-nav > button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.glance-dots {
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  padding: 0 8px;
+}
+
+.glance-dots button {
+  width: 9px;
+  height: 9px;
+
+  padding: 0;
+
+  background: var(--border-strong);
+
+  border: 0;
+  border-radius: 50%;
+
+  cursor: pointer;
+
+  transition: background 0.15s, transform 0.15s;
+}
+
+.glance-dots button:hover {
+  transform: scale(1.3);
+}
+
+.glance-dots button.on {
+  background: var(--text);
+
+  transform: scale(1.15);
+}
+
+.glance-count select {
+  max-width: 210px;
+
+  padding: 3px 8px;
+
+  color: var(--text);
+  background: transparent;
+
+  border: 1px solid var(--border);
+  border-radius: 6px;
+
+  font: inherit;
+  font-size: 11.5px;
+}
+
+/* Glance is a focused view: the page furniture below the deck is not part
+ * of it, and leaving it there was most of why the first version read as a
+ * scrolled page rather than a deck. */
+:root[data-view="glance"] .footerbar,
+:root[data-view="glance"] .rate-banner {
+  display: none;
+}
+
+:root[data-view="glance"] body,
+:root[data-view="glance"] main {
+  overflow-x: hidden;
+}
+
+
+/* --- the header view switch --- */
+
+.viewswitch {
+  display: inline-flex;
+
+  padding: 2px;
+
+  background: var(--panel-soft);
+
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.viewswitch button {
+  padding: 4px 11px;
+
+  color: var(--muted);
+  background: transparent;
+
+  border: 0;
+  border-radius: 6px;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.viewswitch button.active {
+  color: var(--text);
+  background: var(--panel);
+
+  box-shadow: 0 1px 3px rgba(18, 43, 65, 0.12);
+}
+
+
+/* Diagnostics inside the calculation panel, where they explain rather than
+ * compete with the headline. */
+.method-diagnostics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+
+  gap: 12px;
+
+  margin: 14px 0;
+}
+
+.method-diagnostics .mini-metric {
+  padding: 12px 14px;
+
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+
+.rail-check {
+  grid-template-columns: 16px minmax(0, 1fr) 14px;
+
+  align-items: start;
+}
+
+.rail-check.dragging {
+  opacity: 0.45;
+}
+
+.rail-check-grip {
+  color: var(--faint);
+  cursor: grab;
+}

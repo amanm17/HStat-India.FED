@@ -43,20 +43,49 @@ export function basisOf(period: string): Basis | null {
   return null
 }
 
+/*
+ * Rates shipped with the frontend, merged in beneath the snapshot's own.
+ *
+ * The snapshot wins where it has an opinion, because its published figures
+ * were validated against exactly those rates. Everywhere else - which today
+ * is most periods, until the data is next rebuilt - the table that ships with
+ * the build answers, so the toggle works the moment the site does.
+ */
+let fallbackRates: Record<string, Record<string, RateEntry>> = {}
+
+export function useFallbackRates(
+  rates: Record<string, Record<string, RateEntry>> | null | undefined,
+): void {
+  fallbackRates = rates ?? {}
+}
+
 export function rateFor(
   currency: CurrencyBlock | undefined,
   period: string,
   basis?: Basis,
 ): RateEntry | null {
-  if (!currency?.rates) return null
-
   const resolved = basis ?? basisOf(period)
 
   if (!resolved) return null
 
   const key = resolved === 'MONTH' ? canonicalMonth(period) : period
 
-  return currency.rates[resolved]?.[key] ?? null
+  return (
+    currency?.rates?.[resolved]?.[key] ??
+    fallbackRates[resolved]?.[key] ??
+    null
+  )
+}
+
+/* How many of the periods a page needs can actually be converted. Used for
+ * the one-line "no rates at all" notice, which should only ever appear when
+ * both the snapshot and the shipped table are empty. */
+export function convertibleCount(
+  currency: CurrencyBlock | undefined,
+  periods: { period: string; basis: Basis }[],
+): number {
+  return periods.filter(item => rateFor(currency, item.period, item.basis))
+    .length
 }
 
 /*

@@ -1,0 +1,302 @@
+{
+  "base": "USD",
+  "quote": "INR",
+  "convention": "One published period average per row, cited per row. Calendar years from the World Bank WDI series PA.NUS.FCRF (IMF International Financial Statistics); months from FRED EXINUS (US Federal Reserve H.10); financial years from Economic Survey Statistical Appendix Table 5.4.",
+  "generatedFrom": "config/fx_inr_usd.csv",
+  "rates": {
+    "CY": {
+      "1996": {
+        "rate": 35.4332,
+        "status": "verified",
+        "source": "World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics)",
+        "note": "Calendar-year period average"
+      },
+      "1997": {
+        "rate": 36.3133,
+        "status": "verified",
+        "source": "World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics)",
+        "note": "Calendar-year period average"
+      },
+      "1998": {
+        "rate": 41.2594,
+        "status": "verified",
+        "source": "World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics)",
+        "note": "Calendar-year period average"
+      },
+      "1999": {
+        "rate": 43.0554,
+        "status": "verified",
+        "source": "World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics)",
+        "note": "Calendar-year period average"
+      },
+      "2000": {
+        "rate": 44.9416,
+        "status": "verified",
+        "source": "World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics)",
+        "note": "Calendar-year period average"
+      },
+      "2001": {
+        "rate": 47.1864,
+        "status": "verified",
+        "source": "World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics)",
+        "note": "Calendar-year period average"
+      },
+      "2002": {
+        "rate": 48.6103,
+        "status": "verified",
+        "source": "World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics)",
+        "note": "Calendar-year period average"
+      },
+      "2003": {
+        "rate": 46.5833,
+        "status": "verified",
+        "source": "World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics)",
+        "note": "Calendar-year period average"
+      },
+      "2004": {
+        "rate": 45.3165,
+        "status": "verified",
+        "source": "World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics)",
+        "note": "Calendar-year period average"
+      },
+      "2005": {
+        "rate": 44.1,
+        "status": "verified",
+        "source": "World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics)",
+        "note": "Calendar-year period average"
+      },
+      "2006": {
+        "rate": 45.307,
+        "status": "verified",
+        "source": "World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics)",
+        "note": "Calendar-year period average"
+      },
+      "2007": {
+        "rate": 41.3485,
+        "status": "verified",
+        "source": "World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics)",
+        "note": "Calendar-year period average"
+      },
+      "2008": {
+        "rate": 43.5052,
+        "status": "verified",
+        "source": "World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics)",
+        "note": "Calendar-year period average"
+      },
+      "2009": {
+        "rate": 48.4053,
+        "status": "verified",
+        "source": "World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics)",
+        "note": "Calendar-year period average"
+      },
+      "2010": {
+        "rate": 45.7258,
+        "status": "verified",
+        "source": "World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics)",
+        "note": "Calendar-year period average"
+      },
+      "2011": {
+        "rate": 46.6705,
+        "status": "verified",
+        "source": "World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics)",
+        "note": "Calendar-year period average"
+      },
+      "2012": {
+        "rate": 53.4372,
+        "status": "verified",
+        "source": "World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics)",
+        "note": "Calendar-year period average"
+      },
+      "2013": {
+        "rate": 58.5978,
+        "status": "verified",
+        "source": "World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics)",
+        "note": "Calendar-year period average"
+      },
+      "2014": {
+        "rate": 61.0295,
+        "status": "verified",
+        "source": "World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics)",
+        "note": "Calendar-year period average"
+      },
+      "2015": {
+        "rate": 64.1519,
+        "status": "verified",
+        "source": "World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics)",
+        "note": "Calendar-year period average"
+      },
+      "2016": {
+        "rate": 67.1953,
+        "status": "verified",
+        "source": "World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics)",
+        "note": "Calendar-year period average"
+      },
+      "2017": {
+        "rate": 65.1216,
+        "status": "verified",
+        "source": "World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics)",
+        "note": "Calendar-year period average"
+      },
+      "2018": {
+        "rate": 68.3895,
+        "status": "verified",
+        "source": "World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics)",
+        "note": "Calendar-year period average"
+      },
+      "2019": {
+        "rate": 70.4203,
+        "status": "verified",
+        "source": "World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics)",
+        "note": "Calendar-year period average"
+      },
+      "2020": {
+        "rate": 74.0996,
+        "status": "verified",
+        "source": "World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics)",
+        "note": "Calendar-year period average"
+      },
+      "2021": {
+        "rate": 73.918,
+        "status": "verified",
+        "source": "World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics)",
+        "note": "Calendar-year period average"
+      },
+      "2022": {
+        "rate": 78.6045,
+        "status": "verified",
+        "source": "World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics)",
+        "note": "Calendar-year period average"
+      },
+      "2023": {
+        "rate": 82.5993,
+        "status": "verified",
+        "source": "World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics)",
+        "note": "Calendar-year period average"
+      },
+      "2024": {
+        "rate": 83.6693,
+        "status": "verified",
+        "source": "World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics)",
+        "note": "Calendar-year period average"
+      },
+      "2025": {
+        "rate": 87.1584,
+        "status": "verified",
+        "source": "World Bank WDI PA.NUS.FCRF (official exchange rate, LCU per US$, period average; underlying source IMF International Financial Statistics)",
+        "note": "Calendar-year period average"
+      }
+    },
+    "FY": {
+      "2013-14": {
+        "rate": 60.502,
+        "status": "verified",
+        "source": "Economic Survey Statistical Appendix Table 5.4 (indiabudget.gov.in) - RBI annual average reference rate",
+        "note": "Carried over from Sectoral_Debt_INR_to_USD.xlsx"
+      },
+      "2015-16": {
+        "rate": 65.468,
+        "status": "verified",
+        "source": "Economic Survey Statistical Appendix Table 5.4 (indiabudget.gov.in) - RBI annual average reference rate",
+        "note": "Carried over from Sectoral_Debt_INR_to_USD.xlsx"
+      },
+      "2017-18": {
+        "rate": 64.455,
+        "status": "verified",
+        "source": "Economic Survey Statistical Appendix Table 5.4 (indiabudget.gov.in) - RBI annual average reference rate",
+        "note": "Carried over from Sectoral_Debt_INR_to_USD.xlsx"
+      },
+      "2019-20": {
+        "rate": 70.897,
+        "status": "verified",
+        "source": "Economic Survey Statistical Appendix Table 5.4 (indiabudget.gov.in) - RBI annual average reference rate",
+        "note": "Carried over from Sectoral_Debt_INR_to_USD.xlsx"
+      },
+      "2021-22": {
+        "rate": 74.504,
+        "status": "verified",
+        "source": "Economic Survey Statistical Appendix Table 5.4 (indiabudget.gov.in) - RBI annual average reference rate",
+        "note": "Carried over from Sectoral_Debt_INR_to_USD.xlsx"
+      },
+      "2023-24": {
+        "rate": 82.79,
+        "status": "verified",
+        "source": "Economic Survey Statistical Appendix Table 5.4 (indiabudget.gov.in) - RBI annual average reference rate",
+        "note": "Carried over from Sectoral_Debt_INR_to_USD.xlsx"
+      }
+    },
+    "MONTH": {
+      "2024-08": {
+        "rate": 83.8855,
+        "status": "verified",
+        "source": "FRED EXINUS (Board of Governors of the Federal Reserve System, H.10) - monthly average of daily noon rates",
+        "note": "Monthly average"
+      },
+      "2024-09": {
+        "rate": 83.791,
+        "status": "verified",
+        "source": "FRED EXINUS (Board of Governors of the Federal Reserve System, H.10) - monthly average of daily noon rates",
+        "note": "Monthly average"
+      },
+      "2024-10": {
+        "rate": 84.005,
+        "status": "verified",
+        "source": "FRED EXINUS (Board of Governors of the Federal Reserve System, H.10) - monthly average of daily noon rates",
+        "note": "Monthly average"
+      },
+      "2024-11": {
+        "rate": 84.3326,
+        "status": "verified",
+        "source": "FRED EXINUS (Board of Governors of the Federal Reserve System, H.10) - monthly average of daily noon rates",
+        "note": "Monthly average"
+      },
+      "2024-12": {
+        "rate": 84.9686,
+        "status": "verified",
+        "source": "FRED EXINUS (Board of Governors of the Federal Reserve System, H.10) - monthly average of daily noon rates",
+        "note": "Monthly average"
+      },
+      "2025-01": {
+        "rate": 86.2652,
+        "status": "verified",
+        "source": "FRED EXINUS (Board of Governors of the Federal Reserve System, H.10) - monthly average of daily noon rates",
+        "note": "Monthly average"
+      },
+      "2025-02": {
+        "rate": 87.0637,
+        "status": "verified",
+        "source": "FRED EXINUS (Board of Governors of the Federal Reserve System, H.10) - monthly average of daily noon rates",
+        "note": "Monthly average"
+      },
+      "2025-03": {
+        "rate": 86.5214,
+        "status": "verified",
+        "source": "FRED EXINUS (Board of Governors of the Federal Reserve System, H.10) - monthly average of daily noon rates",
+        "note": "Monthly average"
+      },
+      "2025-04": {
+        "rate": 85.5768,
+        "status": "verified",
+        "source": "FRED EXINUS (Board of Governors of the Federal Reserve System, H.10) - monthly average of daily noon rates",
+        "note": "Monthly average"
+      },
+      "2025-05": {
+        "rate": 85.2462,
+        "status": "verified",
+        "source": "FRED EXINUS (Board of Governors of the Federal Reserve System, H.10) - monthly average of daily noon rates",
+        "note": "Monthly average"
+      },
+      "2025-06": {
+        "rate": 85.8765,
+        "status": "verified",
+        "source": "FRED EXINUS (Board of Governors of the Federal Reserve System, H.10) - monthly average of daily noon rates",
+        "note": "Monthly average"
+      },
+      "2025-07": {
+        "rate": 86.1714,
+        "status": "verified",
+        "source": "FRED EXINUS (Board of Governors of the Federal Reserve System, H.10) - monthly average of daily noon rates",
+        "note": "Monthly average"
+      }
+    }
+  }
+}

@@ -27,7 +27,11 @@ export type BasketLine = {
   description: string
   category: string
   globalTrade: number | null
+  /* This line's share of each combined figure. Null on a contained line,
+   * which contributes to none of them. */
   shareOfBasket: number | null
+  shareOfIndiaImports: number | null
+  shareOfIndiaExports: number | null
   indiaImports: number | null
   indiaExports: number | null
   indiaBalance: number | null
@@ -508,6 +512,8 @@ export function summarise(
     const holderTrade = holder ? parentTrade.get(holder) ?? null : null
 
     lines.push({
+      shareOfIndiaImports: null,
+      shareOfIndiaExports: null,
       containedIn: holder,
       shareOfParent:
         holder && trade !== null && holderTrade
@@ -529,11 +535,21 @@ export function summarise(
     })
   }
 
+  /*
+   * Every combined figure gets a per-line share, not just global trade.
+   * "These two together are $X" is only half an answer; the other half is
+   * which of them is most of it, and that is a different split for imports
+   * than it is for the world market.
+   */
+  const shareOf = (value: number | null, total: number) =>
+    value !== null && total > 0 ? value / total : null
+
   for (const line of lines) {
-    line.shareOfBasket =
-      line.containedIn === null && line.globalTrade !== null && globalTrade > 0
-        ? line.globalTrade / globalTrade
-        : null
+    if (line.containedIn !== null) continue
+
+    line.shareOfBasket = shareOf(line.globalTrade, globalTrade)
+    line.shareOfIndiaImports = shareOf(line.indiaImports, indiaImports)
+    line.shareOfIndiaExports = shareOf(line.indiaExports, indiaExports)
   }
 
   lines.sort((a, b) => (b.globalTrade ?? -1) - (a.globalTrade ?? -1))
@@ -598,7 +614,10 @@ export function toRows(summary: BasketSummary) {
     globalTrade: line.globalTrade,
     shareOfBasket: line.shareOfBasket,
     indiaImports: line.indiaImports,
+    shareOfIndiaImports: line.shareOfIndiaImports,
     indiaExports: line.indiaExports,
+    shareOfIndiaExports: line.shareOfIndiaExports,
+    containedIn: line.containedIn,
     indiaBalance: line.indiaBalance,
     indiaShare: line.indiaShare,
     indiaRank: line.indiaRank,
