@@ -9402,7 +9402,7 @@
     {
       "code": "850433",
       "period": "2021",
-      "message": "only 21% of the world total came from reporters that file re-imports separately"
+      "message": "only 20% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "850433",
@@ -11367,7 +11367,7 @@
     {
       "code": "850780",
       "period": "2021",
-      "message": "import/export mirror ratio 2.030 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 2.029 outside [0.7, 1.5]"
     },
     {
       "code": "850780",
