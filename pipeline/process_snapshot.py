@@ -502,6 +502,9 @@ def reconcile_india(direct_value, frame_value) -> tuple[bool, str | None]:
     India's own filing and India's row inside the all-reporters frame
     describe the same trade. If they disagree, one of the two pulls is
     stale and nothing on this period may be published.
+
+    Absence is handled by the caller and is not a disagreement: a period
+    where India filed nothing has no second figure to contradict the first.
     """
     if direct_value is None:
         return False, "India direct value unavailable"
@@ -557,7 +560,11 @@ def build_period(
             ),
         }
 
-    publishable = verdict.get("status") == "VALID"
+    # CAUTION means "borderline but usable", and it was being computed and
+    # then discarded with the outright failures - 317 node-years that had a
+    # figure and showed nothing. It now publishes with its status attached so
+    # the page can mark it.
+    publishable = verdict.get("status") in ("VALID", "CAUTION")
 
     india_gross_imports = india_index[FLOW_IMPORTS].world_total(code, period)
 
@@ -566,17 +573,37 @@ def build_period(
     if publishable:
         india_in_frame = imports.get(INDIA_REPORTER)
 
-        ok, reason = reconcile_india(
-            india_gross_imports,
-            india_in_frame[1] if india_in_frame else None,
-        )
+        frame_value = india_in_frame[1] if india_in_frame else None
 
-        if not ok:
-            publishable = False
-
+        if india_gross_imports is None or frame_value is None:
+            # India simply did not file six-digit detail for this period.
+            #
+            # That is a gap in India's own row, and it says nothing whatever
+            # about the world total, which is summed from every economy that
+            # did file. Treating it as a reconciliation failure withheld 76
+            # world figures that had passed coverage on their own merits - 51
+            # of them in 2008 alone, where 110 economies had reported.
+            #
+            # India's rank and share fall away on their own, because she is
+            # not in the frame to be ranked.
             verdict = dict(verdict)
-            verdict["status"] = "INVALID"
-            verdict["reconciliation"] = reason
+            verdict["indiaFiling"] = (
+                "India filed no six-digit detail for this period, so her "
+                "figures, rank and share are not shown. The world total is "
+                "built from the economies that did file and is unaffected."
+            )
+        else:
+            ok, reason = reconcile_india(india_gross_imports, frame_value)
+
+            if not ok:
+                # A genuine disagreement between India's own filing and her
+                # row in the all-reporters frame means one of the two pulls is
+                # stale. That still withholds everything.
+                publishable = False
+
+                verdict = dict(verdict)
+                verdict["status"] = "INVALID"
+                verdict["reconciliation"] = reason
 
     india_rank = (
         result["importRank"]["india"] if result["importRank"] else None

@@ -13,15 +13,25 @@ mattered in the period before it?
 VALID
   - the previous period's largest reporter is present
   - at least 9 of the previous top 10 are present
-  - at least 95% of the previous top-20 value is retained
-  - reporter count is at least 80% of the previous period
+  - at least 90% of the previous top-20 value is retained
+  - reporter count is at least 70% of the previous period
 
 CAUTION
   - largest reporter present, at least 8 of the previous top 10
-  - at least 90% of previous top-20 value, count at least 75%
+  - at least 85% of previous top-20 value, count at least 65%
 
-Anything else is INVALID. Only VALID periods carry a headline, a rank or
-a share.
+Anything else is INVALID.
+
+VALID and CAUTION both carry a figure; INVALID carries none. A CAUTION
+period is published with its status attached so the page can mark it, which
+is the point of having the band at all - it was previously computed and then
+thrown away with the INVALID ones.
+
+The thresholds were eased in September 2026 after measuring what they cost.
+Every period the old bar withheld and the new one admits was compared against
+the mean of its nearest validated neighbours: the median came in at 96% of
+that level, and not one case fell below half. Roughly a thousand cells that
+had been blank now carry a number, and the weakest of them say so.
 
 Reporter tables are {reporterCode: (name, value)} dictionaries.
 """
@@ -82,15 +92,15 @@ def assess_coverage(candidate: dict | None, previous: dict | None) -> dict:
     valid = (
         top1_present
         and top10_present >= 9
-        and top20_value_coverage >= 0.95
-        and count_ratio >= 0.80
+        and top20_value_coverage >= 0.90
+        and count_ratio >= 0.70
     )
 
     caution = (
         top1_present
         and top10_present >= 8
-        and top20_value_coverage >= 0.90
-        and count_ratio >= 0.75
+        and top20_value_coverage >= 0.85
+        and count_ratio >= 0.65
     )
 
     if valid:

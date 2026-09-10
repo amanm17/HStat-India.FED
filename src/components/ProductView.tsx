@@ -65,6 +65,53 @@ import {
 
 type Horizon = '5Y' | '10Y' | 'ALL'
 
+/* Which world-trade figure the card shows. Gross is the default: it is what
+ * the source files say, and the adjustment is offered rather than assumed. */
+export type TradeBasis = 'gross' | 'net'
+
+/*
+ * Pick the unit a value axis should be drawn in.
+ *
+ * The axis used to be fixed at USD billions with one decimal. For any product
+ * where India trades under about $50m that renders every tick as "0.0" - true,
+ * useless, and the case on a third of the pages. The unit is now chosen from
+ * the series itself, so a $9.7m line is drawn in millions and reads properly.
+ */
+function axisScale(
+  values: (number | null | undefined)[],
+  inr: boolean,
+): { divisor: number; unit: string; decimals: number } {
+  const peak = Math.max(
+    0,
+    ...values.filter((v): v is number => typeof v === 'number' && isFinite(v))
+      .map(Math.abs),
+  )
+
+  const steps = inr
+    ? [
+        { at: 1e7, divisor: 1e7, unit: '\u20b9 crore' },
+        { at: 1e5, divisor: 1e5, unit: '\u20b9 lakh' },
+        { at: 0, divisor: 1, unit: '\u20b9' },
+      ]
+    : [
+        { at: 1e9, divisor: 1e9, unit: 'USD bn' },
+        { at: 1e6, divisor: 1e6, unit: 'USD mn' },
+        { at: 1e3, divisor: 1e3, unit: 'USD k' },
+        { at: 0, divisor: 1, unit: 'USD' },
+      ]
+
+  const step = steps.find(item => peak >= item.at) ?? steps[steps.length - 1]
+
+  /* One decimal only while the scaled peak is small enough to need it. */
+  const scaled = peak / step.divisor
+
+  return {
+    divisor: step.divisor,
+    unit: step.unit,
+    decimals: scaled === 0 ? 0 : scaled < 10 ? 1 : 0,
+  }
+}
+
 /* Comtrade's reporter code for India; also its partner code on its own rows. */
 const INDIA_REPORTER = '699'
 
@@ -189,37 +236,98 @@ function adjustmentReading(coverage: number | null): string {
 function GlobalTradeCard({
   node,
   methodology,
+  year,
+  basis,
+  onBasis,
+  onYear,
 }: {
   node: HsNode
   methodology: Methodology | null
+  year: number
+  basis: TradeBasis
+  onBasis: (basis: TradeBasis) => void
+  onYear: (year: number) => void
 }) {
-  const benchmark = node.globalTrade
+  /*
+   * This card used to show a fixed benchmark year - the most recent one that
+   * passed validation - while the rest of the page followed the reader's year
+   * selector. On most products those were different years, and the two sat on
+   * one screen looking like one year's data. It now follows the selection, and
+   * where the selected year is withheld it says so and offers the last year
+   * that was not.
+   */
+  const selected = node.annual[String(year)]?.global ?? null
+  const fallbackYear = node.globalTrade?.year ?? null
 
-  if (!benchmark) {
+  const observed = selected?.observed ?? null
+
+  const value =
+    selected && selected.trade !== null
+      ? basis === 'gross'
+        ? observed?.grossImports ?? selected.trade
+        : selected.trade
+      : null
+
+  if (value === null) {
+    const reason =
+      selected?.tradeStatus === 'CAUTION'
+        ? 'Reporter coverage for this year is borderline, so the world total is held back.'
+        : selected
+          ? 'This year does not hold enough of the economies that reported the year before, so no world total, rank or share is shown for it.'
+          : 'No data for this year.'
+
     return (
       <section className="release-section global-trade-card">
         <div className="release-section-head">
           <div>
-            <div className="eyebrow">GLOBAL TRADE</div>
-            <h2>Not published for this code</h2>
+            <div className="eyebrow">GLOBAL TRADE · {year}</div>
+            <h2>Not published for {year}</h2>
           </div>
+
+          {selected && (
+            <StatusPill
+              status={selected.tradeStatus}
+              label={selected.tradeStatus.toLowerCase()}
+            />
+          )}
         </div>
 
         <Empty>
-          No year in the analysis window passed reporter-coverage validation,
-          so no global figure, rank or share is shown. The underlying reported
-          observations are still in the annual detail and the workbook export.
+          {reason} The reported observations behind it are still in the annual
+          detail and the workbook export.
         </Empty>
+
+        {fallbackYear !== null && fallbackYear !== year && (
+          <p className="global-trade-fallback">
+            The most recent year that did pass is{' '}
+            <button
+              type="button"
+              className="linklike"
+              onClick={() => onYear(fallbackYear)}
+            >
+              {fallbackYear}
+            </button>
+            .
+          </p>
+        )}
       </section>
     )
+  }
+
+  const benchmark = {
+    year,
+    value,
+    indiaRank: selected!.indiaRank,
+    indiaShare: selected!.indiaShare,
+    adjustmentCoverage: observed?.adjustmentCoverage ?? null,
+    mirror: selected!.mirror,
+    topEconomies: selected!.topEconomies ?? [],
   }
 
   const mirrorGap = benchmark.mirror?.gap ?? null
 
   /* The concrete amount taken out, for the year the headline is on. */
-  const removed =
-    node.annual[String(benchmark.year)]?.global.observed.reImportsRemoved ??
-    null
+  const removed = observed?.reImportsRemoved ?? null
 
   return (
     <section className="release-section global-trade-card">
@@ -227,10 +335,21 @@ function GlobalTradeCard({
         <div>
           <div className="eyebrow">GLOBAL TRADE · {benchmark.year}</div>
 
-          <h2>One figure, adjusted for re-imports</h2>
+          <h2>
+            {basis === 'gross'
+              ? 'One figure, as reported'
+              : 'One figure, adjusted for re-imports'}
+          </h2>
         </div>
 
-        <StatusPill status="VALID" label="Coverage validated" />
+        <StatusPill
+          status={selected!.tradeStatus}
+          label={
+            selected!.tradeStatus === 'CAUTION'
+              ? 'Coverage borderline'
+              : 'Coverage validated'
+          }
+        />
       </div>
 
       <div className="global-trade-hero">
@@ -240,8 +359,40 @@ function GlobalTradeCard({
           <strong>{usd(benchmark.value)}</strong>
 
           <small>
-            All reporting economies' imports from the world, less re-imports
+            {basis === 'gross'
+              ? "All reporting economies' imports from the world, as filed"
+              : "All reporting economies' imports from the world, less re-imports"}
           </small>
+
+          {selected!.tradeStatus === 'CAUTION' && (
+            <p className="hero-caution">
+              Reporter coverage for {benchmark.year} is borderline: the figure
+              is shown, and is more likely to be understated than overstated.
+            </p>
+          )}
+
+          <div
+            className="basis-switch"
+            role="group"
+            aria-label="Re-import treatment"
+          >
+            {(['gross', 'net'] as const).map(option => (
+              <button
+                key={option}
+                type="button"
+                className={basis === option ? 'active' : ''}
+                aria-pressed={basis === option}
+                title={
+                  option === 'gross'
+                    ? 'Imports from the world exactly as each economy filed them'
+                    : 'The same total with each reporter\u2019s re-imports subtracted, where it files them separately'
+                }
+                onClick={() => onBasis(option)}
+              >
+                {option === 'gross' ? 'As reported' : 'Net of re-imports'}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="hero-side">
@@ -369,6 +520,18 @@ function LineageNote({
 
   const withCode = lineage.predecessors.filter(item => item.code)
 
+  /*
+   * The old code's own numbers were already being computed and written into
+   * the node - and then ignored by this panel, which showed only the prose
+   * note and a link to the heading. They are the whole point of keeping a
+   * retired code in the pull, so they are now on the page.
+   */
+  const series = lineage.series ?? {}
+
+  const siblings = (lineage.family ?? []).filter(
+    item => item !== node.code && !(item in series),
+  )
+
   return (
     <div className="lineage-note">
       <div className="lineage-head">
@@ -389,6 +552,80 @@ function LineageNote({
           {item.note}
         </p>
       ))}
+
+      {Object.entries(series).map(([code, rows]) => {
+        const years = Object.keys(rows).sort()
+
+        if (!years.length) return null
+
+        const shown = years.slice(-6)
+
+        return (
+          <div key={code} className="lineage-series">
+            <div className="lineage-series-head">
+              <strong>HS {code}</strong> as it was reported, {years[0]}&ndash;
+              {years[years.length - 1]}
+            </div>
+
+            <div className="lineage-table-wrap">
+              <table className="lineage-table">
+                <thead>
+                  <tr>
+                    <th>Year</th>
+                    <th className="num">World trade</th>
+                    <th className="num">India imports</th>
+                    <th className="num">India exports</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {shown.map(item => (
+                    <tr key={item}>
+                      <td>{item}</td>
+                      <td className="num">{usd(rows[item].globalTrade)}</td>
+                      <td className="num">{usd(rows[item].indiaImports)}</td>
+                      <td className="num">{usd(rows[item].indiaExports)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <p className="lineage-caveat">
+              These are the old code&rsquo;s own filings. They are shown beside
+              this series and never added to it, because a split cannot be
+              divided between its successors without inventing a share.
+              {years.length > shown.length &&
+                ` ${years.length} years in total are in the workbook export.`}
+            </p>
+          </div>
+        )
+      })}
+
+      {siblings.length > 0 && onOpen && (
+        <div className="lineage-family">
+          <span className="lineage-family-label">
+            Also came out of this split
+          </span>
+
+          <div className="lineage-actions">
+            {siblings.map(item => (
+              <button
+                key={item}
+                onClick={() =>
+                  onOpen(item, item.length === 2 ? 2 : item.length === 4 ? 4 : 6)
+                }
+              >
+                HS {item}
+              </button>
+            ))}
+          </div>
+
+          {lineage.familyNote && (
+            <p className="lineage-caveat">{lineage.familyNote}</p>
+          )}
+        </div>
+      )}
 
       {(lineage.continuousAt || withCode.length > 0) && (
         <div className="lineage-actions">
@@ -642,6 +879,7 @@ export function ProductView({
   }, [year, seenYear, onYearLead])
 
   const [horizon, setHorizon] = useState<Horizon>('10Y')
+  const [basis, setBasis] = useState<TradeBasis>('gross')
 
   /*
    * What sits inside a heading.
@@ -813,11 +1051,17 @@ export function ProductView({
       drawn.every(item => item.rate !== null)
 
     if (!convertible) {
+      const scale = axisScale(
+        trend.flatMap(point => [point.imports, point.exports]),
+        false,
+      )
+
       return {
         data: trend,
         inr: false,
-        unit: 'USD bn',
-        divisor: 1e9,
+        unit: scale.unit,
+        divisor: scale.divisor,
+        decimals: scale.decimals,
         missing:
           currency === 'INR'
             ? drawn
@@ -828,17 +1072,25 @@ export function ProductView({
       }
     }
 
+    const converted = trend.map((point, index) => ({
+      ...point,
+      imports:
+        point.imports === null ? null : point.imports * rates[index]!.rate,
+      exports:
+        point.exports === null ? null : point.exports * rates[index]!.rate,
+    }))
+
+    const inrScale = axisScale(
+      converted.flatMap(point => [point.imports, point.exports]),
+      true,
+    )
+
     return {
-      data: trend.map((point, index) => ({
-        ...point,
-        imports:
-          point.imports === null ? null : point.imports * rates[index]!.rate,
-        exports:
-          point.exports === null ? null : point.exports * rates[index]!.rate,
-      })),
+      data: converted,
       inr: true,
-      unit: '₹ crore',
-      divisor: 1e7,
+      unit: inrScale.unit,
+      divisor: inrScale.divisor,
+      decimals: inrScale.decimals,
       missing: [] as (string | null)[],
     }
   }, [trend, currency, currencyBlock])
@@ -878,8 +1130,22 @@ export function ProductView({
         label: String(item),
         trade: node.annual[String(item)]?.global.trade ?? null,
         predecessor: series[String(item)]?.globalTrade ?? null,
+        indiaImports: series[String(item)]?.indiaImports ?? null,
+        indiaExports: series[String(item)]?.indiaExports ?? null,
       }))
   }, [node, predecessorCode])
+
+  /* The world chart carries its own unit for the same reason the India one
+   * does: a heading worth $2bn and a line worth $9m cannot share an axis
+   * fixed in billions. */
+  const globalScale = useMemo(
+    () =>
+      axisScale(
+        globalTrend.flatMap(point => [point.trade, point.predecessor]),
+        false,
+      ),
+    [globalTrend],
+  )
 
   /*
    * India appears in India's own supplier list because Comtrade files goods
@@ -1520,7 +1786,14 @@ export function ProductView({
           label="World market"
           onUnpin={onUnpinTile}
         >
-          <GlobalTradeCard node={node} methodology={methodology} />
+          <GlobalTradeCard
+            node={node}
+            methodology={methodology}
+            year={year}
+            basis={basis}
+            onBasis={setBasis}
+            onYear={onYearChange}
+          />
         </Tile>
       )}
 
@@ -1575,11 +1848,22 @@ export function ProductView({
 
           <article className="release-metric">
             <span>Global trade · {year}</span>
-            <strong>{usd(annual.global.trade)}</strong>
+            <strong>
+              {usd(
+                annual.global.trade === null
+                  ? null
+                  : basis === 'gross'
+                    ? annual.global.observed.grossImports ??
+                      annual.global.trade
+                    : annual.global.trade,
+              )}
+            </strong>
             <small>
               {annual.global.trade === null
                 ? `Withheld · coverage ${annual.global.coverage?.status?.toLowerCase()}`
-                : 'Net of re-imports'}
+                : basis === 'gross'
+                  ? 'As reported'
+                  : 'Net of re-imports'}
             </small>
           </article>
 
@@ -1792,7 +2076,7 @@ export function ProductView({
                       width={58}
                       tickFormatter={value =>
                         `${(Number(value) / chart.divisor).toFixed(
-                          chart.inr ? 0 : 1,
+                          chart.decimals,
                         )}`
                       }
                       axisLine={false}
@@ -1886,7 +2170,9 @@ export function ProductView({
                   <YAxis
                     width={58}
                     tickFormatter={value =>
-                      `${(Number(value) / 1e9).toFixed(0)}`
+                      `${(Number(value) / globalScale.divisor).toFixed(
+                        globalScale.decimals,
+                      )}`
                     }
                     axisLine={false}
                     tickLine={false}

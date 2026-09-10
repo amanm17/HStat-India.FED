@@ -127,10 +127,30 @@ button {
 
 
 .brand {
+  display: block;
+
+  padding: 0;
+
+  font-family: inherit;
   font-size: 20px;
   line-height: 1;
   letter-spacing: -0.5px;
   color: var(--navy);
+  text-align: left;
+
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.brand:hover {
+  color: var(--blue);
+}
+
+.brand:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+  border-radius: 3px;
 }
 
 
@@ -741,8 +761,17 @@ h1 {
 .chart-shell {
   position: relative;
 
+  display: flex;
+  flex-direction: column;
+
   height: 295px;
   min-width: 0;
+}
+
+/* The plot takes whatever height the controls above it leave. */
+.chart-shell > .recharts-responsive-container {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 
@@ -2637,15 +2666,25 @@ main {
   line-height: 1.45;
 }
 
+/*
+ * The range and frequency switches used to float over the top-left of the
+ * plot, where they sat on top of the first data point and its label. They
+ * now sit in the flow above the chart and the shell gives them their own
+ * row, so nothing is ever covered.
+ */
 .chart-controls {
-  position: absolute;
+  position: relative;
   z-index: 4;
-  top: 7px;
-  left: 8px;
 
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
+
+  margin: 0 0 8px;
+  padding: 0 2px;
 }
+
+
 
 .control-group {
   display: flex;
@@ -5151,4 +5190,516 @@ table.contribution tfoot th {
 .rail-check-grip {
   color: var(--faint);
   cursor: grab;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Global-trade basis switch, and the withheld-year fallback link.
+   Added Sept 2026: the card now follows the selected year and offers the
+   re-import adjustment rather than applying it silently.
+   --------------------------------------------------------------------------- */
+
+.basis-switch {
+  display: inline-flex;
+  gap: 3px;
+
+  margin-top: 10px;
+  padding: 3px;
+
+  background: var(--panel-soft);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+}
+
+.basis-switch button {
+  padding: 4px 10px;
+
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--muted);
+
+  background: transparent;
+  border: 0;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.basis-switch button:hover {
+  color: var(--text);
+}
+
+.basis-switch button.active {
+  color: var(--text);
+  background: var(--panel);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+.global-trade-fallback {
+  margin: 12px 0 0;
+
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+.linklike {
+  padding: 0;
+
+  font: inherit;
+  font-weight: 600;
+  color: var(--blue);
+
+  background: none;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  cursor: pointer;
+}
+
+
+/* --------------------------------------------------------------------------
+   Retired-code history. The predecessor's own figures, shown beside the
+   current series and never merged into it.
+   -------------------------------------------------------------------------- */
+
+.lineage-series {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.lineage-series-head {
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.lineage-series-head strong {
+  color: var(--text);
+}
+
+.lineage-table-wrap {
+  overflow-x: auto;
+}
+
+.lineage-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.lineage-table th {
+  padding: 5px 10px 5px 0;
+  text-align: left;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--faint);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.lineage-table td {
+  padding: 5px 10px 5px 0;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.lineage-table .num {
+  text-align: right;
+  padding-right: 0;
+}
+
+.lineage-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.lineage-caveat {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.lineage-family {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.lineage-family-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+
+/* ==========================================================================
+   Front page. Search first, because most people arrive with a product in
+   mind; the shape of the sector underneath, for everyone who does not.
+   ========================================================================== */
+
+.home {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 10px 0 60px;
+}
+
+.home-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  padding: 46px 28px 34px;
+
+  text-align: center;
+
+  background:
+    radial-gradient(
+      120% 130% at 50% 0%,
+      color-mix(in srgb, var(--blue) 9%, var(--panel)) 0%,
+      var(--panel) 62%
+    );
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+.home-eyebrow {
+  margin: 0 0 14px;
+
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--blue);
+}
+
+.home-title {
+  margin: 0;
+
+  font-size: clamp(38px, 6vw, 58px);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -1.6px;
+  color: var(--navy);
+}
+
+.home-title strong {
+  font-weight: 700;
+}
+
+.home-lede {
+  max-width: 62ch;
+  margin: 16px 0 0;
+
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.home-search {
+  width: min(720px, 100%);
+  margin: 26px 0 0;
+
+  text-align: left;
+}
+
+.home-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: 1px;
+
+  width: min(760px, 100%);
+  margin: 30px 0 0;
+  overflow: hidden;
+
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+}
+
+.home-stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+
+  padding: 14px 12px;
+
+  background: var(--panel);
+}
+
+.home-stats strong {
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--navy);
+}
+
+.home-stats span {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.home-footnote {
+  max-width: 60ch;
+  margin: 14px 0 0;
+
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--faint);
+}
+
+.home-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+  gap: 18px;
+}
+
+.home-panel {
+  padding: 20px 22px 14px;
+
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+}
+
+.home-panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: baseline;
+  justify-content: space-between;
+
+  margin-bottom: 10px;
+}
+
+.home-panel-note {
+  font-size: 11.5px;
+  color: var(--faint);
+}
+
+.home-list {
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.home-list li + li {
+  border-top: 1px solid var(--border);
+}
+
+.home-list button {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+
+  width: 100%;
+  padding: 11px 6px;
+
+  font: inherit;
+  text-align: left;
+
+  background: none;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.home-list button:hover {
+  background: var(--panel-soft);
+}
+
+.home-rank {
+  flex: none;
+
+  min-width: 38px;
+
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--green);
+}
+
+.home-list-main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.home-list-main strong {
+  overflow: hidden;
+
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-list-main small {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.home-list-value {
+  flex: none;
+
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--navy);
+}
+
+.home-cat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(178px, 1fr));
+  gap: 9px;
+}
+
+.home-cat-grid button {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  padding: 13px 14px;
+
+  font: inherit;
+  text-align: left;
+
+  background: var(--panel-soft);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.home-cat-grid button:hover {
+  border-color: var(--border-strong);
+}
+
+.home-cat-grid button.active {
+  background: color-mix(in srgb, var(--blue) 8%, var(--panel));
+  border-color: var(--blue);
+}
+
+.home-cat-grid strong {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.home-cat-grid span {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.home-cat-open {
+  margin-top: 16px;
+  padding-top: 14px;
+
+  border-top: 1px solid var(--border);
+}
+
+.home-cat-open-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+
+  margin-bottom: 8px;
+
+  font-size: 13px;
+  color: var(--text);
+}
+
+.home-cat-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2px;
+
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.home-cat-list button {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+
+  padding: 7px 8px;
+
+  font: inherit;
+  font-size: 12.5px;
+  text-align: left;
+
+  background: none;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.home-cat-list button:hover {
+  background: var(--panel-soft);
+}
+
+.home-cat-code {
+  flex: none;
+
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--blue);
+}
+
+.home-cat-name {
+  overflow: hidden;
+  flex: 1 1 auto;
+
+  color: var(--text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-cat-value {
+  flex: none;
+
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+@media (max-width: 720px) {
+  .home-hero {
+    padding: 32px 18px 26px;
+  }
+}
+
+.home-empty {
+  margin: 4px 0 12px;
+
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.hero-caution {
+  max-width: 46ch;
+  margin: 10px 0 0;
+
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
 }

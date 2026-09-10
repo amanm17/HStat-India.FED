@@ -36,6 +36,7 @@ import {
 import { useFallbackRates } from './lib/currency'
 import { SearchHub } from './components/SearchHub'
 import { ProductView } from './components/ProductView'
+import { HomeView } from './components/HomeView'
 import { HStackPanel } from './components/HStackPanel'
 import { Sidebar } from './components/Sidebar'
 
@@ -62,7 +63,32 @@ import {
 
 import { reportToPdf, reportToPng } from './lib/report'
 
-const DEFAULT_CODE = '851713'
+/*
+ * Routing.
+ *
+ * The app had none: it opened on one hard-coded product, the URL never
+ * changed, and nobody could be sent a link to anything. Two routes are enough
+ * - the front door, and a product - and the History API is enough to serve
+ * them. The worker already falls back to index.html for unknown paths, so a
+ * deep link works on a cold load.
+ */
+type Route =
+  | { kind: 'home' }
+  | { kind: 'product'; code: string; level: 2 | 4 | 6 }
+
+function levelOf(code: string): 2 | 4 | 6 {
+  return code.length === 2 ? 2 : code.length === 4 ? 4 : 6
+}
+
+function routeFromPath(path: string): Route {
+  const match = /^\/hs\/(\d{2}|\d{4}|\d{6})\/?$/.exec(path)
+
+  return match ? { kind: 'product', code: match[1], level: levelOf(match[1]) } : { kind: 'home' }
+}
+
+function pathFor(route: Route): string {
+  return route.kind === 'product' ? `/hs/${route.code}` : '/'
+}
 
 /*
  * The 2.0 dashboard reads a 2.0 snapshot. Deploying the new frontend over
@@ -78,6 +104,9 @@ function App() {
   const [methodology, setMethodology] = useState<Methodology | null>(null)
   const [library, setLibrary] = useState<SearchItem[]>([])
 
+  const [route, setRoute] = useState<Route>(() =>
+    routeFromPath(window.location.pathname),
+  )
   const [node, setNode] = useState<HsNode | null>(null)
   const [year, setYear] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -149,6 +178,8 @@ function App() {
 
     setWorkspace(readWorkspace())
 
+    const current = routeFromPath(window.location.pathname)
+
     ;(async () => {
       const loaded = await loadManifest()
 
@@ -169,16 +200,23 @@ function App() {
       setLibrary(terms)
       setMethodology(method)
 
-      const opening =
-        entries.find(entry => entry.code === DEFAULT_CODE) ??
-        entries.find(entry => entry.level === 6 && entry.globalTrade !== null) ??
-        entries[0]
+      /* A deep link decides what opens. Anything else lands on the front
+       * door, which is also what an unrecognised code falls back to. */
+      const wanted =
+        current.kind === 'product'
+          ? entries.find(entry => entry.code === current.code)
+          : undefined
 
-      if (opening) {
+      if (current.kind === 'product' && !wanted) {
+        setRoute({ kind: 'home' })
+        window.history.replaceState({}, '', '/')
+      }
+
+      if (wanted) {
         const first = await loadHsNode(
           loaded.snapshot,
-          opening.code,
-          opening.level,
+          wanted.code,
+          wanted.level,
         )
 
         setNode(first)
@@ -265,6 +303,14 @@ function App() {
         setYear(next.latestIndiaYear ?? Math.max(...next.years))
         setStackOpen(false)
 
+        const target: Route = { kind: 'product', code: next.code, level: next.level }
+
+        setRoute(target)
+
+        if (window.location.pathname !== pathFor(target)) {
+          window.history.pushState({}, '', pathFor(target))
+        }
+
         setWorkspace(current =>
           noteVisit(current, {
             code: next.code,
@@ -283,6 +329,41 @@ function App() {
     },
     [snapshot],
   )
+
+  const goHome = useCallback(() => {
+    setRoute({ kind: 'home' })
+    setStackOpen(false)
+
+    if (window.location.pathname !== '/') {
+      window.history.pushState({}, '', '/')
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [])
+
+  /* Back and forward have to work, or the URL is decoration. */
+  useEffect(() => {
+    function onPop() {
+      const next = routeFromPath(window.location.pathname)
+
+      setRoute(next)
+
+      if (next.kind === 'product' && next.code !== node?.code) {
+        loadHsNode(snapshot, next.code, next.level)
+          .then(loadedNode => {
+            setNode(loadedNode)
+            setYear(
+              loadedNode.latestIndiaYear ?? Math.max(...loadedNode.years),
+            )
+          })
+          .catch(console.error)
+      }
+    }
+
+    window.addEventListener('popstate', onPop)
+
+    return () => window.removeEventListener('popstate', onPop)
+  }, [snapshot, node?.code])
 
   const addToBasket = useCallback((entry: BasketEntry) => {
     setBasket(current =>
@@ -428,17 +509,26 @@ function App() {
     )
   }
 
-  if (!manifest || !node || year === null) {
+  if (!manifest) {
     return <div className="boot">HStat.India</div>
   }
+
+  /* The product route needs a node; the front door does not. */
+  const showHome = route.kind === 'home' || !node || year === null
 
   return (
     <div className="app">
       <header className="topbar">
         <div className="identity">
-          <div className="brand">
+          <button
+            type="button"
+            className="brand"
+            onClick={goHome}
+            aria-label="HStat.India home"
+            title="Back to the front page"
+          >
             HStat.<strong>India</strong>
-          </div>
+          </button>
 
           <div className="refresh">
             {manifest.products} products · updated{' '}
@@ -549,6 +639,7 @@ function App() {
       </header>
 
       <main>
+        {!showHome && node && year !== null ? (
         <ProductView
           workspace={workspace}
           onReorder={(dragged, before) =>
@@ -611,75 +702,88 @@ function App() {
             addToBasket({ code: node.code, level: node.level })
           }
         />
+        ) : (
+          <HomeView
+            catalogue={catalogue}
+            manifest={manifest}
+            index={index}
+            recent={recent}
+            inBasket={inBasket}
+            onOpen={openCode}
+            onAdd={item => addToBasket({ code: item.code, level: item.level })}
+          />
+        )}
       </main>
 
-      <Sidebar
-        workspace={workspace}
-        onReorderTile={(dragged, before) =>
-          setWorkspace(current => moveTile(current, dragged, before))
-        }
-        currentCode={node.code}
-        subject={reportSubject}
-        hasStack={basket.length > 0}
-        busy={reportBusy}
-        scope={reportScope}
-        onScope={setReportScope}
-        onToggle={() =>
-          setWorkspace(current => ({
-            ...current,
-            sidebarOpen: !current.sidebarOpen,
-          }))
-        }
-        onOpen={openCode}
-        onUnpin={id => setWorkspace(current => toggleTile(current, id))}
-        onResetLayout={() => {
-          setWorkspace(current => resetLayout(current))
-          setFlash('Tiles and slides are back to how they ship.')
-        }}
-        onTogglePin={entry => setWorkspace(current => togglePin(current, entry))}
-        onGenerate={(name, tiles, format) =>
-          runReport(name, tiles, format, reportScope, year, true)
-        }
-        onRunReport={async (report: SavedReport, action) => {
-          /* "View again" is not a download: it puts the page back into the
-           * state the report was built from, so the reader can read it live
-           * and see figures that may have been revised since. */
-          if (report.code && report.code !== node.code) {
-            await openCode(report.code, (report.level ?? 6) as 2 | 4 | 6)
+      {!showHome && node && year !== null && (
+        <Sidebar
+          workspace={workspace}
+          onReorderTile={(dragged, before) =>
+            setWorkspace(current => moveTile(current, dragged, before))
           }
-
-          setYear(report.year)
-
-          setWorkspace(current => ({
-            ...current,
-            hiddenTiles: TILES.filter(
-              tile => !tile.always && !report.tiles.includes(tile.id),
-            ).map(tile => tile.id),
-          }))
-
-          if (action === 'view') {
-            setFlash(`Showing ${report.name} as it was built.`)
-            return
+          currentCode={node.code}
+          subject={reportSubject}
+          hasStack={basket.length > 0}
+          busy={reportBusy}
+          scope={reportScope}
+          onScope={setReportScope}
+          onToggle={() =>
+            setWorkspace(current => ({
+              ...current,
+              sidebarOpen: !current.sidebarOpen,
+            }))
           }
-
-          setWorkspace(current => touchReport(current, report.id))
-
-          await runReport(
-            report.name,
-            report.tiles,
-            action,
-            report.scope,
-            report.year,
-            false,
-          )
-        }}
-        onRenameReport={(id, name) =>
-          setWorkspace(current => renameReport(current, id, name))
-        }
-        onRemoveReport={id =>
-          setWorkspace(current => removeReport(current, id))
-        }
-      />
+          onOpen={openCode}
+          onUnpin={id => setWorkspace(current => toggleTile(current, id))}
+          onResetLayout={() => {
+            setWorkspace(current => resetLayout(current))
+            setFlash('Tiles and slides are back to how they ship.')
+          }}
+          onTogglePin={entry => setWorkspace(current => togglePin(current, entry))}
+          onGenerate={(name, tiles, format) =>
+            runReport(name, tiles, format, reportScope, year, true)
+          }
+          onRunReport={async (report: SavedReport, action) => {
+            /* "View again" is not a download: it puts the page back into the
+             * state the report was built from, so the reader can read it live
+             * and see figures that may have been revised since. */
+            if (report.code && report.code !== node.code) {
+              await openCode(report.code, (report.level ?? 6) as 2 | 4 | 6)
+            }
+  
+            setYear(report.year)
+  
+            setWorkspace(current => ({
+              ...current,
+              hiddenTiles: TILES.filter(
+                tile => !tile.always && !report.tiles.includes(tile.id),
+              ).map(tile => tile.id),
+            }))
+  
+            if (action === 'view') {
+              setFlash(`Showing ${report.name} as it was built.`)
+              return
+            }
+  
+            setWorkspace(current => touchReport(current, report.id))
+  
+            await runReport(
+              report.name,
+              report.tiles,
+              action,
+              report.scope,
+              report.year,
+              false,
+            )
+          }}
+          onRenameReport={(id, name) =>
+            setWorkspace(current => renameReport(current, id, name))
+          }
+          onRemoveReport={id =>
+            setWorkspace(current => removeReport(current, id))
+          }
+        />
+      )}
 
       {flash && <div className="flash" role="status">{flash}</div>}
 
