@@ -1,7 +1,7 @@
 {
   "nodes": 544,
   "hs6": 418,
-  "withPublishedGlobalTrade": 535,
+  "withPublishedGlobalTrade": 537,
   "failures": [],
   "warnings": [
     {
@@ -15,6 +15,11 @@
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "320890",
+      "period": "1999",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "340391",
       "period": "1997",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -22,6 +27,11 @@
     {
       "code": "340391",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "340391",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -42,6 +52,11 @@
     {
       "code": "350699",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "350699",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -93,6 +108,11 @@
       "code": "390390",
       "period": "1999",
       "message": "import/export mirror ratio 0.681 outside [0.7, 1.5]"
+    },
+    {
+      "code": "390390",
+      "period": "1999",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "390390",
@@ -190,6 +210,11 @@
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "390799",
+      "period": "1999",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "390890",
       "period": "1997",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -208,6 +233,11 @@
       "code": "390890",
       "period": "1999",
       "message": "import/export mirror ratio 1.577 outside [0.7, 1.5]"
+    },
+    {
+      "code": "390890",
+      "period": "1999",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "390890",
@@ -332,6 +362,11 @@
     {
       "code": "392350",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "392350",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -476,6 +511,11 @@
     },
     {
       "code": "481910",
+      "period": "1999",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "481910",
       "period": "2000",
       "message": "only 23% of the world total came from reporters that file re-imports separately"
     },
@@ -511,6 +551,11 @@
     },
     {
       "code": "481920",
+      "period": "1999",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "481920",
       "period": "2016",
       "message": "only 23% of the world total came from reporters that file re-imports separately"
     },
@@ -522,6 +567,11 @@
     {
       "code": "482110",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "482110",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -806,7 +856,17 @@
     },
     {
       "code": "831110",
+      "period": "1997",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "831110",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "831110",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -1170,6 +1230,11 @@
       "message": "import/export mirror ratio 4.036 outside [0.7, 1.5]"
     },
     {
+      "code": "841451",
+      "period": "2025",
+      "message": "only 18% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "841459",
       "period": "1997",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -1450,6 +1515,11 @@
       "message": "import/export mirror ratio 1.850 outside [0.7, 1.5]"
     },
     {
+      "code": "841510",
+      "period": "2025",
+      "message": "only 17% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "841581",
       "period": "1996",
       "message": "import/export mirror ratio 1.685 outside [0.7, 1.5]"
@@ -1552,6 +1622,11 @@
     {
       "code": "841582",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "841582",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -1688,6 +1763,11 @@
       "code": "841583",
       "period": "2020",
       "message": "only 17% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "841583",
+      "period": "2022",
+      "message": "only 21% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "841583",
@@ -1845,6 +1925,11 @@
       "message": "import/export mirror ratio 1.533 outside [0.7, 1.5]"
     },
     {
+      "code": "841810",
+      "period": "2025",
+      "message": "only 21% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "841821",
       "period": "1997",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -1852,6 +1937,11 @@
     {
       "code": "841821",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "841821",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -1878,6 +1968,11 @@
       "code": "841821",
       "period": "2005",
       "message": "only 20% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "841821",
+      "period": "2007",
+      "message": "only 19% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "841821",
@@ -1958,6 +2053,11 @@
       "code": "841821",
       "period": "2023",
       "message": "only 18% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "841821",
+      "period": "2024",
+      "message": "only 23% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "841830",
@@ -2086,6 +2186,11 @@
     },
     {
       "code": "841830",
+      "period": "2022",
+      "message": "only 12% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "841830",
       "period": "2023",
       "message": "only 10% of the world total came from reporters that file re-imports separately"
     },
@@ -2107,6 +2212,11 @@
     {
       "code": "841840",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "841840",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -2356,6 +2466,11 @@
     },
     {
       "code": "841891",
+      "period": "2012",
+      "message": "only 24% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "841891",
       "period": "2013",
       "message": "only 23% of the world total came from reporters that file re-imports separately"
     },
@@ -2426,6 +2541,11 @@
     },
     {
       "code": "841899",
+      "period": "1999",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "841899",
       "period": "2000",
       "message": "only 24% of the world total came from reporters that file re-imports separately"
     },
@@ -2482,6 +2602,11 @@
     {
       "code": "841911",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "841911",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -2605,6 +2730,11 @@
       "message": "only 10% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "841911",
+      "period": "2025",
+      "message": "only 3% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "841912",
       "period": "2023",
       "message": "only 8% of the world total came from reporters that file re-imports separately"
@@ -2618,6 +2748,11 @@
       "code": "841912",
       "period": "2025",
       "message": "import/export mirror ratio 1.559 outside [0.7, 1.5]"
+    },
+    {
+      "code": "841912",
+      "period": "2025",
+      "message": "only 7% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "842211",
@@ -2896,6 +3031,11 @@
     },
     {
       "code": "842310",
+      "period": "2022",
+      "message": "only 19% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "842310",
       "period": "2023",
       "message": "only 21% of the world total came from reporters that file re-imports separately"
     },
@@ -2908,6 +3048,11 @@
       "code": "842310",
       "period": "2025",
       "message": "import/export mirror ratio 3.176 outside [0.7, 1.5]"
+    },
+    {
+      "code": "842320",
+      "period": "1997",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "842320",
@@ -3050,6 +3195,11 @@
       "message": "only 18% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "842320",
+      "period": "2025",
+      "message": "only 18% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "842330",
       "period": "1997",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -3236,6 +3386,11 @@
     },
     {
       "code": "842381",
+      "period": "2022",
+      "message": "only 21% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "842381",
       "period": "2023",
       "message": "only 22% of the world total came from reporters that file re-imports separately"
     },
@@ -3243,6 +3398,11 @@
       "code": "842381",
       "period": "2024",
       "message": "only 23% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "842381",
+      "period": "2025",
+      "message": "only 22% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "842382",
@@ -3346,6 +3506,11 @@
     },
     {
       "code": "842382",
+      "period": "2014",
+      "message": "only 14% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "842382",
       "period": "2015",
       "message": "only 14% of the world total came from reporters that file re-imports separately"
     },
@@ -3393,6 +3558,11 @@
       "code": "842382",
       "period": "2024",
       "message": "only 21% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "842382",
+      "period": "2025",
+      "message": "only 14% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "842389",
@@ -3676,6 +3846,11 @@
     },
     {
       "code": "844312",
+      "period": "2002",
+      "message": "only 1% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "844312",
       "period": "2003",
       "message": "only 1% of the world total came from reporters that file re-imports separately"
     },
@@ -3693,6 +3868,11 @@
       "code": "844312",
       "period": "2005",
       "message": "import/export mirror ratio 2.624 outside [0.7, 1.5]"
+    },
+    {
+      "code": "844312",
+      "period": "2005",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "844312",
@@ -3840,6 +4020,16 @@
       "message": "only 2% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "844313",
+      "period": "2008",
+      "message": "only 23% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "844316",
+      "period": "2008",
+      "message": "only 6% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "844316",
       "period": "2009",
       "message": "only 10% of the world total came from reporters that file re-imports separately"
@@ -3906,6 +4096,11 @@
     },
     {
       "code": "844316",
+      "period": "2022",
+      "message": "only 13% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "844316",
       "period": "2023",
       "message": "only 13% of the world total came from reporters that file re-imports separately"
     },
@@ -3915,9 +4110,19 @@
       "message": "only 17% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "844316",
+      "period": "2025",
+      "message": "only 7% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "844317",
       "period": "2007",
       "message": "import/export mirror ratio 0.692 outside [0.7, 1.5]"
+    },
+    {
+      "code": "844317",
+      "period": "2008",
+      "message": "only 14% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "844317",
@@ -3978,6 +4183,16 @@
       "code": "844317",
       "period": "2022",
       "message": "only 20% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "844317",
+      "period": "2023",
+      "message": "only 5% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "844317",
+      "period": "2024",
+      "message": "only 16% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "844319",
@@ -4046,6 +4261,11 @@
     },
     {
       "code": "844319",
+      "period": "2019",
+      "message": "only 24% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "844319",
       "period": "2020",
       "message": "only 17% of the world total came from reporters that file re-imports separately"
     },
@@ -4063,6 +4283,11 @@
       "code": "844319",
       "period": "2023",
       "message": "only 18% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "844331",
+      "period": "2008",
+      "message": "only 19% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "844331",
@@ -4145,6 +4370,16 @@
       "message": "only 21% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "844331",
+      "period": "2025",
+      "message": "only 21% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "844332",
+      "period": "2009",
+      "message": "only 24% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "844332",
       "period": "2016",
       "message": "only 24% of the world total came from reporters that file re-imports separately"
@@ -4168,6 +4403,16 @@
       "code": "844332",
       "period": "2022",
       "message": "only 23% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "844339",
+      "period": "2008",
+      "message": "only 24% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "844339",
+      "period": "2009",
+      "message": "only 21% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "844339",
@@ -4246,6 +4491,11 @@
     },
     {
       "code": "844391",
+      "period": "2009",
+      "message": "only 21% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "844391",
       "period": "2017",
       "message": "only 21% of the world total came from reporters that file re-imports separately"
     },
@@ -4273,6 +4523,11 @@
       "code": "844399",
       "period": "2020",
       "message": "only 25% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "845011",
+      "period": "1997",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "845011",
@@ -4386,6 +4641,11 @@
     },
     {
       "code": "845012",
+      "period": "1997",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "845012",
       "period": "1998",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
@@ -4451,6 +4711,11 @@
     },
     {
       "code": "845012",
+      "period": "2006",
+      "message": "only 3% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "845012",
       "period": "2007",
       "message": "import/export mirror ratio 0.620 outside [0.7, 1.5]"
     },
@@ -4473,6 +4738,11 @@
       "code": "845012",
       "period": "2009",
       "message": "import/export mirror ratio 0.559 outside [0.7, 1.5]"
+    },
+    {
+      "code": "845012",
+      "period": "2009",
+      "message": "only 1% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "845012",
@@ -4611,8 +4881,18 @@
     },
     {
       "code": "845012",
+      "period": "2024",
+      "message": "only 6% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "845012",
       "period": "2025",
       "message": "import/export mirror ratio 6.109 outside [0.7, 1.5]"
+    },
+    {
+      "code": "845012",
+      "period": "2025",
+      "message": "only 9% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "845019",
@@ -4811,7 +5091,17 @@
     },
     {
       "code": "845020",
+      "period": "1997",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "845020",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "845020",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -5016,6 +5306,11 @@
     },
     {
       "code": "845090",
+      "period": "2022",
+      "message": "only 11% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "845090",
       "period": "2023",
       "message": "only 20% of the world total came from reporters that file re-imports separately"
     },
@@ -5185,6 +5480,16 @@
       "message": "only 9% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "845110",
+      "period": "2024",
+      "message": "only 9% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "845110",
+      "period": "2025",
+      "message": "only 8% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "845121",
       "period": "1997",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -5192,6 +5497,11 @@
     {
       "code": "845121",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "845121",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -5318,6 +5628,11 @@
       "code": "845121",
       "period": "2024",
       "message": "only 12% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "845121",
+      "period": "2025",
+      "message": "only 9% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "845129",
@@ -5501,6 +5816,11 @@
     },
     {
       "code": "845130",
+      "period": "2012",
+      "message": "only 22% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "845130",
       "period": "2013",
       "message": "only 19% of the world total came from reporters that file re-imports separately"
     },
@@ -5531,6 +5851,11 @@
     },
     {
       "code": "845130",
+      "period": "2019",
+      "message": "only 20% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "845130",
       "period": "2020",
       "message": "only 15% of the world total came from reporters that file re-imports separately"
     },
@@ -5548,6 +5873,11 @@
       "code": "845130",
       "period": "2023",
       "message": "only 22% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "845130",
+      "period": "2024",
+      "message": "only 21% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "845210",
@@ -5700,6 +6030,11 @@
       "message": "import/export mirror ratio 2.566 outside [0.7, 1.5]"
     },
     {
+      "code": "845210",
+      "period": "2025",
+      "message": "only 19% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "845221",
       "period": "1997",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -5818,6 +6153,11 @@
       "code": "845221",
       "period": "2024",
       "message": "import/export mirror ratio 0.473 outside [0.7, 1.5]"
+    },
+    {
+      "code": "845221",
+      "period": "2024",
+      "message": "only 24% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "845221",
@@ -6111,6 +6451,11 @@
     },
     {
       "code": "847021",
+      "period": "1999",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "847021",
       "period": "2000",
       "message": "import/export mirror ratio 1.658 outside [0.7, 1.5]"
     },
@@ -6243,6 +6588,11 @@
       "code": "847021",
       "period": "2024",
       "message": "only 8% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "847021",
+      "period": "2025",
+      "message": "only 6% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "847029",
@@ -6438,6 +6788,11 @@
       "code": "847029",
       "period": "2025",
       "message": "import/export mirror ratio 2.729 outside [0.7, 1.5]"
+    },
+    {
+      "code": "847029",
+      "period": "2025",
+      "message": "only 12% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "847030",
@@ -6851,6 +7206,11 @@
     },
     {
       "code": "847090",
+      "period": "2000",
+      "message": "only 24% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "847090",
       "period": "2001",
       "message": "only 20% of the world total came from reporters that file re-imports separately"
     },
@@ -6928,6 +7288,11 @@
       "code": "847090",
       "period": "2024",
       "message": "only 21% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "847090",
+      "period": "2025",
+      "message": "only 13% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "847130",
@@ -7047,6 +7412,11 @@
     {
       "code": "847141",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "847141",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -7173,6 +7543,11 @@
       "code": "847149",
       "period": "2024",
       "message": "import/export mirror ratio 0.659 outside [0.7, 1.5]"
+    },
+    {
+      "code": "847149",
+      "period": "2024",
+      "message": "only 24% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "847150",
@@ -7553,6 +7928,11 @@
       "code": "847290",
       "period": "2021",
       "message": "only 16% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "847290",
+      "period": "2022",
+      "message": "only 18% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "847290",
@@ -8201,6 +8581,11 @@
     },
     {
       "code": "847629",
+      "period": "1997",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "847629",
       "period": "1998",
       "message": "import/export mirror ratio 0.619 outside [0.7, 1.5]"
     },
@@ -8405,6 +8790,11 @@
       "message": "only 17% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "847629",
+      "period": "2025",
+      "message": "only 10% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "847681",
       "period": "1997",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -8412,6 +8802,11 @@
     {
       "code": "847681",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "847681",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -8535,6 +8930,11 @@
       "message": "only 19% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "847681",
+      "period": "2025",
+      "message": "only 12% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "847689",
       "period": "1997",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -8638,6 +9038,11 @@
       "code": "850110",
       "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "850110",
+      "period": "2025",
+      "message": "only 24% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "850410",
@@ -8841,6 +9246,11 @@
     },
     {
       "code": "850421",
+      "period": "2014",
+      "message": "only 17% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "850421",
       "period": "2015",
       "message": "only 10% of the world total came from reporters that file re-imports separately"
     },
@@ -8871,6 +9281,11 @@
     },
     {
       "code": "850421",
+      "period": "2022",
+      "message": "only 16% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "850421",
       "period": "2023",
       "message": "only 12% of the world total came from reporters that file re-imports separately"
     },
@@ -8887,6 +9302,11 @@
     {
       "code": "850422",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "850422",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -8913,6 +9333,11 @@
       "code": "850422",
       "period": "2005",
       "message": "only 18% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "850422",
+      "period": "2006",
+      "message": "only 16% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "850422",
@@ -8973,6 +9398,11 @@
       "code": "850422",
       "period": "2021",
       "message": "only 22% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "850422",
+      "period": "2022",
+      "message": "only 15% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "850422",
@@ -9111,6 +9541,11 @@
     },
     {
       "code": "850423",
+      "period": "2019",
+      "message": "only 6% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "850423",
       "period": "2020",
       "message": "only 6% of the world total came from reporters that file re-imports separately"
     },
@@ -9128,6 +9563,11 @@
       "code": "850423",
       "period": "2023",
       "message": "only 7% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "850423",
+      "period": "2024",
+      "message": "only 1% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "850431",
@@ -9280,6 +9720,11 @@
       "message": "only 17% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "850432",
+      "period": "2025",
+      "message": "only 23% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "850433",
       "period": "1997",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -9318,6 +9763,11 @@
       "code": "850433",
       "period": "2004",
       "message": "only 24% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "850433",
+      "period": "2006",
+      "message": "only 25% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "850433",
@@ -9476,6 +9926,11 @@
     },
     {
       "code": "850434",
+      "period": "2006",
+      "message": "only 22% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "850434",
       "period": "2008",
       "message": "only 19% of the world total came from reporters that file re-imports separately"
     },
@@ -9543,6 +9998,11 @@
       "code": "850434",
       "period": "2023",
       "message": "only 16% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "850434",
+      "period": "2024",
+      "message": "only 23% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "850440",
@@ -9691,8 +10151,18 @@
     },
     {
       "code": "850511",
+      "period": "2024",
+      "message": "only 23% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "850511",
       "period": "2025",
       "message": "import/export mirror ratio 2.996 outside [0.7, 1.5]"
+    },
+    {
+      "code": "850511",
+      "period": "2025",
+      "message": "only 22% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "850519",
@@ -9821,6 +10291,11 @@
     },
     {
       "code": "850610",
+      "period": "1999",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "850610",
       "period": "2010",
       "message": "only 22% of the world total came from reporters that file re-imports separately"
     },
@@ -9885,6 +10360,11 @@
       "message": "import/export mirror ratio 1.747 outside [0.7, 1.5]"
     },
     {
+      "code": "850610",
+      "period": "2025",
+      "message": "only 22% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "850630",
       "period": "1997",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -9903,6 +10383,11 @@
       "code": "850630",
       "period": "1999",
       "message": "import/export mirror ratio 4.424 outside [0.7, 1.5]"
+    },
+    {
+      "code": "850630",
+      "period": "1999",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "850630",
@@ -9943,6 +10428,11 @@
       "code": "850630",
       "period": "2004",
       "message": "import/export mirror ratio 2.826 outside [0.7, 1.5]"
+    },
+    {
+      "code": "850630",
+      "period": "2004",
+      "message": "only 10% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "850630",
@@ -10061,6 +10551,11 @@
     },
     {
       "code": "850630",
+      "period": "2019",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "850630",
       "period": "2020",
       "message": "import/export mirror ratio 2.075 outside [0.7, 1.5]"
     },
@@ -10083,6 +10578,16 @@
       "code": "850630",
       "period": "2022",
       "message": "import/export mirror ratio 1.894 outside [0.7, 1.5]"
+    },
+    {
+      "code": "850630",
+      "period": "2022",
+      "message": "only 6% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "850630",
+      "period": "2023",
+      "message": "only 2% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "850630",
@@ -10320,6 +10825,11 @@
       "message": "only 19% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "850650",
+      "period": "2025",
+      "message": "only 24% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "850660",
       "period": "1997",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -10443,6 +10953,11 @@
       "code": "850660",
       "period": "2024",
       "message": "only 23% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "850660",
+      "period": "2025",
+      "message": "only 21% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "850680",
@@ -10740,6 +11255,11 @@
       "message": "only 21% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "850690",
+      "period": "2023",
+      "message": "only 22% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "850710",
       "period": "1997",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -10747,6 +11267,11 @@
     {
       "code": "850710",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "850710",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -11116,6 +11641,11 @@
     },
     {
       "code": "850740",
+      "period": "2014",
+      "message": "only 7% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "850740",
       "period": "2015",
       "message": "import/export mirror ratio 0.299 outside [0.7, 1.5]"
     },
@@ -11245,6 +11775,11 @@
       "message": "only 22% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "850750",
+      "period": "2025",
+      "message": "only 11% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "850760",
       "period": "2020",
       "message": "only 24% of the world total came from reporters that file re-imports separately"
@@ -11273,6 +11808,11 @@
       "code": "850760",
       "period": "2025",
       "message": "import/export mirror ratio 2.580 outside [0.7, 1.5]"
+    },
+    {
+      "code": "850760",
+      "period": "2025",
+      "message": "only 24% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "850780",
@@ -11390,6 +11930,16 @@
       "message": "import/export mirror ratio 3.709 outside [0.7, 1.5]"
     },
     {
+      "code": "850780",
+      "period": "2025",
+      "message": "only 21% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "850790",
+      "period": "1997",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "850790",
       "period": "1998",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -11473,6 +12023,16 @@
       "code": "850811",
       "period": "2007",
       "message": "import/export mirror ratio 1.551 outside [0.7, 1.5]"
+    },
+    {
+      "code": "850811",
+      "period": "2008",
+      "message": "only 15% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "850811",
+      "period": "2009",
+      "message": "only 17% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "850811",
@@ -11636,6 +12196,11 @@
     },
     {
       "code": "850860",
+      "period": "2008",
+      "message": "only 7% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "850860",
       "period": "2009",
       "message": "import/export mirror ratio 2.278 outside [0.7, 1.5]"
     },
@@ -11658,6 +12223,11 @@
       "code": "850860",
       "period": "2012",
       "message": "import/export mirror ratio 1.823 outside [0.7, 1.5]"
+    },
+    {
+      "code": "850860",
+      "period": "2012",
+      "message": "only 10% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "850860",
@@ -11766,8 +12336,23 @@
     },
     {
       "code": "850860",
+      "period": "2024",
+      "message": "only 21% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "850860",
       "period": "2025",
       "message": "import/export mirror ratio 2.496 outside [0.7, 1.5]"
+    },
+    {
+      "code": "850870",
+      "period": "2008",
+      "message": "only 21% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "850870",
+      "period": "2009",
+      "message": "only 14% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "850870",
@@ -11976,13 +12561,28 @@
     },
     {
       "code": "850940",
+      "period": "2022",
+      "message": "only 18% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "850940",
       "period": "2023",
       "message": "only 19% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "850940",
+      "period": "2024",
+      "message": "only 20% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "850940",
       "period": "2025",
       "message": "import/export mirror ratio 2.310 outside [0.7, 1.5]"
+    },
+    {
+      "code": "850940",
+      "period": "2025",
+      "message": "only 25% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "850980",
@@ -12380,6 +12980,11 @@
       "message": "only 15% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "851010",
+      "period": "2025",
+      "message": "only 14% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "851020",
       "period": "1996",
       "message": "import/export mirror ratio 1.543 outside [0.7, 1.5]"
@@ -12523,6 +13128,16 @@
       "code": "851020",
       "period": "2025",
       "message": "import/export mirror ratio 1.701 outside [0.7, 1.5]"
+    },
+    {
+      "code": "851030",
+      "period": "1997",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "851030",
+      "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "851030",
@@ -12860,8 +13475,23 @@
       "message": "only 22% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "851120",
+      "period": "2024",
+      "message": "only 16% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "851210",
+      "period": "1997",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "851210",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "851210",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -12995,6 +13625,11 @@
       "message": "import/export mirror ratio 1.977 outside [0.7, 1.5]"
     },
     {
+      "code": "851210",
+      "period": "2025",
+      "message": "only 20% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "851220",
       "period": "1997",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -13002,6 +13637,11 @@
     {
       "code": "851220",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "851220",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -13266,6 +13906,11 @@
     },
     {
       "code": "851310",
+      "period": "2009",
+      "message": "only 20% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "851310",
       "period": "2010",
       "message": "only 22% of the world total came from reporters that file re-imports separately"
     },
@@ -13471,7 +14116,17 @@
     },
     {
       "code": "851390",
+      "period": "2009",
+      "message": "only 18% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "851390",
       "period": "2010",
+      "message": "only 16% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "851390",
+      "period": "2011",
       "message": "only 16% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -13536,7 +14191,17 @@
     },
     {
       "code": "851610",
+      "period": "1997",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "851610",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "851610",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -14346,8 +15011,18 @@
     },
     {
       "code": "851632",
+      "period": "2024",
+      "message": "only 23% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "851632",
       "period": "2025",
       "message": "import/export mirror ratio 1.937 outside [0.7, 1.5]"
+    },
+    {
+      "code": "851632",
+      "period": "2025",
+      "message": "only 22% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "851633",
@@ -14596,8 +15271,18 @@
     },
     {
       "code": "851640",
+      "period": "2024",
+      "message": "only 19% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "851640",
       "period": "2025",
       "message": "import/export mirror ratio 1.621 outside [0.7, 1.5]"
+    },
+    {
+      "code": "851640",
+      "period": "2025",
+      "message": "only 22% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "851650",
@@ -14743,6 +15428,11 @@
       "code": "851650",
       "period": "2025",
       "message": "import/export mirror ratio 3.463 outside [0.7, 1.5]"
+    },
+    {
+      "code": "851650",
+      "period": "2025",
+      "message": "only 24% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "851660",
@@ -15195,6 +15885,11 @@
       "message": "import/export mirror ratio 2.522 outside [0.7, 1.5]"
     },
     {
+      "code": "851679",
+      "period": "2025",
+      "message": "only 25% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "851680",
       "period": "1997",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -15202,6 +15897,11 @@
     {
       "code": "851680",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "851680",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -15390,6 +16090,11 @@
       "message": "import/export mirror ratio 2.474 outside [0.7, 1.5]"
     },
     {
+      "code": "851713",
+      "period": "2025",
+      "message": "only 23% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "851714",
       "period": "2025",
       "message": "import/export mirror ratio 1.908 outside [0.7, 1.5]"
@@ -15501,6 +16206,11 @@
     },
     {
       "code": "851761",
+      "period": "2008",
+      "message": "only 20% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "851761",
       "period": "2009",
       "message": "only 11% of the world total came from reporters that file re-imports separately"
     },
@@ -15566,6 +16276,11 @@
     },
     {
       "code": "851761",
+      "period": "2023",
+      "message": "only 14% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "851761",
       "period": "2024",
       "message": "only 16% of the world total came from reporters that file re-imports separately"
     },
@@ -15573,6 +16288,11 @@
       "code": "851761",
       "period": "2025",
       "message": "import/export mirror ratio 2.183 outside [0.7, 1.5]"
+    },
+    {
+      "code": "851762",
+      "period": "2009",
+      "message": "only 21% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "851762",
@@ -15640,9 +16360,19 @@
       "message": "import/export mirror ratio 1.733 outside [0.7, 1.5]"
     },
     {
+      "code": "851762",
+      "period": "2025",
+      "message": "only 21% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "851769",
       "period": "2007",
       "message": "import/export mirror ratio 1.796 outside [0.7, 1.5]"
+    },
+    {
+      "code": "851769",
+      "period": "2008",
+      "message": "only 24% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "851769",
@@ -15916,6 +16646,11 @@
     },
     {
       "code": "851821",
+      "period": "2024",
+      "message": "only 24% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "851821",
       "period": "2025",
       "message": "import/export mirror ratio 2.207 outside [0.7, 1.5]"
     },
@@ -15932,6 +16667,11 @@
     {
       "code": "851822",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "851822",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -16113,6 +16853,11 @@
       "code": "851829",
       "period": "2025",
       "message": "import/export mirror ratio 2.100 outside [0.7, 1.5]"
+    },
+    {
+      "code": "851829",
+      "period": "2025",
+      "message": "only 23% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "851830",
@@ -16353,6 +17098,11 @@
       "code": "851840",
       "period": "2023",
       "message": "only 23% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "851840",
+      "period": "2025",
+      "message": "only 20% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "851850",
@@ -16605,6 +17355,11 @@
       "message": "only 19% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "851920",
+      "period": "2025",
+      "message": "only 21% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "851930",
       "period": "2007",
       "message": "import/export mirror ratio 2.085 outside [0.7, 1.5]"
@@ -16616,8 +17371,18 @@
     },
     {
       "code": "851930",
+      "period": "2008",
+      "message": "only 13% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "851930",
       "period": "2009",
       "message": "import/export mirror ratio 2.010 outside [0.7, 1.5]"
+    },
+    {
+      "code": "851930",
+      "period": "2009",
+      "message": "only 15% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "851930",
@@ -16738,6 +17503,11 @@
       "code": "851930",
       "period": "2025",
       "message": "import/export mirror ratio 2.325 outside [0.7, 1.5]"
+    },
+    {
+      "code": "851930",
+      "period": "2025",
+      "message": "only 22% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "851981",
@@ -16870,9 +17640,19 @@
       "message": "import/export mirror ratio 3.074 outside [0.7, 1.5]"
     },
     {
+      "code": "851981",
+      "period": "2025",
+      "message": "only 18% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "851989",
       "period": "2008",
       "message": "import/export mirror ratio 1.541 outside [0.7, 1.5]"
+    },
+    {
+      "code": "851989",
+      "period": "2009",
+      "message": "only 15% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "851989",
@@ -17093,6 +17873,11 @@
       "code": "852110",
       "period": "2025",
       "message": "import/export mirror ratio 1.657 outside [0.7, 1.5]"
+    },
+    {
+      "code": "852110",
+      "period": "2025",
+      "message": "only 10% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "852190",
@@ -17341,6 +18126,11 @@
     },
     {
       "code": "852210",
+      "period": "2021",
+      "message": "only 13% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "852210",
       "period": "2022",
       "message": "only 17% of the world total came from reporters that file re-imports separately"
     },
@@ -17413,6 +18203,16 @@
       "code": "852290",
       "period": "2024",
       "message": "only 20% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "852321",
+      "period": "2008",
+      "message": "only 23% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "852321",
+      "period": "2009",
+      "message": "only 16% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "852321",
@@ -17601,6 +18401,11 @@
     },
     {
       "code": "852359",
+      "period": "2009",
+      "message": "only 17% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "852359",
       "period": "2010",
       "message": "only 15% of the world total came from reporters that file re-imports separately"
     },
@@ -17693,6 +18498,11 @@
       "code": "852380",
       "period": "2012",
       "message": "only 19% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "852380",
+      "period": "2013",
+      "message": "only 20% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "852380",
@@ -17866,6 +18676,11 @@
     },
     {
       "code": "852491",
+      "period": "2012",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "852491",
       "period": "2013",
       "message": "import/export mirror ratio 28.490 outside [0.7, 1.5]"
     },
@@ -17956,6 +18771,11 @@
     },
     {
       "code": "852499",
+      "period": "2012",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "852499",
       "period": "2013",
       "message": "import/export mirror ratio 23.987 outside [0.7, 1.5]"
     },
@@ -17998,6 +18818,11 @@
       "code": "852550",
       "period": "2008",
       "message": "import/export mirror ratio 1.670 outside [0.7, 1.5]"
+    },
+    {
+      "code": "852550",
+      "period": "2008",
+      "message": "only 18% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "852550",
@@ -18161,6 +18986,11 @@
     },
     {
       "code": "852560",
+      "period": "2009",
+      "message": "only 22% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "852560",
       "period": "2013",
       "message": "import/export mirror ratio 1.544 outside [0.7, 1.5]"
     },
@@ -18205,6 +19035,11 @@
       "message": "only 23% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "852581",
+      "period": "2025",
+      "message": "only 24% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "852582",
       "period": "2022",
       "message": "import/export mirror ratio 0.650 outside [0.7, 1.5]"
@@ -18213,6 +19048,11 @@
       "code": "852582",
       "period": "2024",
       "message": "import/export mirror ratio 0.596 outside [0.7, 1.5]"
+    },
+    {
+      "code": "852582",
+      "period": "2025",
+      "message": "only 19% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "852583",
@@ -18230,6 +19070,11 @@
       "message": "import/export mirror ratio 2.230 outside [0.7, 1.5]"
     },
     {
+      "code": "852583",
+      "period": "2025",
+      "message": "only 21% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "852589",
       "period": "2025",
       "message": "import/export mirror ratio 1.548 outside [0.7, 1.5]"
@@ -18238,6 +19083,11 @@
       "code": "852610",
       "period": "1997",
       "message": "import/export mirror ratio 0.445 outside [0.7, 1.5]"
+    },
+    {
+      "code": "852610",
+      "period": "1997",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "852610",
@@ -18485,6 +19335,11 @@
       "message": "only 19% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "852692",
+      "period": "2025",
+      "message": "only 24% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "852712",
       "period": "1996",
       "message": "import/export mirror ratio 1.917 outside [0.7, 1.5]"
@@ -18591,6 +19446,11 @@
     },
     {
       "code": "852712",
+      "period": "2009",
+      "message": "only 6% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "852712",
       "period": "2010",
       "message": "import/export mirror ratio 3.000 outside [0.7, 1.5]"
     },
@@ -18603,6 +19463,11 @@
       "code": "852712",
       "period": "2011",
       "message": "import/export mirror ratio 3.386 outside [0.7, 1.5]"
+    },
+    {
+      "code": "852712",
+      "period": "2011",
+      "message": "only 12% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "852712",
@@ -19095,6 +19960,11 @@
       "message": "import/export mirror ratio 1.648 outside [0.7, 1.5]"
     },
     {
+      "code": "852719",
+      "period": "2025",
+      "message": "only 21% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "852721",
       "period": "1997",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -19102,6 +19972,11 @@
     {
       "code": "852721",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "852721",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -19225,6 +20100,11 @@
       "message": "only 8% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "852721",
+      "period": "2025",
+      "message": "only 14% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "852729",
       "period": "1997",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -19278,6 +20158,11 @@
       "code": "852791",
       "period": "2008",
       "message": "import/export mirror ratio 1.745 outside [0.7, 1.5]"
+    },
+    {
+      "code": "852791",
+      "period": "2008",
+      "message": "only 21% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "852791",
@@ -19420,9 +20305,19 @@
       "message": "import/export mirror ratio 2.821 outside [0.7, 1.5]"
     },
     {
+      "code": "852791",
+      "period": "2025",
+      "message": "only 17% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "852792",
       "period": "2007",
       "message": "import/export mirror ratio 1.973 outside [0.7, 1.5]"
+    },
+    {
+      "code": "852792",
+      "period": "2008",
+      "message": "only 16% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "852792",
@@ -19660,6 +20555,11 @@
       "message": "import/export mirror ratio 2.454 outside [0.7, 1.5]"
     },
     {
+      "code": "852842",
+      "period": "2025",
+      "message": "only 23% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "852849",
       "period": "2010",
       "message": "only 19% of the world total came from reporters that file re-imports separately"
@@ -19761,8 +20661,18 @@
     },
     {
       "code": "852859",
+      "period": "2008",
+      "message": "only 20% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "852859",
       "period": "2009",
       "message": "import/export mirror ratio 1.752 outside [0.7, 1.5]"
+    },
+    {
+      "code": "852859",
+      "period": "2009",
+      "message": "only 15% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "852859",
@@ -19836,6 +20746,11 @@
     },
     {
       "code": "852859",
+      "period": "2022",
+      "message": "only 23% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "852859",
       "period": "2023",
       "message": "import/export mirror ratio 0.646 outside [0.7, 1.5]"
     },
@@ -19891,8 +20806,23 @@
     },
     {
       "code": "852862",
+      "period": "2024",
+      "message": "only 18% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "852862",
       "period": "2025",
       "message": "import/export mirror ratio 1.613 outside [0.7, 1.5]"
+    },
+    {
+      "code": "852862",
+      "period": "2025",
+      "message": "only 21% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "852869",
+      "period": "2008",
+      "message": "only 21% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "852869",
@@ -19995,9 +20925,24 @@
       "message": "import/export mirror ratio 1.822 outside [0.7, 1.5]"
     },
     {
+      "code": "852869",
+      "period": "2025",
+      "message": "only 24% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "852871",
       "period": "2007",
       "message": "import/export mirror ratio 2.021 outside [0.7, 1.5]"
+    },
+    {
+      "code": "852871",
+      "period": "2008",
+      "message": "only 17% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "852871",
+      "period": "2009",
+      "message": "only 19% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "852871",
@@ -20068,6 +21013,11 @@
       "code": "852871",
       "period": "2025",
       "message": "import/export mirror ratio 2.706 outside [0.7, 1.5]"
+    },
+    {
+      "code": "852872",
+      "period": "2009",
+      "message": "only 23% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "852872",
@@ -20153,6 +21103,11 @@
       "code": "852873",
       "period": "2008",
       "message": "import/export mirror ratio 3.933 outside [0.7, 1.5]"
+    },
+    {
+      "code": "852873",
+      "period": "2008",
+      "message": "only 2% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "852873",
@@ -20376,6 +21331,11 @@
     },
     {
       "code": "853010",
+      "period": "1997",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "853010",
       "period": "1998",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
@@ -20495,6 +21455,16 @@
       "message": "only 20% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "853010",
+      "period": "2025",
+      "message": "only 20% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "853080",
+      "period": "1997",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "853080",
       "period": "1998",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -20503,6 +21473,11 @@
       "code": "853080",
       "period": "1999",
       "message": "import/export mirror ratio 0.540 outside [0.7, 1.5]"
+    },
+    {
+      "code": "853080",
+      "period": "1999",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "853080",
@@ -20536,6 +21511,11 @@
     },
     {
       "code": "853080",
+      "period": "2006",
+      "message": "only 15% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "853080",
       "period": "2007",
       "message": "only 16% of the world total came from reporters that file re-imports separately"
     },
@@ -20548,6 +21528,11 @@
       "code": "853080",
       "period": "2010",
       "message": "only 18% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "853080",
+      "period": "2011",
+      "message": "only 20% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "853080",
@@ -22296,6 +23281,11 @@
     },
     {
       "code": "853510",
+      "period": "1997",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "853510",
       "period": "1998",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
@@ -22313,6 +23303,11 @@
       "code": "853510",
       "period": "2002",
       "message": "only 23% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "853510",
+      "period": "2004",
+      "message": "only 19% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "853510",
@@ -22701,6 +23696,11 @@
     },
     {
       "code": "853530",
+      "period": "2006",
+      "message": "only 22% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "853530",
       "period": "2007",
       "message": "only 18% of the world total came from reporters that file re-imports separately"
     },
@@ -22778,6 +23778,11 @@
       "code": "853530",
       "period": "2023",
       "message": "only 16% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "853530",
+      "period": "2024",
+      "message": "only 21% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "853540",
@@ -23251,6 +24256,11 @@
     },
     {
       "code": "853670",
+      "period": "2008",
+      "message": "only 15% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "853670",
       "period": "2009",
       "message": "only 13% of the world total came from reporters that file re-imports separately"
     },
@@ -23333,6 +24343,11 @@
       "code": "853720",
       "period": "2016",
       "message": "only 19% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "853810",
+      "period": "1997",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "853810",
@@ -23563,6 +24578,11 @@
       "code": "853922",
       "period": "2025",
       "message": "import/export mirror ratio 3.381 outside [0.7, 1.5]"
+    },
+    {
+      "code": "853922",
+      "period": "2025",
+      "message": "only 19% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "853929",
@@ -24221,8 +25241,18 @@
     },
     {
       "code": "854011",
+      "period": "2012",
+      "message": "only 5% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "854011",
       "period": "2013",
       "message": "only 3% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "854011",
+      "period": "2014",
+      "message": "only 2% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "854011",
@@ -24321,6 +25351,11 @@
     },
     {
       "code": "854012",
+      "period": "1999",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "854012",
       "period": "2000",
       "message": "only 16% of the world total came from reporters that file re-imports separately"
     },
@@ -24376,6 +25411,11 @@
     },
     {
       "code": "854012",
+      "period": "2009",
+      "message": "only 13% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "854012",
       "period": "2010",
       "message": "import/export mirror ratio 4.699 outside [0.7, 1.5]"
     },
@@ -24391,6 +25431,11 @@
     },
     {
       "code": "854012",
+      "period": "2011",
+      "message": "only 4% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "854012",
       "period": "2012",
       "message": "import/export mirror ratio 3.307 outside [0.7, 1.5]"
     },
@@ -24398,6 +25443,11 @@
       "code": "854012",
       "period": "2013",
       "message": "import/export mirror ratio 4.432 outside [0.7, 1.5]"
+    },
+    {
+      "code": "854012",
+      "period": "2013",
+      "message": "only 1% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "854012",
@@ -24413,6 +25463,11 @@
       "code": "854012",
       "period": "2015",
       "message": "import/export mirror ratio 10.291 outside [0.7, 1.5]"
+    },
+    {
+      "code": "854012",
+      "period": "2015",
+      "message": "only 1% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "854012",
@@ -24441,13 +25496,28 @@
     },
     {
       "code": "854012",
+      "period": "2018",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "854012",
       "period": "2019",
       "message": "import/export mirror ratio 4.490 outside [0.7, 1.5]"
     },
     {
       "code": "854012",
+      "period": "2019",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "854012",
       "period": "2020",
       "message": "import/export mirror ratio 10.674 outside [0.7, 1.5]"
+    },
+    {
+      "code": "854012",
+      "period": "2020",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "854012",
@@ -24466,8 +25536,18 @@
     },
     {
       "code": "854012",
+      "period": "2022",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "854012",
       "period": "2023",
       "message": "import/export mirror ratio 2.943 outside [0.7, 1.5]"
+    },
+    {
+      "code": "854012",
+      "period": "2023",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "854012",
@@ -24670,6 +25750,11 @@
       "message": "only 7% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "854020",
+      "period": "2025",
+      "message": "only 11% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "854040",
       "period": "1996",
       "message": "import/export mirror ratio 0.386 outside [0.7, 1.5]"
@@ -24835,6 +25920,16 @@
       "message": "only 18% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "854040",
+      "period": "2024",
+      "message": "only 15% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "854040",
+      "period": "2025",
+      "message": "only 19% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "854060",
       "period": "1997",
       "message": "import/export mirror ratio 0.613 outside [0.7, 1.5]"
@@ -24938,6 +26033,11 @@
       "code": "854060",
       "period": "2020",
       "message": "import/export mirror ratio 0.549 outside [0.7, 1.5]"
+    },
+    {
+      "code": "854060",
+      "period": "2025",
+      "message": "only 13% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "854071",
@@ -25096,6 +26196,11 @@
     },
     {
       "code": "854079",
+      "period": "2022",
+      "message": "only 19% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "854079",
       "period": "2023",
       "message": "only 13% of the world total came from reporters that file re-imports separately"
     },
@@ -25103,6 +26208,11 @@
       "code": "854079",
       "period": "2024",
       "message": "only 19% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "854079",
+      "period": "2025",
+      "message": "only 9% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "854081",
@@ -25147,6 +26257,11 @@
     {
       "code": "854081",
       "period": "2008",
+      "message": "only 22% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "854081",
+      "period": "2009",
       "message": "only 22% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -25658,6 +26773,11 @@
       "code": "854143",
       "period": "2025",
       "message": "import/export mirror ratio 3.718 outside [0.7, 1.5]"
+    },
+    {
+      "code": "854143",
+      "period": "2025",
+      "message": "only 21% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "854149",
@@ -26276,6 +27396,11 @@
     },
     {
       "code": "854310",
+      "period": "2008",
+      "message": "only 13% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "854310",
       "period": "2009",
       "message": "only 13% of the world total came from reporters that file re-imports separately"
     },
@@ -26481,6 +27606,11 @@
     },
     {
       "code": "854340",
+      "period": "1999",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "854340",
       "period": "2001",
       "message": "only 11% of the world total came from reporters that file re-imports separately"
     },
@@ -26503,6 +27633,11 @@
       "code": "854340",
       "period": "2005",
       "message": "only 5% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "854340",
+      "period": "2006",
+      "message": "only 14% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "854340",
@@ -26553,6 +27688,16 @@
       "code": "854340",
       "period": "2025",
       "message": "import/export mirror ratio 2.292 outside [0.7, 1.5]"
+    },
+    {
+      "code": "854340",
+      "period": "2025",
+      "message": "only 18% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "854370",
+      "period": "2025",
+      "message": "only 25% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "854390",
@@ -26731,6 +27876,11 @@
     },
     {
       "code": "854420",
+      "period": "2006",
+      "message": "only 25% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "854420",
       "period": "2008",
       "message": "only 21% of the world total came from reporters that file re-imports separately"
     },
@@ -26951,7 +28101,17 @@
     },
     {
       "code": "854460",
+      "period": "2006",
+      "message": "only 24% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "854460",
       "period": "2010",
+      "message": "only 24% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "854460",
+      "period": "2011",
       "message": "only 24% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -27071,6 +28231,11 @@
     },
     {
       "code": "854511",
+      "period": "1999",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "854511",
       "period": "2000",
       "message": "only 15% of the world total came from reporters that file re-imports separately"
     },
@@ -27131,6 +28296,11 @@
     },
     {
       "code": "854511",
+      "period": "2012",
+      "message": "only 7% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "854511",
       "period": "2013",
       "message": "only 9% of the world total came from reporters that file re-imports separately"
     },
@@ -27176,6 +28346,16 @@
     },
     {
       "code": "854511",
+      "period": "2022",
+      "message": "only 18% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "854511",
+      "period": "2023",
+      "message": "only 13% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "854511",
       "period": "2024",
       "message": "only 13% of the world total came from reporters that file re-imports separately"
     },
@@ -27183,6 +28363,11 @@
       "code": "854511",
       "period": "2025",
       "message": "import/export mirror ratio 1.607 outside [0.7, 1.5]"
+    },
+    {
+      "code": "854511",
+      "period": "2025",
+      "message": "only 12% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "854519",
@@ -27223,6 +28408,11 @@
       "code": "854519",
       "period": "2009",
       "message": "import/export mirror ratio 0.672 outside [0.7, 1.5]"
+    },
+    {
+      "code": "854519",
+      "period": "2009",
+      "message": "only 24% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "854519",
@@ -27291,6 +28481,11 @@
     },
     {
       "code": "854520",
+      "period": "1997",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "854520",
       "period": "1998",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
@@ -27328,6 +28523,11 @@
       "code": "854520",
       "period": "2020",
       "message": "only 21% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "854590",
+      "period": "1997",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "854590",
@@ -27413,6 +28613,11 @@
       "code": "854590",
       "period": "2025",
       "message": "import/export mirror ratio 1.571 outside [0.7, 1.5]"
+    },
+    {
+      "code": "854610",
+      "period": "1997",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "854610",
@@ -27541,8 +28746,18 @@
     },
     {
       "code": "854610",
+      "period": "2024",
+      "message": "only 19% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "854610",
       "period": "2025",
       "message": "import/export mirror ratio 2.743 outside [0.7, 1.5]"
+    },
+    {
+      "code": "854610",
+      "period": "2025",
+      "message": "only 16% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "854620",
@@ -27616,6 +28831,11 @@
     },
     {
       "code": "854620",
+      "period": "2019",
+      "message": "only 23% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "854620",
       "period": "2020",
       "message": "only 21% of the world total came from reporters that file re-imports separately"
     },
@@ -27633,6 +28853,11 @@
       "code": "854620",
       "period": "2023",
       "message": "only 22% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "854690",
+      "period": "1997",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "854690",
@@ -27975,6 +29200,11 @@
       "message": "only 24% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "854790",
+      "period": "2024",
+      "message": "only 23% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "854810",
       "period": "1997",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -27988,6 +29218,11 @@
       "code": "854810",
       "period": "1999",
       "message": "import/export mirror ratio 0.587 outside [0.7, 1.5]"
+    },
+    {
+      "code": "854810",
+      "period": "1999",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "854810",
@@ -29160,6 +30395,11 @@
       "message": "only 19% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "901811",
+      "period": "2025",
+      "message": "only 17% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "901812",
       "period": "1997",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -29167,6 +30407,11 @@
     {
       "code": "901812",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "901812",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -29590,6 +30835,11 @@
       "message": "only 24% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "901819",
+      "period": "2025",
+      "message": "only 23% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "901820",
       "period": "1996",
       "message": "import/export mirror ratio 1.513 outside [0.7, 1.5]"
@@ -29870,6 +31120,11 @@
       "message": "only 20% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "902140",
+      "period": "2025",
+      "message": "only 21% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "902150",
       "period": "1997",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -29963,6 +31218,11 @@
       "code": "902150",
       "period": "2024",
       "message": "only 13% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "902150",
+      "period": "2025",
+      "message": "only 17% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "902212",
@@ -30181,8 +31441,23 @@
     },
     {
       "code": "902213",
+      "period": "2022",
+      "message": "only 13% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "902213",
       "period": "2023",
       "message": "only 16% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "902213",
+      "period": "2024",
+      "message": "only 18% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "902213",
+      "period": "2025",
+      "message": "only 23% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "902214",
@@ -30436,8 +31711,18 @@
     },
     {
       "code": "902221",
+      "period": "2022",
+      "message": "only 5% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "902221",
       "period": "2023",
       "message": "import/export mirror ratio 1.841 outside [0.7, 1.5]"
+    },
+    {
+      "code": "902221",
+      "period": "2023",
+      "message": "only 8% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "902221",
@@ -30648,6 +31933,11 @@
       "code": "902229",
       "period": "2024",
       "message": "only 8% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "902229",
+      "period": "2025",
+      "message": "only 10% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "902230",
@@ -30921,6 +32211,11 @@
     },
     {
       "code": "903010",
+      "period": "1997",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "903010",
       "period": "1998",
       "message": "import/export mirror ratio 0.503 outside [0.7, 1.5]"
     },
@@ -31173,6 +32468,11 @@
       "code": "903031",
       "period": "2023",
       "message": "only 21% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "903032",
+      "period": "2008",
+      "message": "only 13% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "903032",
@@ -31541,6 +32841,11 @@
     },
     {
       "code": "903220",
+      "period": "1999",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "903220",
       "period": "2000",
       "message": "only 15% of the world total came from reporters that file re-imports separately"
     },
@@ -31697,6 +33002,11 @@
     {
       "code": "903281",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "903281",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -31916,7 +33226,17 @@
     },
     {
       "code": "910191",
+      "period": "1997",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "910191",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "910191",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -32518,6 +33838,11 @@
       "code": "910291",
       "period": "2000",
       "message": "import/export mirror ratio 4.051 outside [0.7, 1.5]"
+    },
+    {
+      "code": "910291",
+      "period": "2000",
+      "message": "only 15% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "910291",
@@ -33335,6 +34660,11 @@
       "message": "import/export mirror ratio 2.245 outside [0.7, 1.5]"
     },
     {
+      "code": "910521",
+      "period": "2025",
+      "message": "only 20% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "910591",
       "period": "1996",
       "message": "import/export mirror ratio 2.139 outside [0.7, 1.5]"
@@ -33535,6 +34865,11 @@
       "message": "import/export mirror ratio 2.149 outside [0.7, 1.5]"
     },
     {
+      "code": "910591",
+      "period": "2025",
+      "message": "only 18% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "910610",
       "period": "1997",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -33542,6 +34877,11 @@
     {
       "code": "910610",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "910610",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -33628,6 +34968,11 @@
       "code": "910610",
       "period": "2024",
       "message": "import/export mirror ratio 0.621 outside [0.7, 1.5]"
+    },
+    {
+      "code": "910610",
+      "period": "2024",
+      "message": "only 18% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "910690",
@@ -33725,6 +35070,11 @@
       "message": "import/export mirror ratio 1.773 outside [0.7, 1.5]"
     },
     {
+      "code": "910690",
+      "period": "2025",
+      "message": "only 21% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "910811",
       "period": "1997",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -33801,8 +35151,18 @@
     },
     {
       "code": "910812",
+      "period": "2011",
+      "message": "only 13% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "910812",
       "period": "2012",
       "message": "import/export mirror ratio 2.867 outside [0.7, 1.5]"
+    },
+    {
+      "code": "910812",
+      "period": "2012",
+      "message": "only 23% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "910812",
@@ -33826,8 +35186,18 @@
     },
     {
       "code": "910812",
+      "period": "2015",
+      "message": "only 14% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "910812",
       "period": "2016",
       "message": "import/export mirror ratio 2.686 outside [0.7, 1.5]"
+    },
+    {
+      "code": "910812",
+      "period": "2016",
+      "message": "only 12% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "910812",
@@ -33836,8 +35206,18 @@
     },
     {
       "code": "910812",
+      "period": "2017",
+      "message": "only 12% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "910812",
       "period": "2018",
       "message": "import/export mirror ratio 2.072 outside [0.7, 1.5]"
+    },
+    {
+      "code": "910812",
+      "period": "2018",
+      "message": "only 14% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "910812",
@@ -33853,6 +35233,11 @@
       "code": "910812",
       "period": "2020",
       "message": "import/export mirror ratio 2.897 outside [0.7, 1.5]"
+    },
+    {
+      "code": "910812",
+      "period": "2020",
+      "message": "only 18% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "910812",
@@ -33898,6 +35283,11 @@
       "code": "910812",
       "period": "2025",
       "message": "import/export mirror ratio 4.239 outside [0.7, 1.5]"
+    },
+    {
+      "code": "910812",
+      "period": "2025",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "910819",
@@ -34020,6 +35410,11 @@
       "message": "import/export mirror ratio 2.090 outside [0.7, 1.5]"
     },
     {
+      "code": "910819",
+      "period": "2022",
+      "message": "only 21% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "910910",
       "period": "2012",
       "message": "import/export mirror ratio 0.686 outside [0.7, 1.5]"
@@ -34128,6 +35523,11 @@
       "code": "910910",
       "period": "2025",
       "message": "import/export mirror ratio 1.837 outside [0.7, 1.5]"
+    },
+    {
+      "code": "910910",
+      "period": "2025",
+      "message": "only 8% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "950450",
@@ -34350,6 +35750,11 @@
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "32",
+      "period": "1999",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "34",
       "period": "1997",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -34357,6 +35762,11 @@
     {
       "code": "34",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "34",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -34385,6 +35795,11 @@
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "39",
+      "period": "1999",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "40",
       "period": "1997",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -34392,6 +35807,11 @@
     {
       "code": "40",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "40",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -34442,6 +35862,11 @@
     {
       "code": "48",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "48",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -34795,6 +36220,11 @@
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "3208",
+      "period": "1999",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "3403",
       "period": "1997",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -34805,6 +36235,11 @@
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "3403",
+      "period": "1999",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "3506",
       "period": "1997",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -34812,6 +36247,11 @@
     {
       "code": "3506",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "3506",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -34837,6 +36277,11 @@
     {
       "code": "3907",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "3907",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -34863,6 +36308,11 @@
       "code": "3908",
       "period": "1999",
       "message": "import/export mirror ratio 1.573 outside [0.7, 1.5]"
+    },
+    {
+      "code": "3908",
+      "period": "1999",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "3908",
@@ -34915,6 +36365,11 @@
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "3920",
+      "period": "1999",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "3923",
       "period": "1997",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -34922,6 +36377,11 @@
     {
       "code": "3923",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "3923",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -35051,6 +36511,11 @@
     },
     {
       "code": "4819",
+      "period": "1999",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "4819",
       "period": "2016",
       "message": "only 24% of the world total came from reporters that file re-imports separately"
     },
@@ -35062,6 +36527,11 @@
     {
       "code": "4821",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "4821",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -35087,6 +36557,11 @@
     {
       "code": "4823",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "4823",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -35421,8 +36896,18 @@
     },
     {
       "code": "8443",
+      "period": "1999",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "8443",
       "period": "2009",
       "message": "only 24% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "8450",
+      "period": "1997",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "8450",
@@ -35606,6 +37091,11 @@
     },
     {
       "code": "8452",
+      "period": "2014",
+      "message": "only 19% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "8452",
       "period": "2015",
       "message": "only 18% of the world total came from reporters that file re-imports separately"
     },
@@ -35623,6 +37113,11 @@
       "code": "8452",
       "period": "2018",
       "message": "only 15% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "8452",
+      "period": "2019",
+      "message": "only 16% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "8452",
@@ -35776,6 +37271,11 @@
     },
     {
       "code": "8471",
+      "period": "1999",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "8471",
       "period": "2020",
       "message": "only 23% of the world total came from reporters that file re-imports separately"
     },
@@ -35873,6 +37373,11 @@
       "code": "8472",
       "period": "2021",
       "message": "only 17% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "8472",
+      "period": "2022",
+      "message": "only 19% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "8472",
@@ -36026,6 +37531,11 @@
     },
     {
       "code": "8506",
+      "period": "1999",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "8506",
       "period": "2022",
       "message": "only 23% of the world total came from reporters that file re-imports separately"
     },
@@ -36081,6 +37591,11 @@
     },
     {
       "code": "8508",
+      "period": "1999",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "8508",
       "period": "2002",
       "message": "import/export mirror ratio 1.617 outside [0.7, 1.5]"
     },
@@ -36098,6 +37613,11 @@
       "code": "8508",
       "period": "2006",
       "message": "import/export mirror ratio 6.631 outside [0.7, 1.5]"
+    },
+    {
+      "code": "8508",
+      "period": "2009",
+      "message": "only 19% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "8508",
@@ -36243,6 +37763,11 @@
       "code": "8509",
       "period": "2025",
       "message": "import/export mirror ratio 1.984 outside [0.7, 1.5]"
+    },
+    {
+      "code": "8509",
+      "period": "2025",
+      "message": "only 25% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "8510",
@@ -36407,6 +37932,11 @@
     {
       "code": "8512",
       "period": "1998",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "8512",
+      "period": "1999",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -36860,6 +38390,11 @@
       "message": "import/export mirror ratio 2.154 outside [0.7, 1.5]"
     },
     {
+      "code": "8519",
+      "period": "2025",
+      "message": "only 24% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "8521",
       "period": "1997",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -37166,6 +38701,11 @@
     },
     {
       "code": "8525",
+      "period": "2009",
+      "message": "only 21% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "8525",
       "period": "2018",
       "message": "only 23% of the world total came from reporters that file re-imports separately"
     },
@@ -37345,6 +38885,11 @@
       "message": "only 15% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "8527",
+      "period": "2025",
+      "message": "only 21% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "8528",
       "period": "1997",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -37498,6 +39043,11 @@
       "code": "8529",
       "period": "2015",
       "message": "import/export mirror ratio 1.510 outside [0.7, 1.5]"
+    },
+    {
+      "code": "8530",
+      "period": "1997",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "8530",
@@ -37686,6 +39236,11 @@
     },
     {
       "code": "8535",
+      "period": "1997",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "8535",
       "period": "1998",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
@@ -37802,6 +39357,11 @@
     {
       "code": "8540",
       "period": "2014",
+      "message": "only 23% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "8540",
+      "period": "2015",
       "message": "only 23% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -38232,6 +39792,11 @@
     {
       "code": "9013",
       "period": "1997",
+      "message": "only 0% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "9013",
+      "period": "1998",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
     },
     {
@@ -39161,6 +40726,11 @@
     },
     {
       "code": "9109",
+      "period": "2022",
+      "message": "only 16% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "9109",
       "period": "2023",
       "message": "only 14% of the world total came from reporters that file re-imports separately"
     },
@@ -39173,6 +40743,11 @@
       "code": "9109",
       "period": "2024",
       "message": "only 18% of the world total came from reporters that file re-imports separately"
+    },
+    {
+      "code": "9109",
+      "period": "2025",
+      "message": "only 16% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "9504",
