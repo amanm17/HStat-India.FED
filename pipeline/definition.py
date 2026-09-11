@@ -75,6 +75,42 @@ class Lineage:
 
 
 @dataclass(frozen=True)
+class RetiredCode:
+    """
+    A code that HStat still publishes but that the nomenclature has dropped.
+
+    The successor-keyed rows above answer "where did this code's history come
+    from". They cannot answer "where did this code's history go", because a
+    retired code is nobody's successor - it only ever appears as somebody's
+    predecessor, and these seven are not even that. Without this record they
+    look like ordinary products whose latest years failed coverage, which is
+    the wrong story: the years failed because a handful of reporters kept
+    filing under a dead number, not because the world stopped trading.
+
+    continuity says what may be said about the successors as a group:
+
+      exhaustive   the successors together cover exactly what this code
+                   covered, and nothing else. Their sum is comparable with
+                   this code's series.
+      partial      the successors cover this code but also absorb trade from
+                   elsewhere, or one of them already existed and carries its
+                   own earlier trade. Their sum is NOT comparable.
+      unconfirmed  the WCO correlation tables do not state a usable mapping.
+                   Say nothing about the totals.
+
+    Nothing here is ever spliced onto anything. This record labels and
+    redirects; it does not manufacture a figure.
+    """
+
+    code: str
+    retired_in: int
+    valid_to: int | None
+    successors: tuple[str, ...]
+    continuity: str
+    note: str
+
+
+@dataclass(frozen=True)
 class Alias:
     code: str
     terms: tuple[str, ...]
@@ -223,6 +259,12 @@ def load_lineage() -> tuple[Lineage, ...]:
 
         relation = (row.get("relation") or "").strip().lower()
 
+        # Retirement rows live in the same file but are a different record;
+        # load_retirements() reads them. Skip them here so the successor-keyed
+        # model stays exactly as it was.
+        if relation == "retired":
+            continue
+
         if relation not in {"identical", "split", "merge", "new"}:
             raise SystemExit(
                 f"{LINEAGE_CSV.name}: {code} has unknown relation {relation!r}"
@@ -241,6 +283,106 @@ def load_lineage() -> tuple[Lineage, ...]:
         )
 
     return tuple(rows)
+
+
+CONTINUITY_VALUES = {"exhaustive", "partial", "unconfirmed"}
+
+
+@lru_cache(maxsize=1)
+def load_retirements() -> tuple[RetiredCode, ...]:
+    """
+    Rows in hs_lineage.csv whose relation is `retired`.
+
+    Each one names a code HStat still publishes that the nomenclature has
+    dropped, the revision that dropped it, the last year it was live, and what
+    replaced it. Every mapping here is checked against the WCO correlation
+    tables before it is written down; an unverified mapping is recorded as
+    continuity=unconfirmed rather than guessed at.
+    """
+    if not LINEAGE_CSV.exists():
+        return ()
+
+    rows: list[RetiredCode] = []
+    seen: set[str] = set()
+
+    for row in _read_csv_rows(LINEAGE_CSV):
+        if (row.get("relation") or "").strip().lower() != "retired":
+            continue
+
+        code = str(row.get("code") or "").strip()
+
+        if not code.isdigit() or len(code) not in (2, 4, 6):
+            raise SystemExit(
+                f"{LINEAGE_CSV.name}: retired row has invalid code {code!r}"
+            )
+
+        if code in seen:
+            raise SystemExit(
+                f"{LINEAGE_CSV.name}: {code} is declared retired twice"
+            )
+
+        seen.add(code)
+
+        retired_in = str(row.get("retired_in") or "").strip()
+
+        if not retired_in.isdigit():
+            raise SystemExit(
+                f"{LINEAGE_CSV.name}: {code} is retired but has no "
+                f"retired_in revision year"
+            )
+
+        valid_to = str(row.get("valid_to") or "").strip()
+
+        continuity = (row.get("continuity") or "").strip().lower()
+
+        if continuity not in CONTINUITY_VALUES:
+            raise SystemExit(
+                f"{LINEAGE_CSV.name}: {code} has unknown continuity "
+                f"{continuity!r}; expected one of {sorted(CONTINUITY_VALUES)}"
+            )
+
+        successors = tuple(
+            part
+            for part in str(row.get("successors") or "").replace(",", " ").split()
+            if part
+        )
+
+        for successor in successors:
+            if not successor.isdigit() or len(successor) not in (2, 4, 6):
+                raise SystemExit(
+                    f"{LINEAGE_CSV.name}: {code} lists invalid successor "
+                    f"{successor!r}"
+                )
+
+        if continuity == "exhaustive" and not successors:
+            raise SystemExit(
+                f"{LINEAGE_CSV.name}: {code} claims exhaustive continuity "
+                f"but names no successors"
+            )
+
+        rows.append(
+            RetiredCode(
+                code=code,
+                retired_in=int(retired_in),
+                valid_to=int(valid_to) if valid_to.isdigit() else None,
+                successors=successors,
+                continuity=continuity,
+                note=(row.get("note") or "").strip(),
+            )
+        )
+
+    return tuple(rows)
+
+
+@lru_cache(maxsize=1)
+def retired_in_place() -> dict[str, RetiredCode]:
+    """
+    Keyed by code.
+
+    Deliberately NOT folded into retired_codes(): these codes keep their
+    product pages. They are labelled, not withdrawn.
+    """
+    return {item.code: item for item in load_retirements()}
 
 
 @lru_cache(maxsize=1)
@@ -411,6 +553,9 @@ def summary() -> dict:
     return {
         "hs6Codes": len(hs6_universe()),
         "retiredCodes": len(retired_codes()),
+        # Withdrawn from the nomenclature but still published, labelled as
+        # historical. Distinct from retiredCodes above, which get no page.
+        "retiredInPlace": len(retired_in_place()),
         "workbookRows": len(products),
         "inFedDefinition": sum(
             1

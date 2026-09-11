@@ -230,11 +230,31 @@ def main():
 
     # --- a headline that a user would actually see ------------------------
 
-    published = [
-        entry
-        for entry in catalogue
-        if entry.get("level") == 6 and entry.get("globalTrade") is not None
-    ]
+    six = [entry for entry in catalogue if entry.get("level") == 6]
+
+    # Codes the nomenclature has dropped are counted separately. Mixing them
+    # into one ratio said "411/418 products have a figure", which reads as
+    # seven broken products. Seven of them are retired classifications whose
+    # series ended where the HS ended it, and a figure for them would have to
+    # be invented.
+    retired = [entry for entry in six if entry.get("status") == "retired"]
+    active = [entry for entry in six if entry.get("status") != "retired"]
+
+    # Does this snapshot know about retirement at all?
+    #
+    # Code reaches the site before data does - Cloudflare builds on push, and
+    # the snapshot is only rebuilt afterwards by the refresh workflow. So
+    # between the two there is a window where this build is running against a
+    # snapshot that predates it and carries no `status` on any entry. In that
+    # window the checks below would fire on all seven retired codes and block
+    # the very push that makes the rebuild possible.
+    #
+    # Same rule as the QA-failures gate above: a data fault is fixed by
+    # rebuilding the data, so it is reported, not blocking. The moment the
+    # refresh runs, `status` appears and these become hard failures again.
+    classified = any("status" in entry for entry in six)
+
+    published = [entry for entry in active if entry.get("globalTrade") is not None]
 
     check.require(
         published,
@@ -243,9 +263,62 @@ def main():
     )
 
     check.note(
-        f"products with a published global trade figure: "
-        f"{len(published)}/{len(shipped)}"
+        f"active products with a published global trade figure: "
+        f"{len(published)}/{len(active)}"
     )
+
+    if classified:
+        check.note(
+            f"retired classifications carried as historical: {len(retired)} "
+            f"(no current figure by design)"
+        )
+    else:
+        check.note(
+            "this snapshot predates the retired-code change and carries no "
+            "classification status; rebuild the data to apply it"
+        )
+
+    # The point of the split: a genuinely broken product must not be able to
+    # hide in the retired bucket, and a retired one must not be able to hide
+    # in the active count.
+    undeclared = [
+        entry["code"]
+        for entry in active
+        if entry.get("globalTrade") is None
+    ]
+
+    message = (
+        f"{len(undeclared)} active products have no global trade figure and "
+        f"are not declared retired in config/hs_lineage.csv: "
+        f"{', '.join(undeclared[:10])}"
+    )
+
+    if undeclared and not classified:
+        check.note(f"{message} - expected until the data is rebuilt")
+    else:
+        check.require(not undeclared, message)
+
+    for entry in retired if classified else []:
+        code = entry["code"]
+
+        if entry.get("globalTrade") is not None:
+            check.problems.append(
+                f"{code}: declared retired but still carries a current "
+                f"global trade figure"
+            )
+
+        if not entry.get("retiredIn"):
+            check.problems.append(f"{code}: retired without a revision year")
+
+        last = entry.get("lastPublishedYear")
+        valid_to = entry.get("validTo")
+
+        if last is not None and valid_to is not None and last > valid_to:
+            check.problems.append(
+                f"{code}: last published year {last} is after the code stopped "
+                f"being valid in {valid_to}; a residual filing has been "
+                f"treated as a world total"
+            )
 
     for entry in published[: args.sample]:
         code = entry["code"]

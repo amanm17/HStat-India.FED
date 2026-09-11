@@ -1,15 +1,15 @@
-code,predecessor,relation,predecessor_valid_to,note
+code,predecessor,relation,predecessor_valid_to,note,retired_in,valid_to,successors,continuity
+
 # ---------------------------------------------------------------------------
-# HS 2022 is the base. This file records where a current code's history sits
-# before it existed.
+# HS 2022 is the base. This file records two different things.
+#
+# 1. WHERE A CURRENT CODE'S HISTORY CAME FROM  (relation identical/split/merge/new)
 #
 # code                  the current HS 2022 code - the one HStat publishes
 # predecessor           the older code its trade used to be reported under
 # relation              identical | split | merge | new
 # predecessor_valid_to  last year the predecessor was the live code
 # note                  one plain sentence, shown on the product page
-#
-# WHAT EACH RELATION DOES
 #
 #   identical  The code was renumbered but its scope did not change. The
 #              predecessor's years are spliced onto the front of the series.
@@ -29,38 +29,77 @@ code,predecessor,relation,predecessor_valid_to,note
 # of its own. Its data is still pulled: it is what makes the HS-4 and HS-2
 # series continuous, and searching the old number tells you where it went.
 #
+#
+# 2. WHERE A PUBLISHED CODE'S HISTORY WENT  (relation retired)
+#
+# These are codes HStat still publishes that the nomenclature has since
+# dropped. They are nobody's successor, so form 1 cannot describe them, and
+# without a record here they read as ordinary products whose recent years
+# failed coverage. They did fail coverage - but because a handful of reporters
+# kept filing under a dead number, not because the world stopped trading.
+#
+# code          the retired code (it keeps its product page)
+# relation      retired
+# retired_in    the HS revision that dropped it - 2017 or 2022
+# valid_to      last year the code was live in the nomenclature
+# successors    space-separated codes that took over, verified against the WCO
+#               correlation tables. Empty if nothing took over.
+# continuity    what may be said about those successors as a group:
+#
+#   exhaustive   Together they cover exactly what this code covered and
+#                nothing else. Their sum is comparable with this code's series.
+#   partial      They cover this code but also absorb trade from elsewhere, or
+#                one of them already existed and carries its own earlier
+#                trade. Their sum is NOT comparable with this code's series.
+#   unconfirmed  The WCO tables do not state a usable mapping. Say nothing
+#                about the totals.
+#
+# NOTHING IN THIS FILE IS EVER SPLICED ONTO A RETIRED CODE. A retired code's
+# series ends where the nomenclature ended it. continuity decides what the
+# page is allowed to SAY about the successors, never what it adds up.
+#
 # Lines starting with # are ignored.
 # ---------------------------------------------------------------------------
 
 # --- 851712 -> smartphones and other cellular handsets ----------------------
-851713,851712,split,2021,Before 2022 smartphones were reported inside HS 851712 together with other cellular handsets. The continuous long series is at HS-4 8517.
-851714,851712,split,2021,Before 2022 other cellular handsets were reported inside HS 851712 together with smartphones. The continuous long series is at HS-4 8517.
+851713,851712,split,2021,Before 2022 smartphones were reported inside HS 851712 together with other cellular handsets. The continuous long series is at HS-4 8517.,,,,
+851714,851712,split,2021,Before 2022 other cellular handsets were reported inside HS 851712 together with smartphones. The continuous long series is at HS-4 8517.,,,,
 
 # --- 854140 -> photosensitive semiconductor devices, subdivided -------------
-854141,854140,split,2021,Before 2022 LEDs were reported inside HS 854140 with all other photosensitive devices. The continuous long series is at HS-4 8541.
-854142,854140,split,2021,Before 2022 unassembled photovoltaic cells were reported inside HS 854140. The continuous long series is at HS-4 8541.
-854143,854140,split,2021,Before 2022 solar modules were reported inside HS 854140 with all other photosensitive devices. The continuous long series is at HS-4 8541.
-854149,854140,split,2021,Before 2022 these devices were reported inside HS 854140. The continuous long series is at HS-4 8541.
+854141,854140,split,2021,Before 2022 LEDs were reported inside HS 854140 with all other photosensitive devices. The continuous long series is at HS-4 8541.,,,,
+854142,854140,split,2021,Before 2022 unassembled photovoltaic cells were reported inside HS 854140. The continuous long series is at HS-4 8541.,,,,
+854143,854140,split,2021,Before 2022 solar modules were reported inside HS 854140 with all other photosensitive devices. The continuous long series is at HS-4 8541.,,,,
+854149,854140,split,2021,Before 2022 these devices were reported inside HS 854140. The continuous long series is at HS-4 8541.,,,,
 
 # --- 852580 -> cameras, subdivided ------------------------------------------
-852581,852580,split,2021,Before 2022 all television and digital cameras were reported inside HS 852580. The continuous long series is at HS-4 8525.
-852582,852580,split,2021,Before 2022 all television and digital cameras were reported inside HS 852580. The continuous long series is at HS-4 8525.
-852583,852580,split,2021,Before 2022 all television and digital cameras were reported inside HS 852580. The continuous long series is at HS-4 8525.
-852589,852580,split,2021,Before 2022 camera modules were reported inside HS 852580 with all other cameras. The continuous long series is at HS-4 8525.
-
-# --- 845610 -> laser machine tools, subdivided ------------------------------
-845610,,new,,Laser machine tools were renumbered in HS 2022. Series before 2022 sit under the earlier 8456.10 reporting; the continuous series is at HS-4 8456.
+852581,852580,split,2021,Before 2022 all television and digital cameras were reported inside HS 852580. The continuous long series is at HS-4 8525.,,,,
+852582,852580,split,2021,Before 2022 all television and digital cameras were reported inside HS 852580. The continuous long series is at HS-4 8525.,,,,
+852583,852580,split,2021,Before 2022 all television and digital cameras were reported inside HS 852580. The continuous long series is at HS-4 8525.,,,,
+852589,852580,split,2021,Before 2022 camera modules were reported inside HS 852580 with all other cameras. The continuous long series is at HS-4 8525.,,,,
 
 # --- flat panel display modules: a heading created in HS 2022 ---------------
-852411,,new,,Heading 8524 was created in HS 2022. Before then display modules were reported across several headings, so there is no single predecessor to splice.
-852412,,new,,Heading 8524 was created in HS 2022. Before then display modules were reported across several headings, so there is no single predecessor to splice.
-852419,,new,,Heading 8524 was created in HS 2022. Before then display modules were reported across several headings, so there is no single predecessor to splice.
-852491,,new,,Heading 8524 was created in HS 2022. Before then display modules were reported across several headings, so there is no single predecessor to splice.
-852492,,new,,Heading 8524 was created in HS 2022. Before then display modules were reported across several headings, so there is no single predecessor to splice.
-852499,,new,,Heading 8524 was created in HS 2022. Before then display modules were reported across several headings, so there is no single predecessor to splice.
+852411,,new,,Heading 8524 was created in HS 2022. Before then display modules were reported across several headings,,,,
+852412,,new,,Heading 8524 was created in HS 2022. Before then display modules were reported across several headings,,,,
+852419,,new,,Heading 8524 was created in HS 2022. Before then display modules were reported across several headings,,,,
+852491,,new,,Heading 8524 was created in HS 2022. Before then display modules were reported across several headings,,,,
+852492,,new,,Heading 8524 was created in HS 2022. Before then display modules were reported across several headings,,,,
+852499,,new,,Heading 8524 was created in HS 2022. Before then display modules were reported across several headings,,,,
 
 # --- codes deleted outright, with no current successor to attach to ---------
 # Listed as predecessors of their heading so they leave the product list but
 # their data still feeds the HS-4 series.
-8473,847310,merge,2021,Typewriter and word-processor parts were dropped as a separate line; the trade now sits across the rest of heading 8473.
-8519,851950,merge,2016,Telephone answering machines were dropped as a separate line and now sit across the rest of heading 8519.
+8473,847310,merge,2021,Typewriter and word-processor parts were dropped as a separate line; the trade now sits across the rest of heading 8473.,,,,
+8519,851950,merge,2016,Telephone answering machines were dropped as a separate line and now sit across the rest of heading 8519.,,,,
+
+# --- codes HStat still publishes that the nomenclature has dropped ----------
+# These keep their product pages. Their series ends at valid_to; the years
+# after it are residual filings by a shrinking handful of reporters and are
+# correctly withheld by the coverage gate. Successors are verified against the
+# WCO correlation tables and are never summed into this code's series.
+845610,,retired,,"HS 2017 subdivided 8456.10 into 8456.11 (laser) and 8456.12 (other light or photon beam). The two successors cover exactly what 8456.10 covered. Reporters filing under 8456.10 fell from 155 in 2016 to 61 in 2017, so years from 2017 are residual filings, not a world total.",2017,2016,845611 845612,exhaustive
+850740,,retired,,"HS 2022 deleted 8507.40 for nickel-iron accumulators on low trade volume and folded it into 8507.80. 8507.80 already existed and carries its own earlier trade, so its series is not a continuation of this one.",2022,2021,850780,partial
+851770,,retired,,HS 2022 split parts of heading 8517 into 8517.71 (communication antennae and their parts) and 8517.79 (other parts). The two together cover exactly what 8517.70 covered.,2022,2021,851771 851779,exhaustive
+853950,,retired,,"HS 2022 renumbered LED lamps from 8539.50 to 8539.52. All of 8539.50 went there, but 8539.52 also absorbed LED lamps previously reported under 8539.90, 8543.70 and several 9405 subheadings, so it is broader than this code was.",2022,2021,853952,partial
+854150,,retired,,"HS 2022 replaced 8541.50 with 8541.51 (semiconductor-based transducers) and 8541.59 (other semiconductor devices). The WCO correlation tables give the new subheadings only a general counterpart spanning Chapters 84, 85, 90, 93 and 95, so no exact mapping is asserted here.",2022,2021,854151 854159,unconfirmed
+854810,,retired,,"HS 2022 created heading 85.49 for electrical and electronic waste and scrap. Battery waste moved from 8548.10 to 8549.11 through 8549.19, which together cover exactly what 8548.10 covered.",2022,2021,854911 854912 854913 854914 854919,exhaustive
+854890,,retired,,"HS 2022 renumbered 8548.90 to 8548.00, but narrowed the heading at the same time by moving electrical and electronic waste and scrap out to the new heading 85.49. The successor is the same line under a new number covering less ground.",2022,2021,854800,partial
