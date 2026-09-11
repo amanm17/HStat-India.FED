@@ -42,6 +42,7 @@ from definition import (
     load_scope,
     parent_universe,
     retired_codes,
+    retired_in_place,
     segments,
     successors_of,
 )
@@ -752,6 +753,80 @@ def predecessor_series(
     return output
 
 
+def last_published(annual: dict, valid_to: int | None):
+    """
+    The most recent year this code was both live in the nomenclature and
+    passed coverage.
+
+    Bounded by valid_to on purpose. A retired code often still has rows after
+    its revision - a shrinking handful of reporters filing under a dead number
+    - and on a good year those residuals can even clear the gate. They are not
+    a world total and must never become the headline.
+    """
+    best = None
+
+    for key, record in annual.items():
+        year = int(key)
+
+        if valid_to is not None and year > valid_to:
+            continue
+
+        entry = record.get("global") or {}
+
+        if entry.get("trade") is None:
+            continue
+
+        if (entry.get("coverage") or {}).get("status") != "VALID":
+            continue
+
+        if best is None or year > best["year"]:
+            best = {
+                "year": year,
+                "value": entry["trade"],
+                "status": "VALID",
+            }
+
+    return best
+
+
+def build_retirement(code: str, annual: dict, catalogue_codes: set[str] | None):
+    """
+    The `retired` block: what the nomenclature did to this code, and what a
+    reader should look at instead.
+
+    Nothing is summed, spliced or inferred. Successors that HStat does not
+    publish are still named - saying "it became 8549.11-8549.19, which this
+    dashboard does not cover" is more useful than silence, and it is the only
+    honest thing to say.
+    """
+    record = retired_in_place().get(code)
+
+    if record is None:
+        return None
+
+    # Default to everything HStat publishes at six digits. Passing a set in is
+    # only for tests.
+    published = set(catalogue_codes) if catalogue_codes else set(hs6_universe())
+
+    return {
+        "revision": record.retired_in,
+        "validTo": record.valid_to,
+        "continuity": record.continuity,
+        "note": record.note,
+        "successors": [
+            {
+                "code": successor,
+                "published": successor in published,
+            }
+            for successor in record.successors
+        ],
+        "lastPublished": last_published(annual, record.valid_to),
+        # True when the successors are known to cover exactly this code and
+        # nothing else, so a reader may compare their total with this series.
+        "comparable": record.continuity == "exhaustive",
+    }
+
+
 def build_lineage(
     code: str,
     level: int,
@@ -760,10 +835,16 @@ def build_lineage(
     global_index: dict,
     india_index: dict,
     scope: dict,
+    catalogue_codes: set[str] | None = None,
 ):
     entries = lineage_for().get(code, ())
 
-    if not entries:
+    retirement = build_retirement(code, annual, catalogue_codes)
+
+    # A retired code has no predecessors of its own, so the successor-keyed
+    # lookup above finds nothing for it. It still needs a lineage block: that
+    # block is the only place the page can say the code was withdrawn.
+    if not entries and retirement is None:
         return None
 
     predecessors = [
@@ -805,7 +886,10 @@ def build_lineage(
 
     return {
         "predecessors": predecessors,
+        # Set when the nomenclature dropped this code. None for a live code.
+        "retired": retirement,
         # Only an unchanged code may have its predecessor's years joined on.
+        # A retired code is never spliced onto anything, in either direction.
         "spliced": bool(spliceable),
         "seriesStartsAt": first_year_with_data(annual),
         # Where the split is internal, so the long series really is continuous.
@@ -1483,10 +1567,34 @@ def main():
 
         latest = node["annual"].get(str(args.end_year), {})
 
+        # A code the nomenclature has dropped is not a product with a missing
+        # figure - it is a product whose series ended. The catalogue has to
+        # carry the difference, because everything upstream of the product
+        # page (search, listings, QA) reads the catalogue and not the node.
+        retirement = (node.get("lineage") or {}).get("retired")
+
         catalogue.append(
             {
                 "code": code,
                 "level": level,
+                "status": "retired" if retirement else "active",
+                "retiredIn": retirement["revision"] if retirement else None,
+                "validTo": retirement["validTo"] if retirement else None,
+                "lastPublishedYear": (
+                    (retirement.get("lastPublished") or {}).get("year")
+                    if retirement
+                    else None
+                ),
+                "lastPublishedValue": (
+                    (retirement.get("lastPublished") or {}).get("value")
+                    if retirement
+                    else None
+                ),
+                "successors": (
+                    [item["code"] for item in retirement["successors"]]
+                    if retirement
+                    else None
+                ),
                 "description": node["description"],
                 "product": node["product"],
                 "category": node["category"],

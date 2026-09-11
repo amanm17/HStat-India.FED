@@ -198,8 +198,37 @@ export type LineagePredecessor = {
   note: string
 }
 
+export type RetiredSuccessor = {
+  code: string
+  /* False when the HS assigned a successor that this dashboard does not
+   * cover. Naming it anyway is more useful than silence, but it cannot be
+   * a link. */
+  published: boolean
+}
+
+export type Retirement = {
+  /* The HS revision that withdrew the code: 2017 or 2022. */
+  revision: number
+  /* Last year the code was live in the nomenclature. Years after this one
+   * are residual filings by a shrinking handful of reporters, not a shrinking
+   * world market. */
+  validTo: number | null
+  continuity: 'exhaustive' | 'partial' | 'unconfirmed' | string
+  note: string
+  successors: RetiredSuccessor[]
+  /* Latest year that was both inside validTo and passed coverage. This is the
+   * end of the series, and it is what the page offers instead of a blank. */
+  lastPublished: { year: number; value: number; status: string } | null
+  /* True only when the successors are known to cover exactly this code and
+   * nothing else. Governs what the page may SAY about their total; nothing is
+   * ever summed or spliced across the revision. */
+  comparable: boolean
+}
+
 export type Lineage = {
   predecessors: LineagePredecessor[]
+  /* Set when the nomenclature dropped this code. Null for a live code. */
+  retired?: Retirement | null
   /* Every code that together covers this product across the revision: this
    * code, what it came from, and its siblings. Time-disjoint, so summing them
    * is legitimate where apportioning one between the others is not. */
@@ -299,6 +328,14 @@ export type CatalogueEntry = {
   category: string
   segment: string
   inFedDefinition: boolean
+  /* 'retired' means the HS withdrew this code. Its globalTrade is null by
+   * design, not by failure. */
+  status?: 'active' | 'retired'
+  retiredIn?: number | null
+  validTo?: number | null
+  lastPublishedYear?: number | null
+  lastPublishedValue?: number | null
+  successors?: string[] | null
   latestIndiaYear: number | null
   latestIndiaMonth: string | null
   globalTradeYear: number | null

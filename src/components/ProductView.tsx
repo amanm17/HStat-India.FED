@@ -257,7 +257,17 @@ function GlobalTradeCard({
    * that was not.
    */
   const selected = node.annual[String(year)]?.global ?? null
-  const fallbackYear = node.globalTrade?.year ?? null
+
+  /*
+   * A retired code has no benchmark at all - latest_benchmark() only looks at
+   * years inside the detail window, and every one of those failed coverage
+   * because the code was already out of the nomenclature. Falling back to the
+   * end of its real series is the only honest thing to offer.
+   */
+  const retired = node.lineage?.retired ?? null
+
+  const fallbackYear =
+    node.globalTrade?.year ?? retired?.lastPublished?.year ?? null
 
   const observed = selected?.observed ?? null
 
@@ -269,8 +279,29 @@ function GlobalTradeCard({
       : null
 
   if (value === null) {
-    const reason =
-      selected?.tradeStatus === 'CAUTION'
+    /*
+     * Two different silences that used to read the same.
+     *
+     * A live code with a withheld year is a coverage problem: the economies
+     * that reported last year did not all report this one.
+     *
+     * A retired code after its last valid year is not a problem at all. The
+     * classification stopped existing. What remains in Comtrade is a handful
+     * of reporters still filing under a dead number - 15 of the 168 that
+     * filed HS 851770 in 2021 were still doing so in 2024 - and summing those
+     * would not be a world total, it would be a rounding error dressed as one.
+     */
+    const afterRetirement =
+      retired !== null &&
+      retired.validTo !== null &&
+      year > retired.validTo
+
+    const reason = afterRetirement
+      ? `HS ${node.code} was withdrawn from the Harmonized System in the HS ` +
+        `${retired!.revision} revision and was last valid in ${retired!.validTo}. ` +
+        `A few economies still file under the old number, but far too few to ` +
+        `form a world total, so none is shown for ${year}.`
+      : selected?.tradeStatus === 'CAUTION'
         ? 'Reporter coverage for this year is borderline, so the world total is held back.'
         : selected
           ? 'This year does not hold enough of the economies that reported the year before, so no world total, rank or share is shown for it.'
@@ -281,13 +312,19 @@ function GlobalTradeCard({
         <div className="release-section-head">
           <div>
             <div className="eyebrow">GLOBAL TRADE · {year}</div>
-            <h2>Not published for {year}</h2>
+            <h2>
+              {afterRetirement
+                ? `Retired classification · last valid ${retired!.validTo}`
+                : `Not published for ${year}`}
+            </h2>
           </div>
 
           {selected && (
             <StatusPill
-              status={selected.tradeStatus}
-              label={selected.tradeStatus.toLowerCase()}
+              status={afterRetirement ? 'HISTORICAL' : selected.tradeStatus}
+              label={
+                afterRetirement ? 'retired' : selected.tradeStatus.toLowerCase()
+              }
             />
           )}
         </div>
@@ -299,7 +336,7 @@ function GlobalTradeCard({
 
         {fallbackYear !== null && fallbackYear !== year && (
           <p className="global-trade-fallback">
-            The most recent year that did pass is{' '}
+            {afterRetirement ? 'This series ends in ' : 'The most recent year that did pass is '}
             <button
               type="button"
               className="linklike"
@@ -307,7 +344,9 @@ function GlobalTradeCard({
             >
               {fallbackYear}
             </button>
-            .
+            {afterRetirement && retired?.lastPublished
+              ? `, at ${usd(retired.lastPublished.value)}.`
+              : '.'}
           </p>
         )}
       </section>
@@ -516,7 +555,9 @@ function LineageNote({
 }) {
   const lineage = node.lineage
 
-  if (!lineage || !lineage.predecessors.length) return null
+  const retired = lineage?.retired ?? null
+
+  if (!lineage || (!lineage.predecessors.length && !retired)) return null
 
   const withCode = lineage.predecessors.filter(item => item.code)
 
@@ -543,6 +584,75 @@ function LineageNote({
           </span>
         )}
       </div>
+
+      {retired && (
+        <div className="lineage-retired">
+          <div className="lineage-retired-head">
+            <span className="lineage-retired-badge">
+              RETIRED IN HS {retired.revision}
+            </span>
+
+            {retired.validTo !== null && (
+              <span className="lineage-start">
+                Last valid year {retired.validTo}
+              </span>
+            )}
+          </div>
+
+          <p className="lineage-line">{retired.note}</p>
+
+          {retired.lastPublished && (
+            <p className="lineage-line">
+              The series ends at {retired.lastPublished.year}, when world trade
+              under this code was {usd(retired.lastPublished.value)}. Later
+              years carry residual filings only and are withheld.
+            </p>
+          )}
+
+          {retired.successors.length > 0 && (
+            <div className="lineage-family">
+              <span className="lineage-family-label">
+                {retired.successors.length === 1
+                  ? 'Replaced by'
+                  : 'Replaced by'}
+              </span>
+
+              <div className="lineage-actions">
+                {retired.successors.map(item =>
+                  item.published && onOpen ? (
+                    <button
+                      key={item.code}
+                      type="button"
+                      onClick={() => onOpen(item.code, 6)}
+                    >
+                      HS {item.code}
+                    </button>
+                  ) : (
+                    <span key={item.code} className="lineage-code-flat">
+                      HS {item.code}
+                    </span>
+                  ),
+                )}
+              </div>
+
+              <p className="lineage-caveat">
+                {retired.successors.every(item => item.published)
+                  ? retired.comparable
+                    ? 'These successors together cover exactly what this code covered, so their combined total is comparable with the series above. They are still never added to it: the two sit on opposite sides of the revision and are shown apart.'
+                    : retired.continuity === 'partial'
+                      ? 'These successors also take in trade that was reported elsewhere before the revision, so their total is broader than this code was and the two series are not comparable.'
+                      : 'The WCO correlation tables do not state an exact mapping for this code, so nothing is claimed about how the successors compare with the series above.'
+                  : 'This dashboard does not currently cover ' +
+                    retired.successors
+                      .filter(item => !item.published)
+                      .map(item => `HS ${item.code}`)
+                      .join(', ') +
+                    ', so the successor series is not available here. The HS-4 heading below still runs across the revision.'}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {lineage.predecessors.map(item => (
         <p key={item.code || item.relation} className="lineage-line">
@@ -943,6 +1053,17 @@ export function ProductView({
   const colours = palette(dark)
 
   const annual: PeriodRecord | undefined = node.annual[String(year)]
+
+  /*
+   * True when the selected year is past the point where this classification
+   * stopped existing. Everything after that date is a residual filing, and
+   * saying "coverage failed" about it blames the data for a decision the WCO
+   * made.
+   */
+  const retiredAfter =
+    node.lineage?.retired != null &&
+    node.lineage.retired.validTo != null &&
+    year > node.lineage.retired.validTo
 
   const hasMonthly = node.months.length > 0
 
@@ -1774,7 +1895,8 @@ export function ProductView({
       {/* Only codes with a predecessor have a history to show. An empty tile
         * is a stray unpin button on the page and a blank half of a slide in
         * Glance View, so it is not rendered at all. */}
-      {!off('lineage') && !!node.lineage?.predecessors?.length && (
+      {!off('lineage') &&
+        (!!node.lineage?.predecessors?.length || !!node.lineage?.retired) && (
         <Tile id="lineage" label="Code history" onUnpin={onUnpinTile}>
           <LineageNote node={node} onOpen={onOpen} />
         </Tile>
@@ -1810,7 +1932,14 @@ export function ProductView({
             <h2>India's position</h2>
           </div>
 
-          <StatusPill status={annual.global.coverage?.status ?? 'UNKNOWN'} />
+          <StatusPill
+            status={
+              retiredAfter
+                ? 'HISTORICAL'
+                : annual.global.coverage?.status ?? 'UNKNOWN'
+            }
+            label={retiredAfter ? 'retired' : undefined}
+          />
         </div>
 
         {cyNote && <p className="rate-note">{cyNote}</p>}
@@ -1860,7 +1989,9 @@ export function ProductView({
             </strong>
             <small>
               {annual.global.trade === null
-                ? `Withheld · coverage ${annual.global.coverage?.status?.toLowerCase()}`
+                ? retiredAfter
+                  ? `Code retired in HS ${node.lineage!.retired!.revision}`
+                  : `Withheld · coverage ${annual.global.coverage?.status?.toLowerCase()}`
                 : basis === 'gross'
                   ? 'As reported'
                   : 'Net of re-imports'}
@@ -1880,7 +2011,16 @@ export function ProductView({
 
         {annual.global.coverage?.status !== 'VALID' && (
           <div className="coverage-note">
-            {annual.global.coverage?.status === 'HISTORICAL' ? (
+            {retiredAfter ? (
+              <>
+                HS {node.code} left the Harmonized System in the HS{' '}
+                {node.lineage!.retired!.revision} revision and was last valid in{' '}
+                {node.lineage!.retired!.validTo}. What Comtrade still holds for{' '}
+                {year} is a handful of economies filing under the old number,
+                which is not a world total, so no global figure, rank or share
+                is shown for it.
+              </>
+            ) : annual.global.coverage?.status === 'HISTORICAL' ? (
               <>
                 {year} is before the first year coverage is assessed for, so no
                 global figure is published for it. Nothing failed — the
@@ -1903,8 +2043,11 @@ export function ProductView({
                 , so no global figure, rank or share is shown for it.
               </>
             )}{' '}
-            The headline card uses{' '}
-            {node.globalTrade?.year ?? 'the latest validated year'}.
+            {retiredAfter
+              ? `The series ends at ${node.lineage!.retired!.validTo}.`
+              : `The headline card uses ${
+                  node.globalTrade?.year ?? 'the latest validated year'
+                }.`}
           </div>
         )}
       </section>

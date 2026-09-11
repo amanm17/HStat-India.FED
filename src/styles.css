@@ -5329,6 +5329,60 @@ table.contribution tfoot th {
   border-top: 1px solid var(--border);
 }
 
+/* A retired classification is not a broken product. It reads as a dated
+   record rather than an error: muted panel, no alarm colour. */
+.lineage-retired {
+  margin-bottom: 12px;
+  padding: 12px 13px;
+
+  background: var(--panel-soft);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.lineage-retired-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+
+  margin-bottom: 8px;
+}
+
+.lineage-retired-badge {
+  padding: 2px 8px;
+
+  background: var(--panel);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+
+  color: var(--navy);
+
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  white-space: nowrap;
+}
+
+/* A successor the HS assigned that this dashboard does not carry. Named, so
+   the reader knows where the trade went, but not clickable, because there is
+   nothing to open. */
+.lineage-code-flat {
+  display: inline-block;
+
+  margin-right: 7px;
+  padding: 7px 12px;
+
+  background: transparent;
+  border: 1px dashed var(--border-strong);
+  border-radius: 8px;
+
+  color: var(--faint);
+
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
 .lineage-family-label {
   display: block;
   margin-bottom: 6px;
