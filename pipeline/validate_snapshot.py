@@ -182,14 +182,7 @@ def check_period(report, code, period, record, mirror_bounds):
 
     top = glob.get("topEconomies", [])
 
-    if status != "VALID":
-        if trade is not None or rank is not None or share is not None or top:
-            report.fail(
-                code,
-                period,
-                f"headline metrics exposed with coverage status {status}",
-            )
-    else:
+    if status == "VALID":
         if trade is None or trade <= 0:
             report.fail(
                 code,
@@ -202,6 +195,42 @@ def check_period(report, code, period, record, mirror_bounds):
                 code,
                 period,
                 "published global trade does not equal net global imports",
+            )
+
+    elif status == "CAUTION":
+        # Older snapshots withheld headline metrics for CAUTION periods.
+        # New snapshots publish them. Both representations are valid, but
+        # whenever headline metrics are exposed they must reconcile.
+        has_headline = (
+            trade is not None
+            or rank is not None
+            or share is not None
+            or bool(top)
+        )
+
+        if has_headline:
+            if trade is None or trade <= 0:
+                report.fail(
+                    code,
+                    period,
+                    "CAUTION coverage exposes headline metrics without "
+                    "a positive global trade figure",
+                )
+
+            if not close(trade, net_imports):
+                report.fail(
+                    code,
+                    period,
+                    "published CAUTION global trade does not equal "
+                    "net global imports",
+                )
+
+    else:
+        if trade is not None or rank is not None or share is not None or top:
+            report.fail(
+                code,
+                period,
+                f"headline metrics exposed with coverage status {status}",
             )
 
     if share is not None and not 0 <= share <= 1:
