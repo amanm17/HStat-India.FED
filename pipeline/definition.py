@@ -38,6 +38,12 @@ SCOPE_JSON = CONFIG / "scope.json"
 class Product:
     hs6: str
     description: str
+    # The name a reader sees. Authored per code against the official HS text,
+    # short enough for a card and specific enough to tell neighbouring codes
+    # apart. `product` below is the family it belongs to and is deliberately
+    # coarser - eight codes under 8544 are all "Cables", which is the right
+    # answer for the heading and the wrong one for any code inside it.
+    display_name: str
     product: str
     category: str
     segment: str
@@ -190,6 +196,7 @@ def load_products() -> tuple[Product, ...]:
         products[code] = Product(
             hs6=code,
             description=(row.get("description") or "").strip(),
+            display_name=(row.get("display_name") or "").strip(),
             product=(row.get("product") or "").strip(),
             category=(row.get("category") or "").strip(),
             segment=(row.get("segment") or "").strip(),
@@ -210,6 +217,17 @@ def load_products() -> tuple[Product, ...]:
 
     if not products:
         raise SystemExit(f"{DEFINITION_CSV.name} contains no HS codes")
+
+    # A code with no display_name is a code a reader cannot tell apart from its
+    # neighbours. That was the old failure mode - 65 labels shared by 235 codes
+    # - so it fails the build rather than falling back to the family name.
+    unnamed = [code for code, item in products.items() if not item.display_name]
+
+    if unnamed:
+        raise SystemExit(
+            f"{DEFINITION_CSV.name}: {len(unnamed)} codes have no "
+            f"display_name ({', '.join(sorted(unnamed)[:8])})"
+        )
 
     return tuple(products[code] for code in sorted(products))
 

@@ -278,6 +278,130 @@ def main():
             "classification status; rebuild the data to apply it"
         )
 
+    # --- every code must be identifiable, and identifiable as ITSELF -----
+    #
+    # 418 codes once shared 248 labels: "Cables" covered eight, "Battery Pack"
+    # seven, "Lamps" ten. A reader could not tell which line a card belonged
+    # to, and neither could a reviewer checking one against the official text.
+
+    # Same rule as the retirement checks above and the QA gate before them:
+    # code reaches the site on push and the snapshot is rebuilt afterwards, so
+    # in between this build runs against a snapshot that predates it. Firing
+    # here would block the push that makes the rebuild possible.
+    named = any("displayName" in entry for entry in six)
+
+    nameless = [
+        entry["code"]
+        for entry in six
+        if not (entry.get("displayName") or "").strip()
+    ]
+
+    if nameless and not named:
+        check.note(
+            f"{len(nameless)} products have no display name - expected until "
+            f"the data is rebuilt"
+        )
+    else:
+        check.require(
+            not nameless,
+            f"{len(nameless)} products have no display name: "
+            f"{', '.join(nameless[:10])}",
+        )
+
+    undescribed = [
+        entry["code"]
+        for entry in six
+        if not (entry.get("description") or "").strip()
+    ]
+
+    check.require(
+        not undescribed,
+        f"{len(undescribed)} products have no official description: "
+        f"{', '.join(undescribed[:10])}",
+    )
+
+    by_name: dict[str, list[str]] = {}
+
+    for entry in six:
+        key = (entry.get("displayName") or "").strip().lower()
+
+        if key:
+            by_name.setdefault(key, []).append(entry["code"])
+
+    shared = {name: codes for name, codes in by_name.items() if len(codes) > 1}
+
+    check.require(
+        not shared,
+        f"{len(shared)} display names are carried by more than one product: "
+        + "; ".join(
+            f"{name!r} -> {', '.join(codes)}"
+            for name, codes in list(shared.items())[:5]
+        ),
+    )
+
+    overlong = [
+        (entry["code"], entry["displayName"])
+        for entry in six
+        if len((entry.get("displayName") or "").split()) > 4
+    ]
+
+    check.require(
+        not overlong,
+        f"{len(overlong)} display names run past four words: "
+        + "; ".join(f"{code} {name!r}" for code, name in overlong[:5]),
+    )
+
+    if named:
+        check.note(
+            f"display names: {len(by_name)} distinct across {len(six)} products"
+        )
+    else:
+        check.note(
+            "this snapshot predates the display-name change; rebuild the data "
+            "to apply it"
+        )
+
+    # --- India's figure must be India's ----------------------------------
+    #
+    # The homepage tile used to show the world total under a heading about
+    # India's rank. India's value is the exact numerator its share was divided
+    # from, so the two must reconcile - if they ever stop, something is
+    # multiplying share by world again.
+
+    india_checked = india_bad = 0
+
+    for entry in six:
+        value = entry.get("indiaTradeValue")
+        world = entry.get("globalTrade")
+        share = entry.get("indiaShare")
+
+        if value is None or not world or share is None:
+            continue
+
+        india_checked += 1
+
+        if value > world:
+            check.problems.append(
+                f"{entry['code']}: India's value exceeds the world total "
+                f"({value} > {world})"
+            )
+            india_bad += 1
+            continue
+
+        implied = value / world
+
+        if abs(implied - share) > 0.002:
+            check.problems.append(
+                f"{entry['code']}: India's value does not reconcile with the "
+                f"published share ({implied:.4f} vs {share:.4f})"
+            )
+            india_bad += 1
+
+    check.note(
+        f"India values reconciled against published share: "
+        f"{india_checked - india_bad}/{india_checked}"
+    )
+
     # The point of the split: a genuinely broken product must not be able to
     # hide in the retired bucket, and a retired one must not be able to hide
     # in the active count.

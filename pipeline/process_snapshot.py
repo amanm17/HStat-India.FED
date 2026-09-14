@@ -660,6 +660,14 @@ def build_period(
         },
     }
 
+    # Published, but is it settled? Computed from what is already measured and
+    # attached only where there is something to say. Never withholds.
+    if publishable:
+        reasons = provisional_reasons(record["global"])
+
+        if reasons:
+            record["global"]["provisional"] = reasons
+
     if detailed:
         record["global"]["topEconomies"] = (
             result["importRank"]["top"]
@@ -915,6 +923,76 @@ def build_lineage(
 # ---------------------------------------------------------------------------
 
 
+# How thin a year's reporter base may get before the page says so. The
+# coverage gate has its own, lower floors and is untouched: this is a label,
+# not a verdict, and it never withholds a figure.
+PROVISIONAL_COUNT_RATIO = 0.85
+
+
+def provisional_reasons(record: dict) -> list[str]:
+    """
+    Why a published year may not be comparable with the one before it.
+
+    The gate asks one question - does this year still hold the economies that
+    mattered last year, on the import side. That is the right question for
+    "may this publish", and the wrong one for "is this settled". A year can
+    clear it and still be half filed: in 2025 the median product lost a third
+    of its reporters, China had not filed for 135 of the 303 products that
+    published, and a third of them import several times what the world exports,
+    which is not an economic fact but a reporting one. Importers file early and
+    the large Asian exporters file late.
+
+    Only evidence that the year is still FILLING IN counts here - reporters
+    that filed last year and have not filed this one. A mirror gap on its own
+    does not: settled years carry them too, from CIF/FOB valuation and genuine
+    reporting differences, and calling a 2019 figure provisional would be
+    wrong. Where the year is already known to be filling in, the mirror gap is
+    added because it corroborates and is the most legible symptom.
+
+    Nothing here changes what publishes.
+    """
+    coverage = record.get("coverage") or {}
+
+    reasons: list[str] = []
+
+    missing = coverage.get("missingPriorTop10") or []
+
+    if missing:
+        named = ", ".join(
+            item.get("reporterDesc") or item.get("reporterCode")
+            for item in missing[:3]
+        )
+        reasons.append(
+            f"{len(missing)} of last year's ten largest importers "
+            f"{'has' if len(missing) == 1 else 'have'} not filed yet: {named}"
+            + (" and others." if len(missing) > 3 else ".")
+        )
+
+    count_ratio = coverage.get("reporterCountRatio")
+
+    if count_ratio is not None and count_ratio < PROVISIONAL_COUNT_RATIO:
+        reasons.append(
+            f"Only {count_ratio * 100:.0f}% of last year's reporting economies "
+            f"have filed for this year."
+        )
+
+    if not reasons:
+        return []
+
+    mirror = record.get("mirror") or {}
+    ratio = mirror.get("ratio")
+
+    if mirror.get("status") == "WARNING" and ratio:
+        reasons.append(
+            f"World imports are {ratio:.2f} times world exports for this year. "
+            f"The two sides normally agree within a fifth, so one of them is "
+            f"still filling in - usually the export side, which large "
+            f"exporters file later."
+        )
+
+    return reasons
+
+
 def latest_benchmark(annual: dict, analysis_start: int):
     """
     Most recent analytical year whose reporter coverage passed.
@@ -926,7 +1004,8 @@ def latest_benchmark(annual: dict, analysis_start: int):
         (int(y) for y in annual if int(y) >= analysis_start),
         reverse=True,
     ):
-        record = annual[str(year)]["global"]
+        entry = annual[str(year)]
+        record = entry["global"]
 
         if record.get("coverage", {}).get("status") != "VALID":
             continue
@@ -942,6 +1021,17 @@ def latest_benchmark(annual: dict, analysis_start: int):
             "netReImports": True,
             "indiaRank": record.get("indiaRank"),
             "indiaShare": record.get("indiaShare"),
+
+            # India's own netted imports for this year - the exact numerator
+            # that indiaShare was divided from, not share x world. A tile about
+            # India's position should lead with India's number, and until now
+            # the only figure it had to show was the world total.
+            "indiaValue": (entry.get("india") or {}).get(
+                "importsNetReImports"
+            ),
+
+            # Present when this year is published but not yet settled.
+            "provisional": record.get("provisional"),
             "adjustmentCoverage": record["observed"].get("adjustmentCoverage"),
             "mirror": record.get("mirror"),
             "topEconomies": record.get("topEconomies", [])[
@@ -1202,6 +1292,7 @@ def build_node(
         "code": code,
         "hs6": code,
         "description": meta["description"],
+        "displayName": meta.get("displayName", ""),
         "product": meta.get("product", ""),
         "category": meta.get("category", ""),
         "segment": meta.get("segment", ""),
@@ -1272,10 +1363,12 @@ def node_meta(code: str, level: int, products: dict) -> dict:
         product = products.get(code)
 
         if product is None:
-            return {"description": "", "product": "", "category": ""}
+            return {"description": "", "displayName": "", "product": "", "category": ""}
 
         return {
             "description": product.description,
+            # The name on the card and the page heading.
+            "displayName": product.display_name,
             "product": product.product,
             "category": product.category,
             "segment": product.segment,
@@ -1296,6 +1389,9 @@ def node_meta(code: str, level: int, products: dict) -> dict:
         "product": ", ".join(
             sorted({item.product for item in members if item.product})[:3]
         ),
+        # A parent is a heading, not a product, so it keeps the official title
+        # rather than borrowing one of its members' names.
+        "displayName": "",
         "category": member_categories[0] if member_categories else "",
         "segment": "",
         "dgcisSegment": "",
@@ -1596,6 +1692,7 @@ def main():
                     else None
                 ),
                 "description": node["description"],
+                "displayName": node.get("displayName", ""),
                 "product": node["product"],
                 "category": node["category"],
                 "segment": node["segment"],
@@ -1618,6 +1715,19 @@ def main():
                     if node["globalTrade"]
                     else None
                 ),
+                # India's own netted imports in the benchmark year. The
+                # homepage tiles used to have only the world total to show.
+                "indiaTradeValue": (
+                    node["globalTrade"].get("indiaValue")
+                    if node["globalTrade"]
+                    else None
+                ),
+                # Published, but the year is still filling in.
+                "provisional": (
+                    node["globalTrade"].get("provisional")
+                    if node["globalTrade"]
+                    else None
+                ),
                 "indiaImports": latest.get("india", {}).get("imports"),
                 "indiaExports": latest.get("india", {}).get("exports"),
             }
@@ -1637,18 +1747,47 @@ def main():
                     "global trade = SUM over reporting economies of "
                     "(imports from World - re-imports filed by that reporter)"
                 ),
+                # These describe the code as written. Where the page offers a
+                # choice - gross or net - both sides of it are named here,
+                # because the figure on screen is not always the one the
+                # formula above produces.
                 "notes": [
-                    "Total imports as filed already include re-imports "
-                    "(M = FM + RM + MIP + MOP), so re-imported goods would "
-                    "otherwise be counted twice.",
-                    "Reporters that do not file RM separately are left "
-                    "unadjusted. Adjustment coverage reports the share of the "
-                    "world total that could be adjusted.",
+                    "GROSS IMPORTS are the world's imports exactly as filed: "
+                    "the sum of every reporting economy's imports from the "
+                    "World partner, with no adjustment. This is what the page "
+                    "shows by default, under \u2018As reported\u2019.",
+                    "RE-IMPORTS are goods returning to the economy that "
+                    "exported them, where that economy files them separately "
+                    "(flow RM). Total imports as filed already include them "
+                    "(M = FM + RM + MIP + MOP), so leaving them in counts the "
+                    "same goods twice.",
+                    "NET IMPORTS, shown under \u2018Net of re-imports\u2019, "
+                    "subtract them reporter by reporter - each economy's own "
+                    "re-imports come off its own imports, never off the world "
+                    "total in aggregate.",
+                    "A reporter that does not file RM separately is left "
+                    "unadjusted. Absent re-import data is treated as no "
+                    "adjustment, not as zero re-imports, and adjustment "
+                    "coverage reports the share of the world total that could "
+                    "be adjusted at all.",
+                    "Where a reporter files re-imports larger than its own "
+                    "imports, the adjustment is refused rather than allowed to "
+                    "produce a negative. Those reporters are counted as "
+                    "clamped and carried at their gross value.",
+                    "India's rank and share are computed on the NET table, "
+                    "whichever basis is on screen. India's own figure in the "
+                    "rank is likewise net of its re-imports.",
+                    "Reporter coverage is validated on the GROSS import table, "
+                    "before netting, by comparing a year with the one before "
+                    "it. No figure is published for a period that fails.",
+                    "Coverage looks only at the import side. A year can pass "
+                    "and still be filling in - where reporters that filed last "
+                    "year have not filed this one, the page says so beside the "
+                    "figure rather than withholding it.",
                     "The export side, net of re-exports, is computed as a "
-                    "mirror check. The published gap is the CIF/FOB and "
-                    "reporting difference between the two sides.",
-                    "No figure is published for a period whose reporter "
-                    "coverage failed validation.",
+                    "mirror check and never merged into the import league "
+                    "table. The published gap is the CIF/FOB and reporting "
+                    "difference between the two sides.",
                     "India's bilateral partner rows are gross: re-imports are "
                     "not filed by partner.",
                 ],

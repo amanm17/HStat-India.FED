@@ -303,7 +303,7 @@ def main():
         # thing a reader sees.
         keywords = dedupe(
             own_aliases
-            + [product.product]
+            + [product.display_name, product.product]
             + list(product.search_terms)
         )
 
@@ -324,16 +324,22 @@ def main():
 
         terms = dedupe(
             keywords
+            + words(product.display_name)
             + parent_aliases
             + [product.category, product.segment, product.dgcis_segment]
             + words(product.description)
         )
 
-        # The workbook label is often shared - eight codes under 8544 are
-        # all "Cables", which is no help when choosing between them. Where a
-        # curated term exists it is the distinguishing one, so it becomes
-        # the display label.
-        label = keywords[0] if own_aliases else product.product
+        # The display name is authored per code against the official HS text
+        # and is unique across the catalogue, so it is the canonical label.
+        # The curated aliases stay what they are - the colloquial vocabulary a
+        # reader searches with - and remain in `terms` rather than standing in
+        # for the name. Before display_name existed the label fell back to the
+        # workbook `product` column, where eight codes under 8544 were all
+        # "Cables" and the search result could not tell them apart.
+        label = product.display_name or (
+            keywords[0] if own_aliases else product.product
+        )
 
         records.append(
             {
