@@ -58,14 +58,23 @@ export type ComtradeDataset = {
 }
 
 /*
- * Note the casing: every parameter is camelCase except `reportercode`, which
- * the API spells in lower case. Getting it wrong silently returns every
- * reporter rather than the one asked for, which is the worst kind of wrong -
- * it still looks like an answer.
+ * Two ways to get this wrong, both of which still return something.
+ *
+ * CASING: every parameter is camelCase except `reportercode`, which the API
+ * spells in lower case. Spelled `reporterCode` it is ignored, and you get
+ * every reporter instead of the one you asked for.
+ *
+ * EMPTY IS NOT ABSENT: the official client builds its parameters and then
+ * drops every one whose value is None (PreviewGet.py: `fields = dict(filter(
+ * lambda item: item[1] is not None, PARAMS.items()))`). A world query has no
+ * reporter, so the key is omitted from the request entirely. Sending
+ * `reportercode=` instead is a different request - the API is being told the
+ * reporter is the empty string rather than not being told at all - and it
+ * does not answer it the same way.
  */
 export function comtradeParams(query: ComtradeQuery): Array<[string, string]> {
-  return [
-    ['reportercode', query.reporter ?? ''],
+  const pairs: Array<[string, string | undefined]> = [
+    ['reportercode', query.reporter],
     ['flowCode', query.flow],
     ['period', String(query.year)],
     ['cmdCode', query.code],
@@ -76,6 +85,81 @@ export function comtradeParams(query: ComtradeQuery): Array<[string, string]> {
     ['breakdownMode', 'classic'],
     ['includeDesc', 'True'],
   ]
+
+  return pairs.filter(
+    (pair): pair is [string, string] =>
+      pair[1] !== undefined && pair[1] !== '',
+  )
+}
+
+export type ComtradeRow = Record<string, unknown>
+
+export type ComtradeResult =
+  | { ok: true; rows: ComtradeRow[] }
+  | { ok: false; reason: string }
+
+/*
+ * Fetch one query and hand back its rows.
+ *
+ * This is a cross-origin request to a server we do not control, so it can
+ * fail in a way no amount of correctness on our side prevents: if UN Comtrade
+ * does not send the CORS headers, the browser refuses the response before the
+ * page ever sees it. That is not something to paper over with a fabricated
+ * file - the point of this panel is to hand over the actual source - so a
+ * refusal is reported as a refusal, and the query link remains.
+ */
+export async function fetchComtrade(
+  query: ComtradeQuery,
+): Promise<ComtradeResult> {
+  let response: Response
+
+  try {
+    response = await fetch(comtradeUrl(query), {
+      headers: { accept: 'application/json' },
+    })
+  } catch {
+    return {
+      ok: false,
+      reason:
+        'Your browser could not reach UN Comtrade directly. This is usually ' +
+        'a cross-origin restriction on their server rather than a fault in ' +
+        'the query. Open query still works, and Copy spec reproduces it in ' +
+        'Comtrade’s own interface.',
+    }
+  }
+
+  if (!response.ok) {
+    return {
+      ok: false,
+      reason: `UN Comtrade answered ${response.status} ${response.statusText}.`,
+    }
+  }
+
+  let payload: { data?: ComtradeRow[]; count?: number } | null = null
+
+  try {
+    payload = await response.json()
+  } catch {
+    return { ok: false, reason: 'UN Comtrade returned something that is not JSON.' }
+  }
+
+  const rows = payload?.data ?? []
+
+  if (!rows.length) {
+    return {
+      ok: false,
+      reason:
+        'UN Comtrade returned no rows for this query. The code may not have ' +
+        'been reported for this year.',
+    }
+  }
+
+  return { ok: true, rows }
+}
+
+/* A stable, self-describing file name: what, which flow, which year. */
+export function fileNameFor(dataset: ComtradeDataset): string {
+  return `comtrade-${dataset.query.code}-${dataset.query.year}-${dataset.id}`
 }
 
 export function comtradeUrl(query: ComtradeQuery): string {
@@ -103,7 +187,12 @@ export function comtradeSpec(query: ComtradeQuery): string {
     ['Mode of transport', '0 — TOTAL'],
   ]
 
-  return rows.map(([key, value]) => `${key}: ${value}`).join('\n')
+  return [
+    ...rows.map(([key, value]) => `${key}: ${value}`),
+    '',
+    'Direct URL (public, no key required):',
+    comtradeUrl(query),
+  ].join('\n')
 }
 
 export function flowLabel(flow: ComtradeFlow): string {

@@ -6093,3 +6093,55 @@ table.contribution tfoot th {
   white-space: normal;
   line-height: 1.3;
 }
+
+/* Pull Data: a real download first, the query link second. */
+.pulldata-primary {
+  padding: 5px 11px;
+
+  background: var(--navy);
+  border: 1px solid var(--navy);
+  border-radius: 7px;
+
+  color: var(--panel);
+
+  font-size: 10.5px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.pulldata-primary:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.pulldata-primary:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.pulldata-primary.wide {
+  width: 100%;
+  padding: 9px 12px;
+
+  font-size: 11.5px;
+}
+
+.pulldata-bundle {
+  margin-top: 12px;
+}
+
+/* A refusal from Comtrade is reported, never papered over with a file we
+   made up ourselves. */
+.pulldata-failed {
+  margin: 10px 0 0;
+  padding: 9px 11px;
+
+  background: var(--panel-soft);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+
+  color: var(--text);
+
+  font-size: 10.5px;
+  line-height: 1.5;
+}

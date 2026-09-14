@@ -42,6 +42,9 @@ import {
   comtradeSpec,
   comtradeUrl,
   datasetsFor,
+  fetchComtrade,
+  fileNameFor,
+  type ComtradeDataset,
 } from '../lib/comtrade'
 import {
   convertibleCount,
@@ -643,6 +646,9 @@ function PullData({
     [node.code, picked],
   )
 
+  const [busy, setBusy] = useState<string | null>(null)
+  const [failed, setFailed] = useState<string | null>(null)
+
   const copy = (id: string, text: string) => {
     navigator.clipboard?.writeText(text).then(
       () => {
@@ -650,6 +656,85 @@ function PullData({
         window.setTimeout(() => setCopied(null), 1600)
       },
       () => setCopied(null),
+    )
+  }
+
+  /* One flow, straight to a CSV the reader can open in Excel. */
+  const downloadOne = async (dataset: ComtradeDataset) => {
+    setBusy(dataset.id)
+    setFailed(null)
+
+    const result = await fetchComtrade(dataset.query)
+
+    setBusy(null)
+
+    if (!result.ok) {
+      setFailed(result.reason)
+      return
+    }
+
+    downloadCsv(fileNameFor(dataset), result.rows, {
+      title: `${dataset.label} — HS ${dataset.query.code}, ${dataset.query.year}`,
+      source: 'UN Comtrade public preview API',
+      notes: [
+        comtradeUrl(dataset.query),
+        'Rows exactly as returned by UN Comtrade. Nothing added, removed or recomputed.',
+      ],
+    })
+  }
+
+  /*
+   * All four flows in one workbook, a sheet each, with the queries that
+   * produced them on an About sheet. This is the "source bundle": everything
+   * the published figure was built from, in one file, without a key.
+   */
+  const downloadAll = async () => {
+    setBusy('all')
+    setFailed(null)
+
+    const results = await Promise.all(
+      datasets.map(async item => ({
+        item,
+        result: await fetchComtrade(item.query),
+      })),
+    )
+
+    setBusy(null)
+
+    const good = results.filter(entry => entry.result.ok)
+
+    if (!good.length) {
+      const first = results.find(entry => !entry.result.ok)
+      setFailed(
+        first && !first.result.ok
+          ? first.result.reason
+          : 'UN Comtrade returned nothing for any of the four queries.',
+      )
+      return
+    }
+
+    downloadXlsx(
+      `comtrade-${node.code}-${picked}-sources`,
+      Object.fromEntries(
+        good.map(entry => [
+          entry.item.label,
+          (entry.result as { ok: true; rows: Record<string, unknown>[] }).rows,
+        ]),
+      ),
+      {
+        title: `UN Comtrade source rows — HS ${node.code}, ${picked}`,
+        source: 'UN Comtrade public preview API',
+        notes: [
+          ...datasets.map(item => `${item.label}: ${comtradeUrl(item.query)}`),
+          'Rows exactly as returned by UN Comtrade. Nothing added, removed or recomputed.',
+          ...(good.length < datasets.length
+            ? [
+                `${datasets.length - good.length} of the four queries returned ` +
+                  `nothing and are not in this workbook.`,
+              ]
+            : []),
+        ],
+      },
     )
   }
 
@@ -679,10 +764,10 @@ function PullData({
           </div>
 
           <p className="pulldata-lede">
-            The four requests behind HS {node.code}. Each opens the public UN
-            Comtrade query for that flow — no key, no account. Imports and
-            re-imports are separate because the published figure is the first
-            minus the second.
+            The four requests behind HS {node.code}, from UN Comtrade&rsquo;s
+            public API — no key, no account. Imports and re-imports are
+            separate because the published figure is the first minus the
+            second.
           </p>
 
           {retired && (
@@ -743,12 +828,21 @@ function PullData({
                   </div>
 
                   <div className="pulldata-actions">
+                    <button
+                      type="button"
+                      className="pulldata-primary"
+                      disabled={busy !== null}
+                      onClick={() => downloadOne(item)}
+                    >
+                      {busy === item.id ? 'Fetching…' : 'CSV'}
+                    </button>
+
                     <a
                       href={comtradeUrl(item.query)}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      Open query
+                      Open
                     </a>
 
                     <button
@@ -764,13 +858,33 @@ function PullData({
             ))}
           </ul>
 
+          <div className="pulldata-bundle">
+            <button
+              type="button"
+              className="pulldata-primary wide"
+              disabled={busy !== null}
+              onClick={downloadAll}
+            >
+              {busy === 'all'
+                ? 'Fetching all four…'
+                : `Download all four as one workbook (${picked})`}
+            </button>
+          </div>
+
+          {failed && (
+            <p className="pulldata-failed">
+              {failed}
+            </p>
+          )}
+
           <p className="pulldata-foot">
-            The preview endpoint returns at most {PREVIEW_RECORD_CAP} rows,
-            which covers a world-partner year comfortably — one row per
-            reporting economy. The copied spec includes the pinned aggregate
-            dimensions (partner 0, customs C00, mode 0); without them Comtrade
-            also returns the breakdowns of the same trade and summing what
-            comes back double counts it.{' '}
+            Downloads are the rows exactly as UN Comtrade returns them —
+            nothing added, removed or recomputed here. The endpoint caps at{' '}
+            {PREVIEW_RECORD_CAP} rows, which covers a world-partner year
+            comfortably at one row per reporting economy. Every query pins the
+            aggregate dimensions (partner 0, customs C00, mode 0); without them
+            Comtrade also returns the breakdowns of the same trade, and summing
+            what comes back double counts it.{' '}
             <a href={COMTRADE_PORTAL} target="_blank" rel="noopener noreferrer">
               UN Comtrade
             </a>{' '}
