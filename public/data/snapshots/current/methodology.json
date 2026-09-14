@@ -6,10 +6,15 @@
     "statement": "Sum of every reporting economy's imports from the World, less re-imports where the reporter files them separately. Valuation is CIF. The export side, net of re-exports, is computed as a mirror check and published as a reconciliation gap.",
     "formula": "global trade = SUM over reporting economies of (imports from World - re-imports filed by that reporter)",
     "notes": [
-      "Total imports as filed already include re-imports (M = FM + RM + MIP + MOP), so re-imported goods would otherwise be counted twice.",
-      "Reporters that do not file RM separately are left unadjusted. Adjustment coverage reports the share of the world total that could be adjusted.",
-      "The export side, net of re-exports, is computed as a mirror check. The published gap is the CIF/FOB and reporting difference between the two sides.",
-      "No figure is published for a period whose reporter coverage failed validation.",
+      "GROSS IMPORTS are the world's imports exactly as filed: the sum of every reporting economy's imports from the World partner, with no adjustment. This is what the page shows by default, under ‘As reported’.",
+      "RE-IMPORTS are goods returning to the economy that exported them, where that economy files them separately (flow RM). Total imports as filed already include them (M = FM + RM + MIP + MOP), so leaving them in counts the same goods twice.",
+      "NET IMPORTS, shown under ‘Net of re-imports’, subtract them reporter by reporter - each economy's own re-imports come off its own imports, never off the world total in aggregate.",
+      "A reporter that does not file RM separately is left unadjusted. Absent re-import data is treated as no adjustment, not as zero re-imports, and adjustment coverage reports the share of the world total that could be adjusted at all.",
+      "Where a reporter files re-imports larger than its own imports, the adjustment is refused rather than allowed to produce a negative. Those reporters are counted as clamped and carried at their gross value.",
+      "India's rank and share are computed on the NET table, whichever basis is on screen. India's own figure in the rank is likewise net of its re-imports.",
+      "Reporter coverage is validated on the GROSS import table, before netting, by comparing a year with the one before it. No figure is published for a period that fails.",
+      "Coverage looks only at the import side. A year can pass and still be filling in - where reporters that filed last year have not filed this one, the page says so beside the figure rather than withholding it.",
+      "The export side, net of re-exports, is computed as a mirror check and never merged into the import league table. The published gap is the CIF/FOB and reporting difference between the two sides.",
       "India's bilateral partner rows are gross: re-imports are not filed by partner."
     ]
   },
