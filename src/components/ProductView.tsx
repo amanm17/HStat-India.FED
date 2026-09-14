@@ -36,11 +36,7 @@ import {
   usd,
   nameOf,
 } from '../lib/format'
-import {
-  COMTRADE_QUERY_PAGE,
-  comtradeUrl,
-  datasetsFor,
-} from '../lib/comtrade'
+import { comtradeQueryUrl, datasetsFor } from '../lib/comtrade'
 import {
   convertibleCount,
   defaultFinancialYear,
@@ -585,18 +581,19 @@ function GlobalTradeCard({
  * genuinely continuous.
  */
 /*
- * Source data — the four UN Comtrade requests behind this page.
+ * Source data — the four UN Comtrade queries behind this page.
  *
  * Imports against re-imports, the world against India. The published figure
  * is world imports minus world re-imports and India's position comes from the
  * other two, so all four are listed separately: a reader checking the
  * arithmetic needs both sides of the subtraction, not one merged link.
  *
- * Each opens Comtrade's public preview endpoint, which needs no key. It
- * answers with JSON; the query page at the foot runs the same selection in
- * Comtrade's own interface, where the result can be downloaded. A download
- * built here is not possible - Comtrade sends no CORS headers, so the browser
- * discards the response before this page can read it.
+ * Each link opens Comtrade's own query page with the selection already made.
+ * Two earlier attempts are worth recording so they are not repeated: fetching
+ * Comtrade from this page to build a CSV is refused outright (no CORS
+ * headers, so the browser discards the response), and linking to the public
+ * API returned the right rows but as JSON, which the browser saved as an
+ * extensionless file named "HS" that nothing opens.
  */
 function PullData({
   node,
@@ -729,7 +726,7 @@ function PullData({
                 <span className="pulldata-note">{item.note}</span>
 
                 <a
-                  href={comtradeUrl(item.query)}
+                  href={comtradeQueryUrl(item.query)}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -740,16 +737,9 @@ function PullData({
           </ul>
 
           <p className="pulldata-foot">
-            These return the rows as data. For a spreadsheet, run the same
-            selection on{' '}
-            <a
-              href={COMTRADE_QUERY_PAGE}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              UN Comtrade’s query page
-            </a>{' '}
-            and download it there.
+            Each opens UN Comtrade with the selection already made — commodity,
+            year, flow, reporter and World as the partner — where the result
+            can be read and downloaded.
           </p>
         </div>
       )}

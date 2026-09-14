@@ -1,23 +1,38 @@
 /*
- * The four UN Comtrade requests behind a published figure.
+ * The four UN Comtrade queries behind a published figure.
  *
  * Two dimensions, four combinations: imports against re-imports, and the
  * world against India. The published figure is world imports minus world
  * re-imports, and India's rank and share come from the other two, so all four
- * are needed to check the arithmetic and they are never merged into one link.
+ * are offered separately - a reader checking the arithmetic needs both sides
+ * of the subtraction, not one merged link.
  *
- * These open UN Comtrade's public preview endpoint - the one the official
- * comtradeapicall package falls back to when no subscription key is supplied.
- * No key, no account. It answers with JSON; for a spreadsheet, the query page
- * linked at the foot of the panel runs the same selection and downloads the
- * result.
+ * THE TEMPLATE IS COPIED, NOT INFERRED
+ *
+ * Every parameter below was taken from a working URL lifted out of Comtrade's
+ * own address bar at the download step:
+ *
+ *   https://comtradeplus.un.org/TradeFlow?Type=C&Frequency=A&Classification=HS
+ *     &Period=2020&Reporters=all&Partners=0&CommodityCodes=830120&Flows=M
+ *     &Customs=C00&ModeOfTransport=0&secondPartner=0&AggregateBy=NONE
+ *     &BreakdownMode=plus
+ *
+ * Name, order, casing and values are reproduced exactly; only Period,
+ * CommodityCodes, Flows and Reporters vary. That matters more than it looks.
+ * An earlier version of this file guessed at the shape and got it wrong in
+ * seven ways at once - it dropped Type, Classification, Customs,
+ * ModeOfTransport and secondPartner, spelled Period in lower case, and sent
+ * AggregateBy=none where the page wants NONE. The page does not complain
+ * about any of that. It just does not arrive where it was asked to.
+ *
+ * So: if this ever needs changing, change it the same way. Build the query by
+ * hand on Comtrade, go as far as the download, copy the URL out of the
+ * address bar, and template that. Do not reason about what the parameters
+ * ought to be called.
  */
 
-export const COMTRADE_PREVIEW_BASE =
-  'https://comtradeapi.un.org/public/v1/preview/C/A/HS'
-
-/* UN Comtrade's free query page, where a selection can be run and the result
- * downloaded. Not /BulkFiles - that tier is a paid subscription. */
+/* UN Comtrade's query page. Not /BulkFiles - that tier is a paid
+ * subscription. */
 export const COMTRADE_QUERY_PAGE = 'https://comtradeplus.un.org/TradeFlow'
 
 /* Comtrade's own reporter code for India. */
@@ -29,7 +44,7 @@ export type ComtradeQuery = {
   code: string
   year: number
   flow: ComtradeFlow
-  /* Absent means every reporting economy, which is what a world total is. */
+  /* 'all' is every reporting economy, which is what a world total is. */
   reporter?: string
 }
 
@@ -41,44 +56,34 @@ export type ComtradeDataset = {
 }
 
 /*
- * Two ways to get this wrong, both of which still return something.
- *
- * CASING: every parameter is camelCase except `reportercode`, which the API
- * spells in lower case. Spelled `reporterCode` it is ignored and you get every
- * reporter instead of the one you asked for.
- *
- * EMPTY IS NOT ABSENT: the official client drops every parameter whose value
- * is None before sending (PreviewGet.py: `fields = dict(filter(lambda item:
- * item[1] is not None, PARAMS.items()))`). A world query has no reporter, so
- * the key is omitted entirely. Sending `reportercode=` instead tells the API
- * the reporter is the empty string rather than not telling it at all, and it
- * does not answer that the same way.
- *
- * partner2Code, customsCode and motCode pin the request to a single aggregate
- * row. Without them Comtrade also returns the second-partner, customs and
- * mode-of-transport breakdowns of the same trade, and summing what comes back
- * counts it more than once.
+ * Customs=C00, ModeOfTransport=0 and secondPartner=0 are the same aggregate
+ * pins the pipeline itself uses when it pulls this data. Left off, Comtrade
+ * returns the customs-procedure, mode-of-transport and second-partner
+ * breakdowns of the same trade, and adding up what comes back counts it more
+ * than once. They are not optional decoration, here or there.
  */
-export function comtradeUrl(query: ComtradeQuery): string {
-  const pairs: Array<[string, string | undefined]> = [
-    ['reportercode', query.reporter],
-    ['flowCode', query.flow],
-    ['period', String(query.year)],
-    ['cmdCode', query.code],
-    ['partnerCode', '0'],
-    ['partner2Code', '0'],
-    ['customsCode', 'C00'],
-    ['motCode', '0'],
-    ['breakdownMode', 'classic'],
-    ['includeDesc', 'True'],
+export function comtradeQueryUrl(query: ComtradeQuery): string {
+  const params: Array<[string, string]> = [
+    ['Type', 'C'],
+    ['Frequency', 'A'],
+    ['Classification', 'HS'],
+    ['Period', String(query.year)],
+    ['Reporters', query.reporter ?? 'all'],
+    ['Partners', '0'],
+    ['CommodityCodes', query.code],
+    ['Flows', query.flow],
+    ['Customs', 'C00'],
+    ['ModeOfTransport', '0'],
+    ['secondPartner', '0'],
+    ['AggregateBy', 'NONE'],
+    ['BreakdownMode', 'plus'],
   ]
 
-  const search = pairs
-    .filter((pair): pair is [string, string] => !!pair[1])
+  const search = params
     .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
     .join('&')
 
-  return `${COMTRADE_PREVIEW_BASE}?${search}`
+  return `${COMTRADE_QUERY_PAGE}?${search}`
 }
 
 export function datasetsFor(code: string, year: number): ComtradeDataset[] {
