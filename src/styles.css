@@ -5942,8 +5942,8 @@ table.contribution tfoot th {
   top: calc(100% + 8px);
   right: 0;
 
-  width: min(460px, calc(100vw - 32px));
-  padding: 14px 15px;
+  width: min(440px, calc(100vw - 32px));
+  padding: 15px 16px;
 
   background: var(--panel);
   border: 1px solid var(--border-strong);
@@ -5957,44 +5957,45 @@ table.contribution tfoot th {
   justify-content: space-between;
   gap: 12px;
 
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+}
+
+/* .linklike is `font: inherit`, so in a panel whose text is larger it came
+   out bigger than the controls beside it. Pinned. */
+.pulldata-panel .linklike {
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.pulldata-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  margin-bottom: 12px;
 }
 
 .pulldata-lede,
 .pulldata-foot,
 .pulldata-warn {
-  margin: 0 0 10px;
+  margin: 0;
 
   color: var(--muted);
 
-  font-size: 11px;
+  font-size: 11.5px;
   line-height: 1.55;
 }
 
-.pulldata-warn {
-  padding: 9px 11px;
-
-  background: var(--panel-soft);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-}
-
-.pulldata-foot {
-  margin: 10px 0 0;
-  padding-top: 9px;
-
-  border-top: 1px solid var(--border);
-
-  color: var(--faint);
-  font-size: 10.5px;
+.pulldata-lede {
+  flex: 1 1 200px;
 }
 
 .pulldata-year {
   display: flex;
   align-items: center;
-  gap: 8px;
-
-  margin-bottom: 10px;
+  gap: 7px;
 }
 
 .pulldata-year label {
@@ -6006,33 +6007,45 @@ table.contribution tfoot th {
   text-transform: uppercase;
 }
 
+.pulldata-warn {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+
+  background: var(--panel-soft);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+/*
+ * One grid for all four rows.
+ *
+ * The rows used to lay themselves out individually, so a short note left the
+ * link inline and a long one pushed it onto the next line - four rows meant
+ * to be identical that were not. Fixed columns mean the note can be any
+ * length and the link never moves.
+ */
 .pulldata-list {
   margin: 0;
   padding: 0;
+
+  border-top: 1px solid var(--border);
 
   list-style: none;
 }
 
 .pulldata-list li {
-  padding: 9px 0;
+  display: grid;
+  align-items: baseline;
+  grid-template-columns: 1fr auto;
+  gap: 2px 14px;
+
+  padding: 10px 0;
 
   border-bottom: 1px solid var(--border);
 }
 
-.pulldata-list li:last-child {
-  border-bottom: 0;
-}
-
-.pulldata-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.pulldata-row strong {
-  display: block;
+.pulldata-name {
+  grid-column: 1;
 
   color: var(--text);
 
@@ -6040,10 +6053,8 @@ table.contribution tfoot th {
   font-weight: 700;
 }
 
-.pulldata-row small {
-  display: block;
-  max-width: 46ch;
-  margin-top: 2px;
+.pulldata-note {
+  grid-column: 1;
 
   color: var(--faint);
 
@@ -6051,24 +6062,40 @@ table.contribution tfoot th {
   line-height: 1.45;
 }
 
-.pulldata-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.pulldata-list a {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
 
-  white-space: nowrap;
-}
+  padding: 6px 14px;
 
-.pulldata-actions a {
-  color: var(--blue);
+  background: var(--panel-soft);
+  border: 1px solid var(--border-strong);
+  border-radius: 7px;
+
+  color: var(--text);
 
   font-size: 11px;
   font-weight: 700;
   text-decoration: none;
+  white-space: nowrap;
 }
 
-.pulldata-actions a:hover {
-  text-decoration: underline;
+.pulldata-list a:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.pulldata-foot {
+  margin-top: 11px;
+
+  color: var(--faint);
+  font-size: 10.5px;
+}
+
+.pulldata-foot a {
+  color: var(--blue);
+  font-weight: 700;
 }
 
 @media (max-width: 620px) {
@@ -6092,56 +6119,4 @@ table.contribution tfoot th {
   text-overflow: clip;
   white-space: normal;
   line-height: 1.3;
-}
-
-/* Pull Data: a real download first, the query link second. */
-.pulldata-primary {
-  padding: 5px 11px;
-
-  background: var(--navy);
-  border: 1px solid var(--navy);
-  border-radius: 7px;
-
-  color: var(--panel);
-
-  font-size: 10.5px;
-  font-weight: 700;
-
-  cursor: pointer;
-}
-
-.pulldata-primary:hover:not(:disabled) {
-  opacity: 0.88;
-}
-
-.pulldata-primary:disabled {
-  cursor: default;
-  opacity: 0.45;
-}
-
-.pulldata-primary.wide {
-  width: 100%;
-  padding: 9px 12px;
-
-  font-size: 11.5px;
-}
-
-.pulldata-bundle {
-  margin-top: 12px;
-}
-
-/* A refusal from Comtrade is reported, never papered over with a file we
-   made up ourselves. */
-.pulldata-failed {
-  margin: 10px 0 0;
-  padding: 9px 11px;
-
-  background: var(--panel-soft);
-  border: 1px solid var(--border-strong);
-  border-radius: 8px;
-
-  color: var(--text);
-
-  font-size: 10.5px;
-  line-height: 1.5;
 }

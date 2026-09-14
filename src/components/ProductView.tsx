@@ -37,14 +37,9 @@ import {
   nameOf,
 } from '../lib/format'
 import {
-  COMTRADE_PORTAL,
-  PREVIEW_RECORD_CAP,
-  comtradeSpec,
+  COMTRADE_QUERY_PAGE,
   comtradeUrl,
   datasetsFor,
-  fetchComtrade,
-  fileNameFor,
-  type ComtradeDataset,
 } from '../lib/comtrade'
 import {
   convertibleCount,
@@ -590,18 +585,18 @@ function GlobalTradeCard({
  * genuinely continuous.
  */
 /*
- * Pull data — the source rows behind whatever is on screen.
+ * Source data — the four UN Comtrade requests behind this page.
  *
- * Four links, one per request the pipeline makes, pre-filled with this page's
- * code and the selected year. No key, no login, no server of ours in between:
- * each one opens the public UN Comtrade preview endpoint and returns the same
- * rows the published figure was summed from.
+ * Imports against re-imports, the world against India. The published figure
+ * is world imports minus world re-imports and India's position comes from the
+ * other two, so all four are listed separately: a reader checking the
+ * arithmetic needs both sides of the subtraction, not one merged link.
  *
- * It deliberately does not offer a CSV or a zip. The only no-key endpoint
- * Comtrade publishes returns JSON and nothing else, so a download button here
- * would either need a key we cannot put in a browser or would be a file we
- * made up ourselves and labelled as the source. A link that goes to the real
- * thing is worth more than a file that claims to be it.
+ * Each opens Comtrade's public preview endpoint, which needs no key. It
+ * answers with JSON; the query page at the foot runs the same selection in
+ * Comtrade's own interface, where the result can be downloaded. A download
+ * built here is not possible - Comtrade sends no CORS headers, so the browser
+ * discards the response before this page can read it.
  */
 function PullData({
   node,
@@ -613,15 +608,13 @@ function PullData({
   onOpen?: (code: string, level: 2 | 4 | 6) => void
 }) {
   const [open, setOpen] = useState(false)
-  const [copied, setCopied] = useState<string | null>(null)
 
   const retired = node.lineage?.retired ?? null
 
   /*
-   * A retired code must not hand a reader a link to a year it did not exist
-   * in. Comtrade will answer - a few economies keep filing under dead numbers
-   * for years - and the answer would look like data rather than the residue
-   * it is. So the year list stops where the nomenclature stopped.
+   * A retired code must not offer a year it did not exist in. Comtrade will
+   * answer - a few economies keep filing under dead numbers for years - and
+   * the answer would look like data rather than the residue it is.
    */
   const years = useMemo(() => {
     const all = [...node.years].map(Number).sort((a, b) => b - a)
@@ -646,98 +639,6 @@ function PullData({
     [node.code, picked],
   )
 
-  const [busy, setBusy] = useState<string | null>(null)
-  const [failed, setFailed] = useState<string | null>(null)
-
-  const copy = (id: string, text: string) => {
-    navigator.clipboard?.writeText(text).then(
-      () => {
-        setCopied(id)
-        window.setTimeout(() => setCopied(null), 1600)
-      },
-      () => setCopied(null),
-    )
-  }
-
-  /* One flow, straight to a CSV the reader can open in Excel. */
-  const downloadOne = async (dataset: ComtradeDataset) => {
-    setBusy(dataset.id)
-    setFailed(null)
-
-    const result = await fetchComtrade(dataset.query)
-
-    setBusy(null)
-
-    if (!result.ok) {
-      setFailed(result.reason)
-      return
-    }
-
-    downloadCsv(fileNameFor(dataset), result.rows, {
-      title: `${dataset.label} — HS ${dataset.query.code}, ${dataset.query.year}`,
-      source: 'UN Comtrade public preview API',
-      notes: [
-        comtradeUrl(dataset.query),
-        'Rows exactly as returned by UN Comtrade. Nothing added, removed or recomputed.',
-      ],
-    })
-  }
-
-  /*
-   * All four flows in one workbook, a sheet each, with the queries that
-   * produced them on an About sheet. This is the "source bundle": everything
-   * the published figure was built from, in one file, without a key.
-   */
-  const downloadAll = async () => {
-    setBusy('all')
-    setFailed(null)
-
-    const results = await Promise.all(
-      datasets.map(async item => ({
-        item,
-        result: await fetchComtrade(item.query),
-      })),
-    )
-
-    setBusy(null)
-
-    const good = results.filter(entry => entry.result.ok)
-
-    if (!good.length) {
-      const first = results.find(entry => !entry.result.ok)
-      setFailed(
-        first && !first.result.ok
-          ? first.result.reason
-          : 'UN Comtrade returned nothing for any of the four queries.',
-      )
-      return
-    }
-
-    downloadXlsx(
-      `comtrade-${node.code}-${picked}-sources`,
-      Object.fromEntries(
-        good.map(entry => [
-          entry.item.label,
-          (entry.result as { ok: true; rows: Record<string, unknown>[] }).rows,
-        ]),
-      ),
-      {
-        title: `UN Comtrade source rows — HS ${node.code}, ${picked}`,
-        source: 'UN Comtrade public preview API',
-        notes: [
-          ...datasets.map(item => `${item.label}: ${comtradeUrl(item.query)}`),
-          'Rows exactly as returned by UN Comtrade. Nothing added, removed or recomputed.',
-          ...(good.length < datasets.length
-            ? [
-                `${datasets.length - good.length} of the four queries returned ` +
-                  `nothing and are not in this workbook.`,
-              ]
-            : []),
-        ],
-      },
-    )
-  }
-
   if (node.level !== 6) return null
 
   return (
@@ -747,35 +648,50 @@ function PullData({
         className="stack-add"
         aria-expanded={open}
         onClick={() => setOpen(value => !value)}
-        title="Open the UN Comtrade rows behind this page"
+        title="The UN Comtrade rows behind this page"
       >
         <Download size={15} />
-        Pull data
+        Source data
       </button>
 
       {open && (
         <div className="pulldata-panel">
           <div className="pulldata-head">
-            <span className="eyebrow">SOURCE ROWS · UN COMTRADE</span>
+            <span className="eyebrow">SOURCE DATA · UN COMTRADE</span>
 
             <button className="linklike" onClick={() => setOpen(false)}>
               Close
             </button>
           </div>
 
-          <p className="pulldata-lede">
-            The four requests behind HS {node.code}, from UN Comtrade&rsquo;s
-            public API — no key, no account. Imports and re-imports are
-            separate because the published figure is the first minus the
-            second.
-          </p>
+          <div className="pulldata-top">
+            <p className="pulldata-lede">
+              The four requests behind HS {node.code}. No key, no account.
+            </p>
+
+            <div className="pulldata-year">
+              <label htmlFor="pull-year">Year</label>
+
+              <select
+                id="pull-year"
+                value={picked}
+                onChange={event => setPicked(Number(event.target.value))}
+              >
+                {years.map(item => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
 
           {retired && (
             <p className="pulldata-warn">
               HS {node.code} left the Harmonized System in the HS{' '}
-              {retired.revision} revision. Years after {retired.validTo} are
-              not offered: a handful of economies keep filing under the old
-              number and those rows are residue, not a world total.
+              {retired.revision} revision and years after {retired.validTo} are
+              not offered: a few economies keep filing under the old number and
+              those rows are residue, not a world total.
               {retired.successors.length > 0 && (
                 <>
                   {' '}
@@ -802,93 +718,38 @@ function PullData({
             </p>
           )}
 
-          <div className="pulldata-year">
-            <label htmlFor="pull-year">Year</label>
-
-            <select
-              id="pull-year"
-              value={picked}
-              onChange={event => setPicked(Number(event.target.value))}
-            >
-              {years.map(item => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </div>
-
+          {/* One grid, so every row is the same shape whatever the note
+              says. The old panel let each row lay itself out and they came
+              out differently. */}
           <ul className="pulldata-list">
             {datasets.map(item => (
               <li key={item.id}>
-                <div className="pulldata-row">
-                  <div>
-                    <strong>{item.label}</strong>
-                    <small>{item.note}</small>
-                  </div>
+                <span className="pulldata-name">{item.label}</span>
 
-                  <div className="pulldata-actions">
-                    <button
-                      type="button"
-                      className="pulldata-primary"
-                      disabled={busy !== null}
-                      onClick={() => downloadOne(item)}
-                    >
-                      {busy === item.id ? 'Fetching…' : 'CSV'}
-                    </button>
+                <span className="pulldata-note">{item.note}</span>
 
-                    <a
-                      href={comtradeUrl(item.query)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Open
-                    </a>
-
-                    <button
-                      type="button"
-                      className="linklike"
-                      onClick={() => copy(item.id, comtradeSpec(item.query))}
-                    >
-                      {copied === item.id ? 'Copied' : 'Copy spec'}
-                    </button>
-                  </div>
-                </div>
+                <a
+                  href={comtradeUrl(item.query)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Open
+                </a>
               </li>
             ))}
           </ul>
 
-          <div className="pulldata-bundle">
-            <button
-              type="button"
-              className="pulldata-primary wide"
-              disabled={busy !== null}
-              onClick={downloadAll}
-            >
-              {busy === 'all'
-                ? 'Fetching all four…'
-                : `Download all four as one workbook (${picked})`}
-            </button>
-          </div>
-
-          {failed && (
-            <p className="pulldata-failed">
-              {failed}
-            </p>
-          )}
-
           <p className="pulldata-foot">
-            Downloads are the rows exactly as UN Comtrade returns them —
-            nothing added, removed or recomputed here. The endpoint caps at{' '}
-            {PREVIEW_RECORD_CAP} rows, which covers a world-partner year
-            comfortably at one row per reporting economy. Every query pins the
-            aggregate dimensions (partner 0, customs C00, mode 0); without them
-            Comtrade also returns the breakdowns of the same trade, and summing
-            what comes back double counts it.{' '}
-            <a href={COMTRADE_PORTAL} target="_blank" rel="noopener noreferrer">
-              UN Comtrade
+            These return the rows as data. For a spreadsheet, run the same
+            selection on{' '}
+            <a
+              href={COMTRADE_QUERY_PAGE}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              UN Comtrade’s query page
             </a>{' '}
-            is the source for everything on this page.
+            and download it there.
           </p>
         </div>
       )}
