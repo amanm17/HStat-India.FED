@@ -5757,3 +5757,339 @@ table.contribution tfoot th {
   line-height: 1.5;
   color: var(--muted);
 }
+
+/* ---------------------------------------------------------
+   FRONT PAGE: finished goods against components, and a tile
+   that leads with India's own number rather than the world's
+   --------------------------------------------------------- */
+
+.home-segment {
+  margin-top: 18px;
+}
+
+.home-segment:first-of-type {
+  margin-top: 10px;
+}
+
+.home-segment-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+
+  margin-bottom: 10px;
+  padding-bottom: 7px;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.home-segment-head h3 {
+  margin: 0;
+
+  color: var(--text);
+
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.home-segment-head span {
+  color: var(--faint);
+
+  font-size: 11px;
+}
+
+.home-cat-open-side {
+  margin-left: 8px;
+
+  color: var(--faint);
+
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* The rank column carries its own caption so "1st" cannot be read as
+   anything other than India's position among importers. */
+.home-list-india .home-rank {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.home-list-india .home-rank small {
+  color: var(--faint);
+
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* India's figure leads; the world total it is a share of sits under it, in
+   smaller type, explicitly labelled. */
+.home-list-money {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+
+  text-align: right;
+  white-space: nowrap;
+}
+
+.home-list-money strong {
+  color: var(--text);
+
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.home-list-money small {
+  color: var(--muted);
+
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.home-list-money em {
+  color: var(--faint);
+
+  font-size: 10.5px;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 620px) {
+  .home-list-money {
+    align-items: flex-start;
+    text-align: left;
+  }
+}
+
+/* ---------------------------------------------------------
+   A published year that is not yet a settled one, and the
+   source links behind whatever is on screen
+   --------------------------------------------------------- */
+
+/* Deliberately not an error colour. Nothing has failed and nothing is
+   withheld: the figure is exactly as filed, and this says how much of the
+   year has arrived. */
+.provisional-note {
+  margin: 12px 0 4px;
+  padding: 11px 13px;
+
+  background: var(--panel-soft);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border-strong);
+  border-radius: 8px;
+}
+
+.provisional-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 9px;
+
+  margin-bottom: 6px;
+
+  color: var(--text);
+
+  font-size: 11.5px;
+}
+
+.provisional-badge {
+  padding: 2px 7px;
+
+  background: var(--panel);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+
+  color: var(--navy);
+
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  white-space: nowrap;
+}
+
+.provisional-note ul {
+  margin: 0;
+  padding-left: 17px;
+}
+
+.provisional-note li {
+  margin-bottom: 3px;
+
+  color: var(--muted);
+
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.pulldata {
+  position: relative;
+}
+
+.pulldata-panel {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 8px);
+  right: 0;
+
+  width: min(460px, calc(100vw - 32px));
+  padding: 14px 15px;
+
+  background: var(--panel);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+.pulldata-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+
+  margin-bottom: 8px;
+}
+
+.pulldata-lede,
+.pulldata-foot,
+.pulldata-warn {
+  margin: 0 0 10px;
+
+  color: var(--muted);
+
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.pulldata-warn {
+  padding: 9px 11px;
+
+  background: var(--panel-soft);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.pulldata-foot {
+  margin: 10px 0 0;
+  padding-top: 9px;
+
+  border-top: 1px solid var(--border);
+
+  color: var(--faint);
+  font-size: 10.5px;
+}
+
+.pulldata-year {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-bottom: 10px;
+}
+
+.pulldata-year label {
+  color: var(--faint);
+
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pulldata-list {
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.pulldata-list li {
+  padding: 9px 0;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.pulldata-list li:last-child {
+  border-bottom: 0;
+}
+
+.pulldata-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.pulldata-row strong {
+  display: block;
+
+  color: var(--text);
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.pulldata-row small {
+  display: block;
+  max-width: 46ch;
+  margin-top: 2px;
+
+  color: var(--faint);
+
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+.pulldata-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  white-space: nowrap;
+}
+
+.pulldata-actions a {
+  color: var(--blue);
+
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.pulldata-actions a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 620px) {
+  .pulldata-panel {
+    position: fixed;
+    right: 16px;
+    left: 16px;
+
+    width: auto;
+  }
+}
+
+/* The names are authored to be specific, which sometimes costs a word or two
+   more than the old generic ones. Truncating "Telecom parts, excluding
+   antennas" to "Telecom parts, excluding antenn..." throws away exactly the
+   part that distinguishes it, so the tiles wrap to a second line instead. */
+.home-list-india .home-list-main strong,
+.home-list .home-list-main.wide strong {
+  overflow: visible;
+
+  text-overflow: clip;
+  white-space: normal;
+  line-height: 1.3;
+}

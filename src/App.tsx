@@ -34,6 +34,7 @@ import {
 } from './lib/hstack'
 
 import { useFallbackRates } from './lib/currency'
+import { nameOf } from './lib/format'
 import { SearchHub } from './components/SearchHub'
 import { ProductView } from './components/ProductView'
 import { HomeView } from './components/HomeView'
@@ -315,7 +316,7 @@ function App() {
           noteVisit(current, {
             code: next.code,
             level: next.level,
-            label: next.product || next.description,
+            label: nameOf(next),
           }),
         )
 
@@ -391,7 +392,7 @@ function App() {
         : 'Nothing stacked yet'
     }
 
-    return node ? `${node.product || node.description} · HS-${node.level} ${node.code}` : ''
+    return node ? `${nameOf(node)} · HS-${node.level} ${node.code}` : ''
   }, [reportScope, basket, node])
 
   /*
@@ -424,7 +425,7 @@ function App() {
       const subject =
         scope === 'hstack'
           ? `HStack · ${basket.length} codes`
-          : `${node.product || node.description} · HS-${node.level} ${node.code}`
+          : `${nameOf(node)} · HS-${node.level} ${node.code}`
 
       const title = name.trim() || `HStat report — ${subject}`
 
@@ -537,18 +538,26 @@ function App() {
           </div>
         </div>
 
-        <SearchHub
-          variant="bar"
-          index={index}
-          recent={recent}
-          inBasket={inBasket}
-          onOpen={item => {
-            if (item.retired) return
+        {/*
+          * The front page has its own search in the middle of the screen, and
+          * a second one in the header three centimetres above it asked the
+          * reader which of two identical boxes to use. On a product page the
+          * header bar is the only way to move to another code, so it stays.
+          */}
+        {!showHome && (
+          <SearchHub
+            variant="bar"
+            index={index}
+            recent={recent}
+            inBasket={inBasket}
+            onOpen={item => {
+              if (item.retired) return
 
-            openCode(item.code, item.level)
-          }}
-          onAdd={item => addToBasket({ code: item.code, level: item.level })}
-        />
+              openCode(item.code, item.level)
+            }}
+            onAdd={item => addToBasket({ code: item.code, level: item.level })}
+          />
+        )}
 
         <div className="toggles">
           {/*
@@ -559,7 +568,7 @@ function App() {
             * the product page is where the absence gets explained, in one
             * line, to whoever goes looking for it.
             */}
-          {tariffAvailable && (
+          {tariffAvailable && !showHome && (
             <button
               className={showHs8 ? 'ind-toggle active' : 'ind-toggle'}
               aria-pressed={showHs8}
@@ -570,6 +579,12 @@ function App() {
             </button>
           )}
 
+          {/*
+            * Currency and view mode both act on a product page's tiles. On the
+            * front page there is nothing for either to change, so they read as
+            * controls that do not work.
+            */}
+          {!showHome && (
           <button
             className="currency-toggle"
             aria-label={
@@ -590,12 +605,14 @@ function App() {
             <span className="divider">/</span>
             <span className={currency === 'INR' ? 'active' : ''}>₹</span>
           </button>
+          )}
 
           {/*
             * Two ways of reading the same tiles. Report View is the page to
             * read through; Glance View is the same tiles as slides to move
             * across when you already know what you are after.
             */}
+          {!showHome && (
           <div className="viewswitch" role="group" aria-label="View mode">
             {(['report', 'glance'] as const).map(mode => (
               <button
@@ -615,6 +632,7 @@ function App() {
               </button>
             ))}
           </div>
+          )}
 
           <button
             className={basket.length ? 'stack-toggle active' : 'stack-toggle'}
@@ -682,7 +700,7 @@ function App() {
               togglePin(current, {
                 code: node.code,
                 level: node.level,
-                label: node.product || node.description,
+                label: nameOf(node),
               }),
             )
           }

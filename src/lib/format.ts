@@ -129,3 +129,26 @@ export function concentrationLabel(hhi: number | null): string {
 
   return 'Low'
 }
+
+/*
+ * The name to put in front of a reader.
+ *
+ * `displayName` is authored per HS-6 against the official text and is unique
+ * across the catalogue. `product` is the family it sits in and is deliberately
+ * coarser - eight codes under 8544 are all "Cables", which is right for the
+ * heading and useless for any code inside it - so it is only a fallback, and
+ * the official description is the last resort. Parents have no display name
+ * and fall through to their heading title.
+ */
+export function nameOf(
+  item: {
+    displayName?: string | null
+    product?: string | null
+    description?: string | null
+  } | null
+  | undefined,
+): string {
+  if (!item) return ''
+
+  return item.displayName || item.product || item.description || ''
+}

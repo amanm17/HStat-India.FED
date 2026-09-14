@@ -34,7 +34,15 @@ import {
   ordinal,
   pct,
   usd,
+  nameOf,
 } from '../lib/format'
+import {
+  COMTRADE_PORTAL,
+  PREVIEW_RECORD_CAP,
+  comtradeSpec,
+  comtradeUrl,
+  datasetsFor,
+} from '../lib/comtrade'
 import {
   convertibleCount,
   defaultFinancialYear,
@@ -365,6 +373,20 @@ function GlobalTradeCard({
 
   const mirrorGap = benchmark.mirror?.gap ?? null
 
+  /*
+   * Published, but still filling in.
+   *
+   * The coverage gate asks whether this year still holds the economies that
+   * mattered last year, on the import side, and that is the right test for
+   * whether a figure may publish. It is not a test of whether the year is
+   * finished. A recent year can clear it with a third of its reporters
+   * missing and still be presented as if it were settled, which is how a
+   * doubling that is really half a year's filings reads as a doubling in
+   * trade. So where the evidence exists it is shown next to the figure, and
+   * the figure itself is left exactly as filed.
+   */
+  const provisional = selected?.provisional ?? null
+
   /* The concrete amount taken out, for the year the headline is on. */
   const removed = observed?.reImportsRemoved ?? null
 
@@ -390,6 +412,24 @@ function GlobalTradeCard({
           }
         />
       </div>
+
+      {provisional && provisional.length > 0 && (
+        <div className="provisional-note">
+          <div className="provisional-head">
+            <span className="provisional-badge">STILL FILLING IN</span>
+            <span>
+              {benchmark.year} is published as filed, but is not yet comparable
+              with {benchmark.year - 1}.
+            </span>
+          </div>
+
+          <ul>
+            {provisional.map(reason => (
+              <li key={reason}>{reason}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="global-trade-hero">
         <div className="hero-figure">
@@ -546,6 +586,203 @@ function GlobalTradeCard({
  * pointed at the heading, where the split is internal and the long series is
  * genuinely continuous.
  */
+/*
+ * Pull data — the source rows behind whatever is on screen.
+ *
+ * Four links, one per request the pipeline makes, pre-filled with this page's
+ * code and the selected year. No key, no login, no server of ours in between:
+ * each one opens the public UN Comtrade preview endpoint and returns the same
+ * rows the published figure was summed from.
+ *
+ * It deliberately does not offer a CSV or a zip. The only no-key endpoint
+ * Comtrade publishes returns JSON and nothing else, so a download button here
+ * would either need a key we cannot put in a browser or would be a file we
+ * made up ourselves and labelled as the source. A link that goes to the real
+ * thing is worth more than a file that claims to be it.
+ */
+function PullData({
+  node,
+  year,
+  onOpen,
+}: {
+  node: HsNode
+  year: number
+  onOpen?: (code: string, level: 2 | 4 | 6) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [copied, setCopied] = useState<string | null>(null)
+
+  const retired = node.lineage?.retired ?? null
+
+  /*
+   * A retired code must not hand a reader a link to a year it did not exist
+   * in. Comtrade will answer - a few economies keep filing under dead numbers
+   * for years - and the answer would look like data rather than the residue
+   * it is. So the year list stops where the nomenclature stopped.
+   */
+  const years = useMemo(() => {
+    const all = [...node.years].map(Number).sort((a, b) => b - a)
+
+    return retired?.validTo != null
+      ? all.filter(item => item <= retired.validTo!)
+      : all
+  }, [node.years, retired])
+
+  const [picked, setPicked] = useState<number>(
+    () => (retired?.validTo != null ? Math.min(year, retired.validTo) : year),
+  )
+
+  useEffect(() => {
+    setPicked(
+      retired?.validTo != null ? Math.min(year, retired.validTo) : year,
+    )
+  }, [year, retired])
+
+  const datasets = useMemo(
+    () => datasetsFor(node.code, picked),
+    [node.code, picked],
+  )
+
+  const copy = (id: string, text: string) => {
+    navigator.clipboard?.writeText(text).then(
+      () => {
+        setCopied(id)
+        window.setTimeout(() => setCopied(null), 1600)
+      },
+      () => setCopied(null),
+    )
+  }
+
+  if (node.level !== 6) return null
+
+  return (
+    <div className="pulldata">
+      <button
+        type="button"
+        className="stack-add"
+        aria-expanded={open}
+        onClick={() => setOpen(value => !value)}
+        title="Open the UN Comtrade rows behind this page"
+      >
+        <Download size={15} />
+        Pull data
+      </button>
+
+      {open && (
+        <div className="pulldata-panel">
+          <div className="pulldata-head">
+            <span className="eyebrow">SOURCE ROWS · UN COMTRADE</span>
+
+            <button className="linklike" onClick={() => setOpen(false)}>
+              Close
+            </button>
+          </div>
+
+          <p className="pulldata-lede">
+            The four requests behind HS {node.code}. Each opens the public UN
+            Comtrade query for that flow — no key, no account. Imports and
+            re-imports are separate because the published figure is the first
+            minus the second.
+          </p>
+
+          {retired && (
+            <p className="pulldata-warn">
+              HS {node.code} left the Harmonized System in the HS{' '}
+              {retired.revision} revision. Years after {retired.validTo} are
+              not offered: a handful of economies keep filing under the old
+              number and those rows are residue, not a world total.
+              {retired.successors.length > 0 && (
+                <>
+                  {' '}
+                  Current data sits under{' '}
+                  {retired.successors.map((item, index) => (
+                    <span key={item.code}>
+                      {index > 0 && ', '}
+                      {item.published && onOpen ? (
+                        <button
+                          type="button"
+                          className="linklike"
+                          onClick={() => onOpen(item.code, 6)}
+                        >
+                          HS {item.code}
+                        </button>
+                      ) : (
+                        `HS ${item.code}`
+                      )}
+                    </span>
+                  ))}
+                  .
+                </>
+              )}
+            </p>
+          )}
+
+          <div className="pulldata-year">
+            <label htmlFor="pull-year">Year</label>
+
+            <select
+              id="pull-year"
+              value={picked}
+              onChange={event => setPicked(Number(event.target.value))}
+            >
+              {years.map(item => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <ul className="pulldata-list">
+            {datasets.map(item => (
+              <li key={item.id}>
+                <div className="pulldata-row">
+                  <div>
+                    <strong>{item.label}</strong>
+                    <small>{item.note}</small>
+                  </div>
+
+                  <div className="pulldata-actions">
+                    <a
+                      href={comtradeUrl(item.query)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Open query
+                    </a>
+
+                    <button
+                      type="button"
+                      className="linklike"
+                      onClick={() => copy(item.id, comtradeSpec(item.query))}
+                    >
+                      {copied === item.id ? 'Copied' : 'Copy spec'}
+                    </button>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          <p className="pulldata-foot">
+            The preview endpoint returns at most {PREVIEW_RECORD_CAP} rows,
+            which covers a world-partner year comfortably — one row per
+            reporting economy. The copied spec includes the pinned aggregate
+            dimensions (partner 0, customs C00, mode 0); without them Comtrade
+            also returns the breakdowns of the same trade and summing what
+            comes back double counts it.{' '}
+            <a href={COMTRADE_PORTAL} target="_blank" rel="noopener noreferrer">
+              UN Comtrade
+            </a>{' '}
+            is the source for everything on this page.
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+
 function LineageNote({
   node,
   onOpen,
@@ -1309,7 +1546,7 @@ export function ProductView({
       return {
         code: child.code,
         level: child.level,
-        label: child.product || child.description,
+        label: nameOf(child),
         trade,
         imports,
         tradeShare:
@@ -1376,7 +1613,7 @@ export function ProductView({
    * blank year is readable as withheld rather than as zero.
    */
   const exportMeta = {
-    title: `${node.product || node.description} — HS-${node.level} ${node.code}`,
+    title: `${nameOf(node)} — HS-${node.level} ${node.code}`,
     code: node.code,
     level: node.level,
     description: node.description,
@@ -1674,9 +1911,9 @@ export function ProductView({
             )}
           </div>
 
-          <h1>{node.product || node.description}</h1>
+          <h1>{nameOf(node)}</h1>
 
-          {node.product && node.product !== node.description && (
+          {nameOf(node) !== node.description && (
             <p className="product-official">{node.description}</p>
           )}
 
@@ -1714,6 +1951,8 @@ export function ProductView({
             <Plus size={15} />
             {inBasket ? 'In HStack' : 'Add to HStack'}
           </button>
+
+          <PullData node={node} year={year} onOpen={onOpen} />
 
           {onTogglePin && (
             <button

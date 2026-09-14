@@ -43,3 +43,8 @@ data/dgcis/india_hs8.fixture.csv
 data/logs/
 
 _to_delete/
+
+# Working files that sit in the repo but are not part of it. ship.sh stages
+# with `git add -A`, so anything untracked here lands in a deploy commit.
+Claude outputs/
+pipeline/HStat_Pipeline_Code_Guide.docx

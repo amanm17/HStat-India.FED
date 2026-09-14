@@ -170,6 +170,11 @@ export type PeriodRecord = {
     observed: Observed
     mirror: Mirror
     coverage: Coverage
+    /* Published, but the year is still filling in. One plain sentence per
+     * piece of evidence: reporters that filed last year and have not filed
+     * this one, and - only where that is already true - the mirror gap that
+     * corroborates it. Never a reason to withhold, always a reason to say so. */
+    provisional?: string[] | null
     topEconomies?: EconomyRow[]
     topExporters?: EconomyRow[]
   }
@@ -183,6 +188,11 @@ export type GlobalTradeBenchmark = {
   netReImports: boolean
   indiaRank: number | null
   indiaShare: number | null
+  /* India's own netted imports for this year: the exact numerator indiaShare
+   * was divided from. A tile about India's position leads with this, not with
+   * the world total. */
+  indiaValue?: number | null
+  provisional?: string[] | null
   adjustmentCoverage: number | null
   mirror: Mirror | null
   topEconomies: EconomyRow[]
@@ -286,6 +296,8 @@ export type HsNode = {
   hs6: string
 
   description: string
+  /* The authored short name. Empty on parents, which keep their heading title. */
+  displayName?: string
   product: string
   category: string
   segment: string
@@ -328,6 +340,15 @@ export type CatalogueEntry = {
   category: string
   segment: string
   inFedDefinition: boolean
+  /* The authored short name for this code: three or four words, written
+   * against the official HS text and unique across the catalogue. Empty on
+   * HS-2 and HS-4 parents, which keep their official heading title. */
+  displayName?: string
+  /* India's own netted imports in the benchmark year - the exact numerator
+   * indiaShare was divided from, never share x world. */
+  indiaTradeValue?: number | null
+  /* Present when the benchmark year is published but still filling in. */
+  provisional?: string[] | null
   /* 'retired' means the HS withdrew this code. Its globalTrade is null by
    * design, not by failure. */
   status?: 'active' | 'retired'
@@ -351,8 +372,7 @@ export type SearchItem = {
   level: 2 | 4 | 6
   description: string
   product: string
-  /* The distinguishing short label: a curated term where one exists,
-   * otherwise the workbook product name. */
+  /* The authored display name, which is unique across the catalogue. */
   label: string
   category: string
   segment: string
