@@ -49,12 +49,9 @@ export function HomeView({
 
     return {
       products: products.length,
-      headings: catalogue.filter(entry => entry.level === 4).length,
-      chapters: catalogue.filter(entry => entry.level === 2).length,
       tracked: withTrade.reduce((sum, entry) => sum + (entry.globalTrade ?? 0), 0),
-      priced: withTrade.length,
     }
-  }, [products, catalogue])
+  }, [products])
 
   /* Products where India is among the largest importers in the world. The
    * rank is against every reporting economy, so a single digit is a lot. */
@@ -168,15 +165,11 @@ export function HomeView({
           </div>
 
           {/*
-            * The HS-4 and HS-2 counts were structure, not information: nobody
-            * arrives wanting to know how many headings the nomenclature has.
-            * How many lines carry a world figure is the same shape of number
-            * and answers something a reader might actually ask.
+            * The HS-4 and HS-2 counts that used to sit here were structure,
+            * not information: nobody arrives wanting to know how many headings
+            * the nomenclature has. Two numbers is what the front page needs -
+            * how much is covered, and how much trade that is.
             */}
-          <div>
-            <strong>{stats.priced}</strong>
-            <span>with a published world figure</span>
-          </div>
 
           <div>
             <strong>{usd(stats.tracked, 0)}</strong>
