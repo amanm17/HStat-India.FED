@@ -2,7 +2,7 @@ import { chromium } from 'playwright'
 const BASE = 'http://127.0.0.1:4178'
 const results = []
 const ok = (n, p, d = '') => { results.push(p); console.log(`${p ? 'PASS' : 'FAIL'}  ${n}${d ? '  — ' + d : ''}`) }
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' })
+const browser = await chromium.launch()
 
 async function type(path, q) {
   const page = await browser.newPage({ viewport: { width: 1360, height: 1000 } })

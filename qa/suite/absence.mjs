@@ -1,7 +1,7 @@
 import { chromium } from 'playwright'
 const results = []
 const ok = (n, p, d = '') => { results.push(p); console.log(`${p ? 'PASS' : 'FAIL'}  ${n}${d ? '  — ' + d : ''}`) }
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' })
+const browser = await chromium.launch()
 for (const [port, label] of [[4184, 'no dgcis data'], [4178, 'full data']]) {
   const page = await browser.newPage()
   const errors = []

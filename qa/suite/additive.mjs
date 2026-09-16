@@ -20,7 +20,7 @@ function ok(name, pass, detail = '') {
   console.log(`${pass ? 'PASS' : 'FAIL'}  ${name}${detail ? '  — ' + detail : ''}`)
 }
 
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' })
+const browser = await chromium.launch()
 
 async function open(path) {
   const page = await browser.newPage()

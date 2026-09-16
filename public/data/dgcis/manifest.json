@@ -1,6 +1,6 @@
 {
  "source": "DGCIS / Trade Intelligence & Analytics",
- "builtAt": "2026-09-16T11:12:25.132045+00:00",
+ "builtAt": "2026-09-16T11:32:26.117551+00:00",
  "reporter": "India",
  "partner": "World",
  "units": {
@@ -8,7 +8,8 @@
   "usdMillion": "USD million"
  },
  "flows": [
-  "exports"
+  "exports",
+  "imports"
  ],
  "flowDetail": {
   "exports": {
@@ -28,6 +29,26 @@
     "medianRatio": {
      "imports": 0.1153,
      "exports": 1.0
+    }
+   }
+  },
+  "imports": {
+   "sourceFile": "DGCIS_DATA_imports.csv",
+   "sourceSha256": "99f781854b44555f55b2d783b147fdd43aa64e7e5e5222baa59f98ebbeefde2d",
+   "processedAt": "2026-09-16T11:32:25.844590+00:00",
+   "firstPeriod": "2019-01",
+   "lastPeriod": "2026-06",
+   "flowVerdict": {
+    "status": "DECIDED",
+    "evidence": "imports",
+    "pairs": 1504,
+    "wins": {
+     "imports": 1465,
+     "exports": 39
+    },
+    "medianRatio": {
+     "imports": 0.9998,
+     "exports": 7.6979
     }
    }
   }
