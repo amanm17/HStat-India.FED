@@ -55,7 +55,12 @@ export const TILES: TileSpec[] = [
   { id: 'exporters', label: 'Who sells', note: 'Largest exporting economies' },
   { id: 'partners', label: 'Trade partners', note: "India's own sources and markets" },
   { id: 'tariff', label: 'Tariff lines', note: 'India ITC(HS)-8 detail, when supplied' },
-  { id: 'dgcis', label: 'India HS8 detail', note: "India's own monthly tariff-line imports, from DGCIS" },
+  /* Flow-neutral on purpose. This note read "tariff-line imports" for as
+   * long as the pipeline believed the extract was imports; it was exports,
+   * and the panel now carries both. A static registry cannot know which flow
+   * the reader has selected, so it names none and the panel names the one it
+   * is showing. */
+  { id: 'dgcis', label: 'India HS8 detail', note: "India's own tariff lines, monthly, from DGCIS" },
 ]
 
 export const DEFAULT_TILES = TILES.map(tile => tile.id)
