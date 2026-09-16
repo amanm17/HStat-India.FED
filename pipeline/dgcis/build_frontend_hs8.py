@@ -1,28 +1,42 @@
 #!/usr/bin/env python3
 """
-Turn the processed DGCIS extract into something a product page can load.
+Turn the processed DGCIS extracts into something a product page can load.
 
 WHY NOT JUST SHIP THE CSV
 
-india_hs8_monthly.csv is 6.2 MB and 48,870 rows, and a product page needs
-roughly two hundred of them. Handing the browser the whole file so it can
-filter out 99.6% of it would be the single heaviest thing on the page, on
+india_hs8_monthly_exports.csv is 6.2 MB and 48,870 rows, and a product page
+needs roughly two hundred of them. Handing the browser the whole file so it
+can filter out 99.6% of it would be the single heaviest thing on the page, on
 every page, for no benefit.
 
-So this writes one small file per HS-6, and the page loads only its own.
+So this writes one small file per HS-6, and the page loads only its own. An
+HS-8 page loads its parent's file too - the same one - which is how a tariff
+line gets its siblings, its share of the heading and its way back up for free.
 
 SHAPE
 
-Periods are written once per file and the values are arrays aligned to it,
-rather than a list of {period, value} objects. Same information, about a
-third of the bytes, and the frontend can index straight into it. A month a
-tariff line did not trade is null, not zero: DGCIS leaves it blank, and zero
-would assert something the source does not say.
+Periods are written once per file and values are arrays aligned to it, rather
+than a list of {period, value} objects. Same information, about a third of the
+bytes, and the frontend indexes straight into it. A month a tariff line did
+not trade is null, not zero: DGCIS leaves it blank, and zero would assert
+something the source does not say.
+
+Line descriptions are written once per HS-6 under `lines`; the flows carry
+only numbers. With two flows that is the difference between storing every
+commodity name twice and storing it once.
 
 Values are carried in the units DGCIS published - INR crore and USD million -
 and are never converted between each other. The two are separate measurements
 of the same trade, published by the source, and dividing one by the other to
 recover an exchange rate is not something this data supports.
+
+FLOWS
+
+One processed file per flow, and a flow appears in the output only if its
+extract is on disk. India's exports at the tariff line and India's imports at
+the tariff line are different downloads from the portal, and a page must be
+able to say which of them it is showing - so nothing here merges them, sums
+them, or defaults one to the other.
 
 Run:  python3 pipeline/dgcis/build_frontend_hs8.py
 """
@@ -37,10 +51,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 PROCESSED = ROOT / "data" / "dgcis" / "processed"
-MONTHLY = PROCESSED / "india_hs8_monthly.csv"
-SOURCE_MANIFEST = PROCESSED / "manifest.json"
 CONFIG = ROOT / "config"
 OUT = ROOT / "public" / "data" / "dgcis"
+
+FLOWS = ("exports", "imports")
 
 
 def number(value):
@@ -59,118 +73,271 @@ def round_or_none(value, places: int):
     return None if value is None else round(value, places)
 
 
-def main() -> int:
-    if not MONTHLY.exists():
+def read_flow(flow: str):
+    """Rows and manifest for one flow, or (None, None) if not extracted yet."""
+    monthly = PROCESSED / f"india_hs8_monthly_{flow}.csv"
+
+    if not monthly.exists():
+        return None, None
+
+    rows = list(csv.DictReader(monthly.open(newline="", encoding="utf-8-sig")))
+
+    # An extract processed before flow became explicit is not readable here,
+    # and guessing which flow it held is the whole mistake this guards.
+    if rows and "value_usd_million" not in rows[0]:
         raise SystemExit(
-            f"missing {MONTHLY}. Run pipeline/dgcis/process_tia_hs8.py first."
+            f"{monthly.name} predates flow-aware processing (no value_* columns).\n"
+            f"Re-run: python3 pipeline/dgcis/process_tia_hs8.py --flow {flow}"
+        )
+
+    manifest_path = PROCESSED / f"manifest_{flow}.json"
+    manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
+
+    declared = manifest.get("flow")
+
+    if declared and declared != flow:
+        raise SystemExit(
+            f"{manifest_path.name} declares flow {declared!r} but is named for {flow!r}."
+        )
+
+    return rows, manifest
+
+
+def prune(expected: set[Path]) -> None:
+    """
+    Delete anything under OUT this build did not write.
+
+    Rebuilding into a directory without clearing it first is how a dashboard
+    ends up serving a file for a code that no longer exists - the page fetches
+    it, gets a 200, and shows last quarter's numbers with this quarter's
+    framing. So leftovers are removed, and if they cannot be removed the build
+    fails rather than shipping them.
+    """
+    stale = [
+        path for path in sorted(OUT.rglob("*.json"))
+        if path not in expected
+    ]
+
+    blocked = []
+
+    for path in stale:
+        try:
+            path.unlink()
+        except OSError:
+            blocked.append(path)
+
+    if blocked:
+        listing = "\n".join(f"  {path.relative_to(ROOT)}" for path in blocked)
+
+        raise SystemExit(
+            f"{len(blocked)} file(s) from a previous build could not be removed "
+            f"and would ship as live data:\n{listing}\n"
+            "Delete them and re-run."
+        )
+
+    if stale:
+        print(f"removed {len(stale)} file(s) from a previous build")
+
+
+def main() -> int:
+    available = {}
+
+    for flow in FLOWS:
+        rows, manifest = read_flow(flow)
+
+        if rows:
+            available[flow] = {"rows": rows, "manifest": manifest}
+
+    if not available:
+        raise SystemExit(
+            "No processed DGCIS extract found. Run, for each flow you have:\n"
+            "  python3 pipeline/dgcis/process_tia_hs8.py --flow exports\n"
+            "  python3 pipeline/dgcis/process_tia_hs8.py --flow imports"
         )
 
     universe = set((CONFIG / "hs6_universe.txt").read_text().split())
 
-    rows = list(csv.DictReader(MONTHLY.open(newline="", encoding="utf-8-sig")))
-
-    periods = sorted({row["period"] for row in rows})
+    # One period axis for the whole build, so a page can put two flows on the
+    # same x without aligning anything itself.
+    periods = sorted({
+        row["period"]
+        for flow in available.values()
+        for row in flow["rows"]
+    })
     index = {period: position for position, period in enumerate(periods)}
 
-    # hs6 -> hs8 -> series
-    grouped: dict[str, dict[str, dict]] = defaultdict(dict)
+    # hs6 -> hs8 -> {principalCommodity, quickEstimateCommodity}
+    lines: dict[str, dict[str, dict]] = defaultdict(dict)
 
-    for row in rows:
-        hs6 = row["hs6"]
-        hs8 = row["hs8"]
+    # hs6 -> flow -> hs8 -> {"inrCrore": [...], "usdMillion": [...]}
+    series: dict[str, dict[str, dict[str, dict]]] = defaultdict(
+        lambda: defaultdict(dict)
+    )
 
-        entry = grouped[hs6].get(hs8)
+    for flow, bundle in available.items():
+        for row in bundle["rows"]:
+            hs6, hs8 = row["hs6"], row["hs8"]
 
-        if entry is None:
-            entry = {
-                "hs8": hs8,
-                "principalCommodity": (row.get("principal_commodity") or "").strip(),
-                "quickEstimateCommodity": (
-                    row.get("quick_estimate_commodity") or ""
-                ).strip(),
-                "inrCrore": [None] * len(periods),
-                "usdMillion": [None] * len(periods),
-            }
-            grouped[hs6][hs8] = entry
+            if hs8 not in lines[hs6]:
+                lines[hs6][hs8] = {
+                    "hs8": hs8,
+                    # DGCIS's own commodity groupings. The extract carries no
+                    # tariff-line description and one is not invented here.
+                    "principalCommodity": (row.get("principal_commodity") or "").strip(),
+                    "quickEstimateCommodity": (
+                        row.get("quick_estimate_commodity") or ""
+                    ).strip(),
+                }
 
-        position = index[row["period"]]
+            entry = series[hs6][flow].get(hs8)
 
-        entry["inrCrore"][position] = round_or_none(
-            number(row.get("import_inr_crore")), 3
-        )
-        entry["usdMillion"][position] = round_or_none(
-            number(row.get("import_usd_million")), 3
-        )
+            if entry is None:
+                entry = {
+                    "inrCrore": [None] * len(periods),
+                    "usdMillion": [None] * len(periods),
+                }
+                series[hs6][flow][hs8] = entry
 
-    if OUT.exists():
-        shutil.rmtree(OUT)
+            position = index[row["period"]]
+
+            entry["inrCrore"][position] = round_or_none(
+                number(row.get("value_inr_crore")), 3
+            )
+            entry["usdMillion"][position] = round_or_none(
+                number(row.get("value_usd_million")), 3
+            )
 
     (OUT / "hs6").mkdir(parents=True, exist_ok=True)
+
+    # Everything this build is responsible for. Anything else found under OUT
+    # afterwards is from a previous build and must not survive: an HS-6 that
+    # has dropped out of the extract would otherwise keep serving its old file
+    # to a page that still asks for it, and nothing on that page would say so.
+    expected: set[Path] = {OUT / "manifest.json", OUT / "hs8-index.json"}
 
     written = 0
     attached: list[str] = []
     orphaned: list[str] = []
+    catalogue: list[dict] = []
 
-    for hs6, children in sorted(grouped.items()):
-        ordered = sorted(children.values(), key=lambda item: item["hs8"])
+    for hs6 in sorted(lines):
+        ordered = [lines[hs6][hs8] for hs8 in sorted(lines[hs6])]
+        is_product = hs6 in universe
 
-        # The last period in which anything under this HS-6 actually traded.
-        # Not the last period in the file: a tariff line that stopped being
-        # used should not claim data up to the present.
-        last = None
+        flows_out = {}
 
-        for position in range(len(periods) - 1, -1, -1):
-            if any(
-                child["usdMillion"][position] or child["inrCrore"][position]
-                for child in ordered
-            ):
-                last = periods[position]
-                break
+        for flow in FLOWS:
+            if flow not in series[hs6]:
+                continue
+
+            # The last period in which anything under this HS-6 actually
+            # traded on this flow. Not the last period in the file: a tariff
+            # line that stopped being used should not claim data up to today.
+            last = None
+
+            for position in range(len(periods) - 1, -1, -1):
+                if any(
+                    entry["usdMillion"][position] or entry["inrCrore"][position]
+                    for entry in series[hs6][flow].values()
+                ):
+                    last = periods[position]
+                    break
+
+            flows_out[flow] = {
+                "latestPeriod": last,
+                "series": {
+                    hs8: series[hs6][flow][hs8]
+                    for hs8 in sorted(series[hs6][flow])
+                },
+            }
 
         payload = {
             "hs6": hs6,
             "source": "DGCIS / Trade Intelligence & Analytics",
             "reporter": "India",
             "partner": "World",
-            "flow": "imports",
             "units": {"inrCrore": "INR crore", "usdMillion": "USD million"},
             # True when HStat publishes a product page for this HS-6. False
             # for a code carried only as a lineage predecessor - 851712 before
             # the smartphone split - whose tariff lines are real India history
             # with no page of their own.
-            "isProduct": hs6 in universe,
+            "isProduct": is_product,
             "periods": periods,
-            "latestPeriod": last,
-            "children": ordered,
+            "lines": ordered,
+            "flows": flows_out,
         }
 
-        (OUT / "hs6" / f"{hs6}.json").write_text(
-            json.dumps(payload, separators=(",", ":"))
-        )
+        target = OUT / "hs6" / f"{hs6}.json"
+        target.write_text(json.dumps(payload, separators=(",", ":")))
+        expected.add(target)
 
         written += 1
-        (attached if hs6 in universe else orphaned).append(hs6)
+        (attached if is_product else orphaned).append(hs6)
 
-    source_manifest = (
-        json.loads(SOURCE_MANIFEST.read_text())
-        if SOURCE_MANIFEST.exists()
-        else {}
-    )
+        # The HS-8 catalogue. Every tariff line needs to be findable by
+        # search and reachable by URL without loading 255 files to discover
+        # that it exists, so its identity - and enough of its size to rank it
+        # - is lifted out here.
+        for line in ordered:
+            hs8 = line["hs8"]
+            entry = {
+                "hs8": hs8,
+                "hs6": hs6,
+                "principalCommodity": line["principalCommodity"],
+                "quickEstimateCommodity": line["quickEstimateCommodity"],
+                "isProduct": is_product,
+                "flows": {},
+            }
+
+            for flow, block in flows_out.items():
+                values = block["series"].get(hs8, {}).get("usdMillion")
+
+                if values is None:
+                    continue
+
+                recent = [v for v in values[-12:] if v is not None]
+                latest = next(
+                    (
+                        {"period": periods[i], "usdMillion": values[i]}
+                        for i in range(len(values) - 1, -1, -1)
+                        if values[i]
+                    ),
+                    None,
+                )
+
+                entry["flows"][flow] = {
+                    "latest": latest,
+                    # Twelve months to the end of the period axis. Used only
+                    # to rank a search result by size; a page computes its own.
+                    "last12UsdMillion": round(sum(recent), 3) if recent else None,
+                }
+
+            catalogue.append(entry)
 
     manifest = {
         "source": "DGCIS / Trade Intelligence & Analytics",
-        "sourceFile": source_manifest.get("sourceFile"),
-        "sourceSha256": source_manifest.get("sourceSha256"),
-        "processedAt": source_manifest.get("processedAt"),
         "builtAt": datetime.now(timezone.utc).isoformat(),
         "reporter": "India",
         "partner": "World",
-        "flow": "imports",
         "units": {"inrCrore": "INR crore", "usdMillion": "USD million"},
+        "flows": sorted(available),
+        "flowDetail": {
+            flow: {
+                "sourceFile": bundle["manifest"].get("sourceFile"),
+                "sourceSha256": bundle["manifest"].get("sourceSha256"),
+                "processedAt": bundle["manifest"].get("processedAt"),
+                "firstPeriod": bundle["manifest"].get("firstPeriod"),
+                "lastPeriod": bundle["manifest"].get("lastPeriod"),
+                # How the flow label was established, carried through to the
+                # page so a reader can see it was checked and not assumed.
+                "flowVerdict": bundle["manifest"].get("flowVerdict"),
+            }
+            for flow, bundle in sorted(available.items())
+        },
         "firstPeriod": periods[0],
         "lastPeriod": periods[-1],
         "periodCount": len(periods),
-        "hs8Count": sum(len(children) for children in grouped.values()),
+        "hs8Count": sum(len(children) for children in lines.values()),
         # What a reader is entitled to know: this covers some of the
         # catalogue, not all of it.
         "productsCovered": len(attached),
@@ -181,21 +348,38 @@ def main() -> int:
         "reconciliation": {
             "method": "sum of HS-8 rows against the DGCIS TOTAL footer",
             "tolerancePct": 0.01,
-            "status": "PASS",
+            "note": (
+                "Proves transcription, not identity. The flow label is "
+                "established separately by flow_guard.py against Comtrade."
+            ),
         },
     }
 
     (OUT / "manifest.json").write_text(json.dumps(manifest, indent=1))
 
+    (OUT / "hs8-index.json").write_text(json.dumps(
+        {
+            "builtAt": manifest["builtAt"],
+            "flows": manifest["flows"],
+            "periods": {"first": periods[0], "last": periods[-1]},
+            "lines": sorted(catalogue, key=lambda item: item["hs8"]),
+        },
+        separators=(",", ":"),
+    ))
+
+    prune(expected)
+
     size = sum(path.stat().st_size for path in OUT.rglob("*.json"))
 
+    print(f"flows             : {', '.join(manifest['flows'])}")
     print(f"files written     : {written}")
     print(f"  with a product  : {len(attached)} of {len(universe)}")
     print(f"  predecessor only: {len(orphaned)}  {orphaned}")
     print(f"HS-8 tariff lines : {manifest['hs8Count']}")
     print(f"periods           : {len(periods)}  {periods[0]} → {periods[-1]}")
     print(f"total on disk     : {size / 1024:.0f} KB")
-    print(f"largest file      : "
+    print(f"  hs8-index.json  : {(OUT / 'hs8-index.json').stat().st_size / 1024:.0f} KB")
+    print(f"largest hs6 file  : "
           f"{max(p.stat().st_size for p in (OUT / 'hs6').glob('*.json')) / 1024:.1f} KB")
     return 0
 

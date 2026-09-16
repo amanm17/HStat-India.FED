@@ -37,6 +37,8 @@ import { useFallbackRates } from './lib/currency'
 import { nameOf } from './lib/format'
 import { SearchHub } from './components/SearchHub'
 import { ProductView } from './components/ProductView'
+import { Hs8View } from './components/Hs8View'
+import { Safely } from './components/Safely'
 import { HomeView } from './components/HomeView'
 import { HStackPanel } from './components/HStackPanel'
 import { Sidebar } from './components/Sidebar'
@@ -76,18 +78,31 @@ import { reportToPdf, reportToPng } from './lib/report'
 type Route =
   | { kind: 'home' }
   | { kind: 'product'; code: string; level: 2 | 4 | 6 }
+  /*
+   * An Indian tariff line. Its own route rather than a fourth product level,
+   * because it is a different measurement: India reporting India, from DGCIS,
+   * with no world figure behind it. Giving it a level of 8 would have let it
+   * flow into code paths that assume a Comtrade node exists.
+   */
+  | { kind: 'tariff'; hs8: string }
 
 function levelOf(code: string): 2 | 4 | 6 {
   return code.length === 2 ? 2 : code.length === 4 ? 4 : 6
 }
 
 function routeFromPath(path: string): Route {
-  const match = /^\/hs\/(\d{2}|\d{4}|\d{6})\/?$/.exec(path)
+  const match = /^\/hs\/(\d{2}|\d{4}|\d{6}|\d{8})\/?$/.exec(path)
 
-  return match ? { kind: 'product', code: match[1], level: levelOf(match[1]) } : { kind: 'home' }
+  if (!match) return { kind: 'home' }
+
+  return match[1].length === 8
+    ? { kind: 'tariff', hs8: match[1] }
+    : { kind: 'product', code: match[1], level: levelOf(match[1]) }
 }
 
 function pathFor(route: Route): string {
+  if (route.kind === 'tariff') return `/hs/${route.hs8}`
+
   return route.kind === 'product' ? `/hs/${route.code}` : '/'
 }
 
@@ -202,7 +217,10 @@ function App() {
       setMethodology(method)
 
       /* A deep link decides what opens. Anything else lands on the front
-       * door, which is also what an unrecognised code falls back to. */
+       * door, which is also what an unrecognised code falls back to. A
+       * tariff-line route carries no catalogue entry by design - its page
+       * checks the DGCIS index for itself and says so if the code is not
+       * held - so it is left alone here. */
       const wanted =
         current.kind === 'product'
           ? entries.find(entry => entry.code === current.code)
@@ -331,6 +349,26 @@ function App() {
     [snapshot],
   )
 
+  /*
+   * Opening a tariff line.
+   *
+   * No snapshot fetch: an HS-8 page loads its parent's DGCIS file itself, and
+   * the Comtrade node stays as it was so that going back up to the heading is
+   * instant rather than a second round trip.
+   */
+  const openHs8 = useCallback((hs8: string) => {
+    const target: Route = { kind: 'tariff', hs8 }
+
+    setRoute(target)
+    setStackOpen(false)
+
+    if (window.location.pathname !== pathFor(target)) {
+      window.history.pushState({}, '', pathFor(target))
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [])
+
   const goHome = useCallback(() => {
     setRoute({ kind: 'home' })
     setStackOpen(false)
@@ -348,6 +386,8 @@ function App() {
       const next = routeFromPath(window.location.pathname)
 
       setRoute(next)
+
+      if (next.kind === 'tariff') return
 
       if (next.kind === 'product' && next.code !== node?.code) {
         loadHsNode(snapshot, next.code, next.level)
@@ -515,7 +555,17 @@ function App() {
   }
 
   /* The product route needs a node; the front door does not. */
-  const showHome = route.kind === 'home' || !node || year === null
+  /*
+   * Three pages, and the difference matters to the header.
+   *
+   * A tariff-line page is not the front door - the search bar belongs on it -
+   * but it is not a product page either: the HS-8, currency and view controls
+   * all act on Comtrade tiles that a tariff-line page does not have, and a
+   * control that acts on nothing reads as a broken feature.
+   */
+  const onTariff = route.kind === 'tariff'
+  const onProduct = !onTariff && route.kind === 'product' && !!node && year !== null
+  const showHome = !onTariff && !onProduct
 
   return (
     <div className="app">
@@ -544,7 +594,7 @@ function App() {
           * reader which of two identical boxes to use. On a product page the
           * header bar is the only way to move to another code, so it stays.
           */}
-        {!showHome && (
+        {(onProduct || onTariff) && (
           <SearchHub
             variant="bar"
             index={index}
@@ -556,6 +606,7 @@ function App() {
               openCode(item.code, item.level)
             }}
             onAdd={item => addToBasket({ code: item.code, level: item.level })}
+            onOpenHs8={openHs8}
           />
         )}
 
@@ -568,7 +619,7 @@ function App() {
             * the product page is where the absence gets explained, in one
             * line, to whoever goes looking for it.
             */}
-          {tariffAvailable && !showHome && (
+          {tariffAvailable && onProduct && (
             <button
               className={showHs8 ? 'ind-toggle active' : 'ind-toggle'}
               aria-pressed={showHs8}
@@ -584,7 +635,7 @@ function App() {
             * front page there is nothing for either to change, so they read as
             * controls that do not work.
             */}
-          {!showHome && (
+          {onProduct && (
           <button
             className="currency-toggle"
             aria-label={
@@ -612,7 +663,7 @@ function App() {
             * read through; Glance View is the same tiles as slides to move
             * across when you already know what you are after.
             */}
-          {!showHome && (
+          {onProduct && (
           <div className="viewswitch" role="group" aria-label="View mode">
             {(['report', 'glance'] as const).map(mode => (
               <button
@@ -657,7 +708,39 @@ function App() {
       </header>
 
       <main>
-        {!showHome && node && year !== null ? (
+        {onTariff ? (
+          /*
+           * Wrapped, like every other piece of the tariff-line work: if this
+           * page cannot render, the reader gets a way back to the dashboard
+           * rather than a blank screen.
+           */
+          <Safely
+            label="Hs8View"
+            whenBroken={
+              <div className="hs8-page missing">
+                <h1>HS {route.hs8}</h1>
+
+                <p>
+                  This tariff-line page could not be shown. The rest of the
+                  dashboard is unaffected.
+                </p>
+
+                <button type="button" className="linkish" onClick={goHome}>
+                  Back to the front page
+                </button>
+              </div>
+            }
+          >
+            <Hs8View
+              hs8={route.hs8}
+              catalogue={catalogue}
+              dark={dark}
+              onOpen={openCode}
+              onOpenHs8={openHs8}
+              onHome={goHome}
+            />
+          </Safely>
+        ) : onProduct && node && year !== null ? (
         <ProductView
           workspace={workspace}
           onReorder={(dragged, before) =>
@@ -719,9 +802,11 @@ function App() {
           onAddToStack={() =>
             addToBasket({ code: node.code, level: node.level })
           }
+          onOpenHs8={openHs8}
         />
         ) : (
           <HomeView
+            onOpenHs8={openHs8}
             catalogue={catalogue}
             manifest={manifest}
             index={index}
@@ -733,7 +818,7 @@ function App() {
         )}
       </main>
 
-      {!showHome && node && year !== null && (
+      {onProduct && node && year !== null && (
         <Sidebar
           workspace={workspace}
           onReorderTile={(dragged, before) =>

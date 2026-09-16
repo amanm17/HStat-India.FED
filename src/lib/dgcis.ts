@@ -4,30 +4,51 @@
  * WHAT THIS IS, AND WHAT IT IS NOT
  *
  * Every other number on a product page comes from UN Comtrade: the world's
- * imports of an HS-6 line, summed across reporting economies. This one does
- * not. It is India's customs authority reporting India's own imports from the
+ * trade in an HS-6 line, summed across reporting economies. This one does
+ * not. It is India's customs authority reporting India's own trade with the
  * World partner aggregate, at the Indian eight-digit tariff line, monthly.
  *
  * The partner is called "World" in the source, and that word has cost people
- * money before. It does not mean world trade. It means India, importing, from
+ * money before. It does not mean world trade. It means India, trading, with
  * everywhere. A page that shows both must never let one be read as the other,
  * which is why this loads separately, renders in its own panel, and is
- * labelled with its reporter and partner every time it appears.
+ * labelled with its reporter, partner and flow every time it appears.
  *
  * Periods are monthly and calendar-dated; Comtrade's are annual. They are not
  * plotted together.
+ *
+ * WHY FLOW IS EVERYWHERE IN THIS FILE
+ *
+ * The DGCIS extract carries no flow column, and the first version of this
+ * pipeline assumed one. It assumed wrong - the figures were India's exports,
+ * published for a fortnight's development under the word "imports", and only
+ * caught by holding them against Comtrade's India series. Nothing here
+ * defaults a flow, infers one from context, or falls back to the other when
+ * the asked-for one is missing. A caller names the flow or gets nothing.
  */
 
-export type DgcisChild = {
+export type DgcisFlow = 'exports' | 'imports'
+
+export type DgcisBasis = 'usd' | 'inr'
+
+/* DGCIS's own commodity groupings. The extract carries no tariff-line
+ * description, and one is not invented here. */
+export type DgcisLine = {
   hs8: string
-  /* DGCIS's own commodity groupings. The extract carries no tariff-line
-   * description, and one is not invented here. */
   principalCommodity: string
   quickEstimateCommodity: string
-  /* Aligned to `periods`. null is a month the source left blank, which is not
-   * the same as a month of zero trade. */
+}
+
+/* Aligned to `periods`. null is a month the source left blank, which is not
+ * the same as a month of zero trade. */
+export type DgcisSeries = {
   inrCrore: Array<number | null>
   usdMillion: Array<number | null>
+}
+
+export type DgcisFlowBlock = {
+  latestPeriod: string | null
+  series: Record<string, DgcisSeries>
 }
 
 export type DgcisNode = {
@@ -35,14 +56,29 @@ export type DgcisNode = {
   source: string
   reporter: string
   partner: string
-  flow: string
   units: { inrCrore: string; usdMillion: string }
   /* False for an HS-6 carried only as a lineage predecessor, whose tariff
    * lines are real India history with no product page of their own. */
   isProduct: boolean
   periods: string[]
-  latestPeriod: string | null
-  children: DgcisChild[]
+  lines: DgcisLine[]
+  flows: Partial<Record<DgcisFlow, DgcisFlowBlock>>
+}
+
+export type DgcisIndexEntry = DgcisLine & {
+  hs6: string
+  isProduct: boolean
+  flows: Partial<Record<DgcisFlow, {
+    latest: { period: string; usdMillion: number } | null
+    last12UsdMillion: number | null
+  }>>
+}
+
+export type DgcisIndex = {
+  builtAt: string
+  flows: DgcisFlow[]
+  periods: { first: string; last: string }
+  lines: DgcisIndexEntry[]
 }
 
 export type DgcisManifest = {
@@ -50,7 +86,18 @@ export type DgcisManifest = {
   builtAt: string
   reporter: string
   partner: string
-  flow: string
+  flows: DgcisFlow[]
+  flowDetail: Partial<Record<DgcisFlow, {
+    sourceFile: string | null
+    processedAt: string | null
+    firstPeriod: string | null
+    lastPeriod: string | null
+    flowVerdict: {
+      status: string
+      evidence: string | null
+      pairs: number
+    } | null
+  }>>
   firstPeriod: string
   lastPeriod: string
   hs8Count: number
@@ -62,6 +109,18 @@ export type DgcisManifest = {
 
 const BASE = '/data/dgcis'
 
+async function getJson<T>(path: string): Promise<T | null> {
+  try {
+    const response = await fetch(path, { cache: 'no-cache' })
+
+    if (!response.ok) return null
+
+    return (await response.json()) as T
+  } catch {
+    return null
+  }
+}
+
 /*
  * A miss is the normal case, not an error.
  *
@@ -70,28 +129,197 @@ const BASE = '/data/dgcis'
  * to show. So this returns null rather than throwing, and the panel that
  * calls it renders nothing.
  */
-export async function loadDgcis(hs6: string): Promise<DgcisNode | null> {
-  try {
-    const response = await fetch(`${BASE}/hs6/${hs6}.json`, { cache: 'no-cache' })
+/*
+ * Which headings have tariff lines at all, resolved once.
+ *
+ * 167 of the 418 products have no DGCIS file. Asking for each of them and
+ * taking the 404 works - loadDgcis has always treated a miss as "no detail" -
+ * but it puts a red line in the console of two pages in five, and a console
+ * full of expected errors is where an unexpected one goes unnoticed. So the
+ * index answers first, and the file is only asked for when it exists.
+ *
+ * If the index itself is not there - an older deployment, a half-finished
+ * upload - this falls back to asking for the file. Missing plumbing must
+ * degrade to the old behaviour, never to no behaviour.
+ */
+let coverage: Promise<Set<string> | null> | null = null
 
-    if (!response.ok) return null
-
-    return (await response.json()) as DgcisNode
-  } catch {
-    return null
+function coveredHeadings(): Promise<Set<string> | null> {
+  if (!coverage) {
+    coverage = loadDgcisIndex().then(index =>
+      index ? new Set(index.lines.map(line => line.hs6)) : null,
+    )
   }
+
+  return coverage
+}
+
+export async function loadDgcis(hs6: string): Promise<DgcisNode | null> {
+  const covered = await coveredHeadings()
+
+  if (covered && !covered.has(hs6)) return null
+
+  return usable(await getJson<DgcisNode>(`${BASE}/hs6/${hs6}.json`))
+}
+
+/*
+ * A file this code cannot read is treated as a file that is not there.
+ *
+ * This layer is an addition to a dashboard that worked without it, and it
+ * must never be able to subtract. The payload shape changed once already -
+ * when flow stopped being assumed - and a deployment that serves the new
+ * frontend over the old files, or the other way round, is an ordinary
+ * consequence of assets and code shipping as separate objects. The old shape
+ * has `children` where this one has `lines` and `flows`; reading it would
+ * throw inside a render, and a throw inside a render blanks the page.
+ *
+ * So: anything that is not recognisably this shape returns null, which every
+ * caller already handles as "this product has no tariff-line detail" - the
+ * normal state for 167 of the 418 products.
+ */
+function usable(node: DgcisNode | null): DgcisNode | null {
+  if (!node) return null
+
+  const shaped =
+    typeof node.hs6 === 'string' &&
+    Array.isArray(node.periods) &&
+    Array.isArray(node.lines) &&
+    node.flows !== null &&
+    typeof node.flows === 'object'
+
+  if (!shaped) return null
+
+  /* A flow block with no series is not a flow. */
+  const flows: Partial<Record<DgcisFlow, DgcisFlowBlock>> = {}
+
+  for (const flow of ['exports', 'imports'] as const) {
+    const block = node.flows[flow]
+
+    if (block && block.series && typeof block.series === 'object') {
+      flows[flow] = block
+    }
+  }
+
+  if (!Object.keys(flows).length) return null
+
+  return { ...node, flows }
 }
 
 export async function loadDgcisManifest(): Promise<DgcisManifest | null> {
-  try {
-    const response = await fetch(`${BASE}/manifest.json`, { cache: 'no-cache' })
+  return getJson<DgcisManifest>(`${BASE}/manifest.json`)
+}
 
-    if (!response.ok) return null
+/*
+ * The HS-8 catalogue, fetched once per session.
+ *
+ * 126 KB, and every consumer of it - search, the tariff-line route, the
+ * "does this code exist" check - wants the whole thing. Caching the promise
+ * rather than the value means five callers during the first paint make one
+ * request between them.
+ */
+let indexPromise: Promise<DgcisIndex | null> | null = null
 
-    return (await response.json()) as DgcisManifest
-  } catch {
-    return null
+export function loadDgcisIndex(): Promise<DgcisIndex | null> {
+  if (!indexPromise) {
+    indexPromise = getJson<DgcisIndex>(`${BASE}/hs8-index.json`).then(index =>
+      index && Array.isArray(index.lines) ? index : null,
+    )
   }
+
+  return indexPromise
+}
+
+/*
+ * Does this heading have tariff lines at all?
+ *
+ * Answered from the index, so asking costs nothing after the first call. The
+ * product page needs this before it renders, because the sentence it shows
+ * when there is no tariff-line detail must not appear above a table of
+ * tariff-line detail.
+ */
+export async function hasDgcis(hs6: string): Promise<boolean> {
+  const covered = await coveredHeadings()
+
+  /*
+   * With the index, this is free and exact.
+   *
+   * Without it - an older deployment, or no DGCIS data shipped at all - the
+   * question still has to be answered honestly, because the page uses it to
+   * decide whether to explain an absence. So it falls back to asking for the
+   * file. That is one extra request on a deployment that is already degraded,
+   * and it is what stops the page going silent about data it does not have.
+   */
+  if (!covered) return (await loadDgcis(hs6)) !== null
+
+  return covered.has(hs6)
+}
+
+export function parentOf(hs8: string): string {
+  return hs8.slice(0, 6)
+}
+
+export function isHs8(code: string): boolean {
+  return /^\d{8}$/.test(code)
+}
+
+/* The flows this HS-6 actually has, in a fixed order so a switch does not
+ * reorder itself between products. */
+export function flowsOf(node: DgcisNode | null): DgcisFlow[] {
+  if (!node) return []
+
+  return (['exports', 'imports'] as const).filter(flow => node.flows[flow])
+}
+
+export function seriesFor(
+  node: DgcisNode | null,
+  flow: DgcisFlow,
+  hs8: string,
+  basis: DgcisBasis,
+): Array<number | null> | null {
+  const series = node?.flows[flow]?.series[hs8]
+
+  if (!series) return null
+
+  return basis === 'usd' ? series.usdMillion : series.inrCrore
+}
+
+/*
+ * The heading's own series, as the sum of its tariff lines.
+ *
+ * A month is null only when every line beneath it is null - that is a month
+ * the source did not publish. A month where some lines are blank and others
+ * are not is a real month, and the blanks are lines that did not trade.
+ * Treating the whole month as missing there would put a hole in a series
+ * that has none.
+ */
+export function totalSeries(
+  node: DgcisNode | null,
+  flow: DgcisFlow,
+  basis: DgcisBasis,
+): Array<number | null> {
+  const block = node?.flows[flow]
+
+  if (!node || !block) return []
+
+  return node.periods.map((_, position) => {
+    let total = 0
+    let seen = false
+
+    for (const hs8 of Object.keys(block.series)) {
+      const series = basis === 'usd'
+        ? block.series[hs8].usdMillion
+        : block.series[hs8].inrCrore
+
+      const value = series[position]
+
+      if (value !== null && value !== undefined) {
+        total += value
+        seen = true
+      }
+    }
+
+    return seen ? total : null
+  })
 }
 
 /* The last month this line actually traded, and the value then. */
@@ -108,6 +336,33 @@ export function latestOf(
   return null
 }
 
+/* Total over a window, or null if any month in it is missing. A part-window
+ * total silently understates, and understating is how a rising line gets
+ * reported as a falling one. */
+export function windowTotal(
+  series: Array<number | null>,
+  from: number,
+  to: number,
+): number | null {
+  if (from < 0 || to > series.length) return null
+
+  let total = 0
+
+  for (let index = from; index < to; index += 1) {
+    const value = series[index]
+
+    if (value === null || value === undefined) return null
+
+    total += value
+  }
+
+  return total
+}
+
+export function last12(series: Array<number | null>): number | null {
+  return windowTotal(series, series.length - 12, series.length)
+}
+
 /*
  * Twelve months against the twelve before them.
  *
@@ -120,29 +375,116 @@ export function latestOf(
 export function rollingChange(series: Array<number | null>): number | null {
   if (series.length < 24) return null
 
-  const window = (from: number, to: number) => {
-    let total = 0
-    let seen = 0
-
-    for (let index = from; index < to; index += 1) {
-      const value = series[index]
-
-      if (value !== null && value !== undefined) {
-        total += value
-        seen += 1
-      }
-    }
-
-    return seen === to - from ? total : null
-  }
-
   const end = series.length
-  const recent = window(end - 12, end)
-  const prior = window(end - 24, end - 12)
+  const recent = windowTotal(series, end - 12, end)
+  const prior = windowTotal(series, end - 24, end - 12)
 
   if (recent === null || prior === null || prior === 0) return null
 
   return (recent - prior) / prior
+}
+
+/*
+ * India's financial year, April to March, named the way India names it.
+ *
+ * Calendar totals are what Comtrade publishes and what the rest of the
+ * dashboard compares against; financial years are what an Indian reader of a
+ * monthly customs series expects to see. Both are offered, and neither is
+ * converted into the other. A year is marked incomplete when the source has
+ * not filed all twelve of its months - that is the ordinary state of the
+ * current year, and a figure that does not say so invites a reader to compare
+ * four months against twelve.
+ */
+export type PeriodTotal = {
+  label: string
+  total: number
+  months: number
+  complete: boolean
+}
+
+export function financialYears(
+  series: Array<number | null>,
+  periods: string[],
+): PeriodTotal[] {
+  const buckets = new Map<string, { total: number; months: number }>()
+
+  periods.forEach((period, position) => {
+    const value = series[position]
+
+    if (value === null || value === undefined) return
+
+    const year = Number(period.slice(0, 4))
+    const month = Number(period.slice(5, 7))
+    const start = month >= 4 ? year : year - 1
+    const label = `FY ${start}-${String((start + 1) % 100).padStart(2, '0')}`
+
+    const bucket = buckets.get(label) ?? { total: 0, months: 0 }
+
+    bucket.total += value
+    bucket.months += 1
+    buckets.set(label, bucket)
+  })
+
+  return [...buckets.entries()]
+    .map(([label, bucket]) => ({
+      label,
+      total: bucket.total,
+      months: bucket.months,
+      complete: bucket.months === 12,
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label))
+}
+
+export function calendarYears(
+  series: Array<number | null>,
+  periods: string[],
+): PeriodTotal[] {
+  const buckets = new Map<string, { total: number; months: number }>()
+
+  periods.forEach((period, position) => {
+    const value = series[position]
+
+    if (value === null || value === undefined) return
+
+    const label = period.slice(0, 4)
+    const bucket = buckets.get(label) ?? { total: 0, months: 0 }
+
+    bucket.total += value
+    bucket.months += 1
+    buckets.set(label, bucket)
+  })
+
+  return [...buckets.entries()]
+    .map(([label, bucket]) => ({
+      label,
+      total: bucket.total,
+      months: bucket.months,
+      complete: bucket.months === 12,
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label))
+}
+
+/*
+ * What share of its heading a tariff line is.
+ *
+ * Over a stated window, and only when the window is complete for both - a
+ * share computed from a line with eleven months against a heading with twelve
+ * is not a share of anything. Returns null rather than a number that would
+ * be quoted.
+ */
+export function shareOfParent(
+  line: Array<number | null>,
+  parent: Array<number | null>,
+  months = 12,
+): number | null {
+  const end = Math.min(line.length, parent.length)
+
+  const part = windowTotal(line, end - months, end)
+  const whole = windowTotal(parent, end - months, end)
+
+  if (part === null || whole === null || whole <= 0) return null
+
+  return part / whole
 }
 
 export function formatPeriod(period: string | null): string {
@@ -180,4 +522,19 @@ export function formatValue(value: number | null): string {
     minimumFractionDigits: places,
     maximumFractionDigits: places,
   })
+}
+
+export function unitLabel(basis: DgcisBasis): string {
+  return basis === 'usd' ? 'USD mn' : 'INR cr'
+}
+
+/* Said the same way everywhere, because this is the word that was wrong. */
+export function flowPhrase(flow: DgcisFlow): string {
+  return flow === 'exports'
+    ? 'India’s exports to the world'
+    : 'India’s imports from the world'
+}
+
+export function flowWord(flow: DgcisFlow): string {
+  return flow === 'exports' ? 'Exports' : 'Imports'
 }

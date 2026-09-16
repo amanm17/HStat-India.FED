@@ -26,6 +26,7 @@ type Props = {
   inBasket: (code: string) => boolean
   onOpen: (code: string, level: 2 | 4 | 6) => void
   onAdd: (item: SearchItem) => void
+  onOpenHs8?: (hs8: string) => void
 }
 
 export function HomeView({
@@ -36,6 +37,7 @@ export function HomeView({
   inBasket,
   onOpen,
   onAdd,
+  onOpenHs8,
 }: Props) {
   const [openCategory, setOpenCategory] = useState<string | null>(null)
 
@@ -146,6 +148,7 @@ export function HomeView({
 
         <div className="home-search">
           <SearchHub
+          onOpenHs8={onOpenHs8}
             index={index}
             recent={recent}
             inBasket={inBasket}

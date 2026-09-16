@@ -1,15 +1,36 @@
 {
  "source": "DGCIS / Trade Intelligence & Analytics",
- "sourceFile": "DGCIS_DATA.csv",
- "sourceSha256": "609fc2a992963228a44cabbdfd88d7364092b8b1fcb2416d9909f41bc820dbe4",
- "processedAt": "2026-09-16T05:50:44.339000+00:00",
- "builtAt": "2026-09-16T06:03:34.832552+00:00",
+ "builtAt": "2026-09-16T10:49:04.730101+00:00",
  "reporter": "India",
  "partner": "World",
- "flow": "imports",
  "units": {
   "inrCrore": "INR crore",
   "usdMillion": "USD million"
+ },
+ "flows": [
+  "exports"
+ ],
+ "flowDetail": {
+  "exports": {
+   "sourceFile": "DGCIS_DATA_exports.csv",
+   "sourceSha256": "609fc2a992963228a44cabbdfd88d7364092b8b1fcb2416d9909f41bc820dbe4",
+   "processedAt": "2026-09-16T10:47:31.289148+00:00",
+   "firstPeriod": "2019-01",
+   "lastPeriod": "2026-06",
+   "flowVerdict": {
+    "status": "DECIDED",
+    "evidence": "exports",
+    "pairs": 1487,
+    "wins": {
+     "imports": 16,
+     "exports": 1471
+    },
+    "medianRatio": {
+     "imports": 0.1153,
+     "exports": 1.0
+    }
+   }
+  }
  },
  "firstPeriod": "2019-01",
  "lastPeriod": "2026-06",
@@ -279,6 +300,6 @@
  "reconciliation": {
   "method": "sum of HS-8 rows against the DGCIS TOTAL footer",
   "tolerancePct": 0.01,
-  "status": "PASS"
+  "note": "Proves transcription, not identity. The flow label is established separately by flow_guard.py against Comtrade."
  }
 }

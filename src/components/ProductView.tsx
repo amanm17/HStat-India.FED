@@ -15,6 +15,8 @@ import {
 } from 'recharts'
 import { Download, Pin, PinOff, Plus } from 'lucide-react'
 
+import { Safely } from './Safely'
+
 import type {
   CatalogueEntry,
   CurrencyBlock,
@@ -38,11 +40,22 @@ import {
 } from '../lib/format'
 import { comtradeQueryUrl, datasetsFor } from '../lib/comtrade'
 import {
+  flowPhrase,
+  flowWord,
+  flowsOf,
   formatPeriod,
+  hasDgcis,
   formatValue,
+  last12,
   latestOf,
   loadDgcis,
   rollingChange,
+  seriesFor,
+  shareOfParent,
+  totalSeries,
+  unitLabel,
+  type DgcisBasis,
+  type DgcisFlow,
   type DgcisNode,
 } from '../lib/dgcis'
 import {
@@ -761,22 +774,45 @@ function PullData({
  *
  * Deliberately its own panel, loaded on its own, labelled on its own.
  *
- * Everything else on this page is UN Comtrade: the world's imports of an HS-6
- * line. This is India's customs authority reporting India's own imports, at
- * the Indian eight-digit tariff line, monthly. The source calls the partner
- * "World", which reads as world trade and is not - it means India importing
- * from everywhere. So the reporter and partner are stated on the panel every
- * time, the currency units are the ones DGCIS published, and nothing here is
- * ever added to or plotted against a Comtrade series.
+ * Everything else on this page is UN Comtrade: the world's trade in an HS-6
+ * line. This is India's customs authority reporting India's own trade, at the
+ * Indian eight-digit tariff line, monthly. The source calls the partner
+ * "World", which reads as world trade and is not — it means India trading
+ * with everywhere. So the reporter, partner and flow are stated on the panel
+ * every time, the currency units are the ones DGCIS published, and nothing
+ * here is ever added to or plotted against a Comtrade series.
+ *
+ * THE FLOW IS NAMED BECAUSE IT WAS ONCE WRONG
+ *
+ * The extract has no flow column. This panel spent a fortnight in development
+ * calling India's exports "imports", because the pipeline wrote the word as a
+ * literal and every layer above took it at face value. The flow now comes
+ * from the file, the file's flow is checked against Comtrade before it is
+ * built, and the panel says which flow it is showing in its own heading
+ * rather than in a footnote.
+ *
+ * THE COMPOSITION IS THE POINT
+ *
+ * A heading is not one product. HS 851762 is eight Indian tariff lines, and
+ * 97% of what India ships under it is one of them. A table of eight rows
+ * says that only to a reader who divides; the share column says it outright,
+ * and each code is a link to the line's own page.
  *
  * The extract covers 251 of the 418 products. A page without one renders
- * nothing at all rather than announcing an absence - there is no fault to
+ * nothing at all rather than announcing an absence — there is no fault to
  * report, and an empty panel on 167 pages would be worse than silence.
  */
-function DgcisPanel({ node }: { node: HsNode }) {
+function DgcisPanel({
+  node,
+  onOpenHs8,
+}: {
+  node: HsNode
+  onOpenHs8?: (hs8: string) => void
+}) {
   const [data, setData] = useState<DgcisNode | null>(null)
   const [state, setState] = useState<'loading' | 'done'>('loading')
-  const [basis, setBasis] = useState<'usd' | 'inr'>('usd')
+  const [basis, setBasis] = useState<DgcisBasis>('usd')
+  const [flow, setFlow] = useState<DgcisFlow | null>(null)
 
   useEffect(() => {
     let live = true
@@ -787,6 +823,9 @@ function DgcisPanel({ node }: { node: HsNode }) {
       if (!live) return
 
       setData(result)
+      /* Whatever this product actually has, in a fixed order — never a
+       * default that might not exist, and never the other one. */
+      setFlow(flowsOf(result)[0] ?? null)
       setState('done')
     })
 
@@ -795,27 +834,39 @@ function DgcisPanel({ node }: { node: HsNode }) {
     }
   }, [node.code])
 
-  const rows = useMemo(() => {
-    if (!data) return []
+  const available = useMemo(() => flowsOf(data), [data])
 
-    return data.children
-      .map(child => {
-        const series = basis === 'usd' ? child.usdMillion : child.inrCrore
-        const latest = latestOf(series, data.periods)
+  const rows = useMemo(() => {
+    if (!data || !flow) return []
+
+    const parent = totalSeries(data, flow, basis)
+
+    return data.lines
+      .map(line => {
+        const series = seriesFor(data, flow, line.hs8, basis)
+
+        if (!series) return null
 
         return {
-          child,
-          series,
-          latest,
+          line,
+          latest: latestOf(series, data.periods),
           change: rollingChange(series),
+          share: shareOfParent(series, parent),
+          twelve: last12(series),
         }
       })
-      .sort((a, b) => (b.latest?.value ?? 0) - (a.latest?.value ?? 0))
-  }, [data, basis])
+      .filter((row): row is NonNullable<typeof row> => row !== null)
+      /* Largest first, by the twelve-month total rather than by the latest
+       * month: one big shipment in June should not put a minor line at the
+       * top of a heading it makes up 2% of. */
+      .sort((a, b) => (b.twelve ?? b.latest?.value ?? 0) - (a.twelve ?? a.latest?.value ?? 0))
+  }, [data, flow, basis])
 
-  if (state === 'loading' || !data || !data.children.length) return null
+  if (state === 'loading' || !data || !flow || !rows.length) return null
 
-  const unit = basis === 'usd' ? 'USD mn' : 'INR cr'
+  const unit = unitLabel(basis)
+  const block = data.flows[flow]
+  const headingTotal = last12(totalSeries(data, flow, basis))
 
   return (
     <section className="release-section dgcis">
@@ -823,29 +874,53 @@ function DgcisPanel({ node }: { node: HsNode }) {
         <div>
           <div className="eyebrow">INDIA HS8 DETAIL · DGCIS</div>
 
-          <h2>India&rsquo;s imports at the tariff line</h2>
+          <h2>
+            {flow === 'exports'
+              ? 'What India ships under this heading'
+              : 'What India brings in under this heading'}
+          </h2>
         </div>
 
-        <div className="basis-switch" role="group" aria-label="Currency">
-          {(['usd', 'inr'] as const).map(mode => (
-            <button
-              key={mode}
-              className={basis === mode ? 'active' : ''}
-              aria-pressed={basis === mode}
-              onClick={() => setBasis(mode)}
-            >
-              {mode === 'usd' ? 'USD mn' : 'INR cr'}
-            </button>
-          ))}
+        <div className="dgcis-switches">
+          {available.length > 1 && (
+            <div className="basis-switch" role="group" aria-label="Flow">
+              {available.map(option => (
+                <button
+                  key={option}
+                  className={flow === option ? 'active' : ''}
+                  aria-pressed={flow === option}
+                  onClick={() => setFlow(option)}
+                >
+                  {flowWord(option)}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div className="basis-switch" role="group" aria-label="Currency">
+            {(['usd', 'inr'] as const).map(mode => (
+              <button
+                key={mode}
+                className={basis === mode ? 'active' : ''}
+                aria-pressed={basis === mode}
+                onClick={() => setBasis(mode)}
+              >
+                {unitLabel(mode)}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       <p className="dgcis-lede">
-        India importing from the world, monthly, at the Indian eight-digit
-        tariff line — reported by India&rsquo;s own customs authority, not by
-        the world&rsquo;s importers. It sits under the global figures above
-        rather than alongside them, and the two are never added together.
-        Latest month available: {formatPeriod(data.latestPeriod)}.
+        {flowPhrase(flow)}, monthly, at the Indian eight-digit tariff line —
+        reported by India&rsquo;s own customs authority, not by the world&rsquo;s
+        traders. It sits under the global figures above rather than alongside
+        them, and the two are never added together.{' '}
+        {rows.length === 1
+          ? 'One tariff line carries this heading.'
+          : `${rows.length} tariff lines carry this heading.`}{' '}
+        Latest month available: {formatPeriod(block?.latestPeriod ?? null)}.
       </p>
 
       <div className="dgcis-table-wrap">
@@ -854,6 +929,8 @@ function DgcisPanel({ node }: { node: HsNode }) {
             <tr>
               <th>HS8</th>
               <th>DGCIS commodity group</th>
+              <th className="num">12 months ({unit})</th>
+              <th className="num">Share</th>
               <th className="num">Latest ({unit})</th>
               <th className="num">Month</th>
               <th className="num">12m vs prior 12m</th>
@@ -861,17 +938,48 @@ function DgcisPanel({ node }: { node: HsNode }) {
           </thead>
 
           <tbody>
-            {rows.map(({ child, latest, change }) => (
-              <tr key={child.hs8}>
-                <td className="dgcis-code">{child.hs8}</td>
+            {rows.map(({ line, latest, change, share, twelve }) => (
+              <tr key={line.hs8}>
+                <td className="dgcis-code">
+                  {onOpenHs8 ? (
+                    <button
+                      type="button"
+                      className="linkish"
+                      onClick={() => onOpenHs8(line.hs8)}
+                      title={`Open tariff line ${line.hs8}`}
+                    >
+                      {line.hs8}
+                    </button>
+                  ) : (
+                    line.hs8
+                  )}
+                </td>
 
                 <td>
-                  {child.principalCommodity || '—'}
-                  {child.quickEstimateCommodity &&
-                    child.quickEstimateCommodity !==
-                      child.principalCommodity && (
-                      <small>{child.quickEstimateCommodity}</small>
+                  {line.principalCommodity || '—'}
+                  {line.quickEstimateCommodity &&
+                    line.quickEstimateCommodity !== line.principalCommodity && (
+                      <small>{line.quickEstimateCommodity}</small>
                     )}
+                </td>
+
+                <td className="num">{formatValue(twelve)}</td>
+
+                <td className="num">
+                  {share === null ? (
+                    '—'
+                  ) : (
+                    <span className="dgcis-share">
+                      <span
+                        className="dgcis-share-bar"
+                        style={{ width: `${Math.min(100, share * 100).toFixed(1)}%` }}
+                        aria-hidden="true"
+                      />
+                      <span className="dgcis-share-figure">
+                        {share >= 0.001 ? `${(share * 100).toFixed(1)}%` : '<0.1%'}
+                      </span>
+                    </span>
+                  )}
                 </td>
 
                 <td className="num">{formatValue(latest?.value ?? null)}</td>
@@ -897,11 +1005,20 @@ function DgcisPanel({ node }: { node: HsNode }) {
       </div>
 
       <p className="dgcis-foot">
-        Source: DGCIS / Trade Intelligence &amp; Analytics. Values are as
-        published — INR crore and USD million are both filed by the source and
-        are never converted between each other here. The extract carries no
-        tariff-line description, so the DGCIS commodity grouping is shown
-        rather than a name invented for it.
+        Source: DGCIS / Trade Intelligence &amp; Analytics — India reporting,
+        partner World, {flow}. Values are as published: INR crore and USD
+        million are both filed by the source and are never converted between
+        each other here. The extract carries no tariff-line description, so the
+        DGCIS commodity grouping is shown rather than a name invented for it.
+        {headingTotal !== null && (
+          <>
+            {' '}
+            Share is of {formatValue(headingTotal)} {unit} over the twelve
+            months to {formatPeriod(data.periods[data.periods.length - 1])}, and
+            is shown only where both the line and the heading have a complete
+            twelve months.
+          </>
+        )}
         {node.lineage?.retired && (
           <>
             {' '}
@@ -914,6 +1031,7 @@ function DgcisPanel({ node }: { node: HsNode }) {
     </section>
   )
 }
+
 
 
 function LineageNote({
@@ -1310,6 +1428,7 @@ export function ProductView({
   onArrange,
   onAuto,
   onYearLead,
+  onOpenHs8,
 }: {
   node: HsNode
   year: number
@@ -1333,11 +1452,33 @@ export function ProductView({
   onArrange: (groups: string[][]) => void
   onAuto: () => void
   onYearLead: () => void
+  onOpenHs8?: (hs8: string) => void
 }) {
   const off = useCallback(
     (id: string) => hiddenTiles.includes(id),
     [hiddenTiles],
   )
+
+  /* null while unknown: neither claim is made until the index has answered. */
+  const [dgcisCovered, setDgcisCovered] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    let live = true
+
+    setDgcisCovered(null)
+
+    hasDgcis(node.code)
+      .then(covered => {
+        if (live) setDgcisCovered(covered)
+      })
+      .catch(() => {
+        if (live) setDgcisCovered(true)
+      })
+
+    return () => {
+      live = false
+    }
+  }, [node.code])
 
   /*
    * The deck shuffle.
@@ -1888,11 +2029,21 @@ export function ProductView({
    * comes from, at the foot of the page, for whoever goes looking.
    */
   const tariffPanel = tariffYears.length === 0 ? (
-    <p className="tariff-absent">
-      India ITC(HS)-8 tariff-line detail is not in this snapshot. It is
-      supplied from a static DGCIS / TradeStat export, in Indian financial
-      years; the six-digit figures above are Comtrade calendar years.
-    </p>
+    /*
+     * This line used to run on every product page, because the snapshot's
+     * own tariff-line block has never been populated. It now sits above a
+     * DGCIS panel that does have tariff lines for 251 of the 418 products,
+     * where it read as a flat contradiction of the table underneath it. So
+     * it appears only where there is genuinely nothing to show.
+     */
+    dgcisCovered === false ? (
+      <p className="tariff-absent">
+        India ITC(HS)-8 tariff-line detail is not held for this heading. It
+        comes from a separate DGCIS extract covering the electronics and IT
+        tariff lines — 251 of the 418 products — and is India reporting India;
+        the six-digit figures above are UN Comtrade.
+      </p>
+    ) : null
   ) : (
     <article
       className={
@@ -3044,7 +3195,11 @@ export function ProductView({
           which is the case for 167 of the 418. */}
       {!off('dgcis') && node.level === 6 && (
         <Tile id="dgcis" label="India HS8 detail" onUnpin={onUnpinTile}>
-          <DgcisPanel node={node} />
+          {/* Additive by construction: if the tariff-line panel throws, it
+            * hides itself and the product page carries on. */}
+          <Safely label="DgcisPanel">
+            <DgcisPanel node={node} onOpenHs8={onOpenHs8} />
+          </Safely>
         </Tile>
       )}
 

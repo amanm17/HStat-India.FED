@@ -4,6 +4,12 @@ import { Plus, Search } from 'lucide-react'
 import type { SearchIndex, SearchOutcome } from '../lib/search'
 import { search, suggestedTerms } from '../lib/search'
 import type { SearchItem } from '../types'
+import {
+  formatValue,
+  isHs8,
+  loadDgcisIndex,
+  type DgcisIndexEntry,
+} from '../lib/dgcis'
 
 /*
  * The old search returned a ranked list of HS codes for every query. That
@@ -158,6 +164,125 @@ function AnswerCard({
   )
 }
 
+/*
+ * Tariff lines in search.
+ *
+ * Deliberately a separate lookup from the product index rather than more
+ * rows inside it. The product index is Comtrade's world catalogue; a tariff
+ * line is India reporting India, exists only in India's schedule, and has no
+ * world figure at all. Merging them would put two different measurements in
+ * one ranked list and let a reader carry an Indian number away believing it
+ * was a world one.
+ *
+ * So they get their own group, under their own heading, with the source said
+ * out loud - and they never displace the product answer above them.
+ */
+function useTariffMatches(query: string): DgcisIndexEntry[] {
+  const [lines, setLines] = useState<DgcisIndexEntry[] | null>(null)
+
+  useEffect(() => {
+    let live = true
+
+    /* Cached at the module level, so this is one request per session however
+     * many search boxes ask for it. A failure leaves lines null and the
+     * group simply never appears. */
+    loadDgcisIndex().then(index => {
+      if (live) setLines(index?.lines ?? [])
+    })
+
+    return () => {
+      live = false
+    }
+  }, [])
+
+  return useMemo(() => {
+    const text = query.trim().toLowerCase()
+
+    if (!lines || text.length < 3) return []
+
+    const digits = text.replace(/\D/g, '')
+
+    const matched = lines.filter(line => {
+      if (digits.length >= 4 && line.hs8.startsWith(digits)) return true
+
+      if (digits.length >= 4) return false
+
+      return (
+        line.principalCommodity.toLowerCase().includes(text) ||
+        line.quickEstimateCommodity.toLowerCase().includes(text)
+      )
+    })
+
+    /* Biggest first. A reader who types "telecom" wants the line that carries
+     * the trade, not the first one in numeric order. */
+    return matched
+      .sort(
+        (a, b) =>
+          (b.flows.exports?.last12UsdMillion ?? b.flows.imports?.last12UsdMillion ?? 0) -
+          (a.flows.exports?.last12UsdMillion ?? a.flows.imports?.last12UsdMillion ?? 0),
+      )
+      .slice(0, 6)
+  }, [lines, query])
+}
+
+function TariffResults({
+  matches,
+  query,
+  onOpenHs8,
+}: {
+  matches: DgcisIndexEntry[]
+  query: string
+  onOpenHs8: (hs8: string) => void
+}) {
+  if (!matches.length) return null
+
+  const exact = isHs8(query.trim()) ? query.trim() : null
+
+  return (
+    <div className="search-more tariff-more">
+      <div className="search-more-head">
+        India tariff lines · DGCIS
+        <small>India reporting India — not world trade</small>
+      </div>
+
+      <div className="search-results-large">
+        {matches.map(line => {
+          const flow = line.flows.exports ? 'exports' : 'imports'
+          const twelve = line.flows[flow]?.last12UsdMillion ?? null
+
+          return (
+            <div
+              className={
+                line.hs8 === exact ? 'search-result exact' : 'search-result'
+              }
+              key={line.hs8}
+            >
+              <button
+                className="search-result-open"
+                onClick={() => onOpenHs8(line.hs8)}
+              >
+                <span className="result-level">HS-8</span>
+
+                <strong>{line.hs8}</strong>
+
+                <span className="result-product">
+                  {line.principalCommodity || 'Indian tariff line'}
+                </span>
+
+                <span className="result-reason">
+                  {twelve === null
+                    ? `under HS ${line.hs6}`
+                    : `${formatValue(twelve)} USD mn of ${flow}, 12 months · under HS ${line.hs6}`}
+                </span>
+              </button>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 export function SearchHub({
   index,
   onOpen,
@@ -165,9 +290,13 @@ export function SearchHub({
   inBasket,
   recent,
   variant = 'hub',
+  onOpenHs8,
 }: {
   index: SearchIndex
   onOpen: (item: SearchItem) => void
+  /* Absent on a surface with nowhere to send a tariff line; the group then
+   * does not appear at all, rather than offering a dead button. */
+  onOpenHs8?: (hs8: string) => void
   onAdd: (item: SearchItem) => void
   inBasket: (code: string) => boolean
   recent: string[]
@@ -210,6 +339,8 @@ export function SearchHub({
   const outcome = useMemo(() => search(index, query), [index, query])
 
   const suggestions = useMemo(() => suggestedTerms(index, 10), [index])
+
+  const tariffMatches = useTariffMatches(onOpenHs8 ? query : '')
 
   const supporting = outcome.answer
     ? outcome.results.filter(
@@ -324,7 +455,19 @@ export function SearchHub({
             </div>
           )}
 
-          {!outcome.answer && supporting.length === 0 && (
+          {onOpenHs8 && (
+            <TariffResults
+              matches={tariffMatches}
+              query={query}
+              onOpenHs8={hs8 => {
+                onOpenHs8(hs8)
+                setQuery('')
+                setOpen(false)
+              }}
+            />
+          )}
+
+          {!outcome.answer && supporting.length === 0 && tariffMatches.length === 0 && (
             <div className="search-empty">
               Nothing matched “{query.trim()}”. Try a product name, a brand-free
               description, or an HS code.

@@ -38,6 +38,8 @@ data/dgcis/normalized/
 data/dgcis/raw/
 data/dgcis/processed/
 data/dgcis/tia_network_log.json
+data/dgcis/tia_capture.json
+data/dgcis/tia_capture.txt
 
 # Fixture inputs are fabricated. They exist so the pipeline and the dashboard
 # can be exercised offline, and must never be mistaken for the real thing:
@@ -56,3 +58,10 @@ _to_delete/
 # with `git add -A`, so anything untracked here lands in a deploy commit.
 Claude outputs/
 pipeline/HStat_Pipeline_Code_Guide.docx
+
+# QA scratch: the browser suite builds doctored copies of dist to test what
+# happens when the DGCIS layer is missing or stale. The scripts are tracked;
+# what they produce is not.
+qa/dist-test*/
+qa/*.png
+data/dgcis/_superseded/
