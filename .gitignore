@@ -30,6 +30,14 @@ data/staging/
 # loose exports it is built from are not.
 data/dgcis/incoming/
 data/dgcis/normalized/
+# The DGCIS extract is downloaded by hand through a CAPTCHA, so the working
+# file, its timestamped archives and the processed intermediates are local.
+# What ships is public/data/dgcis, which is generated from them and is small.
+# Keep the raw archives somewhere durable outside the repo - they are the only
+# record of what the portal actually served on a given day.
+data/dgcis/raw/
+data/dgcis/processed/
+data/dgcis/tia_network_log.json
 
 # Fixture inputs are fabricated. They exist so the pipeline and the dashboard
 # can be exercised offline, and must never be mistaken for the real thing:

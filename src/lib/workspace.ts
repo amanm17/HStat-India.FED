@@ -55,6 +55,7 @@ export const TILES: TileSpec[] = [
   { id: 'exporters', label: 'Who sells', note: 'Largest exporting economies' },
   { id: 'partners', label: 'Trade partners', note: "India's own sources and markets" },
   { id: 'tariff', label: 'Tariff lines', note: 'India ITC(HS)-8 detail, when supplied' },
+  { id: 'dgcis', label: 'India HS8 detail', note: "India's own monthly tariff-line imports, from DGCIS" },
 ]
 
 export const DEFAULT_TILES = TILES.map(tile => tile.id)

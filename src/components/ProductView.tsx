@@ -38,6 +38,14 @@ import {
 } from '../lib/format'
 import { comtradeQueryUrl, datasetsFor } from '../lib/comtrade'
 import {
+  formatPeriod,
+  formatValue,
+  latestOf,
+  loadDgcis,
+  rollingChange,
+  type DgcisNode,
+} from '../lib/dgcis'
+import {
   convertibleCount,
   defaultFinancialYear,
   money,
@@ -744,6 +752,166 @@ function PullData({
         </div>
       )}
     </div>
+  )
+}
+
+
+/*
+ * India HS8 detail — DGCIS.
+ *
+ * Deliberately its own panel, loaded on its own, labelled on its own.
+ *
+ * Everything else on this page is UN Comtrade: the world's imports of an HS-6
+ * line. This is India's customs authority reporting India's own imports, at
+ * the Indian eight-digit tariff line, monthly. The source calls the partner
+ * "World", which reads as world trade and is not - it means India importing
+ * from everywhere. So the reporter and partner are stated on the panel every
+ * time, the currency units are the ones DGCIS published, and nothing here is
+ * ever added to or plotted against a Comtrade series.
+ *
+ * The extract covers 251 of the 418 products. A page without one renders
+ * nothing at all rather than announcing an absence - there is no fault to
+ * report, and an empty panel on 167 pages would be worse than silence.
+ */
+function DgcisPanel({ node }: { node: HsNode }) {
+  const [data, setData] = useState<DgcisNode | null>(null)
+  const [state, setState] = useState<'loading' | 'done'>('loading')
+  const [basis, setBasis] = useState<'usd' | 'inr'>('usd')
+
+  useEffect(() => {
+    let live = true
+
+    setState('loading')
+
+    loadDgcis(node.code).then(result => {
+      if (!live) return
+
+      setData(result)
+      setState('done')
+    })
+
+    return () => {
+      live = false
+    }
+  }, [node.code])
+
+  const rows = useMemo(() => {
+    if (!data) return []
+
+    return data.children
+      .map(child => {
+        const series = basis === 'usd' ? child.usdMillion : child.inrCrore
+        const latest = latestOf(series, data.periods)
+
+        return {
+          child,
+          series,
+          latest,
+          change: rollingChange(series),
+        }
+      })
+      .sort((a, b) => (b.latest?.value ?? 0) - (a.latest?.value ?? 0))
+  }, [data, basis])
+
+  if (state === 'loading' || !data || !data.children.length) return null
+
+  const unit = basis === 'usd' ? 'USD mn' : 'INR cr'
+
+  return (
+    <section className="release-section dgcis">
+      <div className="release-section-head">
+        <div>
+          <div className="eyebrow">INDIA HS8 DETAIL · DGCIS</div>
+
+          <h2>India&rsquo;s imports at the tariff line</h2>
+        </div>
+
+        <div className="basis-switch" role="group" aria-label="Currency">
+          {(['usd', 'inr'] as const).map(mode => (
+            <button
+              key={mode}
+              className={basis === mode ? 'active' : ''}
+              aria-pressed={basis === mode}
+              onClick={() => setBasis(mode)}
+            >
+              {mode === 'usd' ? 'USD mn' : 'INR cr'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <p className="dgcis-lede">
+        India importing from the world, monthly, at the Indian eight-digit
+        tariff line — reported by India&rsquo;s own customs authority, not by
+        the world&rsquo;s importers. It sits under the global figures above
+        rather than alongside them, and the two are never added together.
+        Latest month available: {formatPeriod(data.latestPeriod)}.
+      </p>
+
+      <div className="dgcis-table-wrap">
+        <table className="dgcis-table">
+          <thead>
+            <tr>
+              <th>HS8</th>
+              <th>DGCIS commodity group</th>
+              <th className="num">Latest ({unit})</th>
+              <th className="num">Month</th>
+              <th className="num">12m vs prior 12m</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {rows.map(({ child, latest, change }) => (
+              <tr key={child.hs8}>
+                <td className="dgcis-code">{child.hs8}</td>
+
+                <td>
+                  {child.principalCommodity || '—'}
+                  {child.quickEstimateCommodity &&
+                    child.quickEstimateCommodity !==
+                      child.principalCommodity && (
+                      <small>{child.quickEstimateCommodity}</small>
+                    )}
+                </td>
+
+                <td className="num">{formatValue(latest?.value ?? null)}</td>
+
+                <td className="num dgcis-month">
+                  {latest ? formatPeriod(latest.period) : '—'}
+                </td>
+
+                <td className="num">
+                  {change === null ? (
+                    '—'
+                  ) : (
+                    <span className={change >= 0 ? 'up' : 'down'}>
+                      {change >= 0 ? '+' : ''}
+                      {(change * 100).toFixed(1)}%
+                    </span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <p className="dgcis-foot">
+        Source: DGCIS / Trade Intelligence &amp; Analytics. Values are as
+        published — INR crore and USD million are both filed by the source and
+        are never converted between each other here. The extract carries no
+        tariff-line description, so the DGCIS commodity grouping is shown
+        rather than a name invented for it.
+        {node.lineage?.retired && (
+          <>
+            {' '}
+            HS {node.code} left the Harmonized System in the HS{' '}
+            {node.lineage.retired.revision} revision; tariff lines beneath it
+            remain visible as India history.
+          </>
+        )}
+      </p>
+    </section>
   )
 }
 
@@ -2869,6 +3037,14 @@ export function ProductView({
       {!off('tariff') && (
         <Tile id="tariff" label="Tariff lines" onUnpin={onUnpinTile}>
           {tariffPanel}
+        </Tile>
+      )}
+
+      {/* Renders nothing at all when this product has no DGCIS extract,
+          which is the case for 167 of the 418. */}
+      {!off('dgcis') && node.level === 6 && (
+        <Tile id="dgcis" label="India HS8 detail" onUnpin={onUnpinTile}>
+          <DgcisPanel node={node} />
         </Tile>
       )}
 
