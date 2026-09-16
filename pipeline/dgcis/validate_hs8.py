@@ -38,6 +38,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 DGCIS = ROOT / "data" / "dgcis"
 SOURCE = DGCIS / "incoming" / "DGCIS_DATA.csv"
+
+FLOWS = ("exports", "imports")
 PROCESSED = DGCIS / "processed"
 CONFIG = ROOT / "config"
 
@@ -106,9 +108,26 @@ def period_of(column: str) -> tuple[str, str] | None:
     return f"{year}-{month:02d}", metric
 
 
+def _flow_from_name(source: Path) -> str | None:
+    """exports/imports if the filename says so, else None. Never a guess."""
+    stem = source.stem.lower()
+
+    return next((flow for flow in FLOWS if flow in stem), None)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--source", default=str(SOURCE))
+    parser.add_argument("--source", default=None)
+    parser.add_argument(
+        "--flow",
+        choices=FLOWS,
+        default=None,
+        help=(
+            "which flow this extract holds. Used to find the default source "
+            "file and the manifest to compare against. The extract itself "
+            "carries no flow column, so this cannot be inferred from it."
+        ),
+    )
     parser.add_argument(
         "--strict",
         action="store_true",
@@ -117,7 +136,28 @@ def main() -> int:
     args = parser.parse_args()
 
     check = Report()
-    source = Path(args.source).resolve()
+    if args.source:
+        source = Path(args.source).resolve()
+    elif args.flow:
+        named = DGCIS / "incoming" / f"DGCIS_DATA_{args.flow}.csv"
+        source = (named if named.exists() else SOURCE).resolve()
+    else:
+        # No flow named: take whichever single extract is sitting there, and
+        # refuse if there is more than one, because validating the exports
+        # file against the imports manifest would compare two unrelated
+        # downloads and call the difference a regression.
+        candidates = sorted(
+            path for path in (DGCIS / "incoming").glob("DGCIS_DATA*.csv")
+        )
+
+        if len(candidates) > 1:
+            raise SystemExit(
+                f"{len(candidates)} extracts in incoming/: "
+                + ", ".join(path.name for path in candidates)
+                + "\nName one with --flow, or point at it with --source."
+            )
+
+        source = (candidates[0] if candidates else SOURCE).resolve()
 
     # 1 - the file is there and readable ------------------------------------
     if not check.fail(source.exists(), f"source file missing: {source}"):
@@ -307,7 +347,14 @@ def main() -> int:
         )
 
     # 11, 12 - has anything gone backwards since the last accepted extract? --
-    manifest_path = PROCESSED / "manifest.json"
+    # Compare against the manifest for the same flow. Comparing an exports
+    # extract against the imports manifest would read every difference between
+    # two unrelated downloads as a regression in one of them.
+    flow = args.flow or _flow_from_name(source)
+
+    manifest_path = (
+        PROCESSED / f"manifest_{flow}.json" if flow else PROCESSED / "manifest.json"
+    )
 
     if manifest_path.exists():
         previous = json.loads(manifest_path.read_text())

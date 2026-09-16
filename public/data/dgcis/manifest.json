@@ -1,6 +1,6 @@
 {
  "source": "DGCIS / Trade Intelligence & Analytics",
- "builtAt": "2026-09-16T10:49:04.730101+00:00",
+ "builtAt": "2026-09-16T11:12:25.132045+00:00",
  "reporter": "India",
  "partner": "World",
  "units": {
@@ -14,7 +14,7 @@
   "exports": {
    "sourceFile": "DGCIS_DATA_exports.csv",
    "sourceSha256": "609fc2a992963228a44cabbdfd88d7364092b8b1fcb2416d9909f41bc820dbe4",
-   "processedAt": "2026-09-16T10:47:31.289148+00:00",
+   "processedAt": "2026-09-16T11:12:24.827037+00:00",
    "firstPeriod": "2019-01",
    "lastPeriod": "2026-06",
    "flowVerdict": {
