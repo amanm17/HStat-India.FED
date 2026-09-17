@@ -154,12 +154,46 @@ function coveredHeadings(): Promise<Set<string> | null> {
   return coverage
 }
 
-export async function loadDgcis(hs6: string): Promise<DgcisNode | null> {
-  const covered = await coveredHeadings()
+/*
+ * One fetch per heading per session.
+ *
+ * A reader who opens HS 851762 and then clicks into 85176290 was downloading
+ * the same 60 KB file twice: the tariff-line page loads its parent's payload,
+ * which is the whole point of the design - siblings, share of heading and the
+ * way back up all come from it - but the product page had just fetched it.
+ * `cache: 'no-cache'` meant the browser would not help.
+ *
+ * So the promise is remembered, exactly as the index already is. Second and
+ * later callers get the resolved node without a request, and a drill-down is
+ * instant instead of a round trip.
+ *
+ * The memo is per page load, not persisted. Nothing here goes stale within a
+ * session: these files are rebuilt monthly, and a reader who leaves the tab
+ * open across a deploy reloads to see it, the same as every other asset.
+ */
+const headings = new Map<string, Promise<DgcisNode | null>>()
 
-  if (covered && !covered.has(hs6)) return null
+export function loadDgcis(hs6: string): Promise<DgcisNode | null> {
+  const existing = headings.get(hs6)
 
-  return usable(await getJson<DgcisNode>(`${BASE}/hs6/${hs6}.json`))
+  if (existing) return existing
+
+  const request = (async () => {
+    const covered = await coveredHeadings()
+
+    if (covered && !covered.has(hs6)) return null
+
+    return usable(await getJson<DgcisNode>(`${BASE}/hs6/${hs6}.json`))
+  })()
+
+  headings.set(hs6, request)
+
+  /* A rejected promise must not be remembered, or one blip poisons the
+   * heading for the rest of the session. getJson already swallows failures
+   * into null, so this is belt and braces. */
+  request.catch(() => headings.delete(hs6))
+
+  return request
 }
 
 /*
@@ -227,31 +261,6 @@ export function loadDgcisIndex(): Promise<DgcisIndex | null> {
   }
 
   return indexPromise
-}
-
-/*
- * Does this heading have tariff lines at all?
- *
- * Answered from the index, so asking costs nothing after the first call. The
- * product page needs this before it renders, because the sentence it shows
- * when there is no tariff-line detail must not appear above a table of
- * tariff-line detail.
- */
-export async function hasDgcis(hs6: string): Promise<boolean> {
-  const covered = await coveredHeadings()
-
-  /*
-   * With the index, this is free and exact.
-   *
-   * Without it - an older deployment, or no DGCIS data shipped at all - the
-   * question still has to be answered honestly, because the page uses it to
-   * decide whether to explain an absence. So it falls back to asking for the
-   * file. That is one extra request on a deployment that is already degraded,
-   * and it is what stops the page going silent about data it does not have.
-   */
-  if (!covered) return (await loadDgcis(hs6)) !== null
-
-  return covered.has(hs6)
 }
 
 export function parentOf(hs8: string): string {
@@ -523,6 +532,76 @@ export function formatValue(value: number | null): string {
     maximumFractionDigits: places,
   })
 }
+
+/*
+ * Tariff lines as rows, for a file rather than a screen.
+ *
+ * One builder, used by both the panel's CSV button and the product
+ * workbook's sheet, so the two can never disagree about what a column means.
+ *
+ * Long format - one row per flow, line and month - rather than a grid. A grid
+ * of 90 month columns is unreadable and unpivotable; this sorts, filters and
+ * pivots in any spreadsheet, and every row carries its own flow so no row can
+ * be read out of context once someone sorts the sheet.
+ *
+ * Reporter and partner ride on every row for the same reason. A file outlives
+ * the page it came from: it gets mailed on, pasted into a deck, opened in six
+ * months by someone who was not here. "World" in a partner column has cost
+ * people money before, so it is spelled out next to the word India rather
+ * than left to a header a reader may never scroll back to.
+ */
+export function exportRows(node: DgcisNode | null): Record<string, unknown>[] {
+  if (!node) return []
+
+  const rows: Record<string, unknown>[] = []
+  const described = new Map(node.lines.map(line => [line.hs8, line]))
+
+  for (const flow of flowsOf(node)) {
+    const block = node.flows[flow]
+
+    if (!block) continue
+
+    for (const hs8 of Object.keys(block.series).sort()) {
+      const series = block.series[hs8]
+      const line = described.get(hs8)
+
+      node.periods.forEach((period, position) => {
+        const inr = series.inrCrore[position]
+        const usd = series.usdMillion[position]
+
+        /* A month the source never filed is not a row. A month it filed as
+         * zero is. */
+        if (inr === null && usd === null) return
+
+        rows.push({
+          Reporter: node.reporter,
+          Partner: node.partner,
+          Flow: flowWord(flow),
+          'HS-6': node.hs6,
+          'HS-8': hs8,
+          'DGCIS commodity group': line?.principalCommodity ?? '',
+          'Quick estimate group': line?.quickEstimateCommodity ?? '',
+          Month: period,
+          'Value (INR crore)': inr,
+          'Value (USD million)': usd,
+        })
+      })
+    }
+  }
+
+  return rows
+}
+
+/* The lines a file must carry with these rows, wherever they end up. */
+export const EXPORT_NOTES = [
+  'India HS-8 rows are DGCIS / Trade Intelligence & Analytics: India reporting ' +
+    'its own trade with the World partner aggregate. Partner "World" does not ' +
+    'mean world trade.',
+  'INR crore and USD million are both filed by DGCIS and are never converted ' +
+    'between each other. Neither can be used to derive an exchange rate.',
+  'DGCIS months are calendar-dated and are not comparable with, or addable to, ' +
+    'the UN Comtrade sheets beside them.',
+]
 
 export function unitLabel(basis: DgcisBasis): string {
   return basis === 'usd' ? 'USD mn' : 'INR cr'

@@ -6587,3 +6587,42 @@ table.contribution tfoot th {
 .tariff-more .search-result.exact .search-result-open {
   border-color: var(--green);
 }
+
+/* A tariff-line group that exists because of the product the reader named,
+   rather than because of anything written in the DGCIS file, has to say so —
+   otherwise HS-8 codes appear under a word that is nowhere in their source. */
+.tariff-via {
+  margin: 0 0 8px;
+
+  color: var(--faint);
+
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+
+.tariff-via strong {
+  color: var(--navy);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The tariff-line panel's own download, sized to sit beside the flow and
+   currency switches rather than compete with them. */
+.dgcis-csv {
+  padding: 4px 9px;
+
+  background: var(--panel);
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+
+  color: var(--muted);
+
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.dgcis-csv:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+}

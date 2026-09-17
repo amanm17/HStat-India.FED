@@ -177,7 +177,18 @@ function AnswerCard({
  * So they get their own group, under their own heading, with the source said
  * out loud - and they never displace the product answer above them.
  */
-function useTariffMatches(query: string): DgcisIndexEntry[] {
+type TariffHit = {
+  line: DgcisIndexEntry
+  /* Why this line is in the list, so the row can say so rather than appear
+   * out of nowhere under a word that is nowhere in the DGCIS file. */
+  via: 'code' | 'group' | 'product'
+  parent?: SearchItem
+}
+
+function useTariffMatches(
+  query: string,
+  outcome: SearchOutcome,
+): TariffHit[] {
   const [lines, setLines] = useState<DgcisIndexEntry[] | null>(null)
 
   useEffect(() => {
@@ -195,48 +206,101 @@ function useTariffMatches(query: string): DgcisIndexEntry[] {
     }
   }, [])
 
+  /*
+   * The products this query found, in the order search ranked them.
+   *
+   * This is the whole trick. DGCIS ships eight commodity groups and no
+   * tariff-line descriptions, so "smartphone" matches nothing in its file and
+   * never will - and writing descriptions for 543 tariff lines would be
+   * inventing them, which is not allowed. But HStat already knows that
+   * smartphones are HS 851713: the name was authored against the official HS
+   * text, the aliases were curated, and `search()` resolves them today.
+   *
+   * So a product word reaches a tariff line the only honest way there is:
+   * through the heading it belongs to. Nothing is invented; a curated answer
+   * this dashboard already trusts is followed one level down.
+   */
+  const products = useMemo(() => {
+    const ordered: SearchItem[] = []
+
+    if (outcome.answer) ordered.push(outcome.answer.item)
+
+    for (const result of outcome.results) {
+      if (!ordered.some(item => item.code === result.item.code)) {
+        ordered.push(result.item)
+      }
+    }
+
+    return ordered.filter(item => item.level === 6 && !item.retired).slice(0, 4)
+  }, [outcome])
+
   return useMemo(() => {
     const text = query.trim().toLowerCase()
 
     if (!lines || text.length < 3) return []
 
     const digits = text.replace(/\D/g, '')
+    const size = (line: DgcisIndexEntry) =>
+      line.flows.exports?.last12UsdMillion ??
+      line.flows.imports?.last12UsdMillion ??
+      0
 
-    const matched = lines.filter(line => {
-      if (digits.length >= 4 && line.hs8.startsWith(digits)) return true
+    /* A code is unambiguous: answer it and stop. */
+    if (digits.length >= 4) {
+      return lines
+        .filter(line => line.hs8.startsWith(digits))
+        .sort((a, b) => size(b) - size(a))
+        .slice(0, 6)
+        .map(line => ({ line, via: 'code' as const }))
+    }
 
-      if (digits.length >= 4) return false
+    const hits: TariffHit[] = []
+    const taken = new Set<string>()
 
-      return (
+    const push = (line: DgcisIndexEntry, via: TariffHit['via'], parent?: SearchItem) => {
+      if (taken.has(line.hs8)) return
+
+      taken.add(line.hs8)
+      hits.push({ line, via, parent })
+    }
+
+    /* The product route first: a reader who typed a product name wants that
+     * product's tariff lines, not whatever else shares a commodity group. */
+    for (const item of products) {
+      lines
+        .filter(line => line.hs6 === item.code)
+        .sort((a, b) => size(b) - size(a))
+        .forEach(line => push(line, 'product', item))
+    }
+
+    /* Then DGCIS's own words, for someone who typed one of its group names. */
+    lines
+      .filter(line =>
         line.principalCommodity.toLowerCase().includes(text) ||
-        line.quickEstimateCommodity.toLowerCase().includes(text)
-      )
-    })
+        line.quickEstimateCommodity.toLowerCase().includes(text))
+      .sort((a, b) => size(b) - size(a))
+      .forEach(line => push(line, 'group'))
 
-    /* Biggest first. A reader who types "telecom" wants the line that carries
-     * the trade, not the first one in numeric order. */
-    return matched
-      .sort(
-        (a, b) =>
-          (b.flows.exports?.last12UsdMillion ?? b.flows.imports?.last12UsdMillion ?? 0) -
-          (a.flows.exports?.last12UsdMillion ?? a.flows.imports?.last12UsdMillion ?? 0),
-      )
-      .slice(0, 6)
-  }, [lines, query])
+    return hits.slice(0, 6)
+  }, [lines, query, products])
 }
 
 function TariffResults({
-  matches,
+  hits,
   query,
   onOpenHs8,
 }: {
-  matches: DgcisIndexEntry[]
+  hits: TariffHit[]
   query: string
   onOpenHs8: (hs8: string) => void
 }) {
-  if (!matches.length) return null
+  if (!hits.length) return null
 
   const exact = isHs8(query.trim()) ? query.trim() : null
+
+  /* Said once, above the list, when the list is there because of the product
+   * the reader named rather than anything written in the DGCIS file. */
+  const viaProduct = hits.find(hit => hit.via === 'product')?.parent
 
   return (
     <div className="search-more tariff-more">
@@ -245,8 +309,17 @@ function TariffResults({
         <small>India reporting India — not world trade</small>
       </div>
 
+      {viaProduct && (
+        <p className="tariff-via">
+          The Indian eight-digit lines that sit under{' '}
+          <strong>HS {viaProduct.code}</strong> ·{' '}
+          {viaProduct.label || viaProduct.product}. DGCIS files no product
+          names of its own, so these are reached through the heading.
+        </p>
+      )}
+
       <div className="search-results-large">
-        {matches.map(line => {
+        {hits.map(({ line, via, parent }) => {
           const flow = line.flows.exports ? 'exports' : 'imports'
           const twelve = line.flows[flow]?.last12UsdMillion ?? null
 
@@ -266,13 +339,19 @@ function TariffResults({
                 <strong>{line.hs8}</strong>
 
                 <span className="result-product">
-                  {line.principalCommodity || 'Indian tariff line'}
+                  {via === 'product' && parent
+                    ? parent.label || parent.product
+                    : line.principalCommodity || 'Indian tariff line'}
                 </span>
 
                 <span className="result-reason">
                   {twelve === null
                     ? `under HS ${line.hs6}`
-                    : `${formatValue(twelve)} USD mn of ${flow}, 12 months · under HS ${line.hs6}`}
+                    : `${formatValue(twelve)} USD mn of ${flow}, 12 months · ${
+                        via === 'product'
+                          ? line.principalCommodity || `under HS ${line.hs6}`
+                          : `under HS ${line.hs6}`
+                      }`}
                 </span>
               </button>
             </div>
@@ -340,7 +419,7 @@ export function SearchHub({
 
   const suggestions = useMemo(() => suggestedTerms(index, 10), [index])
 
-  const tariffMatches = useTariffMatches(onOpenHs8 ? query : '')
+  const tariffMatches = useTariffMatches(onOpenHs8 ? query : '', outcome)
 
   const supporting = outcome.answer
     ? outcome.results.filter(
@@ -457,7 +536,7 @@ export function SearchHub({
 
           {onOpenHs8 && (
             <TariffResults
-              matches={tariffMatches}
+              hits={tariffMatches}
               query={query}
               onOpenHs8={hs8 => {
                 onOpenHs8(hs8)

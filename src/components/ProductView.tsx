@@ -44,7 +44,8 @@ import {
   flowWord,
   flowsOf,
   formatPeriod,
-  hasDgcis,
+  exportRows,
+  EXPORT_NOTES,
   formatValue,
   last12,
   latestOf,
@@ -882,6 +883,26 @@ function DgcisPanel({
         </div>
 
         <div className="dgcis-switches">
+          {/* Both flows and every month, not just what the table shows. The
+            * table is the top of a heading; the file is the heading. */}
+          <button
+            className="dgcis-csv"
+            title="Download every tariff line under this heading, both flows, all months"
+            onClick={() =>
+              downloadCsv(`HStat-${node.code}-India-HS8-DGCIS`, exportRows(data), {
+                title: `India HS-8 tariff lines under HS ${node.code}`,
+                code: node.code,
+                level: 6,
+                description: node.description,
+                period: `Monthly ${data.periods[0]} – ${data.periods[data.periods.length - 1]}`,
+                source: 'DGCIS / Trade Intelligence & Analytics, via HStat.India',
+                notes: EXPORT_NOTES,
+              })
+            }
+          >
+            CSV
+          </button>
+
           {available.length > 1 && (
             <div className="basis-switch" role="group" aria-label="Flow">
               {available.map(option => (
@@ -1459,26 +1480,38 @@ export function ProductView({
     [hiddenTiles],
   )
 
-  /* null while unknown: neither claim is made until the index has answered. */
-  const [dgcisCovered, setDgcisCovered] = useState<boolean | null>(null)
+  /*
+   * The page holds the tariff-line payload, not just a yes/no.
+   *
+   * It needs the answer twice: to decide whether to print the "no detail
+   * held" line, and to put the rows in the workbook. Loading it here costs
+   * nothing extra - loadDgcis memoises per heading, so the panel below asks
+   * for the same promise and the browser makes one request.
+   *
+   * `undefined` means not yet known and no claim is made either way; `null`
+   * means asked and answered, there is none.
+   */
+  const [dgcis, setDgcis] = useState<DgcisNode | null | undefined>(undefined)
 
   useEffect(() => {
     let live = true
 
-    setDgcisCovered(null)
+    setDgcis(undefined)
 
-    hasDgcis(node.code)
-      .then(covered => {
-        if (live) setDgcisCovered(covered)
+    loadDgcis(node.code)
+      .then(result => {
+        if (live) setDgcis(result)
       })
       .catch(() => {
-        if (live) setDgcisCovered(true)
+        if (live) setDgcis(null)
       })
 
     return () => {
       live = false
     }
   }, [node.code])
+
+  const dgcisCovered = dgcis === undefined ? null : dgcis !== null
 
   /*
    * The deck shuffle.
@@ -1902,6 +1935,8 @@ export function ProductView({
   }
 
   function exportWorkbook() {
+    const dgcisSheet = exportRows(dgcis ?? null)
+
     const annualRows = [...node.years]
       .sort((a, b) => b - a)
       .map(item => {
@@ -1982,9 +2017,21 @@ export function ProductView({
         [`India destinations ${year}`]: partnerRows(destinationRows, 'Exports'),
         'Inside this heading': insideRows,
 
+        /*
+         * India's own tariff lines, named for their source and their flow.
+         *
+         * A separate sheet, never merged into the Comtrade ones: different
+         * reporter, different partner concept, different period basis. Every
+         * row repeats reporter, partner and flow, because a sheet gets sorted
+         * and a row read alone must still say what it is.
+         */
+        ...(dgcisSheet.length ? { 'India HS-8 · DGCIS': dgcisSheet } : {}),
+
         /* Financial years, so the sheet carries its own period column and
-         * cannot be mistaken for the calendar-year sheets beside it. */
-        'India ITC(HS)-8': tariffYears.flatMap(fy => {
+         * cannot be mistaken for the calendar-year sheets beside it. The
+         * snapshot's own tariff block has never been populated, so this sheet
+         * is omitted rather than shipped empty beside the DGCIS one above. */
+        ...(tariffYears.length ? { 'India ITC(HS)-8': tariffYears.flatMap(fy => {
           const block = node.tariffLines?.financialYears?.[fy]
 
           return (block?.rows ?? []).map(row => ({
@@ -2000,12 +2047,16 @@ export function ProductView({
             'Filed in': row.native.toUpperCase(),
             'Rate (₹ per USD)': block?.meta.rate ?? null,
           }))
-        }),
+        }) } : {}),
       },
       {
         ...exportMeta,
         period: `Annual ${Math.min(...node.years)}–${Math.max(...node.years)}; partner detail for ${year}`,
         rate: cyNote ?? undefined,
+        notes: [
+          ...(exportMeta.notes ?? []),
+          ...(dgcisSheet.length ? EXPORT_NOTES : []),
+        ],
       },
     )
   }
@@ -3208,7 +3259,7 @@ export function ProductView({
       <footer className="footerbar">
         <div>
           UN Comtrade · HS-6 global comparison · calendar years
-          {tariff ? ' · DGCIS / TradeStat HS-8, financial years' : ''}
+          {dgcis ? ' · DGCIS India HS-8, monthly, in the workbook' : ''}
         </div>
 
         <div className="actions">

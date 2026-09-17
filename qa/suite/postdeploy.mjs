@@ -104,16 +104,22 @@ for (const q of ['85171300', '8517', 'telecom']) {
   await page.close()
 }
 {
-  // A product word cannot reach a tariff line: DGCIS ships 8 coarse commodity
-  // groups and no HS-8 descriptions, and inventing one is not allowed. The
-  // product answer must still be there, and must not be crowded out.
+  // A product word reaches a tariff line only through the heading it belongs
+  // to: DGCIS ships 8 coarse commodity groups and no HS-8 descriptions, and
+  // inventing one is not allowed. So the route is HStat's own authored HS-6
+  // name, and the group has to say that is what happened.
   const { page } = await open('/')
   const si = page.locator('.search-hub input').first()
   await si.click(); await si.fill('smartphone'); await page.waitForTimeout(700)
-  ok('"smartphone" still answers with the Comtrade product',
+  ok('"smartphone" still answers with the Comtrade product first',
      await page.locator('.answer-card').count() === 1)
-  ok('"smartphone" shows no DGCIS group (source has no such word)',
-     await page.locator('.tariff-more').count() === 0)
+  ok('"smartphone" reaches tariff lines through the heading',
+     await page.locator('.tariff-more').count() === 1)
+  const viaText = await page.locator('.tariff-more').innerText().catch(() => '')
+  ok('"smartphone" names the heading it came through',
+     /851713/.test(viaText) && /reached through the heading/i.test(viaText))
+  ok('"smartphone" does not claim DGCIS filed that word',
+     !/DGCIS.*smartphone/i.test(viaText))
   await page.close()
 }
 
