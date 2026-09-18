@@ -65,3 +65,6 @@ pipeline/HStat_Pipeline_Code_Guide.docx
 qa/dist-test*/
 qa/*.png
 data/dgcis/_superseded/
+
+# Local Comtrade availability cache
+/data/comtrade/
