@@ -6643,3 +6643,451 @@ table.contribution tfoot th {
   color: var(--text);
   font-variant-numeric: tabular-nums;
 }
+
+/* When we have no real name for a tariff line its code is the headline, so it
+   is set as a figure rather than as prose: tabular, tracked out, unmistakably
+   an identifier someone will quote. */
+.hs8-code-title {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+/* ---------------------------------------------------------
+   THE LEFT RAIL — places
+   Fixed, because navigation that scrolls away is navigation
+   you stop trusting. Collapses to icons so a product page
+   keeps its width, which is the thing readers came for.
+   --------------------------------------------------------- */
+
+.navrail {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 40;
+
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: var(--nav-width, 216px);
+  padding: 14px 10px 46px;
+  overflow-y: auto;
+
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+
+  transition: width 0.16s ease;
+}
+
+:root { --nav-width: 216px; }
+:root[data-nav='icons'] { --nav-width: 54px; }
+
+/* Everything shifts right by exactly the rail's width, so no page has to
+   know the rail exists. */
+.app { padding-left: var(--nav-width); transition: padding-left 0.16s ease; }
+.topbar { left: var(--nav-width); }
+
+.nav-top {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 34px;
+}
+
+.nav-action,
+.nav-item {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  width: 100%;
+  padding: 7px 9px;
+
+  background: none;
+  border: 0;
+  border-radius: 7px;
+
+  color: var(--muted);
+
+  font-size: 12px;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.nav-action:hover,
+.nav-item:hover {
+  background: var(--panel-soft);
+  color: var(--text);
+}
+
+.nav-item.current {
+  background: color-mix(in srgb, var(--blue) 12%, transparent);
+  color: var(--blue);
+  font-weight: 600;
+}
+
+.nav-action kbd {
+  margin-left: auto;
+  padding: 1px 5px;
+
+  background: var(--panel-soft);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+
+  color: var(--faint);
+  font-size: 9.5px;
+}
+
+.nav-code {
+  flex: none;
+  color: var(--navy);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.nav-label {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+}
+
+.nav-group { display: flex; flex-direction: column; gap: 3px; }
+
+.nav-group-head {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  padding: 0 9px;
+
+  color: var(--faint);
+
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.nav-group ul { margin: 0; padding: 0; list-style: none; }
+
+.nav-collapse {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+
+  display: inline-flex;
+  padding: 5px;
+
+  background: var(--panel-soft);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+
+  color: var(--muted);
+  cursor: pointer;
+}
+
+/* Collapsed: icons only, and the groups fold away rather than
+   becoming a column of unreadable stubs. */
+:root[data-nav='icons'] .nav-action span,
+:root[data-nav='icons'] .nav-action kbd,
+:root[data-nav='icons'] .nav-group,
+:root[data-nav='icons'] .nav-label { display: none; }
+
+:root[data-nav='icons'] .nav-action { justify-content: center; padding: 9px 0; }
+
+@media (max-width: 900px) {
+  .navrail { display: none; }
+  .app { padding-left: 0; }
+  .topbar { left: 0; }
+}
+
+/* ---------------------------------------------------------
+   THE TARIFF-LINE INDEX and THE GUIDE
+   --------------------------------------------------------- */
+
+.lines-page,
+.guide-page {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 22px 26px 64px;
+}
+
+.lines-head {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.lines-head h1,
+.guide-page h1 {
+  margin: 4px 0 6px;
+  color: var(--text);
+  font-size: 24px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+.lines-lede,
+.guide-lede {
+  max-width: 88ch;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.lines-filter {
+  width: 100%;
+  margin: 14px 0 18px;
+  padding: 9px 12px;
+
+  background: var(--panel);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+
+  color: var(--text);
+  font-size: 12.5px;
+}
+
+.lines-groups { display: flex; flex-direction: column; gap: 14px; }
+
+.lines-group {
+  padding: 12px 14px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.lines-group-head {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+  flex-wrap: wrap;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.lines-group-head strong {
+  margin-right: 8px;
+  color: var(--navy);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.lines-group-head span { color: var(--text); font-size: 12px; }
+.lines-group-head em { margin-left: 8px; color: var(--faint); font-size: 10px; }
+
+.lines-group-right { display: flex; gap: 12px; align-items: baseline; }
+
+.lines-total {
+  color: var(--text);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.lines-total small { color: var(--faint); font-size: 9.5px; }
+
+.lines-unnamed { color: var(--faint); font-size: 10.5px; }
+
+.lines-more { margin-top: 14px; color: var(--faint); font-size: 11px; }
+
+.guide-page section { margin-top: 26px; }
+
+.guide-page h2 {
+  margin: 0 0 8px;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 640;
+}
+
+.guide-page h3 {
+  margin: 0 0 4px;
+  color: var(--navy);
+  font-size: 12.5px;
+}
+
+.guide-page p,
+.guide-page li {
+  max-width: 86ch;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.guide-page code {
+  padding: 1px 4px;
+  background: var(--panel-soft);
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+.guide-page kbd {
+  padding: 1px 5px;
+  background: var(--panel-soft);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 10.5px;
+}
+
+.guide-two {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  margin: 12px 0;
+}
+
+.guide-two > div {
+  padding: 14px 16px;
+  background: var(--panel-soft);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.guide-warn {
+  margin-top: 12px;
+  padding: 12px 14px;
+
+  background: color-mix(in srgb, var(--blue) 7%, transparent);
+  border-left: 3px solid var(--blue);
+  border-radius: 0 8px 8px 0;
+}
+
+.guide-levels dt {
+  margin-top: 10px;
+  color: var(--navy);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.guide-levels dd {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.guide-list li { margin-bottom: 6px; }
+.guide-home { margin-top: 28px; font-size: 12px; }
+
+/* The command palette. Same furniture as a search result, so the box does not
+   feel like it became a different thing — it just changed what it is listing. */
+.command-more .search-more-head small {
+  display: block;
+  margin-top: 2px;
+  color: var(--faint);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.command-slug {
+  color: var(--blue) !important;
+  font-variant-numeric: normal;
+}
+
+.command-hint kbd {
+  padding: 1px 5px;
+  background: var(--panel);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  font-size: 10px;
+}
+
+/* Longer command slugs were colliding with the label. */
+.command-more .result-level { min-width: 64px; }
+
+/* ---------------------------------------------------------
+   INDIA'S TARIFF LINES ON THE FRONT PAGE
+   Two lists, because "biggest" and "moving" are different
+   questions and one ranking always buries the other.
+   --------------------------------------------------------- */
+
+.home-hs8 {
+  margin: 26px 0;
+  padding: 18px 20px;
+
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.home-hs8-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin: 10px 0 14px;
+  flex-wrap: wrap;
+}
+
+.home-hs8-cols {
+  display: grid;
+  gap: 22px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.home-hs8-cols h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 12.5px;
+  font-weight: 640;
+}
+
+.home-hs8-note {
+  margin: 2px 0 8px;
+  color: var(--faint);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.home-hs8-cols ul { margin: 0; padding: 0; list-style: none; }
+
+.home-hs8-cols li + li { border-top: 1px solid var(--border); }
+
+.home-hs8-cols li button {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 74px minmax(0, 1fr) auto;
+  align-items: baseline;
+  width: 100%;
+  padding: 7px 0;
+
+  background: none;
+  border: 0;
+
+  text-align: left;
+  cursor: pointer;
+}
+
+.home-hs8-cols li button:hover { background: var(--panel-soft); }
+
+.home-hs8-code {
+  color: var(--navy);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.home-hs8-name {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-hs8-value {
+  color: var(--text);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.home-hs8-value.up { color: var(--green); font-weight: 600; }

@@ -39,8 +39,12 @@ export type DgcisLine = {
    * commodity groups and no line descriptions, so until India's own
    * eight-digit schedule is loaded the title is the heading's authored name
    * and `nameSource` says so. A page must not imply a precision it lacks. */
+  /* Empty unless India's own eight-digit schedule gave us a real name for
+   * THIS line. A borrowed word is not a name: 29 lines under one heading all
+   * called "Electrical machines, other" cannot be told apart, which is the
+   * whole job of a name. The code can, so the code leads. */
   title: string
-  nameSource: 'schedule' | 'heading' | 'group'
+  nameSource: 'schedule' | 'none'
   headingName: string
   description?: string
   principalCommodity: string
@@ -611,6 +615,17 @@ export const EXPORT_NOTES = [
     'the UN Comtrade sheets beside them.',
 ]
 
+/*
+ * How to write a tariff line in a sentence or a list.
+ *
+ * Always the code, because that is the part that is unique. The name, when
+ * there is one, follows it. When there is not, the caller shows the heading
+ * separately and labelled - never glued on as though it were this line's name.
+ */
+export function lineRef(line: { hs8: string; title?: string }): string {
+  return line.title ? `${line.hs8} — ${line.title}` : line.hs8
+}
+
 export function unitLabel(basis: DgcisBasis): string {
   return basis === 'usd' ? 'USD mn' : 'INR cr'
 }
@@ -623,14 +638,13 @@ export function unitLabel(basis: DgcisBasis): string {
  * name of that one line. When the real schedule lands this returns null and
  * the caveat disappears on its own.
  */
-export function nameCaveat(line: { nameSource?: string; headingName?: string }): string | null {
+export function nameCaveat(line: { nameSource?: string }): string | null {
   if (!line.nameSource || line.nameSource === 'schedule') return null
 
-  if (line.nameSource === 'heading') {
-    return 'named after its heading — India’s eight-digit schedule is not in this build'
-  }
-
-  return 'named after its DGCIS commodity group'
+  return (
+    'India’s eight-digit schedule is not in this build, so this line is shown ' +
+    'by its code. The name beside it belongs to the heading, not to this line.'
+  )
 }
 
 /* Said the same way everywhere, because this is the word that was wrong. */

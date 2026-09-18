@@ -4,6 +4,7 @@ import type { CatalogueEntry, Manifest, SearchItem } from '../types'
 import type { SearchIndex } from '../lib/search'
 import { usd, ordinal, pct, nameOf } from '../lib/format'
 import { SearchHub } from './SearchHub'
+import { HomeTariffLines } from './HomeTariffLines'
 
 /*
  * The landing page.
@@ -27,6 +28,8 @@ type Props = {
   onOpen: (code: string, level: 2 | 4 | 6) => void
   onAdd: (item: SearchItem) => void
   onOpenHs8?: (hs8: string) => void
+  commands?: import('./SearchHub').Command[]
+  onLines?: () => void
 }
 
 export function HomeView({
@@ -38,6 +41,8 @@ export function HomeView({
   onOpen,
   onAdd,
   onOpenHs8,
+  commands,
+  onLines,
 }: Props) {
   const [openCategory, setOpenCategory] = useState<string | null>(null)
 
@@ -149,6 +154,7 @@ export function HomeView({
         <div className="home-search">
           <SearchHub
           onOpenHs8={onOpenHs8}
+          commands={commands}
             index={index}
             recent={recent}
             inBasket={inBasket}
@@ -185,6 +191,11 @@ export function HomeView({
           total is an order of magnitude rather than a single-year figure.
         </p>
       </section>
+
+      {/* India's own eight-digit detail had no presence on the front page at
+        * all: a reader had to already know it existed, then find a product
+        * that happened to have it. This is the door. */}
+      <HomeTariffLines onOpenHs8={onOpenHs8} onLines={onLines} />
 
       <div className="home-columns">
         <section className="home-panel">

@@ -250,15 +250,19 @@ export function Hs8View({
         <div>
           <div className="eyebrow">INDIA TARIFF LINE · DGCIS · ITC(HS) 8-DIGIT</div>
 
-          <h1>{line.title || `Tariff line ${hs8}`}</h1>
+          <h1 className={line.title ? undefined : 'hs8-code-title'}>
+            {line.title || hs8}
+          </h1>
 
           <p className="hs8-sub">
-            <strong>{hs8}</strong>
-            {siblings.length > 1 && (
-              <> · one of {siblings.length} lines under HS {hs6}</>
-            )}
+            {line.title && <><strong>{hs8}</strong> · </>}
+            {siblings.length > 1
+              ? <>one of {siblings.length} tariff lines under</>
+              : <>the only tariff line under</>}{' '}
+            <strong>HS {hs6}</strong>
+            {line.headingName && <> · {line.headingName}</>}
             {line.principalCommodity && (
-              <> · DGCIS group: {line.principalCommodity}</>
+              <> · DGCIS group {line.principalCommodity}</>
             )}
             {!data.isProduct && (
               <> · heading carried as a lineage predecessor, with no product page</>
@@ -607,8 +611,10 @@ export function Hs8View({
                   </td>
 
                   <td>
-                    {item.line.hs8 === hs8 ? <strong>this line</strong> : item.line.title}
-                    <small>{item.line.principalCommodity}</small>
+                    {item.line.hs8 === hs8
+                      ? <strong>this line</strong>
+                      : item.line.title || item.line.principalCommodity || '—'}
+                    {item.line.title && <small>{item.line.principalCommodity}</small>}
                   </td>
 
                   <td className="num">{formatValue(item.twelve)}</td>

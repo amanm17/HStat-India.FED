@@ -34,10 +34,14 @@ import {
 } from './lib/hstack'
 
 import { useFallbackRates } from './lib/currency'
+import { loadDgcisIndex } from './lib/dgcis'
 import { nameOf } from './lib/format'
-import { SearchHub } from './components/SearchHub'
+import { SearchHub, type Command } from './components/SearchHub'
 import { ProductView } from './components/ProductView'
 import { Hs8View } from './components/Hs8View'
+import { TariffLines } from './components/TariffLines'
+import { Guide } from './components/Guide'
+import { NavRail } from './components/NavRail'
 import { Safely } from './components/Safely'
 import { HomeView } from './components/HomeView'
 import { HStackPanel } from './components/HStackPanel'
@@ -85,12 +89,19 @@ type Route =
    * flow into code paths that assume a Comtrade node exists.
    */
   | { kind: 'tariff'; hs8: string }
+  /* Two places rather than pages about a code: the whole tariff-line index,
+   * and the written guide. Both are reachable by URL so they can be sent. */
+  | { kind: 'lines' }
+  | { kind: 'guide' }
 
 function levelOf(code: string): 2 | 4 | 6 {
   return code.length === 2 ? 2 : code.length === 4 ? 4 : 6
 }
 
 function routeFromPath(path: string): Route {
+  if (/^\/tariff-lines\/?$/.test(path)) return { kind: 'lines' }
+  if (/^\/guide\/?$/.test(path)) return { kind: 'guide' }
+
   const match = /^\/hs\/(\d{2}|\d{4}|\d{6}|\d{8})\/?$/.exec(path)
 
   if (!match) return { kind: 'home' }
@@ -101,6 +112,8 @@ function routeFromPath(path: string): Route {
 }
 
 function pathFor(route: Route): string {
+  if (route.kind === 'lines') return '/tariff-lines'
+  if (route.kind === 'guide') return '/guide'
   if (route.kind === 'tariff') return `/hs/${route.hs8}`
 
   return route.kind === 'product' ? `/hs/${route.code}` : '/'
@@ -170,6 +183,8 @@ function App() {
   const [stackOpen, setStackOpen] = useState(false)
 
   const index = useMemo(() => buildIndex(library), [library])
+
+
 
   /*
    * The toggle is offered only when there is something behind it. Nothing is
@@ -359,6 +374,51 @@ function App() {
   const openHs8 = useCallback((hs8: string) => {
     const target: Route = { kind: 'tariff', hs8 }
 
+    /* Into history like any other page. The label is the heading's, clearly
+     * the heading's - the rail shows the code as the identity. */
+    loadDgcisIndex().then(index => {
+      const line = index?.lines.find(item => item.hs8 === hs8)
+
+      setWorkspace(current =>
+        noteVisit(current, {
+          code: hs8,
+          level: 8,
+          label: line?.title || line?.headingName || 'Tariff line',
+        }),
+      )
+    })
+
+    setRoute(target)
+    setStackOpen(false)
+
+    if (window.location.pathname !== pathFor(target)) {
+      window.history.pushState({}, '', pathFor(target))
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [])
+
+  /*
+   * Open whatever a saved reference points at.
+   *
+   * Pins, history and saved reports all store {code, level}, and level 8 is a
+   * tariff line rather than a Comtrade product. One dispatcher means every
+   * surface that can hand back a reference - the left rail, the right rail, a
+   * report - opens it correctly without each one re-deciding.
+   */
+  const openRef = useCallback(
+    (code: string, level: 2 | 4 | 6 | 8) => {
+      if (level === 8) {
+        openHs8(code)
+        return
+      }
+
+      void openCode(code, level)
+    },
+    [openCode, openHs8],
+  )
+
+  const goTo = useCallback((target: Route) => {
     setRoute(target)
     setStackOpen(false)
 
@@ -380,6 +440,46 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [])
 
+  /*
+   * What "/" can do.
+   *
+   * Deliberately only things a reader would otherwise have to hunt for: a
+   * place to go, a mode to flip, a report to start. Nothing here is a new
+   * capability - it is the same controls, reachable without knowing which
+   * corner of the screen they live in.
+   */
+  const commands = useMemo<Command[]>(() => {
+    const list: Command[] = [
+      { id: 'home', label: 'Front page', hint: 'the product catalogue and the search box',
+        terms: ['start', 'index'], run: goHome },
+      { id: 'lines', label: 'All tariff lines', hint: "India's 543 eight-digit lines, largest first",
+        terms: ['hs8', 'tariff', 'eight'], run: () => goTo({ kind: 'lines' }) },
+      { id: 'guide', label: 'How to read this dashboard', hint: 'what each source means, and what not to add together',
+        terms: ['help', 'explain', 'how'], run: () => goTo({ kind: 'guide' }) },
+      { id: 'theme', label: dark ? 'Light theme' : 'Dark theme', hint: 'switch the colour scheme',
+        terms: ['dark', 'light'], run: () => setDark(value => !value) },
+    ]
+
+    if (node) {
+      list.push(
+        { id: 'report', label: 'Build a report from this page', hint: 'opens the report builder in the right rail',
+          terms: ['pdf', 'png', 'export'],
+          run: () => setWorkspace(current => ({ ...current, sidebarOpen: true })) },
+        { id: 'pin', label: `Pin ${node.code}`, hint: 'keep it in the left rail',
+          terms: ['bookmark', 'save'],
+          run: () => setWorkspace(current =>
+            togglePin(current, { code: node.code, level: node.level, label: nameOf(node) })) },
+        { id: 'currency', label: currency === 'USD' ? 'Show rupees' : 'Show dollars',
+          hint: 'India figures only; nothing is converted', terms: ['inr', 'usd', 'rupee'],
+          run: () => setCurrency(value => (value === 'USD' ? 'INR' : 'USD')) },
+        { id: 'stack', label: 'Open HStack', hint: 'compare the codes you have collected',
+          terms: ['compare', 'basket'], run: () => setStackOpen(true) },
+      )
+    }
+
+    return list
+  }, [dark, node, currency, goHome, goTo])
+
   /* Back and forward have to work, or the URL is decoration. */
   useEffect(() => {
     function onPop() {
@@ -387,7 +487,7 @@ function App() {
 
       setRoute(next)
 
-      if (next.kind === 'tariff') return
+      if (next.kind !== 'product') return
 
       if (next.kind === 'product' && next.code !== node?.code) {
         loadHsNode(snapshot, next.code, next.level)
@@ -564,8 +664,11 @@ function App() {
    * control that acts on nothing reads as a broken feature.
    */
   const onTariff = route.kind === 'tariff'
-  const onProduct = !onTariff && route.kind === 'product' && !!node && year !== null
-  const showHome = !onTariff && !onProduct
+  const onLines = route.kind === 'lines'
+  const onGuide = route.kind === 'guide'
+  const onProduct =
+    !onTariff && !onLines && !onGuide && route.kind === 'product' && !!node && year !== null
+  const showHome = !onTariff && !onLines && !onGuide && !onProduct
 
   return (
     <div className="app">
@@ -594,7 +697,7 @@ function App() {
           * reader which of two identical boxes to use. On a product page the
           * header bar is the only way to move to another code, so it stays.
           */}
-        {(onProduct || onTariff) && (
+        {!showHome && (
           <SearchHub
             variant="bar"
             index={index}
@@ -607,6 +710,7 @@ function App() {
             }}
             onAdd={item => addToBasket({ code: item.code, level: item.level })}
             onOpenHs8={openHs8}
+            commands={commands}
           />
         )}
 
@@ -707,8 +811,41 @@ function App() {
         </div>
       </header>
 
+      <NavRail
+        pinned={workspace.pinned}
+        recent={workspace.recent}
+        onHome={goHome}
+        onOpen={ref => openRef(ref.code, ref.level)}
+        onSearch={() => {
+          const input = document.querySelector<HTMLInputElement>('.search-hub input')
+
+          if (input) {
+            input.focus()
+            return
+          }
+
+          /* No search box on this page: the front door has one. */
+          goHome()
+        }}
+        onGuide={() => goTo({ kind: 'guide' })}
+        onTariffLines={() => goTo({ kind: 'lines' })}
+        active={route.kind === 'product' ? route.code : route.kind === 'tariff' ? route.hs8 : null}
+      />
+
       <main>
-        {onTariff ? (
+        {onLines ? (
+          <Safely label="TariffLines">
+            <TariffLines onOpenHs8={openHs8} onOpen={openCode} />
+          </Safely>
+        ) : onGuide ? (
+          <Safely label="Guide">
+            <Guide
+              onHome={goHome}
+              onOpen={openCode}
+              onLines={() => goTo({ kind: 'lines' })}
+            />
+          </Safely>
+        ) : onTariff ? (
           /*
            * Wrapped, like every other piece of the tariff-line work: if this
            * page cannot render, the reader gets a way back to the dashboard
@@ -814,6 +951,8 @@ function App() {
             inBasket={inBasket}
             onOpen={openCode}
             onAdd={item => addToBasket({ code: item.code, level: item.level })}
+            commands={commands}
+            onLines={() => goTo({ kind: 'lines' })}
           />
         )}
       </main>
@@ -836,7 +975,7 @@ function App() {
               sidebarOpen: !current.sidebarOpen,
             }))
           }
-          onOpen={openCode}
+          onOpen={openRef}
           onUnpin={id => setWorkspace(current => toggleTile(current, id))}
           onResetLayout={() => {
             setWorkspace(current => resetLayout(current))

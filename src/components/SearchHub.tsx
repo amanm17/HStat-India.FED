@@ -4,6 +4,21 @@ import { Plus, Search } from 'lucide-react'
 import type { SearchIndex, SearchOutcome } from '../lib/search'
 import { search, suggestedTerms } from '../lib/search'
 import type { SearchItem } from '../types'
+
+/*
+ * A command the search box can run.
+ *
+ * Owned by App, not by this component: the search box should know how to find
+ * a command and show it, and nothing about what pinning or theming means.
+ */
+export type Command = {
+  id: string
+  label: string
+  hint: string
+  /* Words that should also find it, beyond the label. */
+  terms?: string[]
+  run: () => void
+}
 import {
   formatValue,
   isHs8,
@@ -339,7 +354,12 @@ function TariffResults({
                 <strong>{line.hs8}</strong>
 
                 <span className="result-product">
-                  {line.title || line.principalCommodity || 'Indian tariff line'}
+                  {line.title || (
+                    <>
+                      under <strong>HS {line.hs6}</strong>
+                      {line.headingName ? ` · ${line.headingName}` : ''}
+                    </>
+                  )}
                 </span>
 
                 <span className="result-reason">
@@ -360,6 +380,57 @@ function TariffResults({
   )
 }
 
+function CommandList({
+  commands,
+  query,
+  onRun,
+}: {
+  commands: Command[]
+  query: string
+  onRun: (command: Command) => void
+}) {
+  const text = query.replace(/^\//, '').trim().toLowerCase()
+
+  const matched = text
+    ? commands.filter(command =>
+        command.id.includes(text) ||
+        command.label.toLowerCase().includes(text) ||
+        (command.terms ?? []).some(term => term.includes(text)))
+    : commands
+
+  return (
+    <div className="search-output">
+      <div className="search-more command-more">
+        <div className="search-more-head">
+          Commands
+          <small>press Enter to run the first, Esc to go back to searching</small>
+        </div>
+
+        {matched.length === 0 ? (
+          <div className="search-empty">
+            No command matches “{query.trim()}”. Delete the slash to search
+            products and codes instead.
+          </div>
+        ) : (
+          <div className="search-results-large">
+            {matched.map(command => (
+              <div className="search-result" key={command.id}>
+                <button className="search-result-open" onClick={() => onRun(command)}>
+                  <span className="result-level command-slug">/{command.id}</span>
+
+                  <strong>{command.label}</strong>
+
+                  <span className="result-reason">{command.hint}</span>
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export function SearchHub({
   index,
   onOpen,
@@ -368,12 +439,15 @@ export function SearchHub({
   recent,
   variant = 'hub',
   onOpenHs8,
+  commands = [],
 }: {
   index: SearchIndex
   onOpen: (item: SearchItem) => void
   /* Absent on a surface with nowhere to send a tariff line; the group then
    * does not appear at all, rather than offering a dead button. */
   onOpenHs8?: (hs8: string) => void
+  /* Typing "/" turns the box into a command palette. The list is App's. */
+  commands?: Command[]
   onAdd: (item: SearchItem) => void
   inBasket: (code: string) => boolean
   recent: string[]
@@ -419,6 +493,22 @@ export function SearchHub({
 
   const tariffMatches = useTariffMatches(onOpenHs8 ? query : '', outcome)
 
+  /*
+   * One box, two jobs, and the slash is the switch.
+   *
+   * Searching and doing are different intents, and a box that guesses which
+   * one you meant gets it wrong often enough to be annoying. A leading slash
+   * is unambiguous - nothing in this catalogue starts with one - and it is the
+   * gesture people already know from every other tool they use.
+   */
+  const commanding = commands.length > 0 && query.startsWith('/')
+
+  const runCommand = (command: Command) => {
+    command.run()
+    setQuery('')
+    setOpen(false)
+  }
+
   const supporting = outcome.answer
     ? outcome.results.filter(
         result => result.item.code !== outcome.answer!.item.code,
@@ -440,7 +530,25 @@ export function SearchHub({
           value={query}
           onChange={event => setQuery(event.target.value)}
           onKeyDown={event => {
+            if (event.key === 'Escape' && query.startsWith('/')) {
+              setQuery('')
+              return
+            }
+
             if (event.key !== 'Enter') return
+
+            if (commanding) {
+              const text = query.replace(/^\//, '').trim().toLowerCase()
+              const first = text
+                ? commands.find(command =>
+                    command.id.includes(text) ||
+                    command.label.toLowerCase().includes(text) ||
+                    (command.terms ?? []).some(term => term.includes(text)))
+                : commands[0]
+
+              if (first) runCommand(first)
+              return
+            }
 
             const first = outcome.answer?.item ?? outcome.results[0]?.item
 
@@ -453,8 +561,8 @@ export function SearchHub({
           onFocus={() => setOpen(true)}
           placeholder={
             bar
-              ? 'Search a product or HS code…'
-              : 'Search a product or an HS code — laptop, smartphone, 854231, solar panel…'
+              ? 'Search, or / for commands…'
+              : 'Search a product or an HS code — laptop, smartphone, 854231 — or type / for commands'
           }
           aria-label="Search products and HS codes"
           aria-expanded={bar ? open : undefined}
@@ -469,7 +577,11 @@ export function SearchHub({
 
       <div className={bar ? 'search-drop' : 'search-body'} hidden={!showPanel}>
 
-      {query.trim() && (
+      {commanding && (
+        <CommandList commands={commands} query={query} onRun={runCommand} />
+      )}
+
+      {!commanding && query.trim() && (
         <div className="search-output">
           <AnswerCard
             outcome={outcome}
@@ -555,6 +667,15 @@ export function SearchHub({
 
       {!query.trim() && (
         <>
+          {commands.length > 0 && (
+            <div className="smart-suggestions command-hint">
+              <span>Tip</span>
+              <button onClick={() => setQuery('/')}>
+                type <kbd>/</kbd> for commands
+              </button>
+            </div>
+          )}
+
           <div className="smart-suggestions">
             <span>Try</span>
 

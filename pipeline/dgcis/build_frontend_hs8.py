@@ -125,32 +125,38 @@ def tariff_names() -> dict[str, dict]:
 
 def title_for(hs8: str, group: str, heading: str, itc: dict) -> tuple[str, str]:
     """
-    What to call a tariff line, and where the name came from.
+    What to call a tariff line - and when to admit we cannot.
 
-    DGCIS files eight commodity groups and no line descriptions, so 543 pages
-    were titled from a vocabulary of seven words - 165 of them "ELECTRONICS
-    INSTRUMENTS". That is not a name, it is a bucket, and a page titled with
-    its bucket tells a reader nothing about which line they are looking at.
+    First attempt at this fixed the wrong problem. 543 pages were titled from a
+    vocabulary of seven DGCIS commodity groups, so we substituted the heading's
+    authored name: 7 titles became 255. Better, and still wrong, because 29
+    lines were then all called "Electrical machines, other". A reader cannot
+    reference one of those. Neither could they reference "ELECTRONICS
+    COMPONENTS". The repetition simply moved.
 
-    Order of preference, each honest about what it is:
+    The mistake was looking for a word. A tariff line's name *is* its code:
+    85437099 is how customs files it, how a trader quotes it, and how MeitY
+    will ask about it. It is unique by construction, which no borrowed word can
+    be. So when we have no real description, we return none, the code becomes
+    the identity, and the heading becomes context beside it - clearly labelled
+    as the heading, not passed off as the line's own name.
 
-      1. India's own eight-digit schedule, when we have it. The real name.
-      2. The heading's authored name. Correct but shared with its siblings,
-         so the code has to do the distinguishing until (1) arrives.
-      3. The DGCIS group. Last resort, and the reason this function exists.
+    A title is returned only when it genuinely names *this line*:
 
-    `nameSource` travels with the title so the page can say which it is
-    rather than implying a precision it does not have.
+      1. India's own eight-digit schedule, when config/itc_hs8_names.csv
+         exists. Currently it does not - DGFT refuses automated download.
+      2. Otherwise nothing, and the frontend leads with the code.
+
+    `headingName` is emitted separately and always, so a page can say
+    "one of 29 lines under HS 854370 - Electrical machines, other" without
+    ever implying that phrase identifies the line in front of you.
     """
     known = itc.get(hs8) or {}
 
     if known.get("displayName") or known.get("description"):
         return (known.get("displayName") or known["description"]), "schedule"
 
-    if heading:
-        return heading, "heading"
-
-    return (group.title() if group else f"Tariff line {hs8}"), "group"
+    return "", "none"
 
 
 def read_flow(flow: str):

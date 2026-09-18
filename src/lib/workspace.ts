@@ -20,7 +20,9 @@
  * pin list is not a reason to take the dashboard down.
  */
 
-export type Level = 2 | 4 | 6
+/* 8 is here because a tariff line is a place a reader returns to, the same as
+ * a product. Pins, history and saved reports all key off this. */
+export type Level = 2 | 4 | 6 | 8
 
 export type CodeRef = {
   code: string
@@ -197,7 +199,7 @@ function isCodeRef(value: unknown): value is CodeRef {
   return (
     !!item &&
     typeof item.code === 'string' &&
-    [2, 4, 6].includes(item.level) &&
+    [2, 4, 6, 8].includes(item.level) &&
     typeof item.label === 'string'
   )
 }
