@@ -339,9 +339,7 @@ function TariffResults({
                 <strong>{line.hs8}</strong>
 
                 <span className="result-product">
-                  {via === 'product' && parent
-                    ? parent.label || parent.product
-                    : line.principalCommodity || 'Indian tariff line'}
+                  {line.title || line.principalCommodity || 'Indian tariff line'}
                 </span>
 
                 <span className="result-reason">

@@ -6626,3 +6626,20 @@ table.contribution tfoot th {
   border-color: var(--blue);
   color: var(--blue);
 }
+
+/* The tariff-line title is borrowed from its heading until India's own
+   eight-digit schedule is loaded. The page says so, quietly, rather than
+   letting the title imply it identifies this line among its siblings. */
+.hs8-namecaveat {
+  margin: 6px 0 0;
+
+  color: var(--faint);
+
+  font-size: 10.5px;
+  font-style: italic;
+}
+
+.hs8-sub strong {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}

@@ -44,6 +44,7 @@ from __future__ import annotations
 
 import csv
 import json
+import re
 import shutil
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -71,6 +72,85 @@ def number(value):
 
 def round_or_none(value, places: int):
     return None if value is None else round(value, places)
+
+
+def heading_names() -> dict[str, str]:
+    """hs6 -> the short name we authored for it, from the sector definition."""
+    path = CONFIG / "fed_sector_definition.csv"
+
+    if not path.exists():
+        return {}
+
+    rows = csv.DictReader(path.open(newline="", encoding="utf-8-sig"))
+
+    return {
+        (r.get("hs6") or "").strip(): (r.get("display_name") or "").strip()
+        for r in rows
+        if (r.get("hs6") or "").strip()
+    }
+
+
+def tariff_names() -> dict[str, dict]:
+    """
+    hs8 -> its real name, once someone gives us one.
+
+    India publishes an eight-digit tariff schedule; DGCIS's extract does not
+    carry it. Until that schedule is in config/, this returns nothing and the
+    fallback below does the work. The file is optional on purpose: the day it
+    arrives, drop it in and rebuild - nothing else has to change.
+
+        config/itc_hs8_names.csv
+        hs8,description,display_name
+    """
+    path = CONFIG / "itc_hs8_names.csv"
+
+    if not path.exists():
+        return {}
+
+    out = {}
+
+    for r in csv.DictReader(path.open(newline="", encoding="utf-8-sig")):
+        code = re.sub(r"\D", "", r.get("hs8") or "")
+
+        if len(code) != 8:
+            continue
+
+        out[code] = {
+            "description": (r.get("description") or "").strip(),
+            "displayName": (r.get("display_name") or "").strip(),
+        }
+
+    return out
+
+
+def title_for(hs8: str, group: str, heading: str, itc: dict) -> tuple[str, str]:
+    """
+    What to call a tariff line, and where the name came from.
+
+    DGCIS files eight commodity groups and no line descriptions, so 543 pages
+    were titled from a vocabulary of seven words - 165 of them "ELECTRONICS
+    INSTRUMENTS". That is not a name, it is a bucket, and a page titled with
+    its bucket tells a reader nothing about which line they are looking at.
+
+    Order of preference, each honest about what it is:
+
+      1. India's own eight-digit schedule, when we have it. The real name.
+      2. The heading's authored name. Correct but shared with its siblings,
+         so the code has to do the distinguishing until (1) arrives.
+      3. The DGCIS group. Last resort, and the reason this function exists.
+
+    `nameSource` travels with the title so the page can say which it is
+    rather than implying a precision it does not have.
+    """
+    known = itc.get(hs8) or {}
+
+    if known.get("displayName") or known.get("description"):
+        return (known.get("displayName") or known["description"]), "schedule"
+
+    if heading:
+        return heading, "heading"
+
+    return (group.title() if group else f"Tariff line {hs8}"), "group"
 
 
 def read_flow(flow: str):
@@ -166,7 +246,10 @@ def main() -> int:
     })
     index = {period: position for position, period in enumerate(periods)}
 
-    # hs6 -> hs8 -> {principalCommodity, quickEstimateCommodity}
+    headings = heading_names()
+    itc = tariff_names()
+
+    # hs6 -> hs8 -> {hs8, title, nameSource, principalCommodity, ...}
     lines: dict[str, dict[str, dict]] = defaultdict(dict)
 
     # hs6 -> flow -> hs8 -> {"inrCrore": [...], "usdMillion": [...]}
@@ -179,11 +262,21 @@ def main() -> int:
             hs6, hs8 = row["hs6"], row["hs8"]
 
             if hs8 not in lines[hs6]:
+                group = (row.get("principal_commodity") or "").strip()
+                heading = headings.get(hs6, "")
+                title, source = title_for(hs8, group, heading, itc)
+
                 lines[hs6][hs8] = {
                     "hs8": hs8,
+                    "title": title,
+                    "nameSource": source,
+                    # The heading this line sits under, carried so a page can
+                    # show the relationship without loading the catalogue.
+                    "headingName": heading,
+                    "description": (itc.get(hs8) or {}).get("description", ""),
                     # DGCIS's own commodity groupings. The extract carries no
                     # tariff-line description and one is not invented here.
-                    "principalCommodity": (row.get("principal_commodity") or "").strip(),
+                    "principalCommodity": group,
                     "quickEstimateCommodity": (
                         row.get("quick_estimate_commodity") or ""
                     ).strip(),
@@ -283,6 +376,9 @@ def main() -> int:
             entry = {
                 "hs8": hs8,
                 "hs6": hs6,
+                "title": line["title"],
+                "nameSource": line["nameSource"],
+                "headingName": line["headingName"],
                 "principalCommodity": line["principalCommodity"],
                 "quickEstimateCommodity": line["quickEstimateCommodity"],
                 "isProduct": is_product,

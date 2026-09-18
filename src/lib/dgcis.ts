@@ -35,6 +35,14 @@ export type DgcisBasis = 'usd' | 'inr'
  * description, and one is not invented here. */
 export type DgcisLine = {
   hs8: string
+  /* What to call this line, and where the name came from. DGCIS files eight
+   * commodity groups and no line descriptions, so until India's own
+   * eight-digit schedule is loaded the title is the heading's authored name
+   * and `nameSource` says so. A page must not imply a precision it lacks. */
+  title: string
+  nameSource: 'schedule' | 'heading' | 'group'
+  headingName: string
+  description?: string
   principalCommodity: string
   quickEstimateCommodity: string
 }
@@ -65,7 +73,7 @@ export type DgcisNode = {
   flows: Partial<Record<DgcisFlow, DgcisFlowBlock>>
 }
 
-export type DgcisIndexEntry = DgcisLine & {
+export type DgcisIndexEntry = Omit<DgcisLine, 'description'> & {
   hs6: string
   isProduct: boolean
   flows: Partial<Record<DgcisFlow, {
@@ -605,6 +613,24 @@ export const EXPORT_NOTES = [
 
 export function unitLabel(basis: DgcisBasis): string {
   return basis === 'usd' ? 'USD mn' : 'INR cr'
+}
+
+/*
+ * How precise is this line's name?
+ *
+ * Shown wherever a tariff line is titled, because a page called "Network
+ * switches and routers" that is one of eight such pages must not read as the
+ * name of that one line. When the real schedule lands this returns null and
+ * the caveat disappears on its own.
+ */
+export function nameCaveat(line: { nameSource?: string; headingName?: string }): string | null {
+  if (!line.nameSource || line.nameSource === 'schedule') return null
+
+  if (line.nameSource === 'heading') {
+    return 'named after its heading — India’s eight-digit schedule is not in this build'
+  }
+
+  return 'named after its DGCIS commodity group'
 }
 
 /* Said the same way everywhere, because this is the word that was wrong. */

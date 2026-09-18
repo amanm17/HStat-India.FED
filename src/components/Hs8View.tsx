@@ -26,6 +26,7 @@ import {
   formatPeriod,
   formatValue,
   last12,
+  nameCaveat,
   latestOf,
   loadDgcis,
   parentOf,
@@ -249,18 +250,27 @@ export function Hs8View({
         <div>
           <div className="eyebrow">INDIA TARIFF LINE · DGCIS · ITC(HS) 8-DIGIT</div>
 
-          <h1>{line.principalCommodity || `HS ${hs8}`}</h1>
+          <h1>{line.title || `Tariff line ${hs8}`}</h1>
 
           <p className="hs8-sub">
-            HS {hs8}
-            {line.quickEstimateCommodity &&
-              line.quickEstimateCommodity !== line.principalCommodity && (
-                <> · {line.quickEstimateCommodity}</>
-              )}
+            <strong>{hs8}</strong>
+            {siblings.length > 1 && (
+              <> · one of {siblings.length} lines under HS {hs6}</>
+            )}
+            {line.principalCommodity && (
+              <> · DGCIS group: {line.principalCommodity}</>
+            )}
             {!data.isProduct && (
               <> · heading carried as a lineage predecessor, with no product page</>
             )}
           </p>
+
+          {/* The name is borrowed from the heading until the real schedule
+            * arrives. Saying so is cheaper than letting a reader assume the
+            * title distinguishes this line from its seven siblings. */}
+          {nameCaveat(line) && (
+            <p className="hs8-namecaveat">{nameCaveat(line)}</p>
+          )}
         </div>
 
         <div className="dgcis-switches">
@@ -596,7 +606,10 @@ export function Hs8View({
                     )}
                   </td>
 
-                  <td>{item.line.principalCommodity || '—'}</td>
+                  <td>
+                    {item.line.hs8 === hs8 ? <strong>this line</strong> : item.line.title}
+                    <small>{item.line.principalCommodity}</small>
+                  </td>
 
                   <td className="num">{formatValue(item.twelve)}</td>
 
