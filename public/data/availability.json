@@ -1,0 +1,653 @@
+{
+ "source": "UN Comtrade data availability (public getDA endpoint)",
+ "sourceUrl": "https://comtradeplus.un.org/Visualization/DADashboard",
+ "fetchedAt": "2026-09-18T09:10:35.440571+00:00",
+ "builtAt": "2026-09-18T09:24:14.959077+00:00",
+ "snapshotRefreshedAt": "2026-09-14T09:31:13.149508+00:00",
+ "annual": [
+  {
+   "period": "2021",
+   "reporters": 172,
+   "latestRelease": "2026-09-08"
+  },
+  {
+   "period": "2022",
+   "reporters": 169,
+   "latestRelease": "2026-09-11"
+  },
+  {
+   "period": "2023",
+   "reporters": 167,
+   "latestRelease": "2026-09-10"
+  },
+  {
+   "period": "2024",
+   "reporters": 141,
+   "latestRelease": "2026-09-16"
+  },
+  {
+   "period": "2025",
+   "reporters": 100,
+   "latestRelease": "2026-09-16"
+  }
+ ],
+ "monthly": [
+  {
+   "period": "202501",
+   "reporters": 100,
+   "latestRelease": "2026-09-11"
+  },
+  {
+   "period": "202502",
+   "reporters": 97,
+   "latestRelease": "2026-09-11"
+  },
+  {
+   "period": "202503",
+   "reporters": 96,
+   "latestRelease": "2026-09-11"
+  },
+  {
+   "period": "202504",
+   "reporters": 97,
+   "latestRelease": "2026-09-11"
+  },
+  {
+   "period": "202505",
+   "reporters": 96,
+   "latestRelease": "2026-09-11"
+  },
+  {
+   "period": "202506",
+   "reporters": 95,
+   "latestRelease": "2026-09-11"
+  },
+  {
+   "period": "202507",
+   "reporters": 94,
+   "latestRelease": "2026-09-11"
+  },
+  {
+   "period": "202508",
+   "reporters": 94,
+   "latestRelease": "2026-09-11"
+  },
+  {
+   "period": "202509",
+   "reporters": 94,
+   "latestRelease": "2026-09-11"
+  },
+  {
+   "period": "202510",
+   "reporters": 91,
+   "latestRelease": "2026-09-11"
+  },
+  {
+   "period": "202511",
+   "reporters": 92,
+   "latestRelease": "2026-09-11"
+  },
+  {
+   "period": "202512",
+   "reporters": 92,
+   "latestRelease": "2026-09-11"
+  },
+  {
+   "period": "202601",
+   "reporters": 84,
+   "latestRelease": "2026-09-16"
+  },
+  {
+   "period": "202602",
+   "reporters": 83,
+   "latestRelease": "2026-09-16"
+  },
+  {
+   "period": "202603",
+   "reporters": 83,
+   "latestRelease": "2026-09-16"
+  },
+  {
+   "period": "202604",
+   "reporters": 76,
+   "latestRelease": "2026-09-17"
+  },
+  {
+   "period": "202605",
+   "reporters": 68,
+   "latestRelease": "2026-09-17"
+  },
+  {
+   "period": "202606",
+   "reporters": 53,
+   "latestRelease": "2026-09-17"
+  },
+  {
+   "period": "202607",
+   "reporters": 31,
+   "latestRelease": "2026-09-18"
+  },
+  {
+   "period": "202608",
+   "reporters": 1,
+   "latestRelease": "2026-09-15"
+  }
+ ],
+ "holes": [
+  {
+   "period": "2025",
+   "reporter": "China",
+   "products": 240,
+   "priorValue": 700640356072,
+   "sample": [
+    "320890",
+    "340391",
+    "350699",
+    "390390",
+    "390799",
+    "390890",
+    "391910",
+    "391990"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2024",
+   "reporter": "Viet Nam",
+   "products": 91,
+   "priorValue": 108246562223,
+   "sample": [
+    "340391",
+    "350699",
+    "391990",
+    "392099",
+    "392690",
+    "482110",
+    "482190",
+    "482390"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Other Asia, nes",
+   "products": 65,
+   "priorValue": 133941544104,
+   "sample": [
+    "350699",
+    "391990",
+    "392099",
+    "482390",
+    "591190",
+    "741021",
+    "841821",
+    "844319"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2024",
+   "reporter": "United Arab Emirates",
+   "products": 61,
+   "priorValue": 55071636488,
+   "sample": [
+    "831110",
+    "831120",
+    "841510",
+    "841581",
+    "841582",
+    "841583",
+    "841821",
+    "844312"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Iraq",
+   "products": 16,
+   "priorValue": 399312752,
+   "sample": [
+    "831130",
+    "845019",
+    "847029",
+    "847030",
+    "847321",
+    "850680",
+    "850690",
+    "851310"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Algeria",
+   "products": 9,
+   "priorValue": 609340495,
+   "sample": [
+    "841891",
+    "845090",
+    "845610",
+    "851770",
+    "852610",
+    "854150",
+    "854610",
+    "854810"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2024",
+   "reporter": "Angola",
+   "products": 6,
+   "priorValue": 46914382,
+   "sample": [
+    "850740",
+    "851770",
+    "853950",
+    "854150",
+    "854810",
+    "854890"
+   ],
+   "filedSince": true
+  },
+  {
+   "period": "2024",
+   "reporter": "Ghana",
+   "products": 6,
+   "priorValue": 62124472,
+   "sample": [
+    "851770",
+    "853950",
+    "854060",
+    "854150",
+    "854810",
+    "854890"
+   ],
+   "filedSince": true
+  },
+  {
+   "period": "2025",
+   "reporter": "Uzbekistan",
+   "products": 5,
+   "priorValue": 367882777,
+   "sample": [
+    "844317",
+    "845221",
+    "847629",
+    "850423",
+    "851761"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Lebanon",
+   "products": 5,
+   "priorValue": 22094599,
+   "sample": [
+    "845019",
+    "851770",
+    "853950",
+    "854150",
+    "854890"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2024",
+   "reporter": "Aruba",
+   "products": 5,
+   "priorValue": 501238,
+   "sample": [
+    "845610",
+    "850740",
+    "854011",
+    "854810",
+    "854890"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Ukraine",
+   "products": 5,
+   "priorValue": 408495465,
+   "sample": [
+    "850423",
+    "852550",
+    "854020",
+    "854320",
+    "901480"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2024",
+   "reporter": "Argentina",
+   "products": 5,
+   "priorValue": 1646551705,
+   "sample": [
+    "850740",
+    "851770",
+    "853950",
+    "854150",
+    "854890"
+   ],
+   "filedSince": true
+  },
+  {
+   "period": "2025",
+   "reporter": "Cabo Verde",
+   "products": 5,
+   "priorValue": 1344857,
+   "sample": [
+    "851770",
+    "853950",
+    "854150",
+    "854810",
+    "854890"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Yemen",
+   "products": 5,
+   "priorValue": 767259,
+   "sample": [
+    "851770",
+    "853950",
+    "854150",
+    "854810",
+    "854890"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Peru",
+   "products": 4,
+   "priorValue": 166188475,
+   "sample": [
+    "842389",
+    "845020",
+    "852713",
+    "852791"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2024",
+   "reporter": "Djibouti",
+   "products": 4,
+   "priorValue": 4988916,
+   "sample": [
+    "845610",
+    "851770",
+    "854150",
+    "854890"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Trinidad and Tobago",
+   "products": 4,
+   "priorValue": 5843137,
+   "sample": [
+    "845610",
+    "851770",
+    "854150",
+    "854810"
+   ],
+   "filedSince": true
+  },
+  {
+   "period": "2024",
+   "reporter": "Georgia",
+   "products": 4,
+   "priorValue": 14761024,
+   "sample": [
+    "851770",
+    "853950",
+    "854810",
+    "854890"
+   ],
+   "filedSince": true
+  },
+  {
+   "period": "2025",
+   "reporter": "Cayman Isds",
+   "products": 4,
+   "priorValue": 477107,
+   "sample": [
+    "853950",
+    "854150",
+    "854810",
+    "854890"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Cambodia",
+   "products": 3,
+   "priorValue": 156154529,
+   "sample": [
+    "482110",
+    "831130",
+    "853931"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2024",
+   "reporter": "Tajikistan",
+   "products": 3,
+   "priorValue": 879872,
+   "sample": [
+    "845610",
+    "850740",
+    "854150"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2024",
+   "reporter": "State of Palestine",
+   "products": 3,
+   "priorValue": 7370648,
+   "sample": [
+    "845610",
+    "851770",
+    "854810"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2024",
+   "reporter": "Barbados",
+   "products": 3,
+   "priorValue": 1735927,
+   "sample": [
+    "850740",
+    "853950",
+    "854150"
+   ],
+   "filedSince": true
+  },
+  {
+   "period": "2024",
+   "reporter": "Timor-Leste",
+   "products": 3,
+   "priorValue": 1164465,
+   "sample": [
+    "853950",
+    "854810",
+    "854890"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Montserrat",
+   "products": 3,
+   "priorValue": 26371,
+   "sample": [
+    "853950",
+    "854150",
+    "854890"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Antigua and Barbuda",
+   "products": 2,
+   "priorValue": 45903,
+   "sample": [
+    "845610",
+    "854150"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Oman",
+   "products": 2,
+   "priorValue": 45079852,
+   "sample": [
+    "850410",
+    "910191"
+   ],
+   "filedSince": true
+  },
+  {
+   "period": "2024",
+   "reporter": "Dem. Rep. of the Congo",
+   "products": 2,
+   "priorValue": 59046445,
+   "sample": [
+    "850740",
+    "854330"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Samoa",
+   "products": 2,
+   "priorValue": 865277,
+   "sample": [
+    "851770",
+    "853950"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Jordan",
+   "products": 2,
+   "priorValue": 18024941,
+   "sample": [
+    "852412",
+    "852419"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Nicaragua",
+   "products": 2,
+   "priorValue": 116064027,
+   "sample": [
+    "853670",
+    "853931"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Bahrain",
+   "products": 2,
+   "priorValue": 119533705,
+   "sample": [
+    "854519",
+    "854590"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Japan",
+   "products": 1,
+   "priorValue": 6360114,
+   "sample": [
+    "844311"
+   ],
+   "filedSince": true
+  },
+  {
+   "period": "2024",
+   "reporter": "Ethiopia",
+   "products": 1,
+   "priorValue": 604466,
+   "sample": [
+    "844312"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Myanmar",
+   "products": 1,
+   "priorValue": 365694,
+   "sample": [
+    "844312"
+   ],
+   "filedSince": true
+  },
+  {
+   "period": "2025",
+   "reporter": "Qatar",
+   "products": 1,
+   "priorValue": 349437,
+   "sample": [
+    "844312"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Grenada",
+   "products": 1,
+   "priorValue": 30356,
+   "sample": [
+    "845610"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Honduras",
+   "products": 1,
+   "priorValue": 1846517,
+   "sample": [
+    "847021"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Burkina Faso",
+   "products": 1,
+   "priorValue": 102215124,
+   "sample": [
+    "851310"
+   ],
+   "filedSince": false
+  }
+ ],
+ "productsTotal": 418
+}
