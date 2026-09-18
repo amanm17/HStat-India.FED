@@ -4,10 +4,12 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Clock,
+  Database,
   Home,
   Layers,
   Pin,
   Search,
+  Terminal,
 } from 'lucide-react'
 
 import type { CodeRef } from '../lib/workspace'
@@ -50,6 +52,8 @@ export function NavRail({
   onSearch,
   onGuide,
   onTariffLines,
+  onAvailability,
+  onQuery,
   active,
 }: {
   pinned: CodeRef[]
@@ -59,6 +63,8 @@ export function NavRail({
   onSearch: () => void
   onGuide: () => void
   onTariffLines: () => void
+  onAvailability: () => void
+  onQuery: () => void
   /* The code the page is currently showing, so the rail can mark it. */
   active: string | null
 }) {
@@ -108,6 +114,20 @@ export function NavRail({
         >
           <Layers size={16} />
           <span>Tariff lines</span>
+        </button>
+
+        <button
+          className="nav-action"
+          onClick={onAvailability}
+          title="What Comtrade holds, and which of our products are thin"
+        >
+          <Database size={16} />
+          <span>Availability</span>
+        </button>
+
+        <button className="nav-action" onClick={onQuery} title="Build a Comtrade query">
+          <Terminal size={16} />
+          <span>Query builder</span>
         </button>
 
         <button className="nav-action" onClick={onGuide} title="How to read this dashboard">

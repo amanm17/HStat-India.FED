@@ -11,12 +11,13 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { ArrowUpRight, ChevronLeft } from 'lucide-react'
+import { ArrowUpRight, ChevronLeft, FileDown, Loader2 } from 'lucide-react'
 
 import type { CatalogueEntry } from '../types'
 import { palette } from '../lib/palette'
 import { ordinal, pct, usd } from '../lib/format'
 import { Metric, MiniMetric } from './primitives'
+import { reportToPdf, reportToPng } from '../lib/report'
 import {
   calendarYears,
   financialYears,
@@ -93,6 +94,7 @@ export function Hs8View({
   const [basis, setBasis] = useState<DgcisBasis>('usd')
   const [flow, setFlow] = useState<DgcisFlow | null>(null)
   const [span, setSpan] = useState<'all' | '36'>('36')
+  const [busy, setBusy] = useState<'pdf' | 'png' | null>(null)
 
   useEffect(() => {
     let live = true
@@ -278,6 +280,59 @@ export function Hs8View({
         </div>
 
         <div className="dgcis-switches">
+          {/*
+            * A tariff line is reportable like a product page. The capture
+            * machinery keys off tile-<id>, so giving the sections ids was the
+            * whole job - the PDF layout, the header and the page breaks are
+            * the ones the product pages already use.
+            */}
+          <div className="basis-switch" role="group" aria-label="Report">
+            {(['pdf', 'png'] as const).map(format => (
+              <button
+                key={format}
+                disabled={busy !== null}
+                title={`Save this tariff line as ${format.toUpperCase()}`}
+                onClick={async () => {
+                  setBusy(format)
+
+                  const header = {
+                    title: line.title || `Tariff line ${hs8}`,
+                    subtitle: `ITC(HS) ${hs8} · under HS ${hs6}${
+                      line.headingName ? ` — ${line.headingName}` : ''
+                    }`,
+                    meta: [
+                      `DGCIS / Trade Intelligence & Analytics · India reporting, partner World, ${flow}`,
+                      `Monthly ${data.periods[0]} – ${data.periods[data.periods.length - 1]}`,
+                      'India’s own figures. Not world trade, and not comparable with UN Comtrade.',
+                    ],
+                  }
+
+                  const tiles = [
+                    { id: 'hs8-metrics', label: 'Headline' },
+                    { id: 'hs8-heading', label: 'The heading this sits under' },
+                    { id: 'hs8-chart', label: `${flowWord(flow)}, month by month` },
+                    { id: 'hs8-years', label: 'Annual totals' },
+                    { id: 'hs8-siblings', label: `The rest of HS ${hs6}` },
+                  ]
+
+                  try {
+                    if (format === 'pdf') await reportToPdf(header, tiles)
+                    else await reportToPng(header, tiles)
+                  } finally {
+                    setBusy(null)
+                  }
+                }}
+              >
+                {busy === format ? (
+                  <Loader2 size={11} className="spin" />
+                ) : (
+                  <FileDown size={11} />
+                )}{' '}
+                {format.toUpperCase()}
+              </button>
+            ))}
+          </div>
+
           {available.length > 1 && (
             <div className="basis-switch" role="group" aria-label="Flow">
               {available.map(option => (
@@ -316,7 +371,7 @@ export function Hs8View({
         {formatPeriod(data.flows[flow]?.latestPeriod ?? null)}.
       </p>
 
-      <section className="hs8-metrics">
+      <section className="hs8-metrics" id="tile-hs8-metrics">
         <Metric
           label={`Last 12 months (${unit})`}
           value={formatValue(twelve)}
@@ -358,7 +413,7 @@ export function Hs8View({
         * leaving, that the two numbers measure different things.
         */}
       {entry && (
-        <section className="hs8-parent-card">
+        <section className="hs8-parent-card" id="tile-hs8-heading">
           <div>
             <div className="eyebrow">THE HEADING THIS SITS UNDER · UN COMTRADE</div>
 
@@ -405,7 +460,7 @@ export function Hs8View({
         </section>
       )}
 
-      <section className="hs8-chart">
+      <section className="hs8-chart" id="tile-hs8-chart">
         <div className="release-section-head">
           <div>
             <div className="eyebrow">MONTHLY · {unit.toUpperCase()}</div>
@@ -475,7 +530,7 @@ export function Hs8View({
         </ResponsiveContainer>
       </section>
 
-      <section className="hs8-years">
+      <section className="hs8-years" id="tile-hs8-years">
         <div className="hs8-years-block">
           <h3>Indian financial years</h3>
 
@@ -569,7 +624,7 @@ export function Hs8View({
       </section>
 
       {siblings.length > 1 && (
-        <section className="hs8-siblings">
+        <section className="hs8-siblings" id="tile-hs8-siblings">
           <div className="release-section-head">
             <div>
               <div className="eyebrow">THE REST OF HS {hs6}</div>

@@ -42,6 +42,9 @@ import { Hs8View } from './components/Hs8View'
 import { TariffLines } from './components/TariffLines'
 import { Guide } from './components/Guide'
 import { NavRail } from './components/NavRail'
+import { Availability } from './components/Availability'
+import { QueryBuilder } from './components/QueryBuilder'
+import { HelpButton, type HelpTopic } from './components/HelpButton'
 import { Safely } from './components/Safely'
 import { HomeView } from './components/HomeView'
 import { HStackPanel } from './components/HStackPanel'
@@ -93,6 +96,8 @@ type Route =
    * and the written guide. Both are reachable by URL so they can be sent. */
   | { kind: 'lines' }
   | { kind: 'guide' }
+  | { kind: 'availability' }
+  | { kind: 'query' }
 
 function levelOf(code: string): 2 | 4 | 6 {
   return code.length === 2 ? 2 : code.length === 4 ? 4 : 6
@@ -101,6 +106,8 @@ function levelOf(code: string): 2 | 4 | 6 {
 function routeFromPath(path: string): Route {
   if (/^\/tariff-lines\/?$/.test(path)) return { kind: 'lines' }
   if (/^\/guide\/?$/.test(path)) return { kind: 'guide' }
+  if (/^\/availability\/?$/.test(path)) return { kind: 'availability' }
+  if (/^\/query\/?$/.test(path)) return { kind: 'query' }
 
   const match = /^\/hs\/(\d{2}|\d{4}|\d{6}|\d{8})\/?$/.exec(path)
 
@@ -114,6 +121,8 @@ function routeFromPath(path: string): Route {
 function pathFor(route: Route): string {
   if (route.kind === 'lines') return '/tariff-lines'
   if (route.kind === 'guide') return '/guide'
+  if (route.kind === 'availability') return '/availability'
+  if (route.kind === 'query') return '/query'
   if (route.kind === 'tariff') return `/hs/${route.hs8}`
 
   return route.kind === 'product' ? `/hs/${route.code}` : '/'
@@ -448,6 +457,99 @@ function App() {
    * capability - it is the same controls, reachable without knowing which
    * corner of the screen they live in.
    */
+  /*
+   * What this page is, in the reader's words rather than ours.
+   *
+   * Each one names the misreading that page invites. They are not decoration:
+   * every "watch out" below is a mistake that has actually been made on this
+   * data, by us, at least once.
+   */
+  const helpTopic = useMemo<HelpTopic>(() => {
+    if (route.kind === 'guide') {
+      return {
+        title: 'The written guide',
+        lines: [
+          'Everything worth knowing about how to read this dashboard, in one page.',
+          'The two data sources, why some years are blank, what each HS level is for, and how to get around.',
+        ],
+      }
+    }
+
+    if (route.kind === 'availability') {
+      return {
+        title: 'What Comtrade holds',
+        lines: [
+          "UN Comtrade's own record of which economies have filed which period, joined to our 418 products.",
+          'The banner at the top answers one question: would running a refresh bring in anything new.',
+          'The gaps below say what each missing economy was worth, so you can judge how understated a year is.',
+        ],
+        watch:
+          'a missing economy does not blank a figure, it understates it. The products listed under each gap are the ones affected.',
+      }
+    }
+
+    if (route.kind === 'query') {
+      return {
+        title: 'Build a Comtrade query',
+        lines: [
+          'Pick a product by name and this writes the call three ways: Comtrade’s own results page, a keyless API URL, and Python for your own key.',
+          'The fiddly part of pulling trade data is composing a correct query, not running it. This page does that part.',
+        ],
+        watch:
+          'no key is asked for or stored here. HStat has no server to run a query on, so you run it where your key already lives.',
+      }
+    }
+
+    if (route.kind === 'lines') {
+      return {
+        title: "India's tariff lines",
+        lines: [
+          'All 543 eight-digit lines India files under the headings we track, grouped by heading and sorted by size.',
+          'Switch between exports and imports at the top right; filter by code or heading in the box.',
+        ],
+        watch:
+          'these are India reporting India. There is no world figure at eight digits, and none of this is comparable with the Comtrade numbers on a product page.',
+      }
+    }
+
+    if (route.kind === 'tariff') {
+      return {
+        title: 'One Indian tariff line',
+        lines: [
+          'India’s own monthly customs figures for a single eight-digit line, in both directions.',
+          'The card partway down links up to the six-digit heading, where the world figures live.',
+          'The line is titled by its code because India’s eight-digit schedule is not loaded yet; the name beside it belongs to the heading and is shared with its siblings.',
+        ],
+        watch:
+          'partner “World” here means India trading with everywhere. It does not mean world trade, and it must never be added to a Comtrade figure.',
+      }
+    }
+
+    if (route.kind === 'product' && node) {
+      return {
+        title: `HS ${node.code} — ${nameOf(node)}`,
+        lines: [
+          'World trade in this product line, from UN Comtrade: every reporting economy’s imports from the world, net of re-imports.',
+          'Below the world figures, India’s own eight-digit tariff lines for this heading, from DGCIS — a different source, a different period basis, shown separately on purpose.',
+          'The right-hand rail chooses which panels show and builds a report from them.',
+        ],
+        watch:
+          'a blank year is one whose reporter coverage was not good enough to publish. It means “we do not know”, never zero.',
+      }
+    }
+
+    return {
+      title: 'The front page',
+      lines: [
+        '418 electronics product lines, with world trade and India’s position in each.',
+        'Search by product word or HS code, or type “/” for commands.',
+        'India’s own tariff lines have their own panel, and their own page behind “All 543 lines”.',
+      ],
+      watch:
+        'the headline total counts each product in its own most recent validated year, so it is an order of magnitude rather than a single-year figure.',
+    }
+  }, [route, node])
+
   const commands = useMemo<Command[]>(() => {
     const list: Command[] = [
       { id: 'home', label: 'Front page', hint: 'the product catalogue and the search box',
@@ -456,6 +558,10 @@ function App() {
         terms: ['hs8', 'tariff', 'eight'], run: () => goTo({ kind: 'lines' }) },
       { id: 'guide', label: 'How to read this dashboard', hint: 'what each source means, and what not to add together',
         terms: ['help', 'explain', 'how'], run: () => goTo({ kind: 'guide' }) },
+      { id: 'availability', label: 'What Comtrade holds', hint: 'who has filed, and which of our products are thin',
+        terms: ['coverage', 'gaps', 'missing', 'fresh'], run: () => goTo({ kind: 'availability' }) },
+      { id: 'query', label: 'Build a Comtrade query', hint: 'pick a product by name, get the call three ways',
+        terms: ['api', 'pull', 'download', 'comtrade'], run: () => goTo({ kind: 'query' }) },
       { id: 'theme', label: dark ? 'Light theme' : 'Dark theme', hint: 'switch the colour scheme',
         terms: ['dark', 'light'], run: () => setDark(value => !value) },
     ]
@@ -666,9 +772,12 @@ function App() {
   const onTariff = route.kind === 'tariff'
   const onLines = route.kind === 'lines'
   const onGuide = route.kind === 'guide'
+  const onAvailability = route.kind === 'availability'
+  const onQuery = route.kind === 'query'
+  const standalone = onLines || onGuide || onAvailability || onQuery
   const onProduct =
-    !onTariff && !onLines && !onGuide && route.kind === 'product' && !!node && year !== null
-  const showHome = !onTariff && !onLines && !onGuide && !onProduct
+    !onTariff && !standalone && route.kind === 'product' && !!node && year !== null
+  const showHome = !onTariff && !standalone && !onProduct
 
   return (
     <div className="app">
@@ -829,11 +938,21 @@ function App() {
         }}
         onGuide={() => goTo({ kind: 'guide' })}
         onTariffLines={() => goTo({ kind: 'lines' })}
+        onAvailability={() => goTo({ kind: 'availability' })}
+        onQuery={() => goTo({ kind: 'query' })}
         active={route.kind === 'product' ? route.code : route.kind === 'tariff' ? route.hs8 : null}
       />
 
       <main>
-        {onLines ? (
+        {onAvailability ? (
+          <Safely label="Availability">
+            <Availability onOpen={openCode} onHome={goHome} />
+          </Safely>
+        ) : onQuery ? (
+          <Safely label="QueryBuilder">
+            <QueryBuilder catalogue={catalogue} onHome={goHome} />
+          </Safely>
+        ) : onLines ? (
           <Safely label="TariffLines">
             <TariffLines onOpenHs8={openHs8} onOpen={openCode} />
           </Safely>
@@ -953,6 +1072,12 @@ function App() {
             onAdd={item => addToBasket({ code: item.code, level: item.level })}
             commands={commands}
             onLines={() => goTo({ kind: 'lines' })}
+            reports={workspace.reports}
+            onOpenReport={report => {
+              /* Put the page back the way the report was built, then let the
+               * reader regenerate or just read it live. */
+              if (report.code) openRef(report.code, (report.level ?? 6) as 2 | 4 | 6 | 8)
+            }}
           />
         )}
       </main>
@@ -1026,6 +1151,10 @@ function App() {
           }
         />
       )}
+
+      <Safely label="HelpButton">
+        <HelpButton topic={helpTopic} onGuide={() => goTo({ kind: 'guide' })} />
+      </Safely>
 
       {flash && <div className="flash" role="status">{flash}</div>}
 

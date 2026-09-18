@@ -38,7 +38,9 @@ export const COMTRADE_QUERY_PAGE = 'https://comtradeplus.un.org/TradeFlow'
 /* Comtrade's own reporter code for India. */
 export const INDIA_REPORTER = '699'
 
-export type ComtradeFlow = 'M' | 'RM'
+/* The Pull Data panel only ever asks for the import side, but the query
+ * builder legitimately wants exports too, and Comtrade accepts all four. */
+export type ComtradeFlow = 'M' | 'RM' | 'X' | 'RX'
 
 export type ComtradeQuery = {
   code: string

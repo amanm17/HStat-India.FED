@@ -5,6 +5,7 @@ import type { SearchIndex } from '../lib/search'
 import { usd, ordinal, pct, nameOf } from '../lib/format'
 import { SearchHub } from './SearchHub'
 import { HomeTariffLines } from './HomeTariffLines'
+import { FileText } from 'lucide-react'
 
 /*
  * The landing page.
@@ -30,6 +31,9 @@ type Props = {
   onOpenHs8?: (hs8: string) => void
   commands?: import('./SearchHub').Command[]
   onLines?: () => void
+  /* The reader's own saved reports. Local to this browser; nothing is shared. */
+  reports?: import('../lib/workspace').SavedReport[]
+  onOpenReport?: (report: import('../lib/workspace').SavedReport) => void
 }
 
 export function HomeView({
@@ -43,6 +47,8 @@ export function HomeView({
   onOpenHs8,
   commands,
   onLines,
+  reports,
+  onOpenReport,
 }: Props) {
   const [openCategory, setOpenCategory] = useState<string | null>(null)
 
@@ -196,6 +202,48 @@ export function HomeView({
         * all: a reader had to already know it existed, then find a product
         * that happened to have it. This is the door. */}
       <HomeTariffLines onOpenHs8={onOpenHs8} onLines={onLines} />
+
+      {/*
+        * Work you have already done, where you will look for it.
+        *
+        * Reports were reachable only from the right-hand rail of whichever
+        * product page you happened to be on - so a report built on Monday was
+        * effectively lost by Tuesday unless you remembered which code you
+        * built it from. Only shown when there are any: an empty panel
+        * explaining a feature nobody has used yet is an advertisement.
+        */}
+      {reports && reports.length > 0 && (
+        <section className="home-reports">
+          <div className="home-panel-head">
+            <span className="eyebrow">YOUR SAVED REPORTS</span>
+
+            <span className="home-panel-note">
+              kept in this browser only — never uploaded
+            </span>
+          </div>
+
+          <div className="home-reports-list">
+            {reports.slice(0, 6).map(report => (
+              <button
+                key={report.id}
+                onClick={() => onOpenReport?.(report)}
+                title={`Rebuild ${report.name}`}
+              >
+                <FileText size={14} />
+
+                <span className="home-report-main">
+                  <strong>{report.name}</strong>
+                  <small>{report.subject}</small>
+                </span>
+
+                <span className="home-report-when">
+                  {new Date(report.lastRunAt).toLocaleDateString()}
+                </span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="home-columns">
         <section className="home-panel">

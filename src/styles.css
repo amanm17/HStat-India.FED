@@ -6988,10 +6988,6 @@ table.contribution tfoot th {
   text-transform: none;
 }
 
-.command-slug {
-  color: var(--blue) !important;
-  font-variant-numeric: normal;
-}
 
 .command-hint kbd {
   padding: 1px 5px;
@@ -7001,8 +6997,54 @@ table.contribution tfoot th {
   font-size: 10px;
 }
 
-/* Longer command slugs were colliding with the label. */
-.command-more .result-level { min-width: 64px; }
+/*
+ * Commands get their own row grid.
+ *
+ * A search result has four parts - level, code, product, reason - and the
+ * palette only has three. Reusing the four-column grid pushed "/currency"
+ * into a 34px slot meant for "HS-6" and squeezed the label into the 64px slot
+ * meant for a code, so the two overlapped. Three columns, sized for what is
+ * actually in them.
+ */
+.command-more .search-results-large .search-result-open {
+  grid-template-columns: minmax(84px, auto) minmax(0, 1fr) minmax(0, 1.1fr);
+  align-items: baseline;
+}
+
+.command-more .command-slug {
+  color: var(--blue);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: normal;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.command-more .search-result-open strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.command-more .result-reason {
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  /* Two lines rather than three squeezed columns. */
+  .command-more .search-results-large .search-result-open {
+    grid-template-columns: minmax(78px, auto) minmax(0, 1fr);
+  }
+
+  .command-more .result-reason {
+    grid-column: 1 / -1;
+    text-align: left;
+    white-space: normal;
+  }
+}
 
 /* ---------------------------------------------------------
    INDIA'S TARIFF LINES ON THE FRONT PAGE
@@ -7091,3 +7133,553 @@ table.contribution tfoot th {
 }
 
 .home-hs8-value.up { color: var(--green); font-weight: 600; }
+
+/* ---------------------------------------------------------
+   "WHAT AM I LOOKING AT?"
+   Bottom right, on every page. Sits above the HStack handle
+   rather than beside it, so neither has to move.
+   --------------------------------------------------------- */
+
+.helpdock {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 60;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.helpbutton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+
+  background: var(--panel);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.helpbutton:hover,
+.helpbutton.open {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.helpcard {
+  width: min(360px, calc(100vw - 36px));
+  max-height: min(70vh, 560px);
+  padding: 16px 18px;
+  overflow-y: auto;
+
+  background: var(--panel);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+.helpcard-head {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.helpcard-head h3 {
+  margin: 3px 0 0;
+
+  color: var(--text);
+
+  font-size: 14px;
+  font-weight: 640;
+  line-height: 1.25;
+}
+
+.helpcard-close {
+  flex: none;
+  padding: 3px;
+
+  background: none;
+  border: 0;
+
+  color: var(--faint);
+  cursor: pointer;
+}
+
+.helpcard-close:hover { color: var(--text); }
+
+.helpcard p {
+  margin: 0 0 8px;
+
+  color: var(--muted);
+
+  font-size: 11.5px;
+  line-height: 1.6;
+}
+
+.helpcard-watch {
+  margin-top: 10px !important;
+  padding: 9px 11px;
+
+  background: color-mix(in srgb, var(--blue) 8%, transparent);
+  border-left: 3px solid var(--blue);
+  border-radius: 0 7px 7px 0;
+}
+
+.helpcard-watch strong { color: var(--navy); }
+
+.helpcard-guide {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 4px;
+  padding: 7px 11px;
+
+  background: var(--panel-soft);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+
+  color: var(--blue);
+
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.helpcard-guide:hover { border-color: var(--blue); }
+
+/* The HStack handle lives in the same corner; lift it clear. */
+.stack-handle,
+[class*='stack-handle'] { bottom: 68px !important; }
+
+/* The report control spins while html-to-image works its way down the page;
+   capture is sequential and takes a second or two on a long tariff line. */
+.spin { animation: hstat-spin 0.9s linear infinite; }
+
+@keyframes hstat-spin { to { transform: rotate(360deg); } }
+
+.dgcis-switches .basis-switch button[disabled] {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+/* Saved reports on the front page. */
+.home-reports {
+  margin: 0 0 26px;
+  padding: 16px 20px;
+
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.home-reports-list {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  margin-top: 10px;
+}
+
+.home-reports-list button {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  padding: 9px 11px;
+
+  background: var(--panel-soft);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+
+  color: var(--muted);
+  text-align: left;
+  cursor: pointer;
+}
+
+.home-reports-list button:hover { border-color: var(--blue); }
+
+.home-report-main { overflow: hidden; }
+
+.home-report-main strong {
+  display: block;
+  overflow: hidden;
+
+  color: var(--text);
+
+  font-size: 12px;
+  font-weight: 640;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-report-main small {
+  display: block;
+  overflow: hidden;
+
+  color: var(--faint);
+
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-report-when {
+  color: var(--faint);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------
+   AVAILABILITY and QUERY BUILDER
+   --------------------------------------------------------- */
+
+.avail-page,
+.qb-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 22px 26px 64px;
+}
+
+.avail-head {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.avail-page h1,
+.qb-page h1 {
+  margin: 4px 0 6px;
+  color: var(--text);
+  font-size: 24px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+.avail-lede,
+.qb-lede {
+  max-width: 88ch;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.avail-source {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  color: var(--blue);
+  font-size: 11px;
+  text-decoration: none;
+}
+
+.avail-verdict {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin: 18px 0 24px;
+  padding: 14px 16px;
+
+  border-radius: 10px;
+}
+
+.avail-verdict.due {
+  background: color-mix(in srgb, var(--blue) 9%, transparent);
+  border: 1px solid color-mix(in srgb, var(--blue) 30%, transparent);
+  color: var(--blue);
+}
+
+.avail-verdict.fine {
+  background: color-mix(in srgb, var(--green) 9%, transparent);
+  border: 1px solid color-mix(in srgb, var(--green) 28%, transparent);
+  color: var(--green);
+}
+
+.avail-verdict strong { display: block; font-size: 13px; }
+
+.avail-verdict span {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.55;
+}
+
+.avail-block { margin-bottom: 30px; }
+
+.avail-block h2 {
+  margin: 0 0 6px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 640;
+}
+
+.avail-note {
+  max-width: 80ch;
+  margin: 0 0 10px;
+  color: var(--faint);
+  font-size: 10.5px;
+  line-height: 1.55;
+}
+
+.avail-bar {
+  display: block;
+  width: 100%;
+  max-width: 260px;
+  height: 7px;
+
+  background: var(--panel-soft);
+  border-radius: 999px;
+}
+
+.avail-bar span {
+  display: block;
+  height: 100%;
+  background: var(--blue);
+  border-radius: 999px;
+}
+
+.avail-holes {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.avail-hole {
+  padding: 12px 14px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.avail-hole-head {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.avail-hole-head strong { color: var(--text); font-size: 12.5px; }
+
+.avail-hole-year {
+  color: var(--faint);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.avail-filed {
+  padding: 1px 7px;
+  background: color-mix(in srgb, var(--green) 14%, transparent);
+  border-radius: 999px;
+  color: var(--green);
+  font-size: 9.5px;
+  font-weight: 700;
+}
+
+.avail-hole p { margin: 0 0 6px; color: var(--muted); font-size: 11.5px; line-height: 1.5; }
+
+.avail-sample { display: flex; gap: 8px; flex-wrap: wrap; }
+.avail-sample button { font-size: 10.5px; font-variant-numeric: tabular-nums; }
+
+.avail-page.missing p,
+.qb-why p {
+  max-width: 78ch;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.avail-cmd,
+.qb-out pre {
+  margin: 12px 0;
+  padding: 11px 13px;
+  overflow-x: auto;
+
+  background: var(--panel-soft);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+
+  color: var(--text);
+
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* ---- query builder ---- */
+
+.qb-form {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  margin: 20px 0 10px;
+}
+
+.qb-field { display: flex; flex-direction: column; gap: 4px; }
+.qb-field.qb-wide { grid-column: 1 / -1; }
+
+.qb-field > span {
+  color: var(--faint);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.qb-field input,
+.qb-field select {
+  padding: 8px 10px;
+
+  background: var(--panel);
+  border: 1px solid var(--border-strong);
+  border-radius: 7px;
+
+  color: var(--text);
+  font-size: 12px;
+}
+
+.qb-field.qb-wide select { margin-top: 6px; }
+
+.qb-chosen {
+  margin: 4px 0 18px;
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.qb-chosen strong { color: var(--navy); font-variant-numeric: tabular-nums; }
+
+.qb-outs { display: flex; flex-direction: column; gap: 16px; }
+
+.qb-out {
+  padding: 13px 15px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.qb-out-head {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.qb-out-head strong { color: var(--text); font-size: 12.5px; }
+
+.qb-out-head .linkish,
+.qb-out-head a {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  font-size: 11px;
+  text-decoration: none;
+}
+
+.qb-note {
+  margin: 0;
+  color: var(--faint);
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+
+.qb-why { margin-top: 30px; }
+
+.qb-why h2 {
+  margin: 0 0 8px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 640;
+}
+
+.qb-home, .guide-home { margin-top: 26px; font-size: 12px; }
+
+/* ---------------------------------------------------------
+   NARROW-SCREEN FIXES
+   Found by qa/suite/visual.mjs, which measures overlap,
+   unscrollable overflow and clipped text rather than relying
+   on someone noticing. Each rule below has a failing check
+   behind it.
+   --------------------------------------------------------- */
+
+@media (max-width: 760px) {
+  /*
+   * Wide tables scroll inside themselves rather than pushing the page
+   * sideways. A data table on a phone has to be scrollable somewhere; the
+   * choice is whether it takes the whole page with it.
+   */
+  .dgcis-table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .dgcis-table thead,
+  .dgcis-table tbody,
+  .dgcis-table tr { width: max-content; min-width: 100%; }
+
+  /*
+   * The action rows wrap instead of running off the edge. These pre-date the
+   * tariff-line work - a product page overflowed by 179px at 375px with the
+   * whole DGCIS layer removed - and this is the fix rather than the
+   * diagnosis.
+   */
+  .panel-actions,
+  .actions,
+  .tableactions,
+  .head-actions,
+  .panelhead,
+  .product-head,
+  .dgcis-switches,
+  .release-section-head,
+  .lines-head,
+  .avail-head,
+  .home-panel-head {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  /* A button row that wraps still needs its buttons to fit one at a time. */
+  .head-actions > *,
+  .panel-actions > *,
+  .actions > * { max-width: 100%; }
+
+  .pulldata { max-width: 100%; overflow-x: auto; }
+
+  .stack-add,
+  .download-master { max-width: 100%; }
+
+  /* The help card must never be the thing that makes a phone scroll. */
+  .helpdock { right: 12px; bottom: 12px; }
+}
+
+/*
+ * Secondary lines on the front page truncate rather than spill. "HS 854142 ·
+ * 2025 · provisional" is longer than its column at every width below 900px,
+ * and the ellipsis is more honest than a sentence cut mid-word.
+ */
+.home-list-main small,
+.home-list-money small,
+.home-cat-name {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

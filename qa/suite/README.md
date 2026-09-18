@@ -55,3 +55,42 @@ should not be "fixed" by loosening them:
   `.download-master`, `.stack-add` and `.pulldata`. The assertion is narrowed to
   what this layer owns - that the tariff table scrolls inside its own wrapper
   and contributes nothing to page overflow.
+
+The 179px is now zero. The September visual pass gave `.download-master`,
+`.stack-add` and `.pulldata` a wrap rule below 760px and put every wide table
+in its own scrolling wrapper, so all six routes measure `scrollWidth ==
+clientWidth` at 375px. The narrowed assertion still holds and should stay
+narrow: it is about what this layer owns, not about the page total, which
+`visual.mjs` now owns instead.
+
+## Feature suites
+
+Added with the September feature round: the left rail, the slash palette, the
+help button, the tariff-line report, the front-page panels, `/availability`
+and `/query`.
+
+```
+node qa/suite/p2check.mjs      # 21 — what a second page load refetches, and what
+                               #      going back up the tree does not
+node qa/suite/exportcheck.mjs  # 21 — CSV and workbook contents, the notes sheet,
+                               #      and that a borrowed name never leaves
+                               #      the app without its caveat
+node qa/suite/navcheck.mjs     # 34 — rail, palette, deep links, the guide, and
+                               #      the naming caveat wherever a name is borrowed
+node qa/suite/featurecheck.mjs # 49 — the help button on every page, the HS-8
+                               #      report capture, the front-page panels, and
+                               #      the two new routes
+```
+
+## Visual suite
+
+```
+node qa/suite/visual.mjs       # 198 — 7 pages x 3 widths (375/768/1440) x 2 themes
+```
+
+It measures three things a screenshot review misses: elements that overlap
+each other, overflow that cannot be scrolled to, and text clipped by its own
+box. It found the slash palette's overlap (a three-child row was still using
+the four-column grid), the tables that ran off 375px, and the buttons
+`.head-actions` and `.panelhead` were cutting in half. Run it before any
+deploy that touches `styles.css`.
