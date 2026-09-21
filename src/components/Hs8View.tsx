@@ -15,9 +15,10 @@ import { ArrowUpRight, ChevronLeft, FileDown, Loader2 } from 'lucide-react'
 
 import type { CatalogueEntry } from '../types'
 import { palette } from '../lib/palette'
-import { ordinal, pct, usd } from '../lib/format'
+import { ordinal, pct, plural, usd } from '../lib/format'
 import { Metric, MiniMetric } from './primitives'
 import { reportToPdf, reportToPng } from '../lib/report'
+import { usePageHelp } from '../lib/pagehelp'
 import {
   calendarYears,
   financialYears,
@@ -166,6 +167,91 @@ export function Hs8View({
   }, [data, series, span])
 
   const entry = catalogue.find(item => item.code === hs6)
+
+  /*
+   * The card in the corner, filled from this line rather than from the route.
+   * Everything below is read off what is currently rendered - the flow that
+   * is selected, the unit that is selected, the month the data actually ends
+   * at - so the card cannot drift from the page.
+   */
+  const helpRank = siblings.findIndex(item => item.line.hs8 === hs8)
+  const mine = helpRank >= 0 ? siblings[helpRank] : null
+  const helpLatest = series ? latestOf(series, data?.periods ?? []) : null
+  const helpChange = series ? rollingChange(series) : null
+  const named = !!line?.title
+
+  usePageHelp(
+    () => ({
+      title: `HS ${hs8}${line?.title ? ` — ${line.title}` : ''}`,
+
+      lines: [
+        `India's own customs figures for one eight-digit tariff line, month by month, in ${flowWord(flow ?? 'exports').toLowerCase()}.`,
+        'Eight digits is India\u2019s own schedule, so there is no world figure at this level. The heading card links up to six digits, where there is one.',
+      ],
+
+      code: {
+        value: `HS ${hs8}`,
+        what: named
+          ? `${line?.title} — one of ${plural(siblings.length, 'line')} India files under HS ${hs6}${entry ? `, ${entry.displayName || entry.product}` : ''}.`
+          : `Not named in the 2025-26 ITC(HS) schedule, so the code stands as the identity. It sits under HS ${hs6}${entry ? `, ${entry.displayName || entry.product}` : ''}.`,
+        note: named
+          ? 'Name from India\u2019s own eight-digit schedule, not from Comtrade.'
+          : 'Filings under this code stop before the current period; it is a line the schedule has since dropped.',
+      },
+
+      facts: [
+        helpLatest
+          ? {
+              label: 'Latest month',
+              value: `${formatValue(helpLatest.value)} ${unitLabel(basis)}`,
+              note: `${formatPeriod(helpLatest.period)} · ${flowWord(flow ?? 'exports').toLowerCase()}`,
+            }
+          : null,
+        series && last12(series) !== null
+          ? {
+              label: 'Last 12 months',
+              value: `${formatValue(last12(series))} ${unitLabel(basis)}`,
+              note:
+                helpChange === null
+                  ? undefined
+                  : `${helpChange >= 0 ? '+' : ''}${(helpChange * 100).toFixed(1)}% on the 12 before`,
+            }
+          : null,
+        mine && mine.share !== null
+          ? {
+              label: 'Share of the heading',
+              value: pct(mine.share, 1),
+              note: `of everything India files under HS ${hs6}`,
+            }
+          : null,
+        helpRank >= 0
+          ? {
+              label: 'Among its siblings',
+              value: `${ordinal(helpRank + 1)} of ${siblings.length}`,
+              note: 'by the last twelve months',
+            }
+          : null,
+      ].filter((fact): fact is NonNullable<typeof fact> => fact !== null),
+
+      presented: [
+        { name: 'Monthly series', what: 'every month DGCIS has filed for this line' },
+        { name: 'Financial years', what: 'April to March, as India files; part years marked' },
+        { name: 'Calendar years', what: 'the only basis on which this line and its heading line up' },
+        {
+          name: 'The heading above',
+          what: `HS ${hs6} from Comtrade — world trade, a different source`,
+        },
+        {
+          name: 'Other lines',
+          what: `the other ${plural(Math.max(siblings.length - 1, 0), 'line')} under the same heading, ranked`,
+        },
+      ],
+
+      watch:
+        'partner \u201cWorld\u201d here means India trading with everywhere, not world trade. It must never be added to a Comtrade figure.',
+    }),
+    [hs8, hs6, line, flow, basis, siblings.length, helpRank, series, entry],
+  )
 
   if (state === 'loading') {
     return <div className="hs8-page loading">Loading tariff line {hs8}…</div>
@@ -428,7 +514,7 @@ export function Hs8View({
             <MiniMetric
               label={`World trade ${entry.globalTradeYear ?? ''}`.trim()}
               value={entry.globalTrade === null ? 'not published' : usd(entry.globalTrade)}
-              detail="all reporters, net of re-imports"
+              detail="net of re-imports"
             />
 
             <MiniMetric
@@ -535,8 +621,8 @@ export function Hs8View({
           <h3>Indian financial years</h3>
 
           <p className="hs8-note">
-            April to March, as India files. An incomplete year is marked, and
-            is not comparable with a full one.
+            April to March, as India files. Incomplete years are marked and are
+            not comparable with full ones.
           </p>
 
           <ResponsiveContainer width="100%" height={180}>
@@ -593,8 +679,8 @@ export function Hs8View({
           <h3>Calendar years</h3>
 
           <p className="hs8-note">
-            January to December — the basis Comtrade publishes on, and the only
-            one on which this line and the heading above are comparable.
+            January to December — Comtrade&rsquo;s basis, and the only one on
+            which this line and its heading are comparable.
           </p>
 
           <table className="dgcis-table compact">
@@ -629,7 +715,7 @@ export function Hs8View({
             <div>
               <div className="eyebrow">THE REST OF HS {hs6}</div>
 
-              <h2>What else India files under this heading</h2>
+              <h2>Other lines under this heading</h2>
             </div>
           </div>
 

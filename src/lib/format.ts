@@ -152,3 +152,11 @@ export function nameOf(
 
   return item.displayName || item.product || item.description || ''
 }
+
+/*
+ * "1 economies" is the kind of thing a reader notices and then stops trusting
+ * the rest of the number. One helper, used wherever a count meets a noun.
+ */
+export function plural(count: number, one: string, many = `${one}s`): string {
+  return `${count} ${count === 1 ? one : many}`
+}

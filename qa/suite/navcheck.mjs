@@ -92,14 +92,28 @@ console.log('\n=== tariff-line index ===')
   await page.close()
 }
 
-console.log('\n=== naming: the code is the identity ===')
+console.log('\n=== naming: a name when the schedule has one, the code when it does not ===')
 {
+  /* 85437099 used to be titled from its heading along with 28 siblings. It
+   * now carries its own name from the ITC(HS) schedule, and the heading is
+   * still printed beside it as context rather than as its name. */
   const { page } = await open('/hs/85437099')
   const h1 = await page.locator('h1').first().innerText()
-  ok('H1 is the code when we have no real name', h1.trim() === '85437099', h1)
+  ok('a named line leads with its name', h1.trim().toLowerCase() === 'electrical machines, other kinds', h1)
   const sub = await page.locator('.hs8-sub').innerText()
+  ok('the code is beside it, not replaced by it', /85437099/.test(sub), sub.slice(0,60))
   ok('heading is context, labelled as the heading', /one of 29 tariff lines under/i.test(sub) && /HS 854370/.test(sub), sub.slice(0,90))
-  ok('caveat explains the borrowed name', /belongs to the heading, not to this line/i.test(await page.innerText('body')))
+  ok('a named line carries no borrowed-name caveat', !/belongs to the heading, not to this line/i.test(await page.innerText('body')))
+  await page.close()
+}
+{
+  /* 85079020 is in the extract and not in the schedule: no name exists for
+   * it, so the code has to remain the identity. This is the case the whole
+   * naming rule exists for, and it must not quietly acquire a borrowed name. */
+  const { page } = await open('/hs/85079020')
+  const h1 = await page.locator('h1').first().innerText()
+  ok('H1 is the code when the schedule has no name', h1.trim() === '85079020', h1)
+  ok('caveat explains why', /belongs to the heading, not to this line/i.test(await page.innerText('body')))
   await page.close()
 }
 await b.close()

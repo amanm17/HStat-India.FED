@@ -8,7 +8,6 @@ import {
   Home,
   Layers,
   Pin,
-  Search,
   Terminal,
 } from 'lucide-react'
 
@@ -22,10 +21,11 @@ import type { CodeRef } from '../lib/workspace'
  * rails with one job each is easier to learn than one rail with two, and it
  * means neither has to explain itself.
  *
- * Nothing here is a new capability. Pins, history and the search box already
- * existed; they were just scattered across a header, a drawer and a page, so
- * a reader had to know where each one lived. This puts them where the eye
- * goes first and where they stay put between pages.
+ * Nothing here is a new capability. Pins and history already existed; they
+ * were scattered across a header and a drawer, so a reader had to know where
+ * each one lived. This puts them where the eye goes first and where they stay
+ * put between pages. Search is not here: it is in the header on every page and
+ * on the slash key everywhere, and a third door to it was one too many.
  *
  * Collapsed to icons by default on anything narrow, because on a product page
  * the data is the point and 220px of chrome is not.
@@ -49,7 +49,6 @@ export function NavRail({
   recent,
   onHome,
   onOpen,
-  onSearch,
   onGuide,
   onTariffLines,
   onAvailability,
@@ -60,7 +59,6 @@ export function NavRail({
   recent: CodeRef[]
   onHome: () => void
   onOpen: (ref: CodeRef) => void
-  onSearch: () => void
   onGuide: () => void
   onTariffLines: () => void
   onAvailability: () => void
@@ -99,12 +97,6 @@ export function NavRail({
         <button className="nav-action" onClick={onHome} title="Front page">
           <Home size={16} />
           <span>Home</span>
-        </button>
-
-        <button className="nav-action" onClick={onSearch} title="Search (press /)">
-          <Search size={16} />
-          <span>Search</span>
-          <kbd>/</kbd>
         </button>
 
         <button

@@ -25,7 +25,7 @@ import type {
   PeriodRecord,
 } from '../types'
 import { loadHsNodes } from '../lib/data'
-import type { Workspace } from '../lib/workspace'
+import { TILES, type Workspace } from '../lib/workspace'
 import type { Methodology } from '../types'
 import {
   concentrationLabel,
@@ -35,10 +35,12 @@ import {
   monthShort,
   ordinal,
   pct,
+  plural,
   usd,
   nameOf,
 } from '../lib/format'
 import { comtradeQueryUrl, datasetsFor } from '../lib/comtrade'
+import { usePageHelp } from '../lib/pagehelp'
 import {
   flowPhrase,
   flowWord,
@@ -353,7 +355,7 @@ function GlobalTradeCard({
           )}
         </div>
 
-        <Empty>
+        <Empty reason>
           {reason} The reported observations behind it are still in the annual
           detail and the workbook export.
         </Empty>
@@ -1514,6 +1516,99 @@ export function ProductView({
   const dgcisCovered = dgcis === undefined ? null : dgcis !== null
 
   /*
+   * The help card, filled from this product and this year.
+   *
+   * A card that only knows the route can say "world trade in this product
+   * line, from UN Comtrade" - which the reader already knew from the heading.
+   * What they cannot see is what the figure in front of them is made of: how
+   * many economies filed, whether the year is provisional, whether India's
+   * own eight-digit detail exists for this heading. That is what goes here.
+   */
+  const helpRecord = node.annual[String(year)] ?? null
+  const helpBench = node.globalTrade
+  const helpRetired = node.lineage?.retired ?? null
+  const helpTiles = useMemo(
+    () =>
+      TILES.filter(
+        tile => !hiddenTiles.includes(tile.id) && (tile.id !== 'dgcis' || dgcisCovered),
+      ),
+    [hiddenTiles, dgcisCovered],
+  )
+
+  usePageHelp(
+    () => ({
+      title: `HS ${node.code} — ${node.displayName || node.product}`,
+
+      lines: [
+        'World trade in one six-digit product line: every reporting economy\u2019s imports from the world, with re-imports subtracted so the same shipment is not counted twice.',
+        'Below it, India\u2019s own eight-digit lines for the same heading, from DGCIS. Different source, different period basis, never added together.',
+      ],
+
+      code: {
+        value: `HS-${node.level} ${node.code}`,
+        what: node.description || node.product,
+        note: helpRetired
+          ? `Retired in HS ${helpRetired.revision}; the series ends at ${helpRetired.validTo}.`
+          : node.classification
+            ? `${node.classification}${node.inFedDefinition ? '' : ' · outside the FED sector definition'}`
+            : undefined,
+      },
+
+      facts: [
+        helpBench
+          ? {
+              label: 'World trade',
+              value: usd(helpBench.value, 1),
+              note: `${helpBench.year}${helpBench.provisional?.length ? ' · provisional' : ''} · net of re-imports`,
+            }
+          : {
+              label: 'World trade',
+              value: 'not published',
+              note: 'reporter coverage for this line did not pass the gate',
+            },
+        helpBench?.indiaValue !== null && helpBench?.indiaValue !== undefined
+          ? {
+              label: 'India buys',
+              value: usd(helpBench.indiaValue, 1),
+              note:
+                helpBench.indiaShare !== null && helpBench.indiaRank !== null
+                  ? `${pct(helpBench.indiaShare, 1)} of the world, ${ordinal(helpBench.indiaRank)} largest importer`
+                  : 'India\u2019s own filing, net of re-imports',
+            }
+          : null,
+        helpRecord?.global.coverage?.candidateReporters
+          ? {
+              label: 'Who filed',
+              value: plural(helpRecord.global.coverage.candidateReporters, 'economy', 'economies'),
+              note:
+                helpRecord.global.coverage.missingPriorTop10?.length
+                  ? `for ${year} · ${helpRecord.global.coverage.missingPriorTop10.length} of last year\u2019s top ten have not, so the total is understated`
+                  : `for ${year} · every one of last year\u2019s top ten is in`,
+            }
+          : null,
+        {
+          label: 'India\u2019s tariff lines',
+          value:
+            dgcis === undefined
+              ? 'loading'
+              : dgcis
+                ? plural(dgcis.lines.length, 'line')
+                : 'none held',
+          note: dgcis
+            ? `eight-digit detail from DGCIS, monthly to ${formatPeriod(dgcis.periods[dgcis.periods.length - 1] ?? null)}`
+            : 'this heading is outside the DGCIS electronics extract',
+        },
+      ].filter((fact): fact is NonNullable<typeof fact> => fact !== null),
+
+      presented: helpTiles.map(tile => ({ name: tile.label, what: tile.note })),
+
+      watch:
+        'a blank year is one whose reporter coverage was not good enough to publish. It means \u201cwe do not know\u201d, never zero.',
+    }),
+    [node, year, helpBench, helpRecord, dgcis, dgcisCovered, helpTiles, helpRetired],
+  )
+
+  /*
    * The deck shuffle.
    *
    * The global-trade headline sits above India's position until the reader
@@ -2197,7 +2292,7 @@ export function ProductView({
           </p>
         </>
       ) : (
-        <Empty>
+        <Empty reason>
           No ITC(HS)-8 detail in the current snapshot for {node.code}.
         </Empty>
       )}

@@ -45,6 +45,7 @@ import { NavRail } from './components/NavRail'
 import { Availability } from './components/Availability'
 import { QueryBuilder } from './components/QueryBuilder'
 import { HelpButton, type HelpTopic } from './components/HelpButton'
+import { PageHelpProvider, type PageHelp } from './lib/pagehelp'
 import { Safely } from './components/Safely'
 import { HomeView } from './components/HomeView'
 import { HStackPanel } from './components/HStackPanel'
@@ -151,6 +152,13 @@ function App() {
 
   const [recent, setRecent] = useState<string[]>([])
   const [dark, setDark] = useState(false)
+
+  /*
+   * What the page currently on screen says about itself, for the help card.
+   * Null between pages; see lib/pagehelp for why the page publishes this
+   * rather than the router inventing it.
+   */
+  const [pageHelp, setPageHelp] = useState<PageHelp | null>(null)
 
   /*
    * Two viewing modes, both in the topbar where the 1.x "IND" button used to
@@ -464,7 +472,7 @@ function App() {
    * every "watch out" below is a mistake that has actually been made on this
    * data, by us, at least once.
    */
-  const helpTopic = useMemo<HelpTopic>(() => {
+  const routeHelp = useMemo<HelpTopic>(() => {
     if (route.kind === 'guide') {
       return {
         title: 'The written guide',
@@ -518,7 +526,7 @@ function App() {
         lines: [
           'India’s own monthly customs figures for a single eight-digit line, in both directions.',
           'The card partway down links up to the six-digit heading, where the world figures live.',
-          'The line is titled by its code because India’s eight-digit schedule is not loaded yet; the name beside it belongs to the heading and is shared with its siblings.',
+          'Named from India’s own eight-digit schedule where that schedule has a name for it, and by its code where it does not.',
         ],
         watch:
           'partner “World” here means India trading with everywhere. It does not mean world trade, and it must never be added to a Comtrade figure.',
@@ -549,6 +557,21 @@ function App() {
         'the headline total counts each product in its own most recent validated year, so it is an order of magnitude rather than a single-year figure.',
     }
   }, [route, node])
+
+  /*
+   * The route supplies the prose; the page supplies the specifics. Where both
+   * have something, the page wins - it is looking at the data.
+   */
+  const helpTopic = useMemo<HelpTopic>(
+    () => ({
+      ...routeHelp,
+      ...(pageHelp ?? {}),
+      title: pageHelp?.title ?? routeHelp.title,
+      lines: pageHelp?.lines ?? routeHelp.lines,
+      watch: pageHelp?.watch ?? routeHelp.watch,
+    }),
+    [routeHelp, pageHelp],
+  )
 
   const commands = useMemo<Command[]>(() => {
     const list: Command[] = [
@@ -780,6 +803,7 @@ function App() {
   const showHome = !onTariff && !standalone && !onProduct
 
   return (
+    <PageHelpProvider publish={setPageHelp}>
     <div className="app">
       <header className="topbar">
         <div className="identity">
@@ -925,17 +949,6 @@ function App() {
         recent={workspace.recent}
         onHome={goHome}
         onOpen={ref => openRef(ref.code, ref.level)}
-        onSearch={() => {
-          const input = document.querySelector<HTMLInputElement>('.search-hub input')
-
-          if (input) {
-            input.focus()
-            return
-          }
-
-          /* No search box on this page: the front door has one. */
-          goHome()
-        }}
         onGuide={() => goTo({ kind: 'guide' })}
         onTariffLines={() => goTo({ kind: 'lines' })}
         onAvailability={() => goTo({ kind: 'availability' })}
@@ -959,9 +972,12 @@ function App() {
         ) : onGuide ? (
           <Safely label="Guide">
             <Guide
+              products={catalogue.filter(entry => entry.level === 6).length}
               onHome={goHome}
               onOpen={openCode}
               onLines={() => goTo({ kind: 'lines' })}
+              onAvailability={() => goTo({ kind: 'availability' })}
+              onQuery={() => goTo({ kind: 'query' })}
             />
           </Safely>
         ) : onTariff ? (
@@ -1176,6 +1192,7 @@ function App() {
         <div className="coverage-note">Catalogue is empty.</div>
       )}
     </div>
+    </PageHelpProvider>
   )
 }
 

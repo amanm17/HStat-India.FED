@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ArrowUpRight } from 'lucide-react'
 
+import { plural } from '../lib/format'
+import { usePageHelp } from '../lib/pagehelp'
+
 import {
   formatPeriod,
   formatValue,
@@ -77,6 +80,47 @@ export function TariffLines({
       .sort((a, b) => b.total - a.total)
   }, [lines, flow, query])
 
+  usePageHelp(
+    () => {
+      const named = lines?.filter(line => line.title).length ?? 0
+      const top = groups[0]?.items[0] ?? null
+
+      return {
+        facts: [
+          {
+            label: 'Lines held',
+            value: String(lines?.length ?? 0),
+            note: `under ${plural(new Set(lines?.map(line => line.hs6)).size, 'six-digit heading')}`,
+          },
+          {
+            label: 'Named from the schedule',
+            value: `${named} of ${lines?.length ?? 0}`,
+            note: 'the rest are titled by code, which is what customs files them as',
+          },
+          top
+            ? {
+                label: `Largest ${flow.slice(0, -1)} line`,
+                value: `HS ${top.hs8}`,
+                note: top.title || 'no name in the schedule; see its heading',
+              }
+            : null,
+          {
+            label: 'Showing',
+            value: plural(groups.reduce((n, g) => n + g.items.length, 0), 'line'),
+            note: query.trim() ? `matching \u201c${query.trim()}\u201d` : 'all of them, largest heading first',
+          },
+        ].filter((fact): fact is NonNullable<typeof fact> => fact !== null),
+
+        presented: [
+          { name: 'Flow switch', what: 'exports or imports; every figure below follows it' },
+          { name: 'Filter', what: 'by code, by heading name, or by line name' },
+          { name: 'Groups', what: 'one block per six-digit heading, largest first' },
+        ],
+      }
+    },
+    [lines, flow, query, groups],
+  )
+
   if (!lines) return <div className="lines-page loading">Loading tariff lines…</div>
 
   const shown = groups.reduce((n, g) => n + g.items.length, 0)
@@ -87,12 +131,12 @@ export function TariffLines({
         <div>
           <div className="eyebrow">INDIA TARIFF LINES · DGCIS · ITC(HS) 8-DIGIT</div>
 
-          <h1>Every line India files, under the headings we track</h1>
+          <h1>India&rsquo;s tariff lines</h1>
 
           <p className="lines-lede">
-            India reporting its own trade with the world at eight digits — not
-            world trade, and not comparable with the Comtrade figures on a
-            product page. {shown} of {lines.length} lines shown, largest first.
+            India&rsquo;s own trade at eight digits. Not world trade, and not
+            comparable with the Comtrade figures on a product page.{' '}
+            {shown} of {lines.length} lines, largest first.
           </p>
         </div>
 
@@ -186,7 +230,7 @@ export function TariffLines({
 
       {groups.length > 60 && (
         <p className="lines-more">
-          Showing the 60 largest headings. Filter above to reach the rest.
+          The 60 largest headings. Filter above for the rest.
         </p>
       )}
     </div>

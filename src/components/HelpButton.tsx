@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { BookOpen, HelpCircle, X } from 'lucide-react'
 
+import type { PageHelp } from '../lib/pagehelp'
+
 /*
  * "What am I looking at?"
  *
@@ -12,12 +14,21 @@ import { BookOpen, HelpCircle, X } from 'lucide-react'
  * So: the current page explained in three lines, then a door to the guide for
  * anyone who wants the rest. Bottom right because that corner is empty on
  * every page here and because that is where people have learned to look.
+ *
+ * Four parts, in the order a reader asks for them:
+ *
+ *   what this is    the page in a line or two, from the route
+ *   the code        the identifier on screen, decoded
+ *   the figures     what the numbers currently rendered actually measure
+ *   what is here    each block on the page and the question it answers
+ *
+ * The middle two come from the page itself (see lib/pagehelp), because the
+ * router cannot know them and a card that only knows the route can only ever
+ * repeat the heading back.
  */
-export type HelpTopic = {
+export type HelpTopic = PageHelp & {
   title: string
   lines: string[]
-  /* The misreading this page invites, said plainly. Every page here has one. */
-  watch?: string
 }
 
 export function HelpButton({
@@ -72,6 +83,50 @@ export function HelpButton({
           {topic.lines.map(line => (
             <p key={line}>{line}</p>
           ))}
+
+          {topic.code && (
+            <div className="helpcard-code">
+              <div className="helpcard-code-value">{topic.code.value}</div>
+
+              <div className="helpcard-code-what">
+                {topic.code.what}
+                {topic.code.note && <em>{topic.code.note}</em>}
+              </div>
+            </div>
+          )}
+
+          {topic.facts && topic.facts.length > 0 && (
+            <div className="helpcard-block">
+              <div className="helpcard-label">What the figures say</div>
+
+              <dl className="helpcard-facts">
+                {topic.facts.map(fact => (
+                  <div key={fact.label}>
+                    <dt>{fact.label}</dt>
+                    <dd>
+                      <strong>{fact.value}</strong>
+                      {fact.note && <span>{fact.note}</span>}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          )}
+
+          {topic.presented && topic.presented.length > 0 && (
+            <div className="helpcard-block">
+              <div className="helpcard-label">What is on this page</div>
+
+              <ul className="helpcard-panels">
+                {topic.presented.map(panel => (
+                  <li key={panel.name}>
+                    <strong>{panel.name}</strong>
+                    <span>{panel.what}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {topic.watch && (
             <p className="helpcard-watch">

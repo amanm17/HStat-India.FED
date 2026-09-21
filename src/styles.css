@@ -593,12 +593,24 @@ h1 {
 }
 
 
+/*
+ * The detail sits under the value, not beside it.
+ *
+ * Inline was fine while every detail was a word - "13th", "of 8". They are
+ * now phrases ("all reporters, net of re-imports"), and inline meant the
+ * phrase wrapped around the figure: "$271.23bn all" on one line, the rest
+ * underneath, with the value buried in the middle of a sentence. On its own
+ * line it reads as a caption, and three metrics in a row share a structure,
+ * so their values land on the same baseline.
+ */
 .mini-metric small {
-  margin-left: 7px;
+  display: block;
+  margin-top: 3px;
 
   color: var(--green);
 
   font-size: 10px;
+  line-height: 1.4;
 }
 
 
@@ -907,6 +919,17 @@ td:first-child {
   text-align: center;
 
   font-size: 11px;
+}
+
+/* An explanation, not a placeholder: it belongs on the card's text column,
+   left-aligned with the heading it is explaining. */
+.empty-reason {
+  max-width: 82ch;
+  padding: 2px 0 4px;
+
+  font-size: 11.5px;
+  line-height: 1.6;
+  text-align: left;
 }
 
 
@@ -5515,9 +5538,21 @@ table.contribution tfoot th {
   color: var(--faint);
 }
 
+/*
+ * 460, not 330.
+ *
+ * At 330 these two panels sat side by side from 700px up, and each row then
+ * had to carry a share, a name, a rank, a code, a year and two money figures
+ * in about 340px. Names wrapped to three lines and the caption ellipsed away
+ * the word "provisional". They are dense rows; they need the width or the
+ * page, and below 460 each the page is the better trade.
+ */
 .home-columns {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+  /* min(460px, 100%), not 460px: auto-fit still lays down a 460px track in a
+   * 375px container, and the page then scrolls sideways. The min() caps the
+   * track at whatever width there actually is. */
+  grid-template-columns: repeat(auto-fit, minmax(min(460px, 100%), 1fr));
   gap: 18px;
 }
 
@@ -5532,10 +5567,9 @@ table.contribution tfoot th {
 
 .home-panel-head {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: baseline;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 3px;
+  align-items: flex-start;
 
   margin-bottom: 10px;
 }
@@ -5810,22 +5844,33 @@ table.contribution tfoot th {
   text-transform: uppercase;
 }
 
-/* The rank column carries its own caption so "1st" cannot be read as
-   anything other than India's position among importers. */
-.home-list-india .home-rank {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
+/*
+ * Share leads this list, so it gets the size.
+ *
+ * The old pairing was 14px "1st" over 9px "LARGEST IMPORTER" - a 5px cliff
+ * between a value and its own caption, which reads as two unrelated things
+ * stacked rather than one labelled figure. And the caption said the same
+ * words on every row, which is what a panel head is for: it moved there, and
+ * what is left is the one thing that differs.
+ */
+.home-share {
+  flex: none;
+
+  width: 58px;
+
+  color: var(--green);
+  font-size: 17px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
-.home-list-india .home-rank small {
-  color: var(--faint);
-
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  white-space: nowrap;
+/* Rank sits in the caption line, coloured rather than boxed. Six identical
+   chips read as a property of the list; six identical columns read as missing
+   data; a coloured phrase reads as what it is. */
+.home-list-india .home-list-main small b {
+  color: var(--green);
+  font-weight: 700;
 }
 
 /* India's figure leads; the world total it is a share of sits under it, in
@@ -5851,16 +5896,16 @@ table.contribution tfoot th {
 .home-list-money small {
   color: var(--muted);
 
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
 }
 
 .home-list-money em {
   color: var(--faint);
 
-  font-size: 10.5px;
+  font-size: 11px;
   font-style: normal;
   font-variant-numeric: tabular-nums;
 }
@@ -7174,9 +7219,12 @@ table.contribution tfoot th {
   color: var(--blue);
 }
 
+/* Wider than it was: the card now carries a two-column figure grid, and at
+   360px each column was 160px, which is not enough for "$503.5bn" over a
+   clause explaining what it excludes. */
 .helpcard {
-  width: min(360px, calc(100vw - 36px));
-  max-height: min(70vh, 560px);
+  width: min(410px, calc(100vw - 36px));
+  max-height: min(78vh, 680px);
   padding: 16px 18px;
   overflow-y: auto;
 
@@ -7681,5 +7729,390 @@ table.contribution tfoot th {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+ * The caption on this panel carries four facts - rank, code, year, and whether
+ * the year is provisional - and truncating it dropped "provisional", which is
+ * the one a reader most needs. It wraps instead. The neighbouring panel has a
+ * shorter caption and keeps the ellipsis.
+ */
+.home-list-india .home-list-main small {
+  overflow: visible;
+
+  line-height: 1.35;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+
+/* ---------------------------------------------------------
+   HELP CARD — the code, the figures, the panels
+   --------------------------------------------------------- */
+
+/*
+ * Three blocks under the prose, in the order the questions arrive: what is
+ * this code, what do these numbers mean, what am I looking at. They are fed
+ * by the page rather than the route (see lib/pagehelp), which is the whole
+ * reason they can be specific enough to be worth reading.
+ */
+.helpcard-code {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+
+  margin: 12px 0 4px;
+  padding: 9px 11px;
+
+  background: var(--panel-soft);
+  border-radius: 8px;
+}
+
+.helpcard-code-value {
+  flex: none;
+
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+/* The official HS text can run to six lines. It is worth having, and it is
+   not worth half the card, so it clamps - the full wording is on the page
+   itself, in the identity tile. */
+.helpcard-code-what {
+  display: -webkit-box;
+  overflow: hidden;
+
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.45;
+
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+.helpcard-code-what em {
+  -webkit-line-clamp: none;
+}
+
+.helpcard-code-what em {
+  display: block;
+  margin-top: 3px;
+
+  color: var(--faint);
+  font-size: 11px;
+  font-style: normal;
+}
+
+.helpcard-block {
+  margin-top: 13px;
+}
+
+.helpcard-label {
+  margin-bottom: 6px;
+
+  color: var(--faint);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.helpcard-facts {
+  display: grid;
+  gap: 8px 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  margin: 0;
+}
+
+.helpcard-facts > div {
+  min-width: 0;
+}
+
+.helpcard-facts dt {
+  color: var(--faint);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.helpcard-facts dd {
+  margin: 1px 0 0;
+}
+
+.helpcard-facts dd strong {
+  display: block;
+
+  color: var(--text);
+  font-size: 13.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.helpcard-facts dd span {
+  display: block;
+  margin-top: 2px;
+
+  color: var(--muted);
+  font-size: 10.5px;
+  line-height: 1.35;
+}
+
+.helpcard-panels {
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.helpcard-panels li {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+
+  padding: 3px 0;
+}
+
+.helpcard-panels li + li {
+  border-top: 1px solid var(--border);
+}
+
+.helpcard-panels strong {
+  flex: none;
+  width: 104px;
+
+  color: var(--text);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.helpcard-panels span {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+/* One column below the card's own comfortable width, and the panel name stops
+   being a fixed gutter so a long label does not squeeze its description. */
+@media (max-width: 480px) {
+  .helpcard-facts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .helpcard-panels li {
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .helpcard-panels strong {
+    width: auto;
+  }
+}
+
+/* ---------------------------------------------------------
+   THE GUIDE — chapters, contents, figures
+   --------------------------------------------------------- */
+
+.guide-head {
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+/*
+ * The contents list is the first thing on the page because ten chapters need
+ * a door each. Two or three columns depending on the width; the numbers are a
+ * column of their own so the titles line up down the left.
+ */
+.guide-toc {
+  margin: 20px 0 8px;
+  padding: 14px 16px;
+
+  background: var(--panel-soft);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.guide-toc-label {
+  margin-bottom: 8px;
+
+  color: var(--faint);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.guide-toc ol {
+  display: grid;
+  gap: 2px 20px;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.guide-toc a {
+  display: flex;
+  gap: 9px;
+  align-items: baseline;
+
+  padding: 3px 0;
+
+  color: var(--text);
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.guide-toc a:hover {
+  color: var(--blue);
+}
+
+.guide-toc-n {
+  flex: none;
+  width: 16px;
+
+  color: var(--faint);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.guide-chapter {
+  padding-top: 26px;
+
+  scroll-margin-top: 74px;
+}
+
+.guide-chapter + .guide-chapter {
+  border-top: 1px solid var(--border);
+}
+
+.guide-chapter-head {
+  display: flex;
+  gap: 11px;
+  align-items: baseline;
+
+  margin-bottom: 10px;
+}
+
+.guide-chapter-n {
+  flex: none;
+
+  min-width: 24px;
+  padding: 2px 0;
+
+  color: var(--green);
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  text-align: center;
+
+  background: color-mix(in srgb, var(--green) 11%, transparent);
+  border-radius: 6px;
+}
+
+.guide-chapter-head h2 {
+  margin: 0;
+
+  font-size: 17px;
+  letter-spacing: -0.01em;
+}
+
+.guide-chapter h3 {
+  margin: 18px 0 5px;
+
+  font-size: 12.5px;
+  font-weight: 650;
+}
+
+.guide-chapter h3:first-of-type {
+  margin-top: 10px;
+}
+
+/*
+ * Figures are captures of the real pages, one per theme, swapped by the same
+ * attribute the app themes itself with. Two <img> rather than a <picture>
+ * because the switch is the app's own setting, not the operating system's.
+ */
+.guide-figure {
+  max-width: 820px;
+  margin: 16px 0 4px;
+}
+
+.guide-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+
+  background: var(--panel-soft);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.guide-figure img[data-shot='dark'] {
+  display: none;
+}
+
+:root[data-theme='dark'] .guide-figure img[data-shot='light'] {
+  display: none;
+}
+
+:root[data-theme='dark'] .guide-figure img[data-shot='dark'] {
+  display: block;
+}
+
+.guide-figure figcaption {
+  max-width: 78ch;
+  margin-top: 7px;
+
+  color: var(--faint);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.guide-check {
+  max-width: 86ch;
+  margin: 8px 0 0;
+  padding-left: 20px;
+}
+
+.guide-check li {
+  margin-bottom: 7px;
+}
+
+.guide-check li strong,
+.guide-list li strong {
+  color: var(--text);
+}
+
+/* On a phone the contents list is one column and the chapter number stops
+   being a gutter beside a heading that needs the width. */
+@media (max-width: 620px) {
+  .guide-toc ol {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .guide-chapter-head {
+    gap: 8px;
+  }
+
+  .guide-chapter-head h2 {
+    font-size: 15px;
+  }
+}
+
+
+/* A date is one token. "Fetched 2026-09-" at the end of a line and "18;" at
+   the start of the next is not a smaller problem for being a small one. */
+.nobreak {
   white-space: nowrap;
 }

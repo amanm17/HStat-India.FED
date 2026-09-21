@@ -7,7 +7,8 @@ import {
   refreshDue,
   type Availability as Data,
 } from '../lib/availability'
-import { usd } from '../lib/format'
+import { plural, usd } from '../lib/format'
+import { usePageHelp } from '../lib/pagehelp'
 
 /*
  * What Comtrade holds, and what it costs us.
@@ -35,6 +36,47 @@ export function Availability({
     loadAvailability().then(result => setData(result))
   }, [])
 
+  usePageHelp(
+    () => ({
+      facts: data
+        ? [
+            {
+              label: 'Latest annual year',
+              value: plural(data.annual[data.annual.length - 1]?.reporters ?? 0, 'economy', 'economies'),
+              note: `have filed ${data.annual[data.annual.length - 1]?.period ?? '—'}`,
+            },
+            {
+              label: 'Latest month',
+              value: plural(data.monthly[data.monthly.length - 1]?.reporters ?? 0, 'economy', 'economies'),
+              note: `have filed ${monthLabel(data.monthly[data.monthly.length - 1]?.period ?? '')}`,
+            },
+            {
+              label: 'Gaps found',
+              value: String(data.holes.length),
+              note: `${data.holes.filter(hole => hole.filedSince).length} of them have filed since our snapshot was built`,
+            },
+            data.holes[0]
+              ? {
+                  label: 'Largest gap',
+                  value: data.holes[0].reporter,
+                  note: `${plural(data.holes[0].products, 'product')} of ours, worth ${usd(data.holes[0].priorValue, 1)} the year before`,
+                }
+              : null,
+          ].filter((fact): fact is NonNullable<typeof fact> => fact !== null)
+        : undefined,
+
+      presented: data
+        ? [
+            { name: 'The banner', what: 'whether running a refresh would bring in anything new' },
+            { name: 'Annual coverage', what: 'how many economies filed each year' },
+            { name: 'Monthly coverage', what: 'fresher, but far thinner' },
+            { name: 'Who is missing', what: 'each absence, and what it was worth last year' },
+          ]
+        : [{ name: 'The command', what: 'what to run to fill this page' }],
+    }),
+    [data],
+  )
+
   if (data === undefined) {
     return <div className="avail-page loading">Loading…</div>
   }
@@ -51,18 +93,16 @@ export function Availability({
         <h1>Not fetched yet</h1>
 
         <p>
-          This page mirrors UN Comtrade's own record of who has filed what, and
-          joins it to our 418 products. It is built by the pipeline rather than
-          fetched by your browser, because Comtrade refuses cross-origin calls
-          and because a dashboard that phones a third party on every page load
-          inherits that third party's downtime.
+          Comtrade&rsquo;s record of who has filed what, joined to our 418
+          products. The pipeline fetches it, not your browser: Comtrade refuses
+          cross-origin calls, and a page that phones a third party on every load
+          inherits its downtime.
         </p>
 
         <pre className="avail-cmd">python3 pipeline/comtrade/fetch_availability.py</pre>
 
         <p className="avail-note">
-          No key needed — it uses Comtrade's public endpoint. Commit the file it
-          writes and this page fills in.
+          No key needed. Commit the file it writes and this page fills in.
         </p>
 
         <button className="linkish" onClick={onHome}>Back to the front page</button>
@@ -75,19 +115,24 @@ export function Availability({
   const monthly = [...data.monthly].reverse().slice(0, 12)
   const peak = Math.max(...data.annual.map(row => row.reporters), 1)
 
+
   return (
     <div className="avail-page">
       <header className="avail-head">
         <div>
           <div className="eyebrow">UN COMTRADE · DATA AVAILABILITY</div>
 
-          <h1>Who has filed, and what it costs us</h1>
+          <h1>Who has filed</h1>
 
           <p className="avail-lede">
-            Comtrade's own record of which economies have submitted data for
-            which period, joined to the {data.productsTotal} products we track.
-            Fetched {data.fetchedAt.slice(0, 10)}; our snapshot was built{' '}
-            {data.snapshotRefreshedAt?.slice(0, 10) ?? 'unknown'}.
+            Which economies have submitted data for which period, against the{' '}
+            {data.productsTotal} products we track. Fetched{' '}
+            <span className="nobreak">{data.fetchedAt.slice(0, 10)}</span>;
+            snapshot built{' '}
+            <span className="nobreak">
+              {data.snapshotRefreshedAt?.slice(0, 10) ?? 'unknown'}
+            </span>
+            .
           </p>
         </div>
 
@@ -111,14 +156,14 @@ export function Availability({
 
           <span>
             {due.due
-              ? `Comtrade has released data as recently as ${due.since}, after our snapshot was built. Running the monthly refresh would pick it up.`
-              : 'Comtrade has published nothing since our snapshot was built. The figures on this dashboard are as current as the source allows.'}
+              ? `Comtrade released data as recently as ${due.since}, after our snapshot was built. The monthly refresh would pick it up.`
+              : 'Nothing published since our snapshot was built. These figures are as current as the source allows.'}
           </span>
         </div>
       </div>
 
       <section className="avail-block">
-        <h2>Annual — what the world figures are built from</h2>
+        <h2>Annual coverage</h2>
 
         <table className="dgcis-table">
           <thead>
@@ -149,13 +194,12 @@ export function Availability({
 
       {monthly.length > 0 && (
         <section className="avail-block">
-          <h2>Monthly — further ahead, but thinner</h2>
+          <h2>Monthly coverage</h2>
 
           <p className="avail-note">
-            Monthly data runs months ahead of annual, but far fewer economies
-            file it — and the largest electronics traders are among those that
-            do not. It is shown here because it exists, not because a world
-            total could be built from it.
+            Months ahead of annual, but far fewer economies file it — including
+            most of the largest electronics traders. Shown because it exists, not
+            because a world total can be built from it.
           </p>
 
           <table className="dgcis-table compact">
@@ -182,12 +226,11 @@ export function Availability({
 
       {data.holes.length > 0 && (
         <section className="avail-block">
-          <h2>The gaps, and which of our products they hit</h2>
+          <h2>Who is missing</h2>
 
           <p className="avail-note">
-            A missing economy does not blank a page — it understates it. This is
-            what each absence is worth, using what that economy filed the year
-            before.
+            A missing economy understates a page rather than blanking it. Each
+            absence is valued at what that economy filed the year before.
           </p>
 
           <div className="avail-holes">

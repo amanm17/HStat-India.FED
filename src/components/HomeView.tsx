@@ -6,6 +6,7 @@ import { usd, ordinal, pct, nameOf } from '../lib/format'
 import { SearchHub } from './SearchHub'
 import { HomeTariffLines } from './HomeTariffLines'
 import { FileText } from 'lucide-react'
+import { usePageHelp } from '../lib/pagehelp'
 
 /*
  * The landing page.
@@ -68,17 +69,74 @@ export function HomeView({
 
   /* Products where India is among the largest importers in the world. The
    * rank is against every reporting economy, so a single digit is a lot. */
+  /*
+   * Sorted by share, not by rank.
+   *
+   * Sorting by rank put six rank-1 products on screen and printed "1st" six
+   * times: a column of identical values, which is a column carrying nothing.
+   * India places first in far more than six of these lines, so rank cannot be
+   * what separates them - share can. 35.6% of the world's unassembled
+   * photovoltaic cells is a different fact from 14.1% of its lamp carbons,
+   * and it is the one a reader is actually looking for here.
+   *
+   * Rank is still shown, small, because "largest buyer" is what makes the
+   * share worth reading. How many lines India leads is now said once, in the
+   * panel head, instead of implied six times down the side.
+   */
   const leads = useMemo(
     () =>
       products
-        .filter(entry => entry.indiaRank !== null && entry.indiaRank <= 10)
-        .sort(
-          (a, b) =>
-            (a.indiaRank ?? 99) - (b.indiaRank ?? 99) ||
-            (b.globalTrade ?? 0) - (a.globalTrade ?? 0),
+        .filter(
+          entry =>
+            entry.indiaRank !== null &&
+            entry.indiaRank <= 10 &&
+            entry.indiaShare !== null &&
+            entry.indiaShare !== undefined,
         )
+        .sort((a, b) => (b.indiaShare ?? 0) - (a.indiaShare ?? 0))
         .slice(0, 6),
     [products],
+  )
+
+  const leadCount = useMemo(
+    () => products.filter(entry => entry.indiaRank === 1).length,
+    [products],
+  )
+
+  usePageHelp(
+    () => ({
+      facts: [
+        {
+          label: 'Products tracked',
+          value: String(stats.products),
+          note: `six-digit electronics lines, ${manifest.startYear} to ${manifest.endYear}`,
+        },
+        {
+          label: 'World trade covered',
+          value: usd(stats.tracked),
+          note: 'each line in its own latest validated year, so an order of magnitude',
+        },
+        {
+          label: 'Where India leads',
+          value: `${leadCount} lines`,
+          note: 'India is the largest importer in the world',
+        },
+        {
+          label: 'Snapshot built',
+          value: new Date(manifest.refreshedAt).toLocaleDateString(),
+          note: 'the figures here are as current as the source allows',
+        },
+      ],
+
+      presented: [
+        { name: 'Search', what: 'by product word or HS code; “/” opens the command palette' },
+        { name: 'Biggest share', what: 'the lines where India takes most of world imports' },
+        { name: 'Largest markets', what: 'the biggest world markets tracked here' },
+        { name: 'Tariff lines', what: 'India\u2019s own eight-digit detail, and what is moving' },
+        { name: 'Categories', what: 'the catalogue, grouped' },
+      ],
+    }),
+    [stats.products, stats.tracked, leadCount, manifest],
   )
 
   const largest = useMemo(
@@ -86,7 +144,9 @@ export function HomeView({
       products
         .filter(entry => entry.globalTrade !== null)
         .sort((a, b) => (b.globalTrade ?? 0) - (a.globalTrade ?? 0))
-        .slice(0, 6),
+        /* Two rows more than its neighbour, because its rows are two lines to
+         * the neighbour's three and the column was ending 200px short. */
+        .slice(0, 8),
     [products],
   )
 
@@ -193,8 +253,8 @@ export function HomeView({
         </div>
 
         <p className="home-footnote">
-          Each product is counted in its own most recent validated year, so the
-          total is an order of magnitude rather than a single-year figure.
+          Each product counted in its own latest validated year, so the total is
+          an order of magnitude, not a single year.
         </p>
       </section>
 
@@ -248,16 +308,18 @@ export function HomeView({
       <div className="home-columns">
         <section className="home-panel">
           <div className="home-panel-head">
-            <span className="eyebrow">WHERE INDIA IS A TOP-TEN BUYER</span>
+            <span className="eyebrow">WHERE INDIA TAKES THE BIGGEST SHARE</span>
             <span className="home-panel-note">
-              India&rsquo;s own imports, net of re-imports
+              {leadCount > 0
+                ? `Share of world imports · India is the largest buyer in ${leadCount} of these lines`
+                : 'Share of world imports · India\u2019s own imports, net of re-imports'}
             </span>
           </div>
 
           {leads.length === 0 && (
             <p className="home-empty">
-              No product in this snapshot places India in the top ten
-              importers for its latest validated year.
+              No product in this snapshot places India in the top ten importers
+              for its latest validated year.
             </p>
           )}
 
@@ -275,15 +337,20 @@ export function HomeView({
             {leads.map(entry => (
               <li key={entry.code}>
                 <button onClick={() => onOpen(entry.code, entry.level)}>
-                  <span className="home-rank">
-                    {ordinal(entry.indiaRank)}
-                    <small>largest importer</small>
-                  </span>
+                  <span className="home-share">{pct(entry.indiaShare, 1)}</span>
 
                   <span className="home-list-main">
                     <strong>{nameOf(entry)}</strong>
+
+                    {/*
+                      * Rank leads this line rather than trailing the name. As a
+                      * chip it needed a tooltip to mean anything and it fell off
+                      * the end of the longer names; here it reads as a sentence,
+                      * and it is the part that survives if the line truncates.
+                      */}
                     <small>
-                      HS {entry.code} · {entry.globalTradeYear}
+                      <b>{ordinal(entry.indiaRank)} largest buyer</b> · HS{' '}
+                      {entry.code} · {entry.globalTradeYear}
                       {entry.provisional?.length ? ' · provisional' : ''}
                     </small>
                   </span>
@@ -296,10 +363,7 @@ export function HomeView({
                         : usd(entry.indiaTradeValue, 1)}
                     </strong>
                     <small>India imports</small>
-                    <em>
-                      {pct(entry.indiaShare, 1)} of {usd(entry.globalTrade, 1)}{' '}
-                      global
-                    </em>
+                    <em>world {usd(entry.globalTrade, 1)}</em>
                   </span>
                 </button>
               </li>

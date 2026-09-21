@@ -162,8 +162,25 @@ export function InsightPanel({
   )
 }
 
-export function Empty({ children }: { children: ReactNode }) {
-  return <div className="empty">{children}</div>
+/*
+ * Two different things wore the same clothes.
+ *
+ * A placeholder - "No data for 2025." - is a short label standing in for a
+ * chart, and centring it in the space the chart would have filled is right.
+ * An explanation of why a figure is missing is two sentences of prose, and
+ * centred prose in a left-aligned card reads as a mistake, because it is one.
+ *
+ * `reason` is the second kind: left-aligned, on the card's own text column,
+ * with the vertical padding of a paragraph rather than of an empty chart.
+ */
+export function Empty({
+  children,
+  reason = false,
+}: {
+  children: ReactNode
+  reason?: boolean
+}) {
+  return <div className={reason ? 'empty empty-reason' : 'empty'}>{children}</div>
 }
 
 function humanize(value: string) {

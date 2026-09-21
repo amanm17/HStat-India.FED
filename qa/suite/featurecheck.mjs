@@ -1,7 +1,10 @@
 /* The features added in this round, each asserted rather than assumed. */
 import { chromium } from 'playwright'
 const BASE = 'http://127.0.0.1:4178'
-const AVAIL = 'http://127.0.0.1:4179'
+/* A copy of dist with public/data/availability.json removed. The page has to
+ * say so rather than draw an empty frame, and that is worth asserting now
+ * that the real file exists and the default build has data. */
+const BARE = process.env.BARE || 'http://127.0.0.1:4179'
 const R = []
 const ok = (n, p, d='') => { R.push({n,p}); console.log(`${p?'PASS':'FAIL'}  ${n}${d?'  — '+d:''}`) }
 const b = await chromium.launch()
@@ -53,7 +56,7 @@ console.log('\n=== HS-8 reports ===')
 
 console.log('\n=== availability page ===')
 {
-  const { page, errs } = await open(BASE, '/availability')
+  const { page, errs } = await open(BARE, '/availability')
   const t = await page.innerText('body')
   ok('without data it explains itself', /Not fetched yet/i.test(t))
   ok('and names the command', /fetch_availability\.py/.test(t))
@@ -61,14 +64,14 @@ console.log('\n=== availability page ===')
   await page.close()
 }
 {
-  const { page, errs } = await open(AVAIL, '/availability')
+  const { page, errs } = await open(BASE, '/availability')
   const t = await page.innerText('body')
   ok('with data it renders', /Who has filed/i.test(t))
   ok('refresh verdict shown', /refresh would bring in new data|Nothing new since/i.test(t))
   ok('gaps joined to our products', /China/.test(t) && /240/.test(t))
   ok('"has since filed" marked', await page.locator('.avail-filed').count() > 0)
   await page.locator('.avail-sample button').first().click(); await page.waitForTimeout(900)
-  ok('gap sample opens a product', /\/hs\/\d{6}$/.test(page.url()), page.url().replace(AVAIL,''))
+  ok('gap sample opens a product', /\/hs\/\d{6}$/.test(page.url()), page.url().replace(BASE,''))
   ok('no errors', errs.length === 0, errs[0] ?? '')
   await page.close()
 }
@@ -79,7 +82,7 @@ console.log('\n=== query builder ===')
   const t = await page.innerText('body')
   ok('renders', /Build a Comtrade query/i.test(t))
   ok('offers three outputs', await page.locator('.qb-out').count() === 3)
-  ok('explains why it takes no key', /does not take your key/i.test(t))
+  ok('explains why it takes no key', /why there is no key field/i.test(t))
   const pre = await page.locator('.qb-out pre').first().innerText()
   ok('composes a real Comtrade URL', pre.includes('comtradeplus.un.org') && pre.includes('851713'), pre.slice(0, 70))
   await page.locator('.qb-field select').nth(1).selectOption('X'); await page.waitForTimeout(400)

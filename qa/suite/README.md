@@ -26,71 +26,50 @@ Requires `playwright`. Not in package.json: these are run by a person before
 a deploy, and adding it would make every CI install download a browser it
 never opens.
 
-## Post-deployment suites
 
-Added after the first production deploy of both flows.
-
-```
-node qa/suite/postdeploy.mjs   # 98 — two-flow switching on HS-6 and HS-8 against
-                               #      ground-truth values, search by code and word,
-                               #      retired and predecessor routes, 375/768/1440,
-                               #      and the malformed-payload matrix (missing or
-                               #      corrupt index, missing or malformed parent,
-                               #      previous shape, one flow absent, both absent)
-node qa/suite/network.mjs      # what the browser actually fetches: the front page
-                               # pulls no HS-6 payloads, a product page pulls one,
-                               # flow switching pulls nothing, and a product with no
-                               # DGCIS coverage never asks for a file that is not there
-```
-
-Two expectations in `postdeploy.mjs` encode findings rather than hopes, and
-should not be "fixed" by loosening them:
-
-- **A product word cannot reach a tariff line.** DGCIS ships eight coarse
-  commodity groups and no HS-8 descriptions, so "smartphone" matches nothing
-  in the DGCIS index. Inventing descriptions is not allowed. The assertion is
-  that the Comtrade product answer still appears and no DGCIS group does.
-- **The 375px HS-6 page overflows by 179px, and it is not this layer's doing.**
-  Removing `public/data/dgcis` entirely leaves the same 179px: the cause is
-  `.download-master`, `.stack-add` and `.pulldata`. The assertion is narrowed to
-  what this layer owns - that the tariff table scrolls inside its own wrapper
-  and contributes nothing to page overflow.
-
-The 179px is now zero. The September visual pass gave `.download-master`,
-`.stack-add` and `.pulldata` a wrap rule below 760px and put every wide table
-in its own scrolling wrapper, so all six routes measure `scrollWidth ==
-clientWidth` at 375px. The narrowed assertion still holds and should stay
-narrow: it is about what this layer owns, not about the page total, which
-`visual.mjs` now owns instead.
-
-## Feature suites
-
-Added with the September feature round: the left rail, the slash palette, the
-help button, the tariff-line report, the front-page panels, `/availability`
-and `/query`.
+## Alignment suite
 
 ```
-node qa/suite/p2check.mjs      # 21 — what a second page load refetches, and what
-                               #      going back up the tree does not
-node qa/suite/exportcheck.mjs  # 21 — CSV and workbook contents, the notes sheet,
-                               #      and that a borrowed name never leaves
-                               #      the app without its caveat
-node qa/suite/navcheck.mjs     # 34 — rail, palette, deep links, the guide, and
-                               #      the naming caveat wherever a name is borrowed
-node qa/suite/featurecheck.mjs # 49 — the help button on every page, the HS-8
-                               #      report capture, the front-page panels, and
-                               #      the two new routes
+node qa/suite/align.mjs        # 84 — 7 pages x 3 widths, four measures each
 ```
 
-## Visual suite
+`visual.mjs` asks whether anything is broken. `align.mjs` asks whether
+everything is square, which is a different question and the one that decides
+whether a page looks assembled or designed. Four measures, 1px tolerance,
+because 1px is a rounding difference and anything more was a decision:
+
+- **edges** — siblings stacked in a column share a left edge
+- **rhythm** — repeated rows in a list are the same distance apart, measured
+  per grid column so a two-up list is not reported as ragged
+- **rows** — items sitting side by side have equal gaps between them
+- **columns** — `.num` cells in one table share a right edge
+
+It found nothing on the pages as they stand, which is the point of having it:
+the next change is the one it is for.
+
+## The servers these suites expect
+
+Three, because three states have to be true at once:
 
 ```
-node qa/suite/visual.mjs       # 198 — 7 pages x 3 widths (375/768/1440) x 2 themes
+node qa/suite/serve.mjs dist          4178   # the real build
+cp -r dist /tmp/bare && rm -f /tmp/bare/data/availability.json
+node qa/suite/serve.mjs /tmp/bare     4179   # availability.json absent
+cp -r dist /tmp/nodgcis && rm -rf /tmp/nodgcis/data/dgcis
+node qa/suite/serve.mjs /tmp/nodgcis  4184   # the whole DGCIS layer absent
 ```
 
-It measures three things a screenshot review misses: elements that overlap
-each other, overflow that cannot be scrolled to, and text clipped by its own
-box. It found the slash palette's overlap (a three-child row was still using
-the four-column grid), the tables that ran off 375px, and the buttons
-`.head-actions` and `.panelhead` were cutting in half. Run it before any
-deploy that touches `styles.css`.
+4179 exists so `featurecheck.mjs` can still assert the availability page's
+empty state now that the real file is published. When the data arrives, the
+test for its absence has to move to a copy without it - not be deleted.
+
+## Screenshots for the guide
+
+```
+node qa/guide-shots.mjs        # 20 captures into public/img/guide
+```
+
+Both themes, from the real pages. **Not** `public/guide` — a folder there sits
+at `/guide`, which is a route, and a static-asset host resolves the directory
+before the SPA fallback, so the guide would 404 in production while looking
+fine in dev. That happened once.

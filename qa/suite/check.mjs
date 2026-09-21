@@ -56,7 +56,7 @@ async function open(path) {
   ok('click navigates to an HS-8 URL', /\/hs\/\d{8}$/.test(url), url.replace(BASE, ''))
   const text = await page.innerText('body')
   ok('HS-8 page shows the parent heading card', text.includes('HS 851762'))
-  ok('HS-8 page shows siblings', /What else India files/.test(text))
+  ok('HS-8 page shows siblings', /Other lines under this heading/i.test(text))
   ok('HS-8 click-through has no errors', errors.length === 0, errors.slice(0, 2).join(' | '))
   // back button must return to the heading
   await page.goBack(); await page.waitForTimeout(700)
