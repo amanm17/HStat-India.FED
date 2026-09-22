@@ -3749,7 +3749,7 @@ main {
   grid-column: 2;
   justify-self: stretch;
 
-  max-width: 560px;
+  max-width: none;
 }
 
 .topbar > .toggles {

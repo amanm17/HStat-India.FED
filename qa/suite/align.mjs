@@ -241,4 +241,7 @@ await b.close()
 
 const failed = R.filter(r => !r.p)
 console.log(`\n${R.length - failed.length}/${R.length} alignment checks passed`)
-if (failed.length) console.log('FAILED:\n  ' + failed.map(x => x.n).join('\n  '))
+if (failed.length) {
+  console.log('FAILED:\n  ' + failed.map(x => x.n).join('\n  '))
+  process.exit(1)
+}
