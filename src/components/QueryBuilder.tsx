@@ -144,7 +144,7 @@ export function QueryBuilder({
     <div className="qb-page">
       <div className="eyebrow">BUILD A COMTRADE QUERY</div>
 
-      <h1>Ask Comtrade for anything on this dashboard</h1>
+      <h1>Build a Comtrade query</h1>
 
       <p className="qb-lede">
         Pick a product by name rather than by code, and this writes the query
@@ -249,7 +249,7 @@ export function QueryBuilder({
       </div>
 
       <section className="qb-why">
-        <h2>Why this page does not take your key</h2>
+        <h2>Why there is no key field</h2>
 
         <p>
           HStat is static files — there is no server here to run a query on, and

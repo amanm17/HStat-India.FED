@@ -186,9 +186,8 @@ function ReportBuilder({
       </div>
 
       <p className="rail-hint">
-        Tiles are captured from the page itself, so a report looks exactly like
-        what you are reading. Anything not currently on the page is shown
-        briefly while it is captured.
+        Tiles are captured from the page, so the report matches what you see.
+        Tiles not currently on the page flash up briefly while captured.
       </p>
     </div>
   )
@@ -299,8 +298,7 @@ export function Sidebar({
           </div>
         ) : (
           <p className="rail-empty">
-            Pin a code from its page to keep it here and switch between pinned
-            codes in one click.
+            Pin a code from its page to keep it here.
           </p>
         )}
       </section>
@@ -468,9 +466,8 @@ export function Sidebar({
           </div>
         ) : (
           <p className="rail-empty">
-            Reports you generate are listed here. They are kept in this browser
-            only — nobody else can see them, and clearing site data removes
-            them.
+            Reports you generate are listed here, in this browser only. Clearing
+            site data removes them.
           </p>
         )}
       </section>

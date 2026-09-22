@@ -409,7 +409,7 @@ function CommandList({
         {matched.length === 0 ? (
           <div className="search-empty">
             No command matches “{query.trim()}”. Delete the slash to search
-            products and codes instead.
+            products instead.
           </div>
         ) : (
           <div className="search-results-large">
@@ -658,8 +658,7 @@ export function SearchHub({
 
           {!outcome.answer && supporting.length === 0 && tariffMatches.length === 0 && (
             <div className="search-empty">
-              Nothing matched “{query.trim()}”. Try a product name, a brand-free
-              description, or an HS code.
+              Nothing matched “{query.trim()}”. Try a product name or an HS code.
             </div>
           )}
         </div>
