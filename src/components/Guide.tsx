@@ -561,8 +561,11 @@ export function Guide({
         <h3>7.2 &nbsp;Commands</h3>
 
         <p>
-          Type <kbd>/</kbd> in the search box for commands: jump somewhere,
-          switch flow or currency, build a report, open this guide.
+          <strong>Press <kbd>/</kbd> anywhere</strong> and the search box takes
+          the cursor — on a phone it opens search full screen. Press it a
+          second time, now inside the box, and the box becomes a command list:
+          jump somewhere, switch flow or currency, build a report, open this
+          guide.
         </p>
 
         <Figure

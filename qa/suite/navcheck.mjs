@@ -92,6 +92,54 @@ console.log('\n=== tariff-line index ===')
   await page.close()
 }
 
+console.log('\n=== slash focuses the search, from anywhere ===')
+{
+  /* The box already treated a leading slash as the switch into commands, but
+   * only once the cursor was in it. This is the shortcut that gets it there. */
+  for (const path of ['/', '/hs/854231', '/tariff-lines', '/guide', '/availability', '/query']) {
+    const { page } = await open(path)
+    await page.evaluate(() => document.activeElement?.blur?.())
+    await page.keyboard.press('/')
+    await page.waitForTimeout(300)
+    const state = await page.evaluate(() => {
+      const a = document.activeElement
+      return { inSearch: !!(a && a.closest('.search-hub')), value: a && 'value' in a ? a.value : null }
+    })
+    ok(`slash focuses search on ${path}`, state.inSearch, JSON.stringify(state))
+    ok(`and leaves the box empty on ${path}`, state.value === '', `"${state.value}"`)
+    await page.close()
+  }
+}
+
+{
+  /* A shortcut that eats a character out of a field is worse than no
+   * shortcut. The tariff filter is a real field where "/" is a real key. */
+  const { page } = await open('/tariff-lines')
+  await page.locator('.lines-filter').click()
+  await page.keyboard.type('85/17')
+  await page.waitForTimeout(250)
+  ok('slash is not stolen from a field being typed in',
+    (await page.locator('.lines-filter').inputValue()) === '85/17',
+    await page.locator('.lines-filter').inputValue())
+  await page.close()
+}
+
+{
+  const { page } = await open('/hs/854231')
+  ok('the box advertises the shortcut', await page.locator('.search-key').isVisible())
+  await page.evaluate(() => document.activeElement?.blur?.())
+  await page.keyboard.press('/')
+  await page.waitForTimeout(250)
+  ok('and stops advertising it once focused',
+    (await page.locator('.search-key').count()) === 0)
+  /* A second slash, now inside the box, is still the command switch. */
+  await page.keyboard.press('/')
+  await page.waitForTimeout(350)
+  ok('a second slash still opens commands',
+    /commands/i.test(await page.locator('.search-drop').innerText()))
+  await page.close()
+}
+
 console.log('\n=== naming: a name when the schedule has one, the code when it does not ===')
 {
   /* 85437099 used to be titled from its heading along with 28 siblings. It

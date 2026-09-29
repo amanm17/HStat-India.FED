@@ -462,6 +462,7 @@ export function SearchHub({
   variant?: 'hub' | 'bar'
 }) {
   const [query, setQuery] = useState('')
+  const [focused, setFocused] = useState(false)
 
   const [open, setOpen] = useState(false)
 
@@ -561,7 +562,11 @@ export function SearchHub({
               setOpen(false)
             }
           }}
-          onFocus={() => setOpen(true)}
+          onFocus={() => {
+            setOpen(true)
+            setFocused(true)
+          }}
+          onBlur={() => setFocused(false)}
           /*
            * A placeholder that does not fit is not a hint, it is a truncated
            * sentence. At 390px the long form got as far as "an HS code –"
@@ -573,7 +578,7 @@ export function SearchHub({
             phone
               ? 'Product or HS code'
               : bar
-                ? 'Search, or / for commands…'
+                ? 'Search products and codes…'
                 : 'Search a product or an HS code — laptop, smartphone, 854231 — or type / for commands'
           }
           aria-label="Search products and HS codes"
@@ -584,6 +589,20 @@ export function SearchHub({
           <button className="search-clear" onClick={() => setQuery('')}>
             Clear
           </button>
+        )}
+
+        {/*
+          * The shortcut, where the shortcut is used.
+          *
+          * "/" focuses this box from anywhere on the page, which is no use to
+          * anybody who does not know it exists. A badge in the box is how
+          * every site with this shortcut teaches it, and it disappears the
+          * moment the box is in use so it never sits beside a query.
+          *
+          * Not shown on touch, where there is no key to press.
+          */}
+        {!query && !phone && !focused && (
+          <kbd className="search-key" aria-hidden="true">/</kbd>
         )}
       </div>
 

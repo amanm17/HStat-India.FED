@@ -49,6 +49,7 @@ import { PageHelpProvider, type PageHelp } from './lib/pagehelp'
 import { TabBar, type TabId } from './components/TabBar'
 import { Sheet } from './components/Sheet'
 import { useNoRail } from './lib/viewport'
+import { focusSearchBox, useSlashToSearch } from './lib/hotkeys'
 import { Safely } from './components/Safely'
 import { HomeView } from './components/HomeView'
 import { HStackPanel } from './components/HStackPanel'
@@ -469,6 +470,28 @@ function App() {
 
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [])
+
+  /*
+   * "/" from anywhere. On a phone that means the search sheet, because there
+   * is no box in the title strip to focus; on a desktop it is whichever box
+   * this page mounted. If neither exists - which should not happen, but a
+   * page could be added without one - it falls back to the front page, which
+   * always has one.
+   *
+   * Declared here rather than beside the other state because goHome is a
+   * genuine dependency, and a dependency array is evaluated at render: naming
+   * a const that is declared further down throws before the page ever paints.
+   */
+  useSlashToSearch(
+    useCallback(() => {
+      if (noRail) {
+        setSearchOpen(true)
+        return
+      }
+
+      if (!focusSearchBox()) goHome()
+    }, [noRail, goHome]),
+  )
 
   /*
    * What "/" can do.

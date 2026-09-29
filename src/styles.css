@@ -8818,13 +8818,8 @@ table.contribution tfoot th {
   .viewswitch button,
   .flowswitch button {
     min-height: 44px;
-    min-width: 44px;
     padding-right: 14px;
     padding-left: 14px;
-  }
-
-  .dgcis-csv {
-    min-width: 44px;
   }
 
   /* Text inputs at 16px, because anything smaller makes iOS zoom the page on
@@ -9078,5 +9073,36 @@ table.contribution tfoot th {
   .guide-two,
   .home-hs8-cols {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* The "/" badge inside the search box: how the shortcut is taught. */
+.search-key {
+  display: inline-flex;
+  min-width: 22px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 6px;
+
+  color: var(--faint);
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1;
+
+  background: var(--panel-soft);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+
+  pointer-events: none;
+}
+
+/* On a page without a keyboard it is noise; on a narrow one it competes with
+   the placeholder for the only room there is. */
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  .search-key {
+    display: none;
   }
 }
