@@ -308,4 +308,7 @@ await browser.close()
 
 const failed = results.filter(r => !r.p)
 console.log(`\n${results.length - failed.length}/${results.length} mobile checks passed`)
-if (failed.length) console.log('FAILED:\n  ' + failed.map(x => x.n).join('\n  '))
+if (failed.length) {
+  console.log('FAILED:\n  ' + failed.map(x => x.n).join('\n  '))
+  process.exit(1)
+}
