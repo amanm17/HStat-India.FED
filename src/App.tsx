@@ -46,6 +46,9 @@ import { Availability } from './components/Availability'
 import { QueryBuilder } from './components/QueryBuilder'
 import { HelpButton, type HelpTopic } from './components/HelpButton'
 import { PageHelpProvider, type PageHelp } from './lib/pagehelp'
+import { TabBar, type TabId } from './components/TabBar'
+import { Sheet } from './components/Sheet'
+import { useNoRail } from './lib/viewport'
 import { Safely } from './components/Safely'
 import { HomeView } from './components/HomeView'
 import { HStackPanel } from './components/HStackPanel'
@@ -159,6 +162,16 @@ function App() {
    * rather than the router inventing it.
    */
   const [pageHelp, setPageHelp] = useState<PageHelp | null>(null)
+
+  /*
+   * Below 900px the rail hides itself and the bottom bar takes over. Below
+   * 640 the page also stops trying to be a table. Both read matchMedia, so a
+   * rotation is one event rather than a resize storm.
+   */
+  const noRail = useNoRail()
+
+  const [moreOpen, setMoreOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
 
   /*
    * Two viewing modes, both in the topbar where the 1.x "IND" button used to
@@ -802,6 +815,23 @@ function App() {
     !onTariff && !standalone && route.kind === 'product' && !!node && year !== null
   const showHome = !onTariff && !standalone && !onProduct
 
+  /*
+   * Nothing is lit on a product or a tariff line: those are reached from a
+   * tab but are not one, and a bar that claims otherwise teaches the wrong
+   * map. Search and More light only while their own sheet is open.
+   */
+  const activeTab: TabId | null = searchOpen
+    ? 'search'
+    : moreOpen
+      ? 'more'
+      : showHome
+        ? 'home'
+        : onLines
+          ? 'lines'
+          : onAvailability
+            ? 'data'
+            : null
+
   return (
     <PageHelpProvider publish={setPageHelp}>
     <div className="app">
@@ -830,7 +860,13 @@ function App() {
           * reader which of two identical boxes to use. On a product page the
           * header bar is the only way to move to another code, so it stays.
           */}
-        {!showHome && (
+        {/*
+          * Two search boxes on a phone is one too many: the bar version is
+          * 190px wide up here, and Search is a whole tab down there with the
+          * screen to itself. Below 900 the header keeps the brand and the
+          * controls that act on this page, and nothing else.
+          */}
+        {!showHome && !noRail && (
           <SearchHub
             variant="bar"
             index={index}
@@ -900,7 +936,7 @@ function App() {
             * read through; Glance View is the same tiles as slides to move
             * across when you already know what you are after.
             */}
-          {onProduct && (
+          {onProduct && !noRail && (
           <div className="viewswitch" role="group" aria-label="View mode">
             {(['report', 'glance'] as const).map(mode => (
               <button
@@ -920,6 +956,20 @@ function App() {
               </button>
             ))}
           </div>
+          )}
+
+          {/* The rail's handle, in the bar rather than floating over the page. */}
+          {noRail && onProduct && !workspace.sidebarOpen && (
+            <button
+              className="stack-toggle"
+              onClick={() =>
+                setWorkspace(current => ({ ...current, sidebarOpen: true }))
+              }
+              aria-label="Open the workspace: tiles, pins and reports"
+              title="Workspace"
+            >
+              <Layers size={16} />
+            </button>
           )}
 
           <button
@@ -1122,6 +1172,7 @@ function App() {
             setWorkspace(current => resetLayout(current))
             setFlash('Tiles and slides are back to how they ship.')
           }}
+          onView={view => setWorkspace(current => ({ ...current, view }))}
           onTogglePin={entry => setWorkspace(current => togglePin(current, entry))}
           onGenerate={(name, tiles, format) =>
             runReport(name, tiles, format, reportScope, year, true)
@@ -1171,6 +1222,74 @@ function App() {
       <Safely label="HelpButton">
         <HelpButton topic={helpTopic} onGuide={() => goTo({ kind: 'guide' })} />
       </Safely>
+
+      {/*
+        * The bottom bar exists only where the rail does not. It is rendered
+        * rather than hidden with CSS so that its sheets, its focus trap and
+        * its scroll lock do not exist at all on a desktop, where they would
+        * be dead weight listening to keys.
+        */}
+      {noRail && (
+        <Safely label="TabBar">
+          <TabBar
+            active={activeTab}
+            moreOpen={moreOpen}
+            onCloseMore={() => setMoreOpen(false)}
+            onTab={tab => {
+              if (tab === 'home') return goHome()
+              if (tab === 'search') return setSearchOpen(true)
+              if (tab === 'lines') return goTo({ kind: 'lines' })
+              if (tab === 'data') return goTo({ kind: 'availability' })
+
+              setMoreOpen(true)
+            }}
+            pinned={workspace.pinned}
+            recent={workspace.recent}
+            onOpen={ref => openRef(ref.code, ref.level)}
+            onGuide={() => goTo({ kind: 'guide' })}
+            onQuery={() => goTo({ kind: 'query' })}
+            onAvailability={() => goTo({ kind: 'availability' })}
+          />
+        </Safely>
+      )}
+
+      {/*
+        * Search gets the whole screen on a phone. In the header it was 78px
+        * wide and truncated its own placeholder, which is not a search box,
+        * it is a rumour of one.
+        */}
+      {noRail && (
+        <Sheet
+          open={searchOpen}
+          title="Search"
+          tall
+          onClose={() => setSearchOpen(false)}
+        >
+          <SearchHub
+            index={index}
+            recent={recent}
+            inBasket={inBasket}
+            onOpen={item => {
+              if (item.retired) return
+
+              openCode(item.code, item.level)
+              setSearchOpen(false)
+            }}
+            onAdd={item => addToBasket({ code: item.code, level: item.level })}
+            onOpenHs8={hs8 => {
+              openHs8(hs8)
+              setSearchOpen(false)
+            }}
+            commands={commands.map(command => ({
+              ...command,
+              run: () => {
+                command.run()
+                setSearchOpen(false)
+              },
+            }))}
+          />
+        </Sheet>
+      )}
 
       {flash && <div className="flash" role="status">{flash}</div>}
 

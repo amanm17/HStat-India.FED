@@ -19,6 +19,8 @@ import { ordinal, pct, plural, usd } from '../lib/format'
 import { Metric, MiniMetric } from './primitives'
 import { reportToPdf, reportToPng } from '../lib/report'
 import { usePageHelp } from '../lib/pagehelp'
+import { usePhone } from '../lib/viewport'
+import { Rows } from './Rows'
 import {
   calendarYears,
   financialYears,
@@ -95,6 +97,7 @@ export function Hs8View({
   const [basis, setBasis] = useState<DgcisBasis>('usd')
   const [flow, setFlow] = useState<DgcisFlow | null>(null)
   const [span, setSpan] = useState<'all' | '36'>('36')
+  const phone = usePhone()
   const [busy, setBusy] = useState<'pdf' | 'png' | null>(null)
 
   useEffect(() => {
@@ -719,6 +722,49 @@ export function Hs8View({
             </div>
           </div>
 
+          {phone ? (
+            <Rows
+              label={`Every tariff line under HS ${hs6}`}
+              items={siblings.map(item => {
+                const here = item.line.hs8 === hs8
+
+                return {
+                  id: item.line.hs8,
+                  title: here ? (
+                    <strong>this line</strong>
+                  ) : (
+                    item.line.title || item.line.principalCommodity || '—'
+                  ),
+                  subtitle: item.line.hs8,
+                  onOpen:
+                    here || !onOpenHs8 ? undefined : () => onOpenHs8(item.line.hs8),
+                  openLabel: `Open ${item.line.hs8}`,
+                  fields: [
+                    {
+                      label: `12m ${unit}`,
+                      value: formatValue(item.twelve),
+                      lead: true,
+                      numeric: true,
+                    },
+                    {
+                      label: 'Share of heading',
+                      value:
+                        item.share === null
+                          ? '—'
+                          : item.share >= 0.001
+                            ? `${(item.share * 100).toFixed(1)}%`
+                            : '<0.1%',
+                      numeric: true,
+                    },
+                    {
+                      label: 'DGCIS group',
+                      value: item.line.principalCommodity || '—',
+                    },
+                  ],
+                }
+              })}
+            />
+          ) : (
           <table className="dgcis-table">
             <thead>
               <tr>
@@ -771,6 +817,7 @@ export function Hs8View({
               ))}
             </tbody>
           </table>
+          )}
         </section>
       )}
 

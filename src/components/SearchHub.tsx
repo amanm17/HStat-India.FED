@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+
+import { usePhone } from '../lib/viewport'
 import { Plus, Search } from 'lucide-react'
 
 import type { SearchIndex, SearchOutcome } from '../lib/search'
@@ -466,6 +468,7 @@ export function SearchHub({
   const shell = useRef<HTMLDivElement>(null)
 
   const bar = variant === 'bar'
+  const phone = usePhone()
 
   useEffect(() => {
     if (!bar || !open) return
@@ -559,10 +562,19 @@ export function SearchHub({
             }
           }}
           onFocus={() => setOpen(true)}
+          /*
+           * A placeholder that does not fit is not a hint, it is a truncated
+           * sentence. At 390px the long form got as far as "an HS code –"
+           * and stopped, which teaches nothing and looks broken. The examples
+           * live in the chips below on a phone; the box only has to say what
+           * it takes.
+           */
           placeholder={
-            bar
-              ? 'Search, or / for commands…'
-              : 'Search a product or an HS code — laptop, smartphone, 854231 — or type / for commands'
+            phone
+              ? 'Product or HS code'
+              : bar
+                ? 'Search, or / for commands…'
+                : 'Search a product or an HS code — laptop, smartphone, 854231 — or type / for commands'
           }
           aria-label="Search products and HS codes"
           aria-expanded={bar ? open : undefined}

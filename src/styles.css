@@ -8116,3 +8116,962 @@ table.contribution tfoot th {
 .nobreak {
   white-space: nowrap;
 }
+
+/* =========================================================
+   TOUCH AND SMALL SCREENS
+   =========================================================
+
+   Everything below this line is additive and gated on a media query, so a
+   laptop renders exactly what it rendered before. Three rules decide it all:
+
+     1. A finger is about 9mm wide. Anything it has to hit is at least 44px
+        on its short side, and 44px is the floor, not the target.
+     2. Nothing a reader needs may be smaller than 11px on a phone held at
+        arm's length. The 9px eyebrows are a desktop luxury.
+     3. Hover cannot be the only way to find out something exists.
+
+   The two breakpoints match lib/viewport.ts: 900 is where the rail gives up
+   and the tab bar takes over; 640 is where tables stop being tables.
+   ========================================================= */
+
+:root {
+  /* The bar's own height plus whatever the device reserves below it - the
+     home indicator on a modern iPhone, nothing on most Androids. Every fixed
+     thing and every page bottom is spaced off this one number. */
+  --tabbar-h: 0px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-l: env(safe-area-inset-left, 0px);
+  --safe-r: env(safe-area-inset-right, 0px);
+}
+
+@media (max-width: 900px) {
+  :root {
+    --tabbar-h: calc(56px + var(--safe-b));
+  }
+}
+
+/* A tap should never paint a grey box over a carefully chosen colour, and it
+   should never wait 300ms to find out it was not a double-tap. */
+@media (hover: none) and (pointer: coarse) {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button,
+  a,
+  summary,
+  [role='button'],
+  input,
+  select,
+  label {
+    touch-action: manipulation;
+  }
+
+  /* Hover states that only exist to say "this is clickable" are invisible to
+     a finger, so the press state has to do that job instead. */
+  button:active,
+  a:active,
+  [role='button']:active {
+    opacity: 0.62;
+    transition: opacity 0.04s;
+  }
+}
+
+/* ---------------------------------------------------------
+   THE BOTTOM BAR
+   --------------------------------------------------------- */
+
+.tabbar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 60;
+
+  display: none;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+
+  padding-bottom: var(--safe-b);
+
+  background: color-mix(in srgb, var(--panel) 97%, transparent);
+  border-top: 1px solid var(--border-strong);
+
+  /* The bar sits over content that scrolls under it, so it needs to be its
+     own surface rather than a transparent strip. */
+  backdrop-filter: saturate(1.4) blur(12px);
+}
+
+@media (max-width: 900px) {
+  .tabbar {
+    display: grid;
+  }
+
+  /* Every page ends above the bar rather than behind it. */
+  .app {
+    padding-bottom: calc(var(--tabbar-h) + 8px);
+  }
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: center;
+  justify-content: center;
+
+  /* 56 is the bar; the target is the whole cell, which is wider than it is
+     tall and comfortably past 44 on both axes. */
+  min-height: 56px;
+  padding: 7px 2px 6px;
+
+  color: var(--faint);
+  font: inherit;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.tab.on {
+  color: var(--green);
+}
+
+.tab span {
+  line-height: 1;
+}
+
+/* ---------------------------------------------------------
+   SHEETS
+   --------------------------------------------------------- */
+
+.sheet-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.sheet-scrim {
+  position: absolute;
+  inset: 0;
+
+  padding: 0;
+
+  background: rgba(8, 16, 26, 0.46);
+  border: 0;
+  cursor: pointer;
+
+  animation: sheet-fade 0.14s ease;
+}
+
+.sheet {
+  position: relative;
+
+  display: flex;
+  max-height: 84vh;
+  flex-direction: column;
+
+  background: var(--panel);
+  border-radius: 18px 18px 0 0;
+  box-shadow: 0 -8px 40px rgba(8, 16, 26, 0.24);
+
+  animation: sheet-rise 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sheet.tall {
+  height: 84vh;
+}
+
+@keyframes sheet-rise {
+  from { transform: translateY(14px); opacity: 0.4; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes sheet-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet,
+  .sheet-scrim {
+    animation: none;
+  }
+}
+
+.sheet-head {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 16px 14px 10px;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.sheet-grip {
+  position: absolute;
+  top: 7px;
+  left: 50%;
+
+  width: 34px;
+  height: 4px;
+
+  background: var(--border-strong);
+  border-radius: 999px;
+
+  transform: translateX(-50%);
+}
+
+.sheet-head h2 {
+  margin: 0;
+
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.sheet-close {
+  display: flex;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+
+  margin: -10px -8px -10px 0;
+
+  color: var(--muted);
+
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.sheet-body {
+  overflow-y: auto;
+  flex: 1 1 auto;
+
+  padding: 12px 14px calc(18px + var(--safe-b));
+
+  /* A list that has run out of rows must not start dragging the page behind
+     it; that is the scroll that makes a sheet feel like a leaky overlay. */
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ---------------------------------------------------------
+   THE MORE SHEET
+   --------------------------------------------------------- */
+
+.moresheet-links,
+.moresheet-codes {
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.moresheet-links button,
+.moresheet-codes button {
+  display: flex;
+  width: 100%;
+  min-height: 48px;
+  gap: 11px;
+  align-items: center;
+
+  padding: 10px 6px;
+
+  color: var(--text);
+  font: inherit;
+  font-size: 13.5px;
+  text-align: left;
+
+  background: none;
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.moresheet-links li + li,
+.moresheet-codes li + li {
+  border-top: 1px solid var(--border);
+}
+
+.moresheet-links button:active,
+.moresheet-codes button:active {
+  background: var(--panel-soft);
+}
+
+.moresheet-group {
+  margin-top: 18px;
+}
+
+.moresheet-head {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+
+  margin-bottom: 4px;
+
+  color: var(--faint);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.moresheet-code {
+  flex: none;
+
+  color: var(--green);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.moresheet-label {
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------
+   THE FRONT PAGE ON A PHONE
+   --------------------------------------------------------- */
+
+@media (max-width: 640px) {
+  /*
+   * The hero used the whole first screen and then some: a 40px wordmark over
+   * six lines of lede, before a reader had seen a single figure. It keeps
+   * every word - the lede is the page's one statement of what the numbers
+   * are - but at a size that leaves the search box above the fold.
+   */
+  .home-hero {
+    padding: 26px 18px 22px;
+  }
+
+  .home-title {
+    font-size: 30px;
+  }
+
+  .home-lede {
+    font-size: 12.5px;
+    line-height: 1.55;
+  }
+
+  .home-eyebrow {
+    margin-bottom: 9px;
+  }
+
+  /*
+   * Ten example chips over four rows is a wall. Six is enough to teach the
+   * idea - a word, a code, a brand-free description - and the seventh was
+   * never tapped by anyone who had understood the first. The label counts as
+   * a child, so the cut is at eight.
+   */
+  .smart-suggestions > *:nth-child(n + 8) {
+    display: none;
+  }
+
+  /* The remaining chips are targets, and 21px high is not one. */
+  .smart-suggestions button,
+  .quick-access button {
+    min-height: 36px;
+    padding: 7px 13px;
+
+    font-size: 12.5px;
+  }
+}
+
+/* ---------------------------------------------------------
+   THE TYPE FLOOR
+   ---------------------------------------------------------
+
+   Keyed on the pointer as well as the width. A phone in landscape is 844px
+   across and still a thumb at arm's length; keying legibility and target size
+   on width alone meant every one of these rules switched itself off the
+   moment the device was rotated, which the suite caught at 844x390 and no
+   amount of portrait testing ever would.
+   --------------------------------------------------------- */
+
+/*
+ * 8, 9 and 9.5px are desktop luxuries. They work at 60cm on a 27-inch panel
+ * and they do not work on a phone held at arm's length on a train, which is
+ * where most of this will be read. Nothing a reader needs drops below 11px
+ * below 640, and the eyebrows - which are structure, not content - stop at
+ * 10 because they are set in caps with wide tracking and read larger than
+ * their number.
+ *
+ * Every class here came out of an audit that reports any rendered text under
+ * 11px; the list is exhaustive rather than representative, and the audit is
+ * the thing that keeps it that way.
+ */
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  .eyebrow,
+  .home-eyebrow,
+  .moresheet-head,
+  .guide-toc-label,
+  .helpcard-label,
+  .status-pill,
+  .quick-label,
+  .suggested-keywords > span {
+    font-size: 10px;
+    letter-spacing: 0.06em;
+  }
+
+  .refresh,
+  .home-hs8-note,
+  .hs8-note,
+  .avail-note,
+  .avail-hole-year,
+  .lines-unnamed,
+  .home-list-main small,
+  .home-list-money small,
+  .home-list-money em,
+  .home-cat-name,
+  .helpcard-facts dt,
+  .helpcard-facts dd span,
+  .helpcard-panels span,
+  .lines-total small,
+  .id-cat,
+  .dgcis-foot,
+  .guide-figure figcaption,
+  .home-panel-note,
+  .home-footnote,
+  .contribution-note,
+  .rail-hint,
+  .rail-empty,
+  .tariff-flags .flag,
+  .mini-metric small,
+  .mini-metric span {
+    font-size: 11px;
+  }
+
+  .panel-note,
+  .footerbar div,
+  .dgcis-table td small,
+  td small,
+  .smart-suggestions > span,
+  .quick-access > span,
+  .release-metric span,
+  .release-metric small,
+  .metric span,
+  .metric small,
+  .mini-metric small,
+  .coverage-note,
+  .axis-note,
+  .avail-filed,
+  .qb-field span,
+  .qb-note,
+  .hs8-metrics small,
+  .hs8-parent-metrics small {
+    font-size: 11px;
+  }
+
+  .dgcis-table th,
+  .dgcis-table td,
+  .dgcis-table .num,
+  table th,
+  table td {
+    font-size: 11.5px;
+  }
+
+  /* Body copy gets a point too: 12px prose is a squint on a phone, and the
+     column is narrow enough that 13 does not cost a line. */
+  .guide-page p,
+  .guide-page li,
+  .guide-levels dd,
+  .lines-lede,
+  .guide-lede,
+  .avail-lede,
+  .qb-lede,
+  .empty-reason {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+}
+
+/* ---------------------------------------------------------
+   ROWS — a table's content, as cards
+   --------------------------------------------------------- */
+
+.rows {
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.row + .row {
+  border-top: 1px solid var(--border);
+}
+
+.row-head {
+  display: flex;
+  width: 100%;
+  gap: 10px;
+  align-items: center;
+
+  /* 52 rather than 44: these sit in a long list, and a list scrolled with a
+     thumb needs a little more than the minimum to stop the wrong row opening
+     on a slightly moving finger. */
+  min-height: 52px;
+  padding: 9px 2px;
+
+  font: inherit;
+  text-align: left;
+
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.row-head:disabled {
+  cursor: default;
+}
+
+.row-main {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.row-title {
+  overflow: hidden;
+
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.row-sub {
+  color: var(--faint);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.row-lead {
+  display: flex;
+  flex: none;
+  gap: 14px;
+  align-items: baseline;
+}
+
+.row-figure {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+
+  text-align: right;
+}
+
+.row-figure b {
+  color: var(--text);
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.row-figure.num b {
+  font-variant-numeric: tabular-nums;
+}
+
+.row-figure i {
+  color: var(--faint);
+  font-size: 10px;
+  font-style: normal;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.row-chev {
+  flex: none;
+
+  color: var(--faint);
+
+  transition: transform 0.16s ease;
+}
+
+.row.open .row-chev {
+  transform: rotate(180deg);
+}
+
+.row-detail {
+  padding: 2px 2px 14px;
+}
+
+.row-detail dl {
+  display: grid;
+  gap: 8px 16px;
+  grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr));
+
+  margin: 0;
+}
+
+.row-detail dt {
+  color: var(--faint);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.row-detail dd {
+  margin: 1px 0 0;
+
+  color: var(--text);
+  font-size: 13px;
+}
+
+.row-detail dd.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* The row's destination is its own control, never the same tap as "show me
+   more here". */
+.row-open {
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+
+  margin-top: 12px;
+
+  color: var(--blue);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+
+  background: var(--panel-soft);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.row-open:active {
+  background: var(--border);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row-chev {
+    transition: none;
+  }
+}
+
+/* ---------------------------------------------------------
+   TOUCH TARGETS
+   --------------------------------------------------------- */
+
+/*
+ * 44px, on everything, below 640.
+ *
+ * The audit found 62 controls under 44px on one product page: tile grips at
+ * 22x22, unpin buttons, three-segment switches 32px tall, chart range
+ * buttons. Each is comfortable with a mouse, which lands on a pixel, and
+ * each is a coin toss with a thumb, which lands on a smudge.
+ *
+ * min-height does nothing to a non-replaced inline element, which is exactly
+ * what we want: a "2024" link inside a sentence stays inside the sentence,
+ * while every button that is its own block grows to a size a finger can hit.
+ */
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  button,
+  select,
+  summary,
+  [role='button'],
+  input[type='button'],
+  input[type='submit'] {
+    min-height: 44px;
+  }
+
+  /* An icon with no label needs the width too, or it is a 44x18 sliver. */
+  .toggles button,
+  .helpbutton,
+  .sheet-close,
+  .search-clear,
+  .tile-unpin,
+  .rail-toggle,
+  .nav-collapse {
+    min-width: 44px;
+  }
+
+  /* Segmented switches: the segments are the target, so they get the height
+     and the group keeps its shape. */
+  .tabstrip button,
+  .basis-switch button,
+  .control-group button,
+  .viewswitch button,
+  .flowswitch button {
+    min-height: 44px;
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  /* Text inputs at 16px, because anything smaller makes iOS zoom the page on
+     focus and then leave it zoomed. */
+  input[type='text'],
+  input[type='search'],
+  input:not([type]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  .brand {
+    padding: 6px 2px;
+  }
+}
+
+/*
+ * Drag handles do not survive contact with a finger.
+ *
+ * Reordering tiles by dragging needs a pointer that can hover to find the
+ * grip, press without scrolling, and move precisely. A touchscreen has none
+ * of those: the same gesture that picks up a tile is the one that scrolls the
+ * page, and the browser has to guess. The tile sheet does this with up and
+ * down buttons instead, which is slower per move and right every time.
+ */
+@media (hover: none) and (pointer: coarse) {
+  .tile-grip {
+    display: none;
+  }
+}
+
+/*
+ * The controls that were already sized by a more specific rule.
+ *
+ * `button { min-height: 44px }` loses to `.panelhead .panel-actions button
+ * { height: 25px }` on specificity, not on order, so the ones that carry an
+ * explicit height need naming. Each of these is a real control on a real
+ * page: the PNG and CSV buttons on a chart, the year picker, the workbook
+ * download, the footer's source links, the chart range switch.
+ */
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  .topbar .toggles button,
+  .topbar .toggles .stack-toggle,
+  .topbar .toggles .ind-toggle,
+  .topbar .toggles .currency-toggle,
+  .panelhead .panel-actions button,
+  .panel .tableactions button,
+  .footerbar .actions button,
+  .chart-controls .control-group button,
+  .head-actions .yearpicker select,
+  .head-actions .download-master,
+  .head-actions .stack-add,
+  .panel-actions .tabstrip button {
+    min-height: 44px;
+    min-width: 44px;
+    height: auto;
+
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  /* Those rows now hold taller children, so they need room to wrap rather
+     than squeezing them back down. */
+  .panelhead .panel-actions,
+  .panel .tableactions,
+  .footerbar .actions,
+  .chart-controls {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
+/* ---------------------------------------------------------
+   THE FLOATING DOCK — workspace and help, above the bar
+   --------------------------------------------------------- */
+
+/*
+ * Two buttons, bottom right, clear of the tab bar and of the home indicator.
+ *
+ * The workspace handle used to sit pinned to the right edge at 34px wide,
+ * vertically centred - a place a thumb cannot reach on a 6-inch screen, and
+ * at 390px it landed on top of the header's own button row. The help button
+ * sat over the footnote. Both now live in one dock with one rule about where
+ * the bottom of the screen is.
+ */
+@media (max-width: 900px) {
+  .rail-handle.onphone {
+    top: auto;
+    right: calc(12px + var(--safe-r));
+    bottom: calc(var(--tabbar-h) + 64px);
+    left: auto;
+
+    display: flex;
+    width: 46px;
+    height: 46px;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 999px;
+    box-shadow: 0 4px 16px rgba(8, 16, 26, 0.22);
+
+    transform: none;
+  }
+
+  .helpdock {
+    right: calc(12px + var(--safe-r));
+    bottom: calc(var(--tabbar-h) + 10px);
+  }
+
+  .helpbutton {
+    width: 46px;
+    height: 46px;
+  }
+
+  /* The card must not open underneath the bar it sits above. */
+  .helpcard {
+    max-height: min(70vh, calc(100vh - var(--tabbar-h) - 90px));
+  }
+}
+
+/* Up and down, instead of a grip nobody can grab. */
+.rail-move {
+  display: flex;
+  flex: none;
+  gap: 2px;
+}
+
+.rail-move button {
+  display: flex;
+  width: 38px;
+  height: 38px;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--muted);
+
+  background: var(--panel-soft);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.rail-move button:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+
+.rail-check.bytouch {
+  align-items: center;
+
+  cursor: default;
+}
+
+/* A checkbox at its default 13px is not a target either. */
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  .rail-check input[type='checkbox'] {
+    width: 22px;
+    height: 22px;
+  }
+
+  .rail-check {
+    min-height: 52px;
+  }
+}
+
+/* The view switch as a pair of full-width segments inside the sheet, rather
+   than a compact toggle in a title bar that has no room for it. */
+.viewswitch.insheet {
+  display: grid;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  gap: 6px;
+
+  margin-top: 6px;
+}
+
+.viewswitch.insheet button {
+  min-height: 44px;
+
+  border-radius: 10px;
+}
+
+/*
+ * The last of them, each found by measuring rather than by looking.
+ *
+ * Text inputs needed the height stating separately - a bare `input` is not
+ * `input[type=button]` and was never covered. The rest are links that read
+ * as text and behave as controls: "Comtrade's own page", a code chip in a
+ * coverage gap, "open" beside a composed query. A 13px-tall link is a target
+ * you hit by luck.
+ */
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  input[type='text'],
+  input[type='search'],
+  input:not([type]),
+  textarea,
+  .search-primary input,
+  .qb-field input,
+  .lines-filter {
+    min-height: 44px;
+  }
+
+  .smart-suggestions button,
+  .quick-access button {
+    min-height: 44px;
+  }
+
+  .guide-toc a,
+  .avail-source,
+  .qb-out-head .linkish,
+  .avail-sample .linkish {
+    display: inline-flex;
+    min-height: 44px;
+    min-width: 44px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .guide-toc a {
+    justify-content: flex-start;
+  }
+
+  /* Those chips are now taller, so the rows they sit in need the gap. */
+  .avail-sample {
+    gap: 6px;
+  }
+}
+
+/*
+ * Small figures go two across, not one.
+ *
+ * "1,987 / to Jun 2026" is a 14-character fact in a card 338px wide, and
+ * stacking four of them one per row cost 400px of scrolling to say what fits
+ * in 200. Two columns is the most a 360px screen can hold without the
+ * thousands separator wrapping, and it is exactly enough for these.
+ */
+@media (max-width: 640px) {
+  .hs8-metrics,
+  .release-metric-grid,
+  .hs8-parent-metrics,
+  .home-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* The wide ones keep the row to themselves: a chart or a ranked table in
+     half of 360px is not a smaller version of itself, it is unreadable. */
+  .insight-grid,
+  .chart-grid,
+  .table-grid,
+  .guide-two,
+  .home-hs8-cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

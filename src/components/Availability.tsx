@@ -9,6 +9,8 @@ import {
 } from '../lib/availability'
 import { plural, usd } from '../lib/format'
 import { usePageHelp } from '../lib/pagehelp'
+import { usePhone } from '../lib/viewport'
+import { Rows } from './Rows'
 
 /*
  * What Comtrade holds, and what it costs us.
@@ -31,6 +33,7 @@ export function Availability({
   onHome: () => void
 }) {
   const [data, setData] = useState<Data | null | undefined>(undefined)
+  const phone = usePhone()
 
   useEffect(() => {
     loadAvailability().then(result => setData(result))
@@ -165,6 +168,38 @@ export function Availability({
       <section className="avail-block">
         <h2>Annual coverage</h2>
 
+        {phone ? (
+          <Rows
+            label="Annual coverage by year"
+            items={annual.map(row => ({
+              id: row.period,
+              title: row.period,
+              subtitle: (
+                <span className="avail-bar">
+                  <span style={{ width: `${(row.reporters / peak) * 100}%` }} />
+                </span>
+              ),
+              fields: [
+                {
+                  label: 'Filed',
+                  value: row.reporters,
+                  lead: true,
+                  numeric: true,
+                },
+                {
+                  label: 'Latest release',
+                  value: row.latestRelease ?? '—',
+                  numeric: true,
+                },
+                {
+                  label: 'Share of the best year',
+                  value: `${Math.round((row.reporters / peak) * 100)}%`,
+                  numeric: true,
+                },
+              ],
+            }))}
+          />
+        ) : (
         <table className="dgcis-table">
           <thead>
             <tr>
@@ -190,6 +225,7 @@ export function Availability({
             ))}
           </tbody>
         </table>
+        )}
       </section>
 
       {monthly.length > 0 && (
@@ -202,6 +238,23 @@ export function Availability({
             because a world total can be built from it.
           </p>
 
+          {phone ? (
+            <Rows
+              label="Monthly coverage"
+              items={monthly.map(row => ({
+                id: row.period,
+                title: monthLabel(row.period),
+                fields: [
+                  { label: 'Filed', value: row.reporters, lead: true, numeric: true },
+                  {
+                    label: 'Latest release',
+                    value: row.latestRelease ?? '—',
+                    numeric: true,
+                  },
+                ],
+              }))}
+            />
+          ) : (
           <table className="dgcis-table compact">
             <thead>
               <tr>
@@ -221,6 +274,7 @@ export function Availability({
               ))}
             </tbody>
           </table>
+          )}
         </section>
       )}
 

@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { ArrowUpRight } from 'lucide-react'
 
 import { plural } from '../lib/format'
+import { usePhone } from '../lib/viewport'
+import { Rows } from './Rows'
 import { usePageHelp } from '../lib/pagehelp'
 
 import {
@@ -36,6 +38,7 @@ export function TariffLines({
   const [lines, setLines] = useState<DgcisIndexEntry[] | null>(null)
   const [flow, setFlow] = useState<DgcisFlow>('exports')
   const [query, setQuery] = useState('')
+  const phone = usePhone()
 
   useEffect(() => {
     loadDgcisIndex().then(index => setLines(index?.lines ?? []))
@@ -160,7 +163,7 @@ export function TariffLines({
         className="lines-filter"
         value={query}
         onChange={event => setQuery(event.target.value)}
-        placeholder="Filter by code or heading — 8517, smartphone, telecom…"
+        placeholder={phone ? "Filter lines" : "Filter by code or heading — 8517, smartphone, telecom…"}
         aria-label="Filter tariff lines"
       />
 
@@ -169,7 +172,7 @@ export function TariffLines({
       )}
 
       <div className="lines-groups">
-        {groups.slice(0, 60).map(group => (
+        {groups.slice(0, phone ? 20 : 60).map(group => (
           <section className="lines-group" key={group.hs6}>
             <div className="lines-group-head">
               <div>
@@ -197,6 +200,49 @@ export function TariffLines({
               </div>
             </div>
 
+            {phone ? (
+              <Rows
+                label={`Tariff lines under HS ${group.hs6}`}
+                items={group.items.map(line => {
+                  const block = line.flows[flow]
+
+                  return {
+                    id: line.hs8,
+                    title:
+                      line.title || (
+                        <span className="lines-unnamed">{line.principalCommodity}</span>
+                      ),
+                    subtitle: line.hs8,
+                    onOpen: () => onOpenHs8(line.hs8),
+                    openLabel: `Open ${line.hs8}`,
+                    fields: [
+                      {
+                        label: '12m USD mn',
+                        value: formatValue(block?.last12UsdMillion ?? null),
+                        lead: true,
+                        numeric: true,
+                      },
+                      {
+                        label: 'Latest month',
+                        value: block?.latest ? formatPeriod(block.latest.period) : '—',
+                        numeric: true,
+                      },
+                      {
+                        label: 'Latest month value',
+                        value: block?.latest
+                          ? `${formatValue(block.latest.usdMillion)} USD mn`
+                          : '—',
+                        numeric: true,
+                      },
+                      {
+                        label: 'DGCIS group',
+                        value: line.principalCommodity || '—',
+                      },
+                    ],
+                  }
+                })}
+              />
+            ) : (
             <table className="dgcis-table compact">
               <tbody>
                 {group.items.map(line => {
@@ -224,13 +270,17 @@ export function TariffLines({
                 })}
               </tbody>
             </table>
+            )}
           </section>
         ))}
       </div>
 
-      {groups.length > 60 && (
+      {groups.length > (phone ? 20 : 60) && (
         <p className="lines-more">
-          The 60 largest headings. Filter above for the rest.
+          {/* 543 lines as cards is 17,000px of scrolling. Twenty headings is
+            * about four screens, which is browsable; the filter is how you
+            * reach the rest, and it is directly above. */}
+          The {phone ? 20 : 60} largest headings. Filter above for the rest.
         </p>
       )}
     </div>

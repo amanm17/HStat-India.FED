@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import {
+  ChevronDown,
   ChevronLeft,
+  ChevronUp,
   Download,
   Eye,
   FileText,
@@ -12,6 +14,9 @@ import {
   Trash2,
   X,
 } from 'lucide-react'
+
+import { Sheet } from './Sheet'
+import { useNoRail, useTouch } from '../lib/viewport'
 
 import {
   TILES,
@@ -79,6 +84,15 @@ function ReportBuilder({
 
   const [drag, setDrag] = useState<string | null>(null)
 
+  /*
+   * Reordering by drag needs a pointer that can hover, press without
+   * scrolling and move precisely. On a touchscreen the pick-up gesture and
+   * the scroll gesture are the same one, so the list moves when you meant to
+   * read it and reads when you meant to move it. Two buttons per row are
+   * slower and always do what they say.
+   */
+  const touch = useTouch()
+
   const ordered = order
     .map(id => TILES.find(tile => tile.id === id))
     .filter((tile): tile is (typeof TILES)[number] => Boolean(tile))
@@ -125,26 +139,44 @@ function ReportBuilder({
       <div className="rail-tilepick">
         <span className="rail-subhead">Include</span>
 
-        {ordered.map(tile => (
+        {ordered.map((tile, position) => (
           <label
             key={tile.id}
-            className={drag === tile.id ? 'rail-check dragging' : 'rail-check'}
-            draggable
-            onDragStart={event => {
-              setDrag(tile.id)
-              event.dataTransfer.effectAllowed = 'move'
-            }}
-            onDragEnd={() => setDrag(null)}
-            onDragOver={event => {
-              if (drag && drag !== tile.id) event.preventDefault()
-            }}
-            onDrop={event => {
-              event.preventDefault()
+            className={
+              touch
+                ? 'rail-check bytouch'
+                : drag === tile.id
+                  ? 'rail-check dragging'
+                  : 'rail-check'
+            }
+            draggable={!touch}
+            onDragStart={
+              touch
+                ? undefined
+                : event => {
+                    setDrag(tile.id)
+                    event.dataTransfer.effectAllowed = 'move'
+                  }
+            }
+            onDragEnd={touch ? undefined : () => setDrag(null)}
+            onDragOver={
+              touch
+                ? undefined
+                : event => {
+                    if (drag && drag !== tile.id) event.preventDefault()
+                  }
+            }
+            onDrop={
+              touch
+                ? undefined
+                : event => {
+                    event.preventDefault()
 
-              if (drag && drag !== tile.id) onReorderTile(drag, tile.id)
+                    if (drag && drag !== tile.id) onReorderTile(drag, tile.id)
 
-              setDrag(null)
-            }}
+                    setDrag(null)
+                  }
+            }
           >
             <input
               type="checkbox"
@@ -157,7 +189,35 @@ function ReportBuilder({
               <em>{tile.note}</em>
             </span>
 
-            <GripVertical size={12} className="rail-check-grip" />
+            {touch ? (
+              <span className="rail-move">
+                <button
+                  type="button"
+                  disabled={position === 0}
+                  aria-label={`Move ${tile.label} up`}
+                  onClick={event => {
+                    event.preventDefault()
+                    onReorderTile(tile.id, ordered[position - 1].id)
+                  }}
+                >
+                  <ChevronUp size={15} />
+                </button>
+
+                <button
+                  type="button"
+                  disabled={position === ordered.length - 1}
+                  aria-label={`Move ${tile.label} down`}
+                  onClick={event => {
+                    event.preventDefault()
+                    onReorderTile(tile.id, ordered[position + 2]?.id ?? null)
+                  }}
+                >
+                  <ChevronDown size={15} />
+                </button>
+              </span>
+            ) : (
+              <GripVertical size={12} className="rail-check-grip" />
+            )}
           </label>
         ))}
       </div>
@@ -205,6 +265,7 @@ export function Sidebar({
   onOpen,
   onUnpin,
   onResetLayout,
+  onView,
   onTogglePin,
   onGenerate,
   onReorderTile,
@@ -223,6 +284,10 @@ export function Sidebar({
   onOpen: (code: string, level: Level) => void
   onUnpin: (id: string) => void
   onResetLayout: () => void
+  /* The report/glance switch lives in the title bar on a desktop and in this
+   * sheet on a phone, where the bar has room for three things and this was
+   * the fourth. */
+  onView?: (view: 'report' | 'glance') => void
   onTogglePin: (entry: CodeRef) => void
   onGenerate: (name: string, tiles: string[], format: 'pdf' | 'png') => void
   onReorderTile: (dragged: string, before: string | null) => void
@@ -233,12 +298,38 @@ export function Sidebar({
   const [renaming, setRenaming] = useState<string | null>(null)
   const [draft, setDraft] = useState('')
 
+  /*
+   * Keyed on the rail's own breakpoint, not on a phone-sized width. Below
+   * 900 there is no room for a 300px aside, which is exactly why .navrail
+   * hides itself there - so a rotated phone at 844px gets the sheet too,
+   * rather than a 34px handle clinging to the right edge of a 390px-tall
+   * screen.
+   */
+  const phone = useNoRail()
+
   const hidden = useMemo(
     () => TILES.filter(tile => workspace.hiddenTiles.includes(tile.id)),
     [workspace.hiddenTiles],
   )
 
+  /*
+   * On a phone the rail is a sheet, and its handle joins the floating dock
+   * above the tab bar rather than clinging to the right edge at 34px wide
+   * halfway down the screen - which is where a thumb never is, and which
+   * overlapped the header's own buttons at 390px.
+   */
+  /*
+   * No floating handle on a phone.
+   *
+   * It was pinned to the right edge, vertically centred - which on a 6-inch
+   * screen is both out of a thumb's reach and directly on top of whatever
+   * the page is saying there. The button moved into the title bar beside the
+   * other controls that act on this page, which is where a reader already
+   * looks for them and where it covers nothing.
+   */
   if (!workspace.sidebarOpen) {
+    if (phone) return null
+
     return (
       <button
         className="rail-handle"
@@ -252,15 +343,26 @@ export function Sidebar({
     )
   }
 
-  return (
-    <aside className="rail" aria-label="Workspace">
-      <div className="rail-head">
-        <strong>Workspace</strong>
+  const body = (
+    <>
+      {phone && onView && (
+        <section className="rail-block">
+          <div className="rail-subhead">How the tiles are laid out</div>
 
-        <button onClick={onToggle} aria-label="Collapse the workspace rail">
-          <ChevronLeft size={16} />
-        </button>
-      </div>
+          <div className="viewswitch insheet" role="group" aria-label="View mode">
+            {(['report', 'glance'] as const).map(mode => (
+              <button
+                key={mode}
+                className={workspace.view === mode ? 'active' : ''}
+                aria-pressed={workspace.view === mode}
+                onClick={() => onView(mode)}
+              >
+                {mode === 'report' ? 'Stacked' : 'One at a time'}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="rail-block">
         <div className="rail-subhead">
@@ -471,6 +573,28 @@ export function Sidebar({
           </p>
         )}
       </section>
+    </>
+  )
+
+  if (phone) {
+    return (
+      <Sheet open title="Workspace" tall onClose={onToggle}>
+        {body}
+      </Sheet>
+    )
+  }
+
+  return (
+    <aside className="rail" aria-label="Workspace">
+      <div className="rail-head">
+        <strong>Workspace</strong>
+
+        <button onClick={onToggle} aria-label="Collapse the workspace rail">
+          <ChevronLeft size={16} />
+        </button>
+      </div>
+
+      {body}
     </aside>
   )
 }

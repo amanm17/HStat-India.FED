@@ -73,3 +73,49 @@ Both themes, from the real pages. **Not** `public/guide` — a folder there sits
 at `/guide`, which is a route, and a static-asset host resolves the directory
 before the SPA fallback, so the guide would 404 in production while looking
 fine in dev. That happened once.
+
+## The phone suite
+
+```
+node qa/suite/mobile.mjs       # 357 — 7 pages × 4 shapes × 2 themes, plus behaviour
+```
+
+`visual.mjs` and `align.mjs` ask whether the page is put together correctly.
+This asks whether it can be used by a thumb, on a screen held vertically, by
+somebody who cannot hover and cannot read a 9px caption.
+
+Six measures across 360, 390, 414 and one landscape shape, in both themes:
+
+- **targets** — every control at least 44px on both axes. A link inside a
+  sentence is exempt on width only; WCAG exempts inline targets, and padding
+  "2024" out would break the line it sits in.
+- **type** — nothing under 11px. Eyebrows, status pills and tab labels are
+  named exemptions: they are caps with wide tracking, and they are structure
+  rather than content.
+- **overflow** — the page never scrolls sideways.
+- **overlap** — no two siblings in a row intersect.
+- **reach** — the bar is fixed to the bottom, holds five destinations, and
+  nothing covers it.
+- **sheets** — search, more and workspace open, lock the page behind them, and
+  close by button, backdrop and Escape.
+
+### Why the landscape shape is not a formality
+
+The first version of every rule here was keyed on `max-width: 640px`. A phone
+rotated is 844px across and still a thumb, so every one of them switched
+itself off the moment the device turned sideways — 34 failures in one pass,
+none of which any amount of portrait testing would have found. Size and
+legibility are now keyed on `(hover: none) and (pointer: coarse)` as well as
+on width; layout stays keyed on width alone, because in landscape a table
+fits and in portrait it does not.
+
+### Running it
+
+Needs only the main server on 4178. In this container the preinstalled
+Chromium is older than the `playwright` on `npm`, so pass the binary:
+
+```
+PW_CHROME=/opt/pw-browsers/chromium-1194/chrome-linux/chrome node qa/suite/mobile.mjs
+```
+
+On a machine where `npx playwright install` has run, it needs no such thing.
