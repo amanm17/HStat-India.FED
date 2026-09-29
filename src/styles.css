@@ -8818,8 +8818,13 @@ table.contribution tfoot th {
   .viewswitch button,
   .flowswitch button {
     min-height: 44px;
+    min-width: 44px;
     padding-right: 14px;
     padding-left: 14px;
+  }
+
+  .dgcis-csv {
+    min-width: 44px;
   }
 
   /* Text inputs at 16px, because anything smaller makes iOS zoom the page on
