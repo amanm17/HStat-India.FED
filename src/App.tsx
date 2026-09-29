@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Layers, Moon, Pin, Sun } from 'lucide-react'
+import { LayoutGrid, Moon, Pin, Sigma, Sun } from 'lucide-react'
 
 import type {
   CatalogueEntry,
@@ -991,7 +991,7 @@ function App() {
               aria-label="Open the workspace: tiles, pins and reports"
               title="Workspace"
             >
-              <Layers size={16} />
+              <LayoutGrid size={16} />
             </button>
           )}
 
@@ -1000,7 +1000,7 @@ function App() {
             onClick={() => setStackOpen(true)}
             title="Open HStack"
           >
-            <Layers size={16} />
+            <Sigma size={16} />
             HStack
             {basket.length > 0 && (
               <span className="stack-count">{basket.length}</span>

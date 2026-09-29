@@ -2605,8 +2605,25 @@ main {
   white-space: nowrap;
 }
 
+/*
+ * The plus beside a result.
+ *
+ * `.search-results-large button` gives every button in the list the row's own
+ * three-column grid - 48px, 72px, the rest - because that is what a result
+ * row is. This button is not a row, and `place-items: center` alone did not
+ * save it: the template leaked through, the icon was laid into the first
+ * 48px column and centred there, which put it 10px right of the button's
+ * middle and 2px past its own border. It looked like the plus had fallen out
+ * of its box, because it had.
+ *
+ * One column, no gap, no padding. The reset has to be explicit - a grid
+ * property is not cleared by setting `display: grid` again.
+ */
 .search-results-large .search-result-add {
   display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  gap: 0;
   place-items: center;
 
   width: 30px;
@@ -5490,52 +5507,6 @@ table.contribution tfoot th {
   margin: 26px 0 0;
 
   text-align: left;
-}
-
-.home-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
-  gap: 1px;
-
-  width: min(760px, 100%);
-  margin: 30px 0 0;
-  overflow: hidden;
-
-  background: var(--border);
-  border: 1px solid var(--border);
-  border-radius: 11px;
-}
-
-.home-stats > div {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-
-  padding: 14px 12px;
-
-  background: var(--panel);
-}
-
-.home-stats strong {
-  font-size: 21px;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-  font-variant-numeric: tabular-nums;
-  color: var(--navy);
-}
-
-.home-stats span {
-  font-size: 11px;
-  color: var(--muted);
-}
-
-.home-footnote {
-  max-width: 60ch;
-  margin: 14px 0 0;
-
-  font-size: 11.5px;
-  line-height: 1.5;
-  color: var(--faint);
 }
 
 /*
@@ -8548,7 +8519,6 @@ table.contribution tfoot th {
   .dgcis-foot,
   .guide-figure figcaption,
   .home-panel-note,
-  .home-footnote,
   .contribution-note,
   .rail-hint,
   .rail-empty,
@@ -9065,8 +9035,7 @@ table.contribution tfoot th {
 @media (max-width: 640px) {
   .hs8-metrics,
   .release-metric-grid,
-  .hs8-parent-metrics,
-  .home-stats {
+  .hs8-parent-metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -9110,4 +9079,17 @@ table.contribution tfoot th {
   .search-key {
     display: none;
   }
+}
+
+/*
+ * The hub's bottom margin was spacing to the stat box beneath it. With that
+ * box gone the margin became 30px of nothing, sitting on top of the hero's
+ * own 34px of padding - a band of empty card under the example chips that
+ * read as a missing element, because it was one.
+ *
+ * Scoped to the front page: the same component in the title strip has a
+ * neighbour and still needs the gap.
+ */
+.home-search .search-hub {
+  margin-bottom: 0;
 }

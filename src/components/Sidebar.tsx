@@ -6,7 +6,7 @@ import {
   Download,
   Eye,
   FileText,
-  Layers,
+  LayoutGrid,
   GripVertical,
   Pencil,
   Pin,
@@ -337,7 +337,7 @@ export function Sidebar({
         title="Open the workspace rail"
         aria-label="Open the workspace rail"
       >
-        <Layers size={15} />
+        <LayoutGrid size={15} />
         <span>{workspace.pinned.length || ''}</span>
       </button>
     )

@@ -10,7 +10,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { Download, Layers, Trash2, X } from 'lucide-react'
+import { Download, Sigma, Trash2, X } from 'lucide-react'
 
 import type { HsNode } from '../types'
 import type { BasketEntry, BasketLine } from '../lib/hstack'
@@ -219,7 +219,7 @@ export function HStackPanel({
 
         {entries.length === 0 && (
           <div className="hstack-empty">
-            <Layers size={28} />
+            <Sigma size={28} />
 
             <h3>Nothing stacked yet</h3>
 

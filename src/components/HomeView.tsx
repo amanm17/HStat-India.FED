@@ -233,29 +233,17 @@ export function HomeView({
           />
         </div>
 
-        <div className="home-stats">
-          <div>
-            <strong>{stats.products}</strong>
-            <span>product lines</span>
-          </div>
-
-          {/*
-            * The HS-4 and HS-2 counts that used to sit here were structure,
-            * not information: nobody arrives wanting to know how many headings
-            * the nomenclature has. Two numbers is what the front page needs -
-            * how much is covered, and how much trade that is.
-            */}
-
-          <div>
-            <strong>{usd(stats.tracked, 0)}</strong>
-            <span>global imports tracked</span>
-          </div>
-        </div>
-
-        <p className="home-footnote">
-          Each product counted in its own latest validated year, so the total is
-          an order of magnitude, not a single year.
-        </p>
+        {/*
+          * The two-figure stat box is gone.
+          *
+          * "418 product lines" is already the first thing the lede says, and
+          * "$5tn global imports tracked" was a number that needed a footnote
+          * to be honest - each product counted in a different year, so an
+          * order of magnitude rather than a figure anybody could quote. A
+          * headline that cannot be quoted without its own disclaimer is not a
+          * headline. The lede carries the coverage; the panels below carry
+          * figures that mean one thing each.
+          */}
       </section>
 
       {/* India's own eight-digit detail had no presence on the front page at

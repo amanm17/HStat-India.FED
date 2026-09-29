@@ -52,6 +52,7 @@ const audit = () => {
   const rhythm = []
   const columns = []
   const rows = []
+  const offcentre = []
 
   /* EDGES — a vertical stack of siblings should start at the same x and,
    * where they are block-level, end at the same one. Containers that lay
@@ -164,6 +165,35 @@ const audit = () => {
     }
   }
 
+  /* GLYPHS — an icon alone in a button sits in the middle of it.
+   *
+   * The plus beside a search result did not: `.search-results-large button`
+   * handed every button in the list the row's own three-column grid, the icon
+   * was laid into the first column and centred there, and it ended up 10px
+   * right of the button's middle and 2px outside its own border. Nothing
+   * overlapped, nothing overflowed the page, and every other measure here
+   * passed - it just looked broken, which is the gap this closes. */
+  for (const el of document.querySelectorAll('button, a')) {
+    const kids = [...el.children]
+
+    if (kids.length !== 1 || kids[0].tagName.toLowerCase() !== 'svg') continue
+    if (el.textContent.trim()) continue
+    if (!visible(el) || !visible(kids[0])) continue
+
+    const b = el.getBoundingClientRect()
+    const g = kids[0].getBoundingClientRect()
+    const dx = round(g.left + g.width / 2 - (b.left + b.width / 2))
+    const dy = round(g.top + g.height / 2 - (b.top + b.height / 2))
+
+    if (Math.abs(dx) > 1.01 || Math.abs(dy) > 1.01) {
+      offcentre.push({
+        cls: el.className.toString().split(' ')[0] || el.tagName,
+        dx,
+        dy,
+      })
+    }
+  }
+
   /* COLUMNS — .num cells in one table share a right edge, column by column. */
   for (const table of document.querySelectorAll('table')) {
     const byIndex = new Map()
@@ -195,7 +225,7 @@ const audit = () => {
     }
   }
 
-  return { edges, rhythm, rows, columns }
+  return { edges, rhythm, rows, columns, offcentre }
 }
 
 const b = await chromium.launch()
@@ -225,6 +255,12 @@ for (const [label, path] of PAGES) {
       `${label} @${width} — row gaps are even`,
       found.rows.length === 0,
       found.rows.length ? JSON.stringify(found.rows[0]) : '',
+    )
+
+    ok(
+      `${label} @${width} — icon-only buttons centre their glyph`,
+      found.offcentre.length === 0,
+      found.offcentre.length ? JSON.stringify(found.offcentre[0]) : '',
     )
 
     ok(
