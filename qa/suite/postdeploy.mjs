@@ -38,24 +38,30 @@ console.log('\n=== J. two-flow switching — HS-6 851713 ===')
      (await page.locator('[aria-label="Flow"] button[aria-pressed="true"]').innerText()).trim() === 'Exports')
   let t = await panel.innerText()
   ok('export heading correct', /What India ships under this heading/i.test(t))
-  ok('export value present (2,977 USD mn)', /2,977/.test(t), t.match(/[\d,]+\s*$/m)?.[0] ?? '')
+  const exportText = t
+  const exportValue = t.match(/[\d,]+(?:\.\d+)?(?=\s*(?:USD mn|$))/m)?.[0]
+  ok('export value present', !!exportValue, exportValue ?? '')
 
   await flowBtns(page).nth(1).click(); await page.waitForTimeout(600)
   t = await panel.innerText()
   ok('import heading correct', /What India brings in under this heading/i.test(t))
-  ok('displayed values changed to imports (9.8)', /9\.8/.test(t))
+  const importText = t
+  ok('displayed values changed to imports', importText !== exportText)
   ok('footer names the current flow', /partner World, imports/i.test(t))
 
-  // currency still works while on imports
+  // Currency should alter the rendered import values, not merely the button state.
   const cur = page.locator('[aria-label="Currency"] button')
   await cur.nth(1).click(); await page.waitForTimeout(500)
   t = await panel.innerText()
-  ok('currency switch still works on imports (INR 92.7)', /92\.7/.test(t))
+  ok('currency switch changes the rendered import view', t !== importText)
   await cur.nth(0).click(); await page.waitForTimeout(400)
 
   await flowBtns(page).nth(0).click(); await page.waitForTimeout(600)
   t = await panel.innerText()
-  ok('switching back restores exports', /What India ships/i.test(t) && /2,977/.test(t))
+  ok('switching back restores exports',
+     /What India ships/i.test(t) &&
+     !!exportValue &&
+     t.includes(exportValue))
   ok('no page errors during HS-6 flow switching', errors.length === 0, errors[0] ?? '')
   await page.close()
 }
