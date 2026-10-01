@@ -1484,7 +1484,7 @@ main {
   display: grid;
 
   grid-template-columns:
-    28px
+    22px
     minmax(0, 1fr)
     auto;
 
