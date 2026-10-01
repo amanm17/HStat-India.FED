@@ -185,7 +185,7 @@ export function TariffLines({
 
               <div className="lines-group-right">
                 <span className="lines-total">
-                  {formatValue(group.total)} <small>USD mn, 12m</small>
+                  {formatValue(group.total)} <small>USD mn (12 months)</small>
                 </span>
 
                 {group.isProduct && onOpen && (
@@ -217,7 +217,9 @@ export function TariffLines({
                     openLabel: `Open ${line.hs8}`,
                     fields: [
                       {
-                        label: '12m USD mn',
+                        /* A non-breaking space keeps "(12 months)" whole, so a narrow card
+                         * breaks the label after the unit rather than mid-parenthesis. */
+                        label: 'USD mn (12\u00a0months)',
                         value: formatValue(block?.last12UsdMillion ?? null),
                         lead: true,
                         numeric: true,

@@ -83,12 +83,12 @@ code,terms,primary,note
 847029,desktop calculator;mains calculator,yes,Electronic calculating machines without a printing device.
 847030,mechanical calculator;non electronic calculator,yes,Non-electronic calculating machines.
 8471,computer;computers;computing;pc hardware;data processing machines,yes,"Computers and their units - laptops, desktops, servers, storage and peripherals."
-847130,laptop;laptops;notebook computer;notebook;portable computer;macbook;chromebook;ultrabook,yes,"A laptop is a portable data-processing machine under 10 kg with a CPU, keyboard and display."
+847130,laptop;laptops;notebook computer;notebook;portable computer;macbook;chromebook;ultrabook;tablet;tablets;tablet computer;ipad;2 in 1 laptop;detachable tablet,yes,"Portable data-processing machines weighing 10 kg or less - laptops, notebooks and tablet computers."
 847141,all in one pc;mini pc;small form factor pc;integrated desktop,yes,Machines housing the CPU with an input and output unit together.
 847149,computer system;server;workstation;rack server;pc system,yes,Data-processing machines presented as complete systems.
 847150,desktop;desktop computer;pc;personal computer;tower pc;processing unit,yes,Processing units presented separately - the box in a desktop PC.
 847160,keyboard;mouse;computer mouse;scanner;webcam;input device;output device;trackpad,yes,Input and output units of data-processing machines.
-847170,hard drive;hdd;ssd;solid state drive;external hard disk;nvme;storage unit,yes,Storage units of data-processing machines.
+847170,hard drive;hdd;ssd;solid state drive;external hard disk;nvme;storage unit;hard disk;hard disk drive;harddisk;portable hard disk,yes,Storage units of data-processing machines.
 847180,graphics card;gpu card;video card;expansion card;network card;sound card,yes,"Other units of data-processing machines, including add-in cards."
 847190,card reader;optical reader;magnetic reader;barcode reader,yes,Magnetic and optical readers and data-transcribing machines.
 8472,office machines;office equipment,no,
@@ -114,7 +114,7 @@ code,terms,primary,note
 850432,transformer 1 to 16 kva;dry type transformer,no,
 850433,transformer 16 to 500 kva,no,
 850434,transformer above 500 kva,no,
-850440,charger;phone charger;laptop adapter;power adapter;adaptor;smps;inverter;static converter;power supply;ups,yes,"Electrical static converters - chargers, adapters, SMPS and inverters."
+850440,charger;phone charger;laptop adapter;power adapter;adaptor;smps;inverter;static converter;power supply;ups;adapter;charging adapter;charging brick,yes,"Electrical static converters - chargers, adapters, SMPS and inverters."
 850450,inductor;choke;coil,yes,Electrical inductors.
 850490,transformer parts;charger parts;adapter parts;converter parts,yes,"Parts of transformers, static converters and inductors."
 8505,magnets;permanent magnets,yes,Permanent magnets and electromagnets.
@@ -133,7 +133,7 @@ code,terms,primary,note
 850730,nickel cadmium battery;nicd battery,yes,Nickel-cadmium accumulators.
 850740,nickel iron battery,no,
 850750,nickel metal hydride battery;nimh battery,yes,Nickel-metal-hydride accumulators.
-850760,lithium ion battery;li-ion battery;lithium battery;battery pack;ev battery;laptop battery;phone battery;cell;power bank cell,yes,"Lithium-ion accumulators, including cells, packs and separators."
+850760,lithium ion battery;li-ion battery;lithium battery;battery pack;ev battery;laptop battery;phone battery;cell;power bank cell;power bank;powerbank,yes,"Lithium-ion accumulators, including cells, packs and separators."
 850780,other accumulator;sodium ion battery;flow battery,yes,"Accumulators of chemistries other than lead-acid, nickel or lithium-ion."
 8508,vacuum cleaners,yes,Vacuum cleaners of all types.
 850811,vacuum cleaner;household vacuum;robot vacuum;bagged vacuum,yes,Vacuum cleaners up to 1500 W with a dust bag or receptacle.
@@ -173,9 +173,9 @@ code,terms,primary,note
 8518,audio;sound equipment;speakers;microphones,yes,"Microphones, loudspeakers, headphones and audio amplifiers."
 851810,microphone;mic;condenser microphone,yes,Microphones and their stands.
 851821,speaker single;single loudspeaker,yes,Single loudspeakers mounted in their enclosures.
-851822,speaker;speakers;bluetooth speaker;soundbar;multi speaker enclosure,yes,Multiple loudspeakers mounted in one enclosure.
+851822,speaker;speakers;bluetooth speaker;soundbar;multi speaker enclosure;smart speaker;voice assistant speaker,yes,Multiple loudspeakers mounted in one enclosure.
 851829,speaker driver;loudspeaker unit;unmounted speaker,yes,Loudspeakers not mounted in an enclosure.
-851830,headphone;headphones;earphone;earphones;earbuds;tws;headset,yes,"Headphones and earphones, with or without a microphone."
+851830,headphone;headphones;earphone;earphones;earbuds;tws;headset;airpods;wireless earbuds;neckband;true wireless earbuds,yes,"Headphones and earphones, with or without a microphone."
 851840,audio amplifier;av amplifier;power amplifier,yes,Audio-frequency electric amplifiers.
 851850,amplifier set;pa system;public address system,yes,Electric sound amplifier sets.
 8519,sound recording;audio players,yes,Sound recording and reproducing apparatus.
@@ -207,7 +207,7 @@ code,terms,primary,note
 852581,high speed camera;slow motion camera,yes,High-speed cameras as defined in the subheading note.
 852582,radiation hardened camera;space camera,yes,Radiation-hardened or radiation-tolerant cameras.
 852583,night vision camera;thermal camera;infrared camera,yes,Night-vision cameras as defined in the subheading note.
-852589,camera module;cctv camera;security camera;webcam module;ip camera,yes,Television and image cameras not covered elsewhere in 8525.8.
+852589,camera module;cctv camera;security camera;webcam module;ip camera;surveillance camera;video door phone camera,yes,Television and image cameras not covered elsewhere in 8525.8.
 8526,radar;navigation aids;remote control,yes,"Radar, radio navigational aid and radio remote control apparatus."
 852610,radar;radar apparatus;radar system,yes,Radar apparatus.
 852691,gps;navigation aid;radio navigation;gnss receiver,yes,"Radio navigational aid apparatus, including GPS and GNSS receivers."
@@ -275,7 +275,7 @@ code,terms,primary,note
 8538,switchgear components,yes,"Parts of switching, protection and control apparatus."
 853810,empty panel;panel enclosure,yes,Boards and panels not equipped with their apparatus.
 853890,switchgear parts;phone mechanics;handset parts;electrical apparatus parts,yes,"Parts of the apparatus of 8535, 8536 and 8537."
-8539,lamps;bulbs;light bulbs;lighting,yes,"Electric filament, discharge, LED and UV lamps."
+8539,lamps;lamp;bulbs;bulb;light bulbs;light bulb;lighting,yes,"Electric filament, discharge, LED and UV lamps."
 853910,sealed beam lamp;sealed beam headlight,yes,Sealed beam lamp units.
 853921,halogen lamp;tungsten halogen bulb,yes,Tungsten halogen filament lamps.
 853922,filament bulb low power;incandescent bulb small,no,
@@ -285,6 +285,11 @@ code,terms,primary,note
 853939,other discharge lamp;xenon lamp,yes,Discharge lamps other than fluorescent hot cathode.
 853941,arc lamp;carbon arc lamp,yes,Arc-lamps.
 853949,uv lamp;infrared lamp;ultraviolet lamp;germicidal lamp,yes,Ultra-violet and infra-red lamps.
+# 853950 is the LED lamp code this catalogue actually carries. The HS 2022
+# split into 853951/853952 is kept below for when the catalogue moves to it;
+# until then the everyday LED words have to land somewhere that exists, or
+# "led bulb" finds nothing at all.
+853950,led bulb;led lamp;led light;led tube;led bulbs,yes,Light-emitting diode lamps.
 853951,led module;led lamp module,yes,Light-emitting diode modules.
 853952,led bulb;led lamp;led light;led tube,yes,Light-emitting diode lamps.
 8540,vacuum tubes;cathode ray tubes,yes,"Thermionic, cold cathode and photo-cathode valves and tubes."
@@ -327,10 +332,10 @@ code,terms,primary,note
 854419,winding wire other metal;aluminium winding wire,yes,Winding wire of metals other than copper.
 854420,coaxial cable;co-axial cable;rf cable,yes,Co-axial cable and other co-axial conductors.
 854430,wiring harness;ignition wiring set;automotive wiring;vehicle wiring loom,yes,"Wiring sets for vehicles, aircraft and ships."
-854442,data cable;usb cable;patch cable;cable with connectors;power cord,yes,Insulated conductors up to 1000 V fitted with connectors.
+854442,data cable;usb cable;patch cable;cable with connectors;power cord;charging cable;charger cable;hdmi cable;type c cable;usb c cable;aux cable,yes,Insulated conductors up to 1000 V fitted with connectors.
 854449,electric wire;house wiring cable;insulated cable;building wire,yes,Insulated conductors up to 1000 V without connectors.
 854460,high voltage cable;power cable;ht cable;xlpe cable,yes,Insulated conductors for more than 1000 V.
-854470,optical fibre cable;fiber optic cable;fibre cable;ofc,yes,Optical fibre cables.
+854470,optical fibre cable;fiber optic cable;fibre cable;ofc;optical fibre;optical fiber;fiber cable;fibre optic cable,yes,Optical fibre cables.
 8545,carbon electrodes;graphite electrodes,yes,"Carbon electrodes, brushes and other graphite articles."
 854511,furnace electrode;graphite electrode;eaf electrode,yes,Carbon electrodes for furnaces.
 854519,carbon electrode;carbon brush;motor brush,yes,Carbon electrodes for uses other than furnaces.

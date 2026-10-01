@@ -26,6 +26,8 @@ export type SearchResult = {
   item: SearchItem
   score: number
   reason: string
+  /* The query matched this entry in full, not as a prefix or a fragment. */
+  whole?: boolean
 }
 
 export type SearchOutcome = {
@@ -49,6 +51,50 @@ export function normalizeQuery(value: string): string {
     .replace(/[^a-z0-9]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
+}
+
+/*
+ * WHY MATCHING IS DONE ON WHOLE WORDS
+ *
+ * The first version asked `description.includes(query)`. Typing "table" then
+ * matched "turn*table*s", "por*table*" and "varia*ble*... " - every code whose
+ * prose happened to contain those five letters, offered as though they were
+ * related products. Substring containment is not relatedness; it is a
+ * coincidence of spelling, and on a classification tool it reads as the
+ * system not knowing what the words mean.
+ *
+ * So text matches here are on word boundaries: a query matches when its words
+ * appear as whole words, in order, in the target. "table" finds "table fan"
+ * and no longer finds "turntables".
+ */
+function containsPhrase(haystack: string, phrase: string): boolean {
+  if (!haystack || !phrase) return false
+
+  // Both sides are already normalised to lowercase words separated by single
+  // spaces, so padding with spaces makes every word boundary explicit and the
+  // test becomes a plain substring test on that padded form.
+  return ` ${haystack} `.includes(` ${phrase} `)
+}
+
+/*
+ * A prefix match is for somebody still typing: "lapt" should reach "laptop".
+ * It only applies to the first word of a term, and only once enough of that
+ * word has been typed to be a real signal - two letters of a long word is
+ * noise, and was how three-letter queries used to drag in half the index.
+ */
+function isTypingPrefix(term: string, query: string): boolean {
+  if (term === query || !term.startsWith(query)) return false
+
+  const firstWord = term.split(' ')[0]
+
+  /*
+   * One letter is enough to start: somebody typing "p" expects the list to
+   * begin narrowing, not to be told nothing matched. What a short query must
+   * not do is reach into the middle of a term - "table" matching "turntables"
+   * - which is why the match is anchored to the first word and why the score
+   * is weighted by how much of the term the query actually covers.
+   */
+  return query.length <= firstWord.length || term[query.length] === ' '
 }
 
 function pushTo(map: Map<string, SearchItem[]>, key: string, item: SearchItem) {
@@ -137,9 +183,23 @@ function productResults(
   query: string,
   tokens: string[],
 ): SearchResult[] {
-  const scores = new Map<string, { item: SearchItem; score: number; reason: string }>()
+  const scores = new Map<
+    string,
+    { item: SearchItem; score: number; reason: string; whole: boolean }
+  >()
 
-  const bump = (item: SearchItem, points: number, reason: string) => {
+  /*
+   * `whole` marks a result the query matched completely - a curated term, or
+   * a product name the query equals - as opposed to one it merely began or
+   * appeared inside. Only a whole match may become an answer card, which is
+   * what stops "table" from announcing itself as household fans.
+   */
+  const bump = (
+    item: SearchItem,
+    points: number,
+    reason: string,
+    whole = false,
+  ) => {
     const existing = scores.get(item.code)
 
     if (existing) {
@@ -147,33 +207,34 @@ function productResults(
 
       if (points >= 2000) existing.reason = reason
 
+      if (whole) existing.whole = true
+
       return
     }
 
-    scores.set(item.code, { item, score: points, reason })
+    scores.set(item.code, { item, score: points, reason, whole })
   }
 
   for (const item of index.answers.get(query) ?? []) {
-    bump(item, 12000, 'Best match for this product')
+    bump(item, 12000, 'Best match for this product', true)
   }
 
   for (const item of index.terms.get(query) ?? []) {
-    bump(item, 5000, 'Product term')
+    bump(item, 5000, 'Product term', true)
   }
 
   // Partial typing: "lapt" should still find laptops. A prefix match is
   // weighted by how much of the term the query actually covers, so
   // "air conditioner" prefers "air conditioners" over
-  // "air conditioner parts" rather than treating the two as equal.
-  if (query.length >= 3) {
-    for (const [term, items] of index.terms) {
-      if (term === query || !term.startsWith(query)) continue
+  // "air conditioner parts" rather than treating the two as equal. It is
+  // never a whole match: somebody mid-word has not told us what they mean.
+  for (const [term, items] of index.terms) {
+    if (!isTypingPrefix(term, query)) continue
 
-      const closeness = query.length / term.length
+    const closeness = query.length / term.length
 
-      for (const item of items) {
-        bump(item, Math.round(1600 * closeness), 'Product term')
-      }
+    for (const item of items) {
+      bump(item, Math.round(1600 * closeness), 'Product term')
     }
   }
 
@@ -185,19 +246,19 @@ function productResults(
     // product actually sits in.
     const product = item.level === 6 ? normalizeQuery(item.product) : ''
 
-    if (product && product === query) bump(item, 6000, 'Product name')
-    else if (product && product.includes(query)) bump(item, 2200, 'Product name')
+    if (product && product === query) bump(item, 6000, 'Product name', true)
+    else if (containsPhrase(product, query)) bump(item, 2200, 'Product name')
 
-    if (description.includes(query)) bump(item, 900, 'Description')
+    if (containsPhrase(description, query)) bump(item, 900, 'Description')
 
     for (const token of tokens) {
       if (token.length < 3) continue
 
-      if (product.includes(token)) bump(item, 400, 'Product name')
+      if (containsPhrase(product, token)) bump(item, 400, 'Product name')
 
-      if (description.includes(token)) bump(item, 160, 'Description')
+      if (containsPhrase(description, token)) bump(item, 160, 'Description')
 
-      if (normalizeQuery(item.category).includes(token)) {
+      if (containsPhrase(normalizeQuery(item.category), token)) {
         bump(item, 320, 'Category')
       }
     }
@@ -272,10 +333,18 @@ export function search(
     }
   } else if (
     results.length &&
+    results[0].whole &&
     results[0].score >= 5000 &&
     (results.length === 1 || results[0].score >= results[1].score * 1.6)
   ) {
-    // No curated answer, but one code stands clear of the field.
+    /*
+     * No curated answer, but one code stands clear of the field - and the
+     * query matched it whole. The `whole` test is the one that matters:
+     * without it "table" scored past this gate on the strength of being the
+     * first word of "table fan", and the card then stated, in the voice the
+     * product uses for facts, that table is classified under household fans.
+     * A partial word is a reason to offer suggestions, never to answer.
+     */
     answer = {
       term: query,
       item: results[0].item,

@@ -479,7 +479,7 @@ export function Hs8View({
         />
 
         <Metric
-          label="12m vs prior 12m"
+          label="Last 12 months vs the 12 before"
           value={
             change === null
               ? '—'
@@ -741,7 +741,7 @@ export function Hs8View({
                   openLabel: `Open ${item.line.hs8}`,
                   fields: [
                     {
-                      label: `12m ${unit}`,
+                      label: `${unit} (12\u00a0months)`,
                       value: formatValue(item.twelve),
                       lead: true,
                       numeric: true,

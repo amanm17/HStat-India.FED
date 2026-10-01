@@ -956,7 +956,7 @@ function DgcisPanel({
               <th className="num">Share</th>
               <th className="num">Latest ({unit})</th>
               <th className="num">Month</th>
-              <th className="num">12m vs prior 12m</th>
+              <th className="num">Last 12 months vs prior 12</th>
             </tr>
           </thead>
 

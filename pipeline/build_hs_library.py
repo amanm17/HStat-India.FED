@@ -33,17 +33,6 @@ from definition import (
 # this runs with network; it is never the source of the code universe.
 TITLES_JSON = CONFIG / "hs_titles.json"
 
-STOPWORDS = {
-    "and", "the", "for", "with", "other", "than", "whether", "not",
-    "including", "included", "thereof", "therein", "kind", "kinds", "nes",
-    "nec", "elsewhere", "specified", "item", "heading", "chapter", "similar",
-    "used", "use", "apparatus", "machines", "machine", "parts", "part",
-    "articles", "article", "types", "type", "their", "from", "into", "under",
-    "over", "such", "which", "where", "when", "whose", "primary", "forms",
-    "form", "excluding", "exceeding",
-}
-
-
 def normalise(text: str) -> str:
     return re.sub(
         r"\s+",
@@ -58,14 +47,6 @@ def normalise(text: str) -> str:
         .replace("(", " ")
         .replace(")", " "),
     ).strip()
-
-
-def words(text: str) -> list[str]:
-    return [
-        word
-        for word in re.findall(r"[a-z0-9]+", normalise(text))
-        if len(word) >= 3 and word not in STOPWORDS
-    ]
 
 
 def dedupe(values) -> list[str]:
@@ -322,12 +303,29 @@ def main():
         ):
             answer_terms.append(auto_label)
 
+        # WHAT BELONGS IN `terms`, AND WHAT DOES NOT
+        #
+        # A term here is matched exactly and scores as though the reader said
+        # the product's name. So it has to be a phrase somebody would type to
+        # mean this code - curated vocabulary, the authored display name, the
+        # workbook label, the category.
+        #
+        # It used to also include every word of the official HS text, shredded
+        # apart. That is how "table" became a first-class term for household
+        # fans (from "Fans; table, floor, wall, window...") and "iron" a term
+        # for screws and bolts (from "iron or steel"). Searching "table" then
+        # answered, in the product's own voice for facts, that table is
+        # classified under HS 841451.
+        #
+        # The description is still searched - see `containsPhrase` in
+        # src/lib/search.ts, which scores a whole-word hit on the description
+        # at a fraction of a term. A word that only appears in the official
+        # prose is a hint about a code, not a name for it, and it is now
+        # scored as one.
         terms = dedupe(
             keywords
-            + words(product.display_name)
             + parent_aliases
             + [product.category, product.segment, product.dgcis_segment]
-            + words(product.description)
         )
 
         # The display name is authored per code against the official HS text
@@ -450,10 +448,10 @@ def main():
                 "keywords": dedupe(
                     alias_terms(product.hs6) + [product.product]
                 )[:14],
+                # Same rule as the live codes: the retired description is
+                # searched as prose, not shredded into terms.
                 "terms": dedupe(
-                    alias_terms(product.hs6)
-                    + [product.product]
-                    + words(product.description)
+                    alias_terms(product.hs6) + [product.product]
                 ),
                 "answerTerms": [product.hs6],
                 "answerNote": (

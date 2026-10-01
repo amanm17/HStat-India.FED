@@ -1742,6 +1742,15 @@ main {
     padding-top: 12px;
   }
 
+  /*
+   * Three tracks, not two.
+   *
+   * The clear control is the third child of this grid. With only two tracks
+   * declared it was placed on an implicit second row, under the search icon:
+   * a stray pill below the field, left-aligned against nothing, with the box
+   * grown 44px taller to hold it. It belongs on the same line as the text it
+   * clears.
+   */
   .search-primary {
     min-height: 62px;
 
@@ -1749,7 +1758,27 @@ main {
 
     grid-template-columns:
       22px
-      minmax(0, 1fr);
+      minmax(0, 1fr)
+      auto;
+
+    gap: 8px;
+
+    padding-right: 8px;
+  }
+
+  /* A pill the width of its word and the height of a thumb, centred in the
+     field rather than sitting on the field's baseline. */
+  .search-primary .search-clear {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    align-self: center;
+
+    height: 44px;
+    padding: 0 14px;
+
+    border-radius: 999px;
   }
 
   .search-primary input {
@@ -8665,7 +8694,20 @@ table.contribution tfoot th {
   font-style: normal;
   letter-spacing: 0.03em;
   text-transform: uppercase;
-  white-space: nowrap;
+
+  /*
+   * The unit used to read "12M USD MN", held on one line by `nowrap`. Said
+   * aloud that is "twelve million US dollars million", and readers took the
+   * 12M for the figure's own magnitude. Spelling the window out - "USD MN ·
+   * 12 MONTHS" - costs a second line on a phone, so the label is allowed to
+   * wrap and the card's title keeps the width it had.
+   */
+  /* `white-space` inherits, and the row head sets `nowrap` so a title never
+     breaks mid-word. This label is the one child that must be allowed to
+     wrap, or at 375px it runs out past its own box. */
+  white-space: normal;
+  max-width: 13ch;
+  text-align: right;
 }
 
 .row-chev {
