@@ -1,6 +1,6 @@
 {
  "source": "DGCIS / Trade Intelligence & Analytics",
- "builtAt": "2026-09-21T07:01:28.245889+00:00",
+ "builtAt": "2026-10-01T06:30:58.115029+00:00",
  "reporter": "India",
  "partner": "World",
  "units": {
@@ -14,10 +14,10 @@
  "flowDetail": {
   "exports": {
    "sourceFile": "DGCIS_DATA_exports.csv",
-   "sourceSha256": "609fc2a992963228a44cabbdfd88d7364092b8b1fcb2416d9909f41bc820dbe4",
-   "processedAt": "2026-09-16T11:12:24.827037+00:00",
+   "sourceSha256": "e2c255a6ff416bf95af349739f59b15e87dddf85f530a850df93b4654af8a943",
+   "processedAt": "2026-10-01T06:27:02.085242+00:00",
    "firstPeriod": "2019-01",
-   "lastPeriod": "2026-06",
+   "lastPeriod": "2026-07",
    "flowVerdict": {
     "status": "DECIDED",
     "evidence": "exports",
@@ -34,10 +34,10 @@
   },
   "imports": {
    "sourceFile": "DGCIS_DATA_imports.csv",
-   "sourceSha256": "99f781854b44555f55b2d783b147fdd43aa64e7e5e5222baa59f98ebbeefde2d",
-   "processedAt": "2026-09-16T11:32:25.844590+00:00",
+   "sourceSha256": "e3ff5d0ce2f4a7dd83cc60c64a2b79c5e479520926aa48788dca2b74e953a795",
+   "processedAt": "2026-10-01T06:30:57.827648+00:00",
    "firstPeriod": "2019-01",
-   "lastPeriod": "2026-06",
+   "lastPeriod": "2026-07",
    "flowVerdict": {
     "status": "DECIDED",
     "evidence": "imports",
@@ -54,8 +54,8 @@
   }
  },
  "firstPeriod": "2019-01",
- "lastPeriod": "2026-06",
- "periodCount": 90,
+ "lastPeriod": "2026-07",
+ "periodCount": 91,
  "hs8Count": 543,
  "productsCovered": 251,
  "productsTotal": 418,
