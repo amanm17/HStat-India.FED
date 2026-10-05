@@ -524,9 +524,9 @@ function App() {
 
     if (route.kind === 'availability') {
       return {
-        title: 'What Comtrade holds',
+        title: 'Reporter coverage',
         lines: [
-          "UN Comtrade's own record of which economies have filed which period, joined to our 418 products.",
+          "UN Comtrade's own record of which economies have filed which period, joined to the 418 products tracked here.",
           'The banner at the top answers one question: would running a refresh bring in anything new.',
           'The gaps below say what each missing economy was worth, so you can judge how understated a year is.',
         ],
@@ -620,7 +620,7 @@ function App() {
         terms: ['hs8', 'tariff', 'eight'], run: () => goTo({ kind: 'lines' }) },
       { id: 'guide', label: 'How to read this dashboard', hint: 'what each source means, and what not to add together',
         terms: ['help', 'explain', 'how'], run: () => goTo({ kind: 'guide' }) },
-      { id: 'availability', label: 'What Comtrade holds', hint: 'who has filed, and which of our products are thin',
+      { id: 'availability', label: 'Reporter coverage', hint: 'which economies have filed, and which products are thin',
         terms: ['coverage', 'gaps', 'missing', 'fresh'], run: () => goTo({ kind: 'availability' }) },
       { id: 'query', label: 'Build a Comtrade query', hint: 'pick a product by name, get the call three ways',
         terms: ['api', 'pull', 'download', 'comtrade'], run: () => goTo({ kind: 'query' }) },

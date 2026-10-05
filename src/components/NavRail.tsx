@@ -111,7 +111,7 @@ export function NavRail({
         <button
           className="nav-action"
           onClick={onAvailability}
-          title="What Comtrade holds, and which of our products are thin"
+          title="Reporter coverage, and which products are thin"
         >
           <Database size={16} />
           <span>Availability</span>

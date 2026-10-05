@@ -238,14 +238,14 @@ export function Hs8View({
           : null,
         mine && mine.share !== null
           ? {
-              label: 'Share of the heading',
+              label: 'Share of heading',
               value: pct(mine.share, 1),
               note: `of everything India files under HS ${hs6}`,
             }
           : null,
         helpRank >= 0
           ? {
-              label: 'Among its siblings',
+              label: 'Rank in this heading',
               value: `${ordinal(helpRank + 1)} of ${siblings.length}`,
               note: 'by the last twelve months',
             }
@@ -456,11 +456,11 @@ export function Hs8View({
                   }
 
                   const tiles = [
-                    { id: 'hs8-metrics', label: 'Headline' },
-                    { id: 'hs8-heading', label: 'The heading this sits under' },
+                    { id: 'hs8-metrics', label: 'Key figures' },
+                    { id: 'hs8-heading', label: 'Parent heading' },
                     { id: 'hs8-chart', label: `${flowWord(flow)}, month by month` },
                     { id: 'hs8-years', label: 'Annual totals' },
-                    { id: 'hs8-siblings', label: `The rest of HS ${hs6}` },
+                    { id: 'hs8-siblings', label: `Other lines in HS ${hs6}` },
                   ]
 
                   try {
@@ -580,12 +580,12 @@ export function Hs8View({
             />
 
             <MiniMetric
-              label="India's share"
+              label="India: share of world imports"
               value={entry.indiaShare === null ? '—' : pct(entry.indiaShare)}
               detail={
                 entry.indiaRank === null
                   ? 'of world imports'
-                  : `${ordinal(entry.indiaRank)} largest importer`
+                  : `${ordinal(entry.indiaRank)} of all importers`
               }
             />
 
@@ -821,9 +821,9 @@ export function Hs8View({
         <section className="hs8-siblings" id="tile-hs8-siblings">
           <div className="release-section-head">
             <div>
-              <div className="eyebrow">THE REST OF HS {hs6}</div>
+              <div className="eyebrow">OTHER LINES · HS {hs6}</div>
 
-              <h2>Other lines under this heading</h2>
+              <h2>Other tariff lines in this heading</h2>
             </div>
           </div>
 

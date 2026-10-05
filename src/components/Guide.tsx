@@ -67,16 +67,16 @@ function Figure({
 }
 
 const CHAPTERS = [
-  { id: 'what', n: 1, title: 'What this is' },
+  { id: 'what', n: 1, title: 'What this dashboard covers' },
   { id: 'sources', n: 2, title: 'The two sources' },
   { id: 'levels', n: 3, title: 'The four code levels' },
   { id: 'product', n: 4, title: 'Reading a product page' },
   { id: 'line', n: 5, title: 'Reading a tariff line' },
-  { id: 'blank', n: 6, title: 'Why some years are blank' },
-  { id: 'around', n: 7, title: 'Finding things' },
-  { id: 'out', n: 8, title: 'Taking figures out' },
+  { id: 'blank', n: 6, title: 'Blank and withheld years' },
+  { id: 'around', n: 7, title: 'Search and navigation' },
+  { id: 'out', n: 8, title: 'Exports and downloads' },
   { id: 'units', n: 9, title: 'Units and periods' },
-  { id: 'wrong', n: 10, title: 'If a number looks wrong' },
+  { id: 'wrong', n: 10, title: 'Checking a figure' },
 ]
 
 export function Guide({
@@ -170,7 +170,7 @@ export function Guide({
       <section className="guide-chapter" id="what">
         <div className="guide-chapter-head">
           <span className="guide-chapter-n">1</span>
-          <h2>What this is</h2>
+          <h2>What this dashboard covers</h2>
         </div>
 
         <h3>1.1 &nbsp;The question it answers</h3>
@@ -261,7 +261,7 @@ export function Guide({
           </div>
         </div>
 
-        <h3>2.1 &nbsp;The word that catches people out</h3>
+        <h3>2.1 &nbsp;What &ldquo;World&rdquo; means in each source</h3>
 
         <p className="guide-warn">
           <strong>&ldquo;World&rdquo; means two different things.</strong> On a
@@ -272,7 +272,7 @@ export function Guide({
           of the other.
         </p>
 
-        <h3>2.2 &nbsp;Why they are never added</h3>
+        <h3>2.2 &nbsp;Why the two sources are never added</h3>
 
         <p>
           Beyond the naming, they do not line up: different periods, different
@@ -404,7 +404,7 @@ export function Guide({
           the headline.
         </p>
 
-        <h3>4.4 &nbsp;What&rsquo;s inside, and coverage</h3>
+        <h3>4.4 &nbsp;Child lines and coverage</h3>
 
         <p>
           On a chapter or heading page, what&rsquo;s inside breaks the total
@@ -414,7 +414,7 @@ export function Guide({
           than hidden.
         </p>
 
-        <h3>4.5 &nbsp;Tiles and the right rail</h3>
+        <h3>4.5 &nbsp;Tiles and the workspace rail</h3>
 
         <p>
           Every block on the page is a tile. The right-hand rail chooses which
@@ -460,7 +460,7 @@ export function Guide({
           caption="Financial years and calendar years, side by side and never merged. A part year is marked as one."
         />
 
-        <h3>5.3 &nbsp;The other lines under the same heading</h3>
+        <h3>5.3 &nbsp;Other lines in the same heading</h3>
 
         <p>
           A line means little on its own. The table at the bottom ranks every
@@ -471,7 +471,7 @@ export function Guide({
         <Figure
           name="siblings"
           alt="A ranked table of the other tariff lines under the same heading"
-          caption="One line is often almost all of a heading. This is where you find out which."
+          caption="One line is often almost all of a heading. The table shows which."
         />
       </section>
 
@@ -479,7 +479,7 @@ export function Guide({
       <section className="guide-chapter" id="blank">
         <div className="guide-chapter-head">
           <span className="guide-chapter-n">6</span>
-          <h2>Why some years are blank</h2>
+          <h2>Blank and withheld years</h2>
         </div>
 
         <h3>6.1 &nbsp;A blank is not a zero</h3>
@@ -491,7 +491,7 @@ export function Guide({
           never &ldquo;nothing was traded&rdquo;.
         </p>
 
-        <h3>6.2 &nbsp;It is usually one country</h3>
+        <h3>6.2 &nbsp;Usually one missing reporter</h3>
 
         <p>
           {biggestGap ? (
@@ -513,11 +513,11 @@ export function Guide({
           the tariff-line panels are fresher than the world figures above them.
         </p>
 
-        <h3>6.3 &nbsp;Checking for yourself</h3>
+        <h3>6.3 &nbsp;Checking against the source</h3>
 
         <p>
-          The availability page holds Comtrade&rsquo;s own record of who has
-          filed what, joined to these products. It answers one question
+          The availability page holds Comtrade&rsquo;s own record of which
+          economies filed which period, joined to these products. It answers one question
           directly: would refreshing bring in anything new.
           {onAvailability && (
             <>
@@ -538,7 +538,7 @@ export function Guide({
         <Figure
           name="gaps"
           alt="A list of economies that have not filed, with what each was worth"
-          caption="Each absence is valued at what that economy filed the year before, so you can judge how understated a figure is."
+          caption="Each absence is valued at what that economy filed the year before, so the size of the gap is visible."
         />
       </section>
 
@@ -546,7 +546,7 @@ export function Guide({
       <section className="guide-chapter" id="around">
         <div className="guide-chapter-head">
           <span className="guide-chapter-n">7</span>
-          <h2>Finding things</h2>
+          <h2>Search and navigation</h2>
         </div>
 
         <h3>7.1 &nbsp;Search</h3>
@@ -601,7 +601,7 @@ export function Guide({
       <section className="guide-chapter" id="out">
         <div className="guide-chapter-head">
           <span className="guide-chapter-n">8</span>
-          <h2>Taking figures out</h2>
+          <h2>Exports and downloads</h2>
         </div>
 
         <h3>8.1 &nbsp;The workbook</h3>
@@ -680,7 +680,7 @@ export function Guide({
       <section className="guide-chapter" id="wrong">
         <div className="guide-chapter-head">
           <span className="guide-chapter-n">10</span>
-          <h2>If a number looks wrong</h2>
+          <h2>Checking a figure</h2>
         </div>
 
         <p>Check three things, in this order.</p>

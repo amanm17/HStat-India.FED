@@ -138,17 +138,20 @@ export function sideCaption(
 
   if (side.share === null) return flow === 'imports' ? 'Imports' : 'Exports'
 
-  const noun = flow === 'imports' ? 'importer' : 'exporter'
+  const noun = flow === 'imports' ? 'importers' : 'exporters'
 
-  /* "1st largest exporter" is not English. First place gets said properly. */
+  /*
+   * "47th largest importer" and "1st largest exporter" were two different
+   * grammars for one measure, and the second is not English. Every rank now
+   * reads the same way - a position, out of a field - which is also what the
+   * label above it calls itself.
+   */
   const where =
-    side.rank === 1
-      ? `the world's largest ${noun}`
-      : side.rank !== null
-        ? `${ordinal(side.rank)} largest ${noun}`
-        : side.unplaced
-          ? 'outside the top ten'
-          : ''
+    side.rank !== null
+      ? `${ordinal(side.rank)} of all ${noun}`
+      : side.unplaced
+        ? 'outside the top ten'
+        : ''
 
   return where ? `${pct(side.share, 1)} ${of} · ${where}` : `${pct(side.share, 1)} ${of}`
 }

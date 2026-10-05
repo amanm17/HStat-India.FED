@@ -56,7 +56,7 @@ export function Availability({
             {
               label: 'Gaps found',
               value: String(data.holes.length),
-              note: `${data.holes.filter(hole => hole.filedSince).length} of them have filed since our snapshot was built`,
+              note: `${data.holes.filter(hole => hole.filedSince).length} of them have filed since this snapshot was built`,
             },
             data.holes[0]
               ? {
@@ -93,10 +93,10 @@ export function Availability({
       <div className="avail-page missing">
         <div className="eyebrow">UN COMTRADE · DATA AVAILABILITY</div>
 
-        <h1>Not fetched yet</h1>
+        <h1>Coverage file not built yet</h1>
 
         <p>
-          Comtrade&rsquo;s record of who has filed what, joined to our 418
+          Comtrade&rsquo;s record of which economies filed which period, joined to the 418
           products. The pipeline fetches it, not your browser: Comtrade refuses
           cross-origin calls, and a page that phones a third party on every load
           inherits its downtime.
@@ -125,7 +125,7 @@ export function Availability({
         <div>
           <div className="eyebrow">UN COMTRADE · DATA AVAILABILITY</div>
 
-          <h1>Who has filed</h1>
+          <h1>Reporter coverage</h1>
 
           <p className="avail-lede">
             Which economies have submitted data for which period, against the{' '}
@@ -159,8 +159,8 @@ export function Availability({
 
           <span>
             {due.due
-              ? `Comtrade released data as recently as ${due.since}, after our snapshot was built. The monthly refresh would pick it up.`
-              : 'Nothing published since our snapshot was built. These figures are as current as the source allows.'}
+              ? `Comtrade released data as recently as ${due.since}, after this snapshot was built. The monthly refresh would pick it up.`
+              : 'Nothing published since this snapshot was built. These figures are as current as the source allows.'}
           </span>
         </div>
       </div>
@@ -299,7 +299,7 @@ export function Availability({
                 </div>
 
                 <p>
-                  Missing from <strong>{hole.products}</strong> of our products,
+                  Missing from <strong>{hole.products}</strong> of the 418 products,
                   worth <strong>{usd(hole.priorValue, 1)}</strong> the year before.
                 </p>
 

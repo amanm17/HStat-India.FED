@@ -297,7 +297,7 @@ export function HStackPanel({
             <p>
               Add HS codes from search or from any product page. HStack totals
               their global trade, shows what each one contributes, and rebuilds
-              India's position and country rankings across the whole basket.
+              India's position and country rankings across the whole stack.
             </p>
           </div>
         )}
@@ -387,7 +387,7 @@ export function HStackPanel({
           <>
             {summary.containedCodes.length > 0 && (
               <div className="hstack-warning" data-tone="resolved">
-                <strong>Counted once, not twice</strong>
+                <strong>Overlapping codes, counted once</strong>
 
                 <span>
                   {summary.lines
@@ -463,7 +463,7 @@ export function HStackPanel({
                 <MiniMetric
                   label="India imports"
                   value={usd(summary.indiaImports)}
-                  detail="basket total"
+                  detail="stack total"
                 />
 
                 <MiniMetric
@@ -499,8 +499,8 @@ export function HStackPanel({
               <section className="chart-grid single">
                 <article className="panel chart-panel" id="hstack-longseries">
                   <PanelHead
-                    eyebrow="ACROSS THE REVISION"
-                    title="The stack over time"
+                    eyebrow="STACK OVER TIME"
+                    title="Stack total by year"
                     actions={
                       <ViewTabs
                         label="Stack over time view"
@@ -735,15 +735,15 @@ export function HStackPanel({
 
               <article className="panel">
                 <PanelHead
-                  eyebrow="COUNTRY RANKING"
-                  title="Largest importing economies"
+                  eyebrow="TOP IMPORTERS"
+                  title="Top importers worldwide"
                   note={
                     summary.economyCoverage === null
                       ? undefined
                       : `Built from each product's top economies, covering ${pct(
                           summary.economyCoverage,
                           0,
-                        )} of basket trade.`
+                        )} of the stack's trade.`
                   }
                 />
 
@@ -757,8 +757,8 @@ export function HStackPanel({
             <section className="chart-grid">
               <article className="panel">
                 <PanelHead
-                  eyebrow="INDIA SOURCING"
-                  title="Import partners for the stack"
+                  eyebrow="IMPORT PARTNERS"
+                  title="India: import partners"
                   note={
                     summary.supplierCoverage === null
                       ? undefined
@@ -790,7 +790,7 @@ export function HStackPanel({
               <article className="panel">
                 <PanelHead
                   eyebrow="CONTRIBUTION"
-                  title="Each code's share of the stack"
+                  title="Share by code"
                   note={`Share of the stack's combined figure, for CY ${summary.year}. Click a code to open it.`}
                   onCsv={() => downloadCsv(`HStack-contribution-${summary.year}`, toRows(summary))}
                 />

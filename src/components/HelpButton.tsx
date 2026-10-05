@@ -151,8 +151,8 @@ export function HelpButton({
         className={open ? 'helpbutton open' : 'helpbutton'}
         onClick={() => setOpen(value => !value)}
         aria-expanded={open}
-        aria-label="What am I looking at?"
-        title="What am I looking at?"
+        aria-label="About this page"
+        title="About this page"
       >
         <HelpCircle size={18} />
       </button>

@@ -514,13 +514,13 @@ function GlobalTradeCard({
           */}
         <div className="hero-side">
           <MiniMetric
-            label="India as a buyer"
+            label="India: import ranking"
             value={ordinal(benchmark.position.imports.rank)}
-            detail={`${benchmark.position.imports.rank === 1 ? 'of all importers' : 'largest importer'} · ${pct(benchmark.position.imports.share, 1)} of world imports`}
+            detail={`of all importers · ${pct(benchmark.position.imports.share, 1)} of world imports`}
           />
 
           <MiniMetric
-            label="India as a seller"
+            label="India: export ranking"
             value={
               benchmark.position.exports.rank !== null
                 ? ordinal(benchmark.position.exports.rank)
@@ -530,7 +530,7 @@ function GlobalTradeCard({
             }
             detail={
               benchmark.position.exports.rank !== null
-                ? `${benchmark.position.exports.rank === 1 ? 'of all exporters' : 'largest exporter'} · ${pct(benchmark.position.exports.share, 1)} of world exports`
+                ? `of all exporters · ${pct(benchmark.position.exports.share, 1)} of world exports`
                 : benchmark.position.exports.unplaced
                   ? `outside the top ten · ${pct(benchmark.position.exports.share, 1)} of world exports`
                   : 'not published for this year'
@@ -1639,17 +1639,17 @@ export function ProductView({
             },
         helpBench?.indiaValue !== null && helpBench?.indiaValue !== undefined
           ? {
-              label: 'India buys',
+              label: 'India: imports',
               value: usd(helpBench.indiaValue, 1),
               note:
                 helpBench.indiaShare !== null && helpBench.indiaRank !== null
-                  ? `${pct(helpBench.indiaShare, 1)} of the world, ${ordinal(helpBench.indiaRank)} largest importer`
+                  ? `${pct(helpBench.indiaShare, 1)} of world imports · ${ordinal(helpBench.indiaRank)} of all importers`
                   : 'India\u2019s own filing, net of re-imports',
             }
           : null,
         helpRecord?.global.coverage?.candidateReporters
           ? {
-              label: 'Who filed',
+              label: 'Reporters filed',
               value: plural(helpRecord.global.coverage.candidateReporters, 'economy', 'economies'),
               note:
                 helpRecord.global.coverage.missingPriorTop10?.length
@@ -2542,7 +2542,7 @@ export function ProductView({
       </Tile>
 
       {node.level < 6 && breakdown.rows.length > 0 && !off('whats-inside') && (
-        <Tile id="whats-inside" label="What's inside" onUnpin={onUnpinTile}>
+        <Tile id="whats-inside" label="Inside this code" onUnpin={onUnpinTile}>
         <section className="release-section breakdown">
           <div className="release-section-head">
             <div>
@@ -2719,7 +2719,7 @@ export function ProductView({
           <div>
             <div className="eyebrow">CALENDAR YEAR · {year}</div>
 
-            <h2>India's position</h2>
+            <h2>India: imports and exports</h2>
           </div>
 
           <StatusPill
@@ -2809,7 +2809,7 @@ export function ProductView({
             <strong>{pct(annual.global.indiaShare)}</strong>
             <small>
               {annual.global.indiaRank
-                ? `India is the ${ordinal(annual.global.indiaRank)} largest importer`
+                ? `India ranks ${ordinal(annual.global.indiaRank)} of all importers`
                 : 'Published only for validated years'}
             </small>
           </article>
@@ -2864,13 +2864,13 @@ export function ProductView({
         <Tile id="signals" label="Signals" onUnpin={onUnpinTile}>
       <section className="insight-grid">
         <InsightPanel
-          eyebrow="PERSPECTIVE"
+          eyebrow="YEAR ON YEAR"
           title="Year-on-year changes"
           rows={buildPerspective(node, year)}
         />
 
         <InsightPanel
-          eyebrow="DEPENDENCY"
+          eyebrow="IMPORT SOURCES"
           title="Sourcing concentration"
           rows={buildDependency(node, year)}
         />
@@ -2883,7 +2883,7 @@ export function ProductView({
         <section className="insight-grid single">
           <InsightPanel
             eyebrow="DEFINITION COVERAGE"
-            title={`How much of HS-${node.level} ${node.code} the sector definition tracks`}
+            title={`Share of HS-${node.level} ${node.code} the definition tracks`}
             rows={buildCoverage(node, year)}
             note={node.definitionShare.basis}
           />
@@ -2933,7 +2933,7 @@ export function ProductView({
                   onChange={id => setSeries(id as 'india' | 'market')}
                   tabs={[
                     { id: 'india', label: 'India trade' },
-                    { id: 'market', label: 'Global market' },
+                    { id: 'market', label: 'World trade' },
                   ]}
                 />
 

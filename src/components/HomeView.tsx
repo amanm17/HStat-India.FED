@@ -117,9 +117,9 @@ export function HomeView({
           note: 'each line in its own latest validated year, so an order of magnitude',
         },
         {
-          label: 'Lines where India imports most',
+          label: 'Products where India ranks 1st',
           value: `${leadCount} lines`,
-          note: 'India is the largest importer in the world',
+          note: 'India ranks 1st of all importers, in that line\u2019s latest validated year',
         },
         {
           label: 'Snapshot built',
@@ -296,10 +296,10 @@ export function HomeView({
       <div className="home-columns">
         <section className="home-panel">
           <div className="home-panel-head">
-            <span className="eyebrow">WHERE INDIA TAKES THE BIGGEST SHARE</span>
+            <span className="eyebrow">INDIA'S LARGEST IMPORT SHARES</span>
             <span className="home-panel-note">
               {leadCount > 0
-                ? `Share of world imports · India is the largest buyer in ${leadCount} of these lines`
+                ? `Share of world imports · India ranks 1st in ${leadCount} of these lines`
                 : 'Share of world imports · India\u2019s own imports, net of re-imports'}
             </span>
           </div>
@@ -337,7 +337,7 @@ export function HomeView({
                       * and it is the part that survives if the line truncates.
                       */}
                     <small>
-                      <b>{ordinal(entry.indiaRank)} largest buyer</b> · HS{' '}
+                      <b>{ordinal(entry.indiaRank)} of all importers</b> · HS{' '}
                       {entry.code} · {entry.globalTradeYear}
                       {entry.provisional?.length ? ' · provisional' : ''}
                     </small>

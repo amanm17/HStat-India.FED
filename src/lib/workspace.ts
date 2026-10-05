@@ -47,9 +47,9 @@ export type TileSpec = {
 export const TILES: TileSpec[] = [
   { id: 'identity', label: 'Product', note: 'Name, code and official definition', always: true },
   { id: 'lineage', label: 'Code history', note: 'What this code was before HS 2022' },
-  { id: 'global', label: 'World market', note: 'Global trade, adjusted for re-imports' },
+  { id: 'global', label: 'World trade', note: 'World imports, adjusted for re-imports' },
   { id: 'year', label: 'India this year', note: 'Imports, exports, and rank on each side' },
-  { id: 'whats-inside', label: "What's inside", note: 'Child lines and their shares' },
+  { id: 'whats-inside', label: 'Inside this code', note: 'Child lines and their shares' },
   { id: 'signals', label: 'Signals', note: 'Year-on-year changes and sourcing concentration' },
   { id: 'coverage', label: 'Coverage', note: 'How much of the heading is tracked' },
   { id: 'trends', label: 'Trends', note: 'India trade and the world market over time' },

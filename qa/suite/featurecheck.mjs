@@ -66,7 +66,7 @@ console.log('\n=== availability page ===')
 {
   const { page, errs } = await open(BASE, '/availability')
   const t = await page.innerText('body')
-  ok('with data it renders', /Who has filed/i.test(t))
+  ok('with data it renders', /Reporter coverage/i.test(t))
   ok('refresh verdict shown', /refresh would bring in new data|Nothing new since/i.test(t))
   ok('gaps joined to our products', /China/.test(t) && /240/.test(t))
   ok('"has since filed" marked', await page.locator('.avail-filed').count() > 0)
@@ -136,16 +136,23 @@ console.log('\n=== the rank says which side it measures ===')
 
   /* 47th as a buyer and 1st as a seller. Showing one without the other is the
    * bug an outside reviewer read as broken data. */
-  ok('names India as a buyer', /india as a buyer/i.test(text))
-  ok('names India as a seller', /india as a seller/i.test(text))
-  ok('import rank is labelled as imports', /largest importer/i.test(text))
-  ok('export standing is published too', /largest exporter|outside the top ten/i.test(text))
+  ok('names the import ranking', /india: import ranking/i.test(text))
+  ok('names the export ranking', /india: export ranking/i.test(text))
+  ok('import rank says what it is out of', /of all importers/i.test(text))
+  ok('export standing is published too', /of all exporters|outside the top ten/i.test(text))
   ok('no unlabelled "India share" is left', !/India share · \d{4}/.test(text))
   await page.close()
 }
 
 console.log('\n=== plain words, not story headings ===')
 {
+  /*
+   * The wording a reviewer objected to, kept out by assertion rather than by
+   * memory. Each of these described the figure in a sentence where a name
+   * would do: "India as a buyer" over a rank, "Who has filed" over a coverage
+   * table, "basket" for the thing the product calls a stack. A page that
+   * brings one back fails here.
+   */
   const banned = [
     /who buys the most/i,
     /who sells the most/i,
@@ -153,9 +160,24 @@ console.log('\n=== plain words, not story headings ===')
     /where india sells this/i,
     /what india ships under/i,
     /what india brings in under/i,
+    /india as a (buyer|seller)/i,
+    /largest (buyer|seller)/i,
+    /\d+(st|nd|rd|th) largest (importer|exporter)/i,
+    /who has filed/i,
+    /what am i looking at/i,
+    /basket total/i,
+    /what stands out/i,
+    /where india takes the biggest share/i,
   ]
 
-  for (const path of ['/hs/851713', '/']) {
+  for (const path of [
+    '/hs/851713',
+    '/hs/85176290',
+    '/',
+    '/availability',
+    '/tariff-lines',
+    '/guide',
+  ]) {
     const { page } = await open(BASE, path, { width: 1440, height: 1100 })
     const text = await page.locator('body').innerText()
     const hit = banned.find(rx => rx.test(text))
