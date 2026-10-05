@@ -16,7 +16,13 @@ import { ArrowUpRight, ChevronLeft, FileDown, Loader2 } from 'lucide-react'
 import type { CatalogueEntry } from '../types'
 import { palette } from '../lib/palette'
 import { ordinal, pct, plural, usd } from '../lib/format'
-import { Metric, MiniMetric } from './primitives'
+import {
+  Metric,
+  MiniMetric,
+  SeriesTable,
+  ViewTabs,
+  type ChartView,
+} from './primitives'
 import { reportToPdf, reportToPng } from '../lib/report'
 import { usePageHelp } from '../lib/pagehelp'
 import { usePhone } from '../lib/viewport'
@@ -82,6 +88,8 @@ export function Hs8View({
   onOpen,
   onOpenHs8,
   onHome,
+  onQuickStack,
+  inBasket,
 }: {
   hs8: string
   catalogue: CatalogueEntry[]
@@ -89,6 +97,10 @@ export function Hs8View({
   onOpen?: (code: string, level: 2 | 4 | 6) => void
   onOpenHs8?: (hs8: string) => void
   onHome?: () => void
+  /* Stacking, from the tariff line itself. A reader looking at one line is
+   * the reader most likely to want the rest of them. */
+  onQuickStack?: (entries: { code: string; level: 2 | 4 | 6 | 8 }[]) => void
+  inBasket?: (code: string) => boolean
 }) {
   const hs6 = parentOf(hs8)
 
@@ -97,6 +109,10 @@ export function Hs8View({
   const [basis, setBasis] = useState<DgcisBasis>('usd')
   const [flow, setFlow] = useState<DgcisFlow | null>(null)
   const [span, setSpan] = useState<'all' | '36'>('36')
+
+  /* Chart or table, on both charts on this page. */
+  const [monthView, setMonthView] = useState<ChartView>('chart')
+  const [fyView, setFyView] = useState<ChartView>('chart')
   const phone = usePhone()
   const [busy, setBusy] = useState<'pdf' | 'png' | null>(null)
 
@@ -369,6 +385,49 @@ export function Hs8View({
         </div>
 
         <div className="dgcis-switches">
+          {onQuickStack && (
+            <div className="hs8-stack-actions">
+              <button
+                className="stack-add quiet"
+                disabled={inBasket?.(hs8) ?? false}
+                onClick={() => onQuickStack([{ code: hs8, level: 8 }])}
+                title="Add this tariff line to HStack"
+              >
+                {inBasket?.(hs8) ? 'In HStack' : 'Add to HStack'}
+              </button>
+
+              {siblings.length > 1 && (
+                <button
+                  className="stack-add quiet"
+                  onClick={() =>
+                    onQuickStack(
+                      siblings.map(item => ({
+                        code: item.line.hs8,
+                        level: 8 as const,
+                      })),
+                    )
+                  }
+                  title={`Add all ${siblings.length} tariff lines under HS ${hs6} to HStack`}
+                >
+                  All {siblings.length} lines here
+                </button>
+              )}
+
+              <button
+                className="stack-add quiet"
+                onClick={() =>
+                  onQuickStack([
+                    { code: hs8, level: 8 },
+                    { code: hs6, level: 6 },
+                  ])
+                }
+                title={`Stack this line with HS ${hs6}, the heading it sits under`}
+              >
+                With HS {hs6}
+              </button>
+            </div>
+          )}
+
           {/*
             * A tariff line is reportable like a product page. The capture
             * machinery keys off tile-<id>, so giving the sections ids was the
@@ -557,20 +616,41 @@ export function Hs8View({
             <h2>{flowWord(flow)}, month by month</h2>
           </div>
 
-          <div className="basis-switch" role="group" aria-label="Span">
-            {([['36', 'Last 3 years'], ['all', 'All']] as const).map(([value, label]) => (
-              <button
-                key={value}
-                className={span === value ? 'active' : ''}
-                aria-pressed={span === value}
-                onClick={() => setSpan(value)}
-              >
-                {label}
-              </button>
-            ))}
+          <div className="hs8-chart-controls">
+            <div className="basis-switch" role="group" aria-label="Span">
+              {([['36', 'Last 3 years'], ['all', 'All']] as const).map(([value, label]) => (
+                <button
+                  key={value}
+                  className={span === value ? 'active' : ''}
+                  aria-pressed={span === value}
+                  onClick={() => setSpan(value)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <ViewTabs
+              label="Monthly series view"
+              view={monthView}
+              onChange={setMonthView}
+            />
           </div>
         </div>
 
+        {monthView === 'table' ? (
+          <SeriesTable
+            caption={`${flowWord(flow)} by month, ${unit}`}
+            columns={[
+              { key: 'month', label: 'Month' },
+              { key: 'value', label: `${flowWord(flow)} (${unit})`, numeric: true },
+            ]}
+            rows={[...chart].reverse().map(point => ({
+              month: point.label,
+              value: point.value === null ? null : formatValue(point.value),
+            }))}
+          />
+        ) : (
         <ResponsiveContainer width="100%" height={260}>
           <AreaChart data={chart} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
             <CartesianGrid stroke={colours.grid} vertical={false} />
@@ -617,17 +697,41 @@ export function Hs8View({
             />
           </AreaChart>
         </ResponsiveContainer>
+        )}
       </section>
 
       <section className="hs8-years" id="tile-hs8-years">
         <div className="hs8-years-block">
-          <h3>Indian financial years</h3>
+          <div className="hs8-years-head">
+            <h3>Indian financial years</h3>
+
+            <ViewTabs
+              label="Financial years view"
+              view={fyView}
+              onChange={setFyView}
+            />
+          </div>
 
           <p className="hs8-note">
             April to March, as India files. Incomplete years are marked and are
             not comparable with full ones.
           </p>
 
+          {fyView === 'table' ? (
+            <SeriesTable
+              caption={`${flowWord(flow)} by Indian financial year, ${unit}`}
+              columns={[
+                { key: 'label', label: 'Financial year' },
+                { key: 'total', label: `Total (${unit})`, numeric: true },
+                { key: 'months', label: 'Months filed', numeric: true },
+              ]}
+              rows={[...fy].reverse().map(row => ({
+                label: row.label,
+                total: formatValue(row.total),
+                months: row.complete ? '12' : `${row.months} of 12`,
+              }))}
+            />
+          ) : (
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={fy} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
               <CartesianGrid stroke={colours.grid} vertical={false} />
@@ -676,6 +780,7 @@ export function Hs8View({
               </Bar>
             </BarChart>
           </ResponsiveContainer>
+          )}
         </div>
 
         <div className="hs8-years-block">

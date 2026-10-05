@@ -395,7 +395,7 @@ export function Guide({
           from the other.
         </p>
 
-        <h3>4.3 &nbsp;Who buys and who sells</h3>
+        <h3>4.3 &nbsp;Top importers and exporters</h3>
 
         <p>
           The largest importing and exporting economies for the selected year.

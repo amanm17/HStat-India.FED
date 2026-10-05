@@ -40,6 +40,7 @@ import {
   nameOf,
 } from '../lib/format'
 import { comtradeQueryUrl, datasetsFor } from '../lib/comtrade'
+import { standing, sideCaption } from '../lib/standing'
 import { usePageHelp } from '../lib/pagehelp'
 import {
   flowPhrase,
@@ -85,8 +86,11 @@ import {
   MiniMetric,
   PanelHead,
   StatusPill,
+  SeriesTable,
   Tabs,
   Tile,
+  ViewTabs,
+  type ChartView,
 } from './primitives'
 
 type Horizon = '5Y' | '10Y' | 'ALL'
@@ -284,6 +288,10 @@ function GlobalTradeCard({
    */
   const selected = node.annual[String(year)]?.global ?? null
 
+  /* India's own trade for the same year, so the card can say where India
+   * stands as a buyer and as a seller rather than only as a buyer. */
+  const indiaYear = node.annual[String(year)]?.india ?? null
+
   /*
    * A retired code has no benchmark at all - latest_benchmark() only looks at
    * years inside the detail window, and every one of those failed coverage
@@ -384,6 +392,7 @@ function GlobalTradeCard({
     value,
     indiaRank: selected!.indiaRank,
     indiaShare: selected!.indiaShare,
+    position: standing({ india: indiaYear, global: selected }),
     adjustmentCoverage: observed?.adjustmentCoverage ?? null,
     mirror: selected!.mirror,
     topEconomies: selected!.topEconomies ?? [],
@@ -416,8 +425,8 @@ function GlobalTradeCard({
 
           <h2>
             {basis === 'gross'
-              ? 'One figure, as reported'
-              : 'One figure, adjusted for re-imports'}
+              ? 'World imports, as reported'
+              : 'World imports, net of re-imports'}
           </h2>
         </div>
 
@@ -492,17 +501,40 @@ function GlobalTradeCard({
           </div>
         </div>
 
+        {/*
+          * Both sides, each named.
+          *
+          * The headline figure on this card is world imports, so the rank
+          * beside it was always an import rank - but it was labelled "India
+          * rank", full stop, and a reader had no way to know. For a product
+          * India manufactures and sells, that single number is the opposite
+          * of the story: 47th as a buyer, 1st as a seller. Showing one and
+          * hiding the other is how the page came to look wrong when the data
+          * was right.
+          */}
         <div className="hero-side">
           <MiniMetric
-            label="India rank"
-            value={ordinal(benchmark.indiaRank)}
-            detail={`of ${benchmark.topEconomies.length ? 'all reporters' : '—'}`}
+            label="India as a buyer"
+            value={ordinal(benchmark.position.imports.rank)}
+            detail={`${benchmark.position.imports.rank === 1 ? 'of all importers' : 'largest importer'} · ${pct(benchmark.position.imports.share, 1)} of world imports`}
           />
 
           <MiniMetric
-            label="India share"
-            value={pct(benchmark.indiaShare)}
-            detail="of global trade"
+            label="India as a seller"
+            value={
+              benchmark.position.exports.rank !== null
+                ? ordinal(benchmark.position.exports.rank)
+                : benchmark.position.exports.unplaced
+                  ? 'Top 10+'
+                  : '—'
+            }
+            detail={
+              benchmark.position.exports.rank !== null
+                ? `${benchmark.position.exports.rank === 1 ? 'of all exporters' : 'largest exporter'} · ${pct(benchmark.position.exports.share, 1)} of world exports`
+                : benchmark.position.exports.unplaced
+                  ? `outside the top ten · ${pct(benchmark.position.exports.share, 1)} of world exports`
+                  : 'not published for this year'
+            }
           />
 
         </div>
@@ -669,7 +701,7 @@ function PullData({
         className="stack-add"
         aria-expanded={open}
         onClick={() => setOpen(value => !value)}
-        title="The UN Comtrade rows behind this page"
+        title="Source rows from UN Comtrade"
       >
         <Download size={15} />
         Source data
@@ -879,8 +911,8 @@ function DgcisPanel({
 
           <h2>
             {flow === 'exports'
-              ? 'What India ships under this heading'
-              : 'What India brings in under this heading'}
+              ? "India's exports, by tariff line"
+              : "India's imports, by tariff line"}
           </h2>
         </div>
 
@@ -1435,6 +1467,7 @@ export function ProductView({
   methodology,
   dark,
   onAddToStack,
+  onQuickStack,
   inBasket,
   onOpen,
   showHs8 = false,
@@ -1459,6 +1492,9 @@ export function ProductView({
   methodology: Methodology | null
   dark: boolean
   onAddToStack: () => void
+  /* Several codes at once: the parent level, or every tariff line under this
+   * heading. See addManyToBasket in App.tsx. */
+  onQuickStack?: (entries: { code: string; level: 2 | 4 | 6 | 8 }[]) => void
   inBasket: boolean
   onOpen?: (code: string, level: 2 | 4 | 6) => void
   showHs8?: boolean
@@ -1514,6 +1550,41 @@ export function ProductView({
   }, [node.code])
 
   const dgcisCovered = dgcis === undefined ? null : dgcis !== null
+
+  /*
+   * The tariff lines this heading actually has, for the quick stack.
+   *
+   * Read defensively on purpose. This runs in the product page's own body,
+   * outside the boundary that guards the DGCIS panel, so a payload whose
+   * `lines` array holds a null - which the boundary suite forces, because a
+   * real source eventually will - would take down the whole page from here
+   * rather than the one panel that is allowed to fail.
+   */
+  const dgcisLineCodes = useMemo(
+    () =>
+      (dgcis?.lines ?? [])
+        .map(line => line?.hs8)
+        .filter((code): code is string => typeof code === 'string'),
+    [dgcis],
+  )
+
+  /*
+   * The level above this one, when there is one. Stacking a code with its
+   * parent is how a reader sees the share it represents: HStack already
+   * detects that the parent contains the child and prints the proportion
+   * rather than double counting it.
+   */
+  const parentLevel = useMemo((): { code: string; level: 2 | 4 } | null => {
+    /* `parentCode` is the level immediately above: HS-4 for a six-digit code,
+     * HS-2 for a four-digit one. A chapter has no parent. */
+    if (!node.parentCode) return null
+
+    if (node.level === 6) return { code: node.parentCode, level: 4 }
+
+    if (node.level === 4) return { code: node.parentCode, level: 2 }
+
+    return null
+  }, [node])
 
   /*
    * The help card, filled from this product and this year.
@@ -1686,12 +1757,19 @@ export function ProductView({
 
   /* Same rows, two readings. The chart is the default; the table is the one
    * people copy figures out of. */
-  const [sourceView, setSourceView] = useState<'chart' | 'table'>('chart')
-  const [marketView, setMarketView] = useState<'chart' | 'table'>('chart')
+  /* Every chart on this page can be read as a table. The switch is the same
+   * control in each panel; see ViewTabs in ./primitives. */
+  const [trendView, setTrendView] = useState<ChartView>('chart')
+  const [sourceView, setSourceView] = useState<ChartView>('chart')
+  const [marketView, setMarketView] = useState<ChartView>('chart')
 
   const colours = palette(dark)
 
   const annual: PeriodRecord | undefined = node.annual[String(year)]
+
+  /* India's standing on both sides of the trade, each labelled with the side
+   * it measures. See src/lib/standing.ts for why this exists. */
+  const position = useMemo(() => standing(annual), [annual])
 
   /*
    * True when the selected year is past the point where this classification
@@ -2041,8 +2119,8 @@ export function ProductView({
           'Calendar year': item,
           'Global trade (USD)': record.global.trade,
           'Coverage status': record.global.coverage?.status ?? null,
-          'India rank': record.global.indiaRank,
-          'India share of global trade': record.global.indiaShare,
+          'India rank among importers': record.global.indiaRank,
+          'India share of world imports': record.global.indiaShare,
           'India imports (USD)': record.india.imports,
           'India exports (USD)': record.india.exports,
           'India trade balance (USD)': record.india.balance,
@@ -2382,6 +2460,49 @@ export function ProductView({
             {inBasket ? 'In HStack' : 'Add to HStack'}
           </button>
 
+          {/*
+            * Quick stacks.
+            *
+            * Two questions people were answering by hand: "where does this
+            * code sit inside its parent" - which HStack already answers, once
+            * both are stacked, with the share-of-parent line - and "show me
+            * every tariff line under this heading", which was eleven separate
+            * Adds on HS 8517.
+            */}
+          {onQuickStack && parentLevel && (
+            <button
+              className="stack-add quiet"
+              onClick={() =>
+                onQuickStack([
+                  { code: node.code, level: node.level },
+                  { code: parentLevel.code, level: parentLevel.level },
+                ])
+              }
+              title={`Stack this code together with HS-${parentLevel.level} ${parentLevel.code}, to see its share of the wider level`}
+            >
+              <Plus size={15} />
+              With HS-{parentLevel.level} parent
+            </button>
+          )}
+
+          {/* Offered from two lines up. With one line there is nothing to
+              put together, and "All 1 tariff lines" is a button that has not
+              been read by anyone. */}
+          {onQuickStack && node.level === 6 && dgcisLineCodes.length > 1 && (
+            <button
+              className="stack-add quiet"
+              onClick={() =>
+                onQuickStack(
+                  dgcisLineCodes.map(code => ({ code, level: 8 as const })),
+                )
+              }
+              title={`Stack all ${dgcisLineCodes.length} of India's eight-digit lines under this heading`}
+            >
+              <Plus size={15} />
+              All {dgcisLineCodes.length} tariff lines
+            </button>
+          )}
+
           <PullData node={node} year={year} onOpen={onOpen} />
 
           {onTogglePin && (
@@ -2431,8 +2552,8 @@ export function ProductView({
 
               <h2>
                 {node.level === 2
-                  ? 'The headings within this chapter'
-                  : 'The six-digit lines within this heading'}
+                  ? 'Headings inside this chapter'
+                  : 'Six-digit codes inside this heading'}
               </h2>
             </div>
           </div>
@@ -2629,13 +2750,21 @@ export function ProductView({
           <article className="release-metric">
             <span>India imports</span>
             <strong>{cy(annual.india.imports).text}</strong>
-            <small>Reporter · India · CY {year}</small>
+            <small>
+              {position.imports.share === null
+                ? `Reporter · India · CY ${year}`
+                : sideCaption(position.imports, 'imports', pct, ordinal)}
+            </small>
           </article>
 
           <article className="release-metric">
             <span>India exports</span>
             <strong>{cy(annual.india.exports).text}</strong>
-            <small>Reporter · India · CY {year}</small>
+            <small>
+              {position.exports.share === null
+                ? `Reporter · India · CY ${year}`
+                : sideCaption(position.exports, 'exports', pct, ordinal)}
+            </small>
           </article>
 
           <article className="release-metric">
@@ -2667,12 +2796,20 @@ export function ProductView({
             </small>
           </article>
 
+          {/*
+            * This tile used to read "India share · 2025 / Rank 47th" with no
+            * word about which side it measured. Both numbers are import-side,
+            * and they sat two tiles along from India's exports, which is how a
+            * reviewer came to believe the data was wrong. The share is now
+            * named for what it is, and India's standing as a seller is on the
+            * exports tile rather than missing from the page.
+            */}
           <article className="release-metric">
-            <span>India share · {year}</span>
+            <span>Share of world imports · {year}</span>
             <strong>{pct(annual.global.indiaShare)}</strong>
             <small>
               {annual.global.indiaRank
-                ? `Rank ${ordinal(annual.global.indiaRank)}`
+                ? `India is the ${ordinal(annual.global.indiaRank)} largest importer`
                 : 'Published only for validated years'}
             </small>
           </article>
@@ -2728,7 +2865,7 @@ export function ProductView({
       <section className="insight-grid">
         <InsightPanel
           eyebrow="PERSPECTIVE"
-          title="What stands out"
+          title="Year-on-year changes"
           rows={buildPerspective(node, year)}
         />
 
@@ -2789,15 +2926,23 @@ export function ProductView({
                   : 'A year is drawn only where its reporter coverage was assessed and passed. Gaps are years that did not pass, never estimates.'
             }
             actions={
-              <Tabs
-                label="Which series to chart"
-                active={series}
-                onChange={id => setSeries(id as 'india' | 'market')}
-                tabs={[
-                  { id: 'india', label: 'India trade' },
-                  { id: 'market', label: 'Global market' },
-                ]}
-              />
+              <>
+                <Tabs
+                  label="Which series to chart"
+                  active={series}
+                  onChange={id => setSeries(id as 'india' | 'market')}
+                  tabs={[
+                    { id: 'india', label: 'India trade' },
+                    { id: 'market', label: 'Global market' },
+                  ]}
+                />
+
+                <ViewTabs
+                  label="Trade over time view"
+                  view={trendView}
+                  onChange={setTrendView}
+                />
+              </>
             }
             onPng={() =>
               downloadChart(
@@ -2831,8 +2976,65 @@ export function ProductView({
             }
           />
 
-          <div className="chart-shell tall">
-            {series === 'india' ? (
+          <div className={trendView === 'table' ? undefined : 'chart-shell tall'}>
+            {trendView === 'table' ? (
+              /*
+                * The same points the chart plots, formatted with the same
+                * function its tooltip uses - so a reader switching views sees
+                * the figures they were just hovering, rupees included.
+                */
+              series === 'india' ? (
+                <SeriesTable
+                  caption={`India imports and exports, ${frequency === 'monthly' ? 'by month' : 'by year'}`}
+                  columns={[
+                    { key: 'period', label: 'Period' },
+                    { key: 'imports', label: 'India imports', numeric: true },
+                    { key: 'exports', label: 'India exports', numeric: true },
+                  ]}
+                  rows={[...chart.data].reverse().map(point => ({
+                    period: point.full,
+                    imports:
+                      point.imports === null
+                        ? null
+                        : chart.inr
+                          ? inr(point.imports)
+                          : usd(point.imports),
+                    exports:
+                      point.exports === null
+                        ? null
+                        : chart.inr
+                          ? inr(point.exports)
+                          : usd(point.exports),
+                  }))}
+                />
+              ) : (
+                <SeriesTable
+                  caption="Global trade by year, validated years only"
+                  columns={[
+                    { key: 'year', label: 'Calendar year' },
+                    { key: 'trade', label: 'Global trade', numeric: true },
+                    ...(predecessorCode
+                      ? [
+                          {
+                            key: 'predecessor',
+                            label: `HS ${predecessorCode}`,
+                            numeric: true,
+                          },
+                        ]
+                      : []),
+                  ]}
+                  rows={[...globalTrend].reverse().map(point => ({
+                    year: point.label,
+                    trade: point.trade === null ? null : usd(point.trade),
+                    predecessor:
+                      point.predecessor === null ||
+                      point.predecessor === undefined
+                        ? null
+                        : usd(point.predecessor),
+                  }))}
+                />
+              )
+            ) : series === 'india' ? (
               <>
                 <div className="chart-controls">
                   {hasMonthly && (
@@ -3041,7 +3243,12 @@ export function ProductView({
               </ResponsiveContainer>
             )}
 
-            <div className="axis-note">{unitNote}</div>
+            {/* The axis unit belongs to the axis. In table view each figure
+                carries its own unit, and this label was left floating over
+                the first column header. */}
+            {trendView === 'chart' && (
+              <div className="axis-note">{unitNote}</div>
+            )}
           </div>
         </article>
       </section>
@@ -3049,7 +3256,7 @@ export function ProductView({
       )}
 
       {/*
-        * Who buys the most of this product, and who sells the most of it.
+        * The largest importers of this product, and the largest exporters.
         *
         * These are two different totals and must never be merged into one
         * league table: the buying side is measured with freight and insurance
@@ -3058,12 +3265,12 @@ export function ProductView({
         * which year it is on.
         */}
       {!off('importers') && (
-        <Tile id="importers" label="Who buys" onUnpin={onUnpinTile}>
+        <Tile id="importers" label="Top importers" onUnpin={onUnpinTile}>
       <section className="chart-grid leaders single">
         <article className="panel">
           <PanelHead
             eyebrow={`LARGEST IMPORTERS · ${node.globalTrade?.year ?? '—'}`}
-            title="Who buys the most of this product"
+            title="Top importers worldwide"
             note={
               node.globalTrade
                 ? `Share of ${usd(node.globalTrade.value)} of world imports, net of re-imports. Valued CIF.`
@@ -3082,12 +3289,12 @@ export function ProductView({
       )}
 
       {!off('exporters') && (
-        <Tile id="exporters" label="Who sells" onUnpin={onUnpinTile}>
+        <Tile id="exporters" label="Top exporters" onUnpin={onUnpinTile}>
       <section className="chart-grid leaders single">
         <article className="panel">
           <PanelHead
             eyebrow={`LARGEST EXPORTERS · ${node.globalTrade?.year ?? '—'}`}
-            title="Who sells the most of this product"
+            title="Top exporters worldwide"
             note={
               node.globalTrade?.netExports
                 ? `Share of ${usd(node.globalTrade.netExports)} of world exports, net of re-exports. Valued FOB, so this total is not the same as the import total beside it.`
@@ -3115,16 +3322,12 @@ export function ProductView({
         <article className="panel chart-panel" id="supplier-chart">
           <PanelHead
             eyebrow={`INDIA'S IMPORT SOURCES · ${year}`}
-            title="Where India buys this from"
+            title="India's import partners"
             actions={
-              <Tabs
-                label="Import sources view"
-                active={sourceView}
-                onChange={id => setSourceView(id as 'chart' | 'table')}
-                tabs={[
-                  { id: 'chart', label: 'Chart' },
-                  { id: 'table', label: 'Table' },
-                ]}
+              <ViewTabs
+                label="Import partners view"
+                view={sourceView}
+                onChange={setSourceView}
               />
             }
             onPng={
@@ -3223,16 +3426,12 @@ export function ProductView({
         <article className="panel chart-panel" id="destination-chart">
           <PanelHead
             eyebrow={`INDIA'S EXPORT MARKETS · ${year}`}
-            title="Where India sells this"
+            title="India's export partners"
             actions={
-              <Tabs
-                label="Export markets view"
-                active={marketView}
-                onChange={id => setMarketView(id as 'chart' | 'table')}
-                tabs={[
-                  { id: 'chart', label: 'Chart' },
-                  { id: 'table', label: 'Table' },
-                ]}
+              <ViewTabs
+                label="Export partners view"
+                view={marketView}
+                onChange={setMarketView}
               />
             }
             onPng={
@@ -3384,7 +3583,7 @@ export function ProductView({
                       node.annual[String(item)].india.imports,
                     'India exports (USD)':
                       node.annual[String(item)].india.exports,
-                    'India share of global trade':
+                    'India share of world imports':
                       node.annual[String(item)].global.indiaShare,
                   })),
                 {

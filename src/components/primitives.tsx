@@ -324,6 +324,110 @@ export function ExplainMetric({
  * two panels doubles the page for no extra information. Same for a trade
  * series and the market it sits in: the reader wants one at a time.
  */
+/*
+ * Chart or table, on every chart.
+ *
+ * An outside review asked for this on all of them, not some: a reader who
+ * wants the numbers should never have to work out which panels happen to
+ * offer them. Two panels already had their own copy of this switch; this is
+ * that switch, named once, so a seventh chart cannot ship without one and
+ * the two cannot drift apart in wording.
+ *
+ * The table it reveals is always built from the same array the chart is
+ * plotted from. That is the whole point: a table assembled separately can
+ * disagree with the picture beside it, and then neither can be trusted.
+ */
+export type ChartView = 'chart' | 'table'
+
+/*
+ * The table behind a chart.
+ *
+ * Deliberately not `DataTable`: that one guesses a column's meaning from its
+ * name and formats accordingly, which is right for a league table of raw
+ * figures and wrong here. A chart may be drawn in rupees, and a table that
+ * silently prints the same points with a dollar sign is worse than no table.
+ * So the caller formats each cell with the exact function the chart's tooltip
+ * uses, and this renders what it is given.
+ *
+ * It carries no download buttons. The panel header above it already has CSV
+ * and PNG, and a second set inside the panel was two answers to one question.
+ */
+export function SeriesTable({
+  columns,
+  rows,
+  caption,
+}: {
+  columns: { key: string; label: string; numeric?: boolean }[]
+  rows: Record<string, string | number | null>[]
+  /* Read by screen readers in place of the chart it replaces. */
+  caption: string
+}) {
+  if (!rows.length) return <Empty>Nothing to tabulate for this selection.</Empty>
+
+  return (
+    <div className="tablewrap series-table">
+      <table>
+        <caption className="sr-only">{caption}</caption>
+
+        <thead>
+          <tr>
+            {columns.map(column => (
+              <th
+                key={column.key}
+                scope="col"
+                className={column.numeric ? 'num' : undefined}
+              >
+                {column.label}
+              </th>
+            ))}
+          </tr>
+        </thead>
+
+        <tbody>
+          {rows.map((row, index) => (
+            <tr key={index}>
+              {columns.map(column => (
+                <td
+                  key={column.key}
+                  className={column.numeric ? 'num' : undefined}
+                >
+                  {row[column.key] === null || row[column.key] === undefined
+                    ? '—'
+                    : row[column.key]}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+
+export function ViewTabs({
+  view,
+  onChange,
+  label,
+}: {
+  view: ChartView
+  onChange: (view: ChartView) => void
+  /* Names the pair for a screen reader: "Monthly series view". */
+  label: string
+}) {
+  return (
+    <Tabs
+      label={label}
+      active={view}
+      onChange={id => onChange(id as ChartView)}
+      tabs={[
+        { id: 'chart', label: 'Chart' },
+        { id: 'table', label: 'Table' },
+      ]}
+    />
+  )
+}
+
 export function Tabs({
   tabs,
   active,

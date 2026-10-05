@@ -129,7 +129,7 @@ export function HomeTariffLines({
         </div>
 
         <div>
-          <h3>Above their own average</h3>
+          <h3>Running above their monthly average</h3>
           <p className="home-hs8-note">
             latest month against one twelfth of the year
           </p>

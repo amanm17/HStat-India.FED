@@ -30,6 +30,7 @@ import {
 import {
   readBasket,
   saveBasket,
+  comtradeEntries,
   type BasketEntry,
 } from './lib/hstack'
 
@@ -336,7 +337,7 @@ function App() {
   useEffect(() => {
     saveBasket(basket)
 
-    if (!basket.length) {
+    if (!comtradeEntries(basket).length) {
       setBasketNodes([])
       return
     }
@@ -345,7 +346,9 @@ function App() {
 
     setBasketLoading(true)
 
-    loadHsNodes(snapshot, basket)
+    /* Eight-digit lines are DGCIS, not Comtrade: there is no snapshot node to
+     * load for them, and the stack totals them separately. */
+    loadHsNodes(snapshot, comtradeEntries(basket))
       .then(loaded => {
         if (!cancelled) setBasketNodes(loaded)
       })
@@ -677,6 +680,29 @@ function App() {
         ? current
         : [...current, entry],
     )
+  }, [])
+
+  /*
+   * Quick stacking: several codes in one gesture.
+   *
+   * The reviewer's ask was "if I want to see all the HS-8 codes India has for
+   * a given HS-6, put them together", and doing that one Add at a time is
+   * eleven taps on some headings. Adds are idempotent and capped by the same
+   * limit the basket already has, so a second tap on the same button is a
+   * no-op rather than a duplicate.
+   */
+  const addManyToBasket = useCallback((incoming: BasketEntry[]) => {
+    setBasket(current => {
+      const have = new Set(current.map(entry => entry.code))
+
+      const fresh = incoming.filter(entry => !have.has(entry.code))
+
+      if (!fresh.length) return current
+
+      return [...current, ...fresh].slice(0, 40)
+    })
+
+    setStackOpen(true)
   }, [])
 
   const removeFromBasket = useCallback((code: string) => {
@@ -1083,6 +1109,8 @@ function App() {
               onOpen={openCode}
               onOpenHs8={openHs8}
               onHome={goHome}
+              onQuickStack={addManyToBasket}
+              inBasket={inBasket}
             />
           </Safely>
         ) : onProduct && node && year !== null ? (
@@ -1147,6 +1175,7 @@ function App() {
           onAddToStack={() =>
             addToBasket({ code: node.code, level: node.level })
           }
+          onQuickStack={addManyToBasket}
           onOpenHs8={openHs8}
         />
         ) : (

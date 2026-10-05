@@ -37,14 +37,14 @@ console.log('\n=== J. two-flow switching — HS-6 851713 ===')
   ok('exports is the default selection',
      (await page.locator('[aria-label="Flow"] button[aria-pressed="true"]').innerText()).trim() === 'Exports')
   let t = await panel.innerText()
-  ok('export heading correct', /What India ships under this heading/i.test(t))
+  ok('export heading correct', /India.s exports, by tariff line/i.test(t))
   const exportText = t
   const exportValue = t.match(/[\d,]+(?:\.\d+)?(?=\s*(?:USD mn|$))/m)?.[0]
   ok('export value present', !!exportValue, exportValue ?? '')
 
   await flowBtns(page).nth(1).click(); await page.waitForTimeout(600)
   t = await panel.innerText()
-  ok('import heading correct', /What India brings in under this heading/i.test(t))
+  ok('import heading correct', /India.s imports, by tariff line/i.test(t))
   const importText = t
   ok('displayed values changed to imports', importText !== exportText)
   ok('footer names the current flow', /partner World, imports/i.test(t))
@@ -59,7 +59,7 @@ console.log('\n=== J. two-flow switching — HS-6 851713 ===')
   await flowBtns(page).nth(0).click(); await page.waitForTimeout(600)
   t = await panel.innerText()
   ok('switching back restores exports',
-     /What India ships/i.test(t) &&
+     /India.s exports, by tariff line/i.test(t) &&
      !!exportValue &&
      t.includes(exportValue))
   ok('no page errors during HS-6 flow switching', errors.length === 0, errors[0] ?? '')

@@ -18,13 +18,28 @@ import {
   bestYear,
   combinedSeries,
   familyGaps,
+  hs8Entries,
   summarise,
   toRows,
 } from '../lib/hstack'
+import {
+  formatValue,
+  loadDgcisIndex,
+  type DgcisIndexEntry,
+} from '../lib/dgcis'
 import { concentrationLabel, pct, usd } from '../lib/format'
 import { palette } from '../lib/palette'
 import { downloadCsv, downloadXlsx } from '../lib/export'
-import { DataTable, Empty, MiniMetric, PanelHead, Tabs } from './primitives'
+import {
+  DataTable,
+  Empty,
+  MiniMetric,
+  PanelHead,
+  SeriesTable,
+  Tabs,
+  ViewTabs,
+  type ChartView,
+} from './primitives'
 
 /*
  * HStack reads a basket of HS codes the way a checkout reads a cart: the
@@ -101,6 +116,62 @@ export function HStackPanel({
    * difference is usually the point of stacking them in the first place.
    */
   const [metric, setMetric] = useState<'trade' | 'imports' | 'exports'>('trade')
+
+  /* Chart or table, on both charts in this panel. */
+  const [longView, setLongView] = useState<ChartView>('chart')
+  const [compositionView, setCompositionView] = useState<ChartView>('chart')
+
+  /*
+   * The eight-digit side of the stack.
+   *
+   * Loaded from the DGCIS index rather than the snapshot, because that is
+   * where tariff lines live, and held apart from `summary` for the reason set
+   * out in lib/hstack.ts: these are India's own filings against a national
+   * schedule, with no world total to sit beside and no basis on which to be
+   * added to the Comtrade figures above.
+   */
+  const stackedHs8 = useMemo(() => hs8Entries(entries), [entries])
+
+  const [hs8Lines, setHs8Lines] = useState<DgcisIndexEntry[] | null>(null)
+
+  useEffect(() => {
+    if (!stackedHs8.length) {
+      setHs8Lines(null)
+      return
+    }
+
+    let live = true
+
+    loadDgcisIndex()
+      .then(index => {
+        if (!live || !index) return
+
+        const wanted = new Set(stackedHs8.map(entry => entry.code))
+
+        setHs8Lines(index.lines.filter(line => wanted.has(line.hs8)))
+      })
+      .catch(() => {
+        /* The tariff layer is an addition; a stack without it still totals
+         * everything else on the page. */
+        if (live) setHs8Lines([])
+      })
+
+    return () => {
+      live = false
+    }
+  }, [stackedHs8])
+
+  const hs8Totals = useMemo(() => {
+    if (!hs8Lines?.length) return null
+
+    const sum = (flow: 'exports' | 'imports') =>
+      hs8Lines.reduce(
+        (total, line) => total + (line.flows[flow]?.last12UsdMillion ?? 0),
+        0,
+      )
+
+    return { exports: sum('exports'), imports: sum('imports') }
+  }, [hs8Lines])
 
   const METRICS = {
     trade: {
@@ -235,6 +306,83 @@ export function HStackPanel({
           <div className="hstack-loading">Loading {entries.length} codes…</div>
         )}
 
+        {/*
+          * India's tariff lines, totalled on their own.
+          *
+          * Placed above the Comtrade section when that section is empty - a
+          * stack of only eight-digit lines should not open on a blank panel -
+          * and below it otherwise, because the world figures are the wider
+          * context and the tariff lines are the detail inside them.
+          */}
+        {hs8Lines !== null && hs8Lines.length > 0 && (
+          <section className="hstack-hs8" id="hstack-tariff-lines">
+            <PanelHead
+              eyebrow="INDIA TARIFF LINES · DGCIS"
+              title={`${hs8Lines.length} eight-digit line${hs8Lines.length === 1 ? '' : 's'}, last 12 months`}
+              note="India's own filings against its tariff schedule. There is no world figure at eight digits, so these are totalled on their own and never added to the global figures above."
+              onCsv={() =>
+                downloadCsv(
+                  'HStack-tariff-lines',
+                  hs8Lines.map(line => ({
+                    'HS8': line.hs8,
+                    Name: line.title || line.headingName,
+                    'Heading': line.hs6,
+                    'Exports (USD mn, 12 months)':
+                      line.flows.exports?.last12UsdMillion ?? null,
+                    'Imports (USD mn, 12 months)':
+                      line.flows.imports?.last12UsdMillion ?? null,
+                  })),
+                )
+              }
+            />
+
+            {hs8Totals && (
+              <div className="hstack-metrics">
+                {/* The unit belongs in the caption, not the number: at tile
+                    width "32,535 USD mn" truncated to "32,535 USD …", which
+                    reads as a figure that has been cut off. */}
+                <MiniMetric
+                  label="India exports"
+                  value={formatValue(hs8Totals.exports)}
+                  detail={`USD mn · ${hs8Lines.length} line${hs8Lines.length === 1 ? '' : 's'}, last 12 months`}
+                />
+
+                <MiniMetric
+                  label="India imports"
+                  value={formatValue(hs8Totals.imports)}
+                  detail={`USD mn · ${hs8Lines.length} line${hs8Lines.length === 1 ? '' : 's'}, last 12 months`}
+                />
+              </div>
+            )}
+
+            <SeriesTable
+              caption="Stacked tariff lines, last twelve months"
+              columns={[
+                { key: 'code', label: 'HS8' },
+                { key: 'name', label: 'Name' },
+                { key: 'exports', label: 'Exports (USD mn)', numeric: true },
+                { key: 'imports', label: 'Imports (USD mn)', numeric: true },
+              ]}
+              rows={[...hs8Lines]
+                .sort(
+                  (a, b) =>
+                    (b.flows.exports?.last12UsdMillion ?? 0) -
+                    (a.flows.exports?.last12UsdMillion ?? 0),
+                )
+                .map(line => ({
+                  code: line.hs8,
+                  name: line.title || line.headingName,
+                  exports: formatValue(
+                    line.flows.exports?.last12UsdMillion ?? null,
+                  ),
+                  imports: formatValue(
+                    line.flows.imports?.last12UsdMillion ?? null,
+                  ),
+                }))}
+            />
+          </section>
+        )}
+
         {summary && !loading && (
           <>
             {summary.containedCodes.length > 0 && (
@@ -331,9 +479,9 @@ export function HStackPanel({
                 />
 
                 <MiniMetric
-                  label="India share"
+                  label="India's share of world imports"
                   value={pct(summary.indiaShareOfGlobal)}
-                  detail="of basket global trade"
+                  detail="India's imports over the stack's world total"
                 />
               </div>
             </section>
@@ -353,6 +501,13 @@ export function HStackPanel({
                   <PanelHead
                     eyebrow="ACROSS THE REVISION"
                     title="The stack over time"
+                    actions={
+                      <ViewTabs
+                        label="Stack over time view"
+                        view={longView}
+                        onChange={setLongView}
+                      />
+                    }
                     note={
                       (spansRevision
                         ? 'Retired codes contribute the years they were reported under, the current codes contribute theirs. They do not overlap, so this is a sum rather than a spliced series. '
@@ -373,6 +528,28 @@ export function HStackPanel({
                     }
                   />
 
+                  {longView === 'table' ? (
+                    <SeriesTable
+                      caption="The stack's combined trade by year"
+                      columns={[
+                        { key: 'year', label: 'Year' },
+                        { key: 'globalTrade', label: 'Global trade', numeric: true },
+                        { key: 'indiaImports', label: 'India imports', numeric: true },
+                        { key: 'indiaExports', label: 'India exports', numeric: true },
+                        { key: 'reportedUnder', label: 'Reported under' },
+                      ]}
+                      rows={[...longSeries].reverse().map(point => ({
+                        year: String(point.year),
+                        globalTrade:
+                          point.globalTrade === null ? null : usd(point.globalTrade),
+                        indiaImports:
+                          point.indiaImports === null ? null : usd(point.indiaImports),
+                        indiaExports:
+                          point.indiaExports === null ? null : usd(point.indiaExports),
+                        reportedUnder: point.contributors.join(' + '),
+                      }))}
+                    />
+                  ) : (
                   <div className="chart-shell">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart
@@ -432,6 +609,7 @@ export function HStackPanel({
                       </AreaChart>
                     </ResponsiveContainer>
                   </div>
+                  )}
                 </article>
               </section>
             )}
@@ -443,22 +621,47 @@ export function HStackPanel({
                   title={`Share of ${active.phrase}`}
                   note={`Each code's ${active.phrase} as a share of the stack's combined figure.`}
                   actions={
-                    <Tabs
-                      label="Which figure to split"
-                      active={metric}
-                      onChange={id =>
-                        setMetric(id as 'trade' | 'imports' | 'exports')
-                      }
-                      tabs={[
-                        { id: 'trade', label: 'Global' },
-                        { id: 'imports', label: 'Imports' },
-                        { id: 'exports', label: 'Exports' },
-                      ]}
-                    />
+                    <>
+                      <Tabs
+                        label="Which figure to split"
+                        active={metric}
+                        onChange={id =>
+                          setMetric(id as 'trade' | 'imports' | 'exports')
+                        }
+                        tabs={[
+                          { id: 'trade', label: 'Global' },
+                          { id: 'imports', label: 'Imports' },
+                          { id: 'exports', label: 'Exports' },
+                        ]}
+                      />
+
+                      <ViewTabs
+                        label="Composition view"
+                        view={compositionView}
+                        onChange={setCompositionView}
+                      />
+                    </>
                   }
                   onCsv={() => downloadCsv('HStack-composition', composition)}
                 />
 
+                {compositionView === 'table' ? (
+                  <SeriesTable
+                    caption={`Each code's share of the stack's ${active.phrase}`}
+                    columns={[
+                      { key: 'code', label: 'Code' },
+                      { key: 'label', label: 'Name' },
+                      { key: 'value', label: 'Value', numeric: true },
+                      { key: 'share', label: 'Share of stack', numeric: true },
+                    ]}
+                    rows={composition.map(row => ({
+                      code: row.code,
+                      label: row.name,
+                      value: usd(row.value),
+                      share: `${row.sharePct.toFixed(1)}%`,
+                    }))}
+                  />
+                ) : (
                 <div className="chart-shell tall">
                   {composition.length ? (
                     <ResponsiveContainer width="100%" height="100%">
@@ -527,6 +730,7 @@ export function HStackPanel({
                     </Empty>
                   )}
                 </div>
+                )}
               </article>
 
               <article className="panel">
@@ -554,7 +758,7 @@ export function HStackPanel({
               <article className="panel">
                 <PanelHead
                   eyebrow="INDIA SOURCING"
-                  title="Where the stack is imported from"
+                  title="Import partners for the stack"
                   note={
                     summary.supplierCoverage === null
                       ? undefined
@@ -586,7 +790,7 @@ export function HStackPanel({
               <article className="panel">
                 <PanelHead
                   eyebrow="CONTRIBUTION"
-                  title="What each code contributes"
+                  title="Each code's share of the stack"
                   note={`Share of the stack's combined figure, for CY ${summary.year}. Click a code to open it.`}
                   onCsv={() => downloadCsv(`HStack-contribution-${summary.year}`, toRows(summary))}
                 />

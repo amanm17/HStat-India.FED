@@ -280,7 +280,7 @@ export function Availability({
 
       {data.holes.length > 0 && (
         <section className="avail-block">
-          <h2>Who is missing</h2>
+          <h2>Economies not reporting</h2>
 
           <p className="avail-note">
             A missing economy understates a page rather than blanking it. Each

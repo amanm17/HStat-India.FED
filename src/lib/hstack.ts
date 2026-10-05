@@ -17,7 +17,44 @@ import type { EconomyRow, HsNode, PeriodRecord } from '../types'
 
 export type BasketEntry = {
   code: string
-  level: 2 | 4 | 6
+  level: 2 | 4 | 6 | 8
+}
+
+/*
+ * EIGHT DIGITS IN A STACK, AND WHY THEY ARE KEPT APART
+ *
+ * Everything above six digits on this dashboard is UN Comtrade: a world
+ * figure, every reporter, calendar years, US dollars. Eight digits is DGCIS:
+ * India's own filings, monthly, with no world total behind them because no
+ * such total exists - tariff schedules are national, so there is nothing to
+ * compare a tariff line against.
+ *
+ * So an eight-digit line cannot be added into a stack's combined world trade,
+ * and its India figures cannot be added to the Comtrade India figures either:
+ * two sources, two definitions, two revision cycles. Adding them would produce
+ * a number that is not wrong by a little, it is a number nothing in the world
+ * measures.
+ *
+ * They are therefore stacked, totalled and shown as their own section, under
+ * their own source line. A reader gets what they asked for - these lines,
+ * together, as one item - and the page never implies the two halves are one
+ * arithmetic.
+ */
+export function isHs8Entry(entry: BasketEntry): boolean {
+  return entry.level === 8
+}
+
+/* The Comtrade side of a basket: everything the summary below can total. */
+export function comtradeEntries(
+  entries: BasketEntry[],
+): { code: string; level: 2 | 4 | 6 }[] {
+  return entries
+    .filter(entry => entry.level !== 8)
+    .map(entry => ({ code: entry.code, level: entry.level as 2 | 4 | 6 }))
+}
+
+export function hs8Entries(entries: BasketEntry[]): BasketEntry[] {
+  return entries.filter(entry => entry.level === 8)
 }
 
 export type BasketLine = {
@@ -641,7 +678,7 @@ export function readBasket(): BasketEntry[] {
       .filter(
         (entry): entry is BasketEntry =>
           typeof entry?.code === 'string' &&
-          [2, 4, 6].includes(entry?.level),
+          [2, 4, 6, 8].includes(entry?.level),
       )
       .slice(0, 40)
   } catch {

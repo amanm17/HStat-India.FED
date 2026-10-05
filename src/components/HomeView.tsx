@@ -117,7 +117,7 @@ export function HomeView({
           note: 'each line in its own latest validated year, so an order of magnitude',
         },
         {
-          label: 'Where India leads',
+          label: 'Lines where India imports most',
           value: `${leadCount} lines`,
           note: 'India is the largest importer in the world',
         },

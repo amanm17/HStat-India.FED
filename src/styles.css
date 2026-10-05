@@ -345,6 +345,15 @@ main {
   gap: 28px;
 
   margin-bottom: 18px;
+
+  /*
+   * The title and the action buttons sit on one line while both fit. The row
+   * below 760px already stacks them; between there and the desk widths the
+   * head gained two quick-stack buttons and overflowed by a few pixels at
+   * 768. Wrapping is the rule that holds at every width rather than at the
+   * ones somebody remembered to test.
+   */
+  flex-wrap: wrap;
 }
 
 
@@ -404,6 +413,18 @@ h1 {
   gap: 8px;
 
   flex-shrink: 0;
+
+  /*
+   * This row grew two quick-stack buttons. At 768px - a tablet, and the width
+   * the visual suite checks - the set no longer fitted beside the title and
+   * ran past the right edge of the page. It wraps now; the buttons are a set
+   * of equals, so a wrapped line reads correctly.
+   */
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  row-gap: 8px;
+
+  max-width: 100%;
 }
 
 
@@ -737,6 +758,16 @@ h1 {
   gap: 12px;
 
   margin-bottom: 7px;
+
+  /* The head holds a title and a block of controls. With two switches in that
+     block the pair is wider than a phone, so the head itself wraps and the
+     controls take their own line rather than running off the card. */
+  flex-wrap: wrap;
+}
+
+.panelhead > :first-child {
+  flex: 1 1 200px;
+  min-width: 0;
 }
 
 
@@ -757,6 +788,23 @@ h1 {
   gap: 4px;
 
   flex-shrink: 0;
+
+  /*
+   * Two switches, not one.
+   *
+   * A panel head used to carry at most one group of buttons, so this row
+   * could never run out of width. Now the trends panel carries which series
+   * to chart AND chart-or-table, and at 375px the pair ran off the edge of
+   * the card. They wrap instead; the row is right-aligned so a wrapped
+   * second line still reads as one control block.
+   */
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  row-gap: 6px;
+
+  /* It may shrink; what it must not do is overflow the card. */
+  min-width: 0;
+  max-width: 100%;
 }
 
 
@@ -9134,4 +9182,134 @@ table.contribution tfoot th {
  */
 .home-search .search-hub {
   margin-bottom: 0;
+}
+
+/* ---------------------------------------------------------
+ * Chart or table, on every chart
+ *
+ * The switch is the same control the partner panels always had; these are
+ * the two places that needed a row to put it on, and the table that appears
+ * where a chart was.
+ * --------------------------------------------------------- */
+
+.hs8-chart-controls,
+.hs8-years-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.hs8-years-head {
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
+.hs8-years-head h3 {
+  margin: 0;
+}
+
+/* A table standing in for a chart keeps the chart's height off the panel:
+   it is as tall as its rows, and a short series should not leave 260px of
+   white space under it. */
+.series-table {
+  margin-top: 4px;
+}
+
+.series-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.series-table th,
+.series-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  text-align: left;
+}
+
+.series-table th {
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.series-table td.num,
+.series-table th.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.series-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* The long series tables can run to thirty rows; on a phone that is a lot of
+   scrolling inside a panel that is already inside a page, so they cap and
+   scroll themselves. */
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  .series-table {
+    max-height: 60vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+
+/* ---------------------------------------------------------
+ * Quick stacks, and the eight-digit section of a stack
+ * --------------------------------------------------------- */
+
+/* A secondary stack action. Same shape as "Add to HStack" so the row reads as
+   one set of controls, quieter so the primary action still leads. */
+.stack-add.quiet {
+  background: var(--panel-soft);
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.stack-add.quiet:hover:not(:disabled) {
+  color: var(--text);
+}
+
+.hs8-stack-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* India's tariff lines inside a stack. Set apart with a rule and a tint
+   because it is a different source with a different meaning, and the one
+   thing this section must never look like is a continuation of the sum
+   above it. */
+.hstack-hs8 {
+  margin-top: 18px;
+  padding: 16px 18px 18px;
+
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--green);
+  border-radius: 12px;
+}
+
+.hstack-hs8 .hstack-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+
+  margin: 4px 0 14px;
+}
+
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  .hstack-hs8 {
+    padding: 14px;
+  }
+
+  .hs8-stack-actions .stack-add {
+    min-height: 44px;
+  }
 }

@@ -94,6 +94,120 @@ console.log('\n=== query builder ===')
   await page.close()
 }
 
+console.log('\n=== every chart offers its table ===')
+/*
+ * The review asked for this on every chart, not some. The check is structural:
+ * find every panel that draws a chart, assert it has a Table tab, switch to it
+ * and assert a table actually appears. A panel that gains a chart later and no
+ * switch fails here rather than in somebody's meeting.
+ */
+for (const path of ['/hs/851713', '/hs/85176290']) {
+  const { page, errs } = await open(BASE, path, { width: 1440, height: 1100 })
+
+  const switches = page.locator('[role="tablist"]').filter({ hasText: 'Table' })
+  const count = await switches.count()
+  ok(`${path}: chart/table switches present`, count > 0, `${count} found`)
+
+  for (let i = 0; i < count; i += 1) {
+    const strip = switches.nth(i)
+    await strip.scrollIntoViewIfNeeded()
+    /* Up to the panel itself, not to .panel-actions - which also contains
+     * the word "panel" and holds no table, which is how this check first
+     * failed against a page that was working. */
+    const panel = strip.locator(
+      'xpath=ancestor::*[self::article or self::section or contains(@class,"hs8-years-block")][1]',
+    )
+    await strip.getByRole('tab', { name: 'Table' }).click()
+    await page.waitForTimeout(350)
+    ok(
+      `${path}: switch ${i + 1} reveals a table`,
+      (await panel.locator('table').count()) > 0,
+    )
+  }
+
+  ok(`${path}: switching views throws nothing`, errs.length === 0, errs[0] ?? '')
+  await page.close()
+}
+
+console.log('\n=== the rank says which side it measures ===')
+{
+  const { page } = await open(BASE, '/hs/851713', { width: 1440, height: 1100 })
+  const text = await page.locator('main').innerText()
+
+  /* 47th as a buyer and 1st as a seller. Showing one without the other is the
+   * bug an outside reviewer read as broken data. */
+  ok('names India as a buyer', /india as a buyer/i.test(text))
+  ok('names India as a seller', /india as a seller/i.test(text))
+  ok('import rank is labelled as imports', /largest importer/i.test(text))
+  ok('export standing is published too', /largest exporter|outside the top ten/i.test(text))
+  ok('no unlabelled "India share" is left', !/India share · \d{4}/.test(text))
+  await page.close()
+}
+
+console.log('\n=== plain words, not story headings ===')
+{
+  const banned = [
+    /who buys the most/i,
+    /who sells the most/i,
+    /where india buys this from/i,
+    /where india sells this/i,
+    /what india ships under/i,
+    /what india brings in under/i,
+  ]
+
+  for (const path of ['/hs/851713', '/']) {
+    const { page } = await open(BASE, path, { width: 1440, height: 1100 })
+    const text = await page.locator('body').innerText()
+    const hit = banned.find(rx => rx.test(text))
+    ok(`${path}: no story-style heading`, !hit, hit ? String(hit) : '')
+    await page.close()
+  }
+}
+
+console.log('\n=== HStack reaches eight digits ===')
+{
+  const { page, errs } = await open(BASE, '/hs/851762', { width: 1440, height: 1100 })
+
+  const quick = page
+    .locator('main button.stack-add.quiet')
+    .filter({ hasText: /tariff lines$/ })
+  ok('quick stack offers every tariff line under the heading', await quick.count() === 1)
+
+  await quick.first().click()
+  await page.waitForTimeout(1500)
+
+  const section = page.locator('#hstack-tariff-lines')
+  ok('stacking HS-8 opens its own section', await section.count() === 1)
+
+  const body = await section.innerText()
+  ok('the HS-8 section says whose figures these are', /DGCIS/i.test(body))
+  ok(
+    'the HS-8 section refuses to be added to the world figures',
+    /never added|not added/i.test(body),
+  )
+  ok('every stacked line is listed', (await section.locator('tbody tr').count()) === 8)
+  ok('stacking eight-digit lines throws nothing', errs.length === 0, errs[0] ?? '')
+  await page.close()
+}
+{
+  const { page } = await open(BASE, '/hs/851713', { width: 1440, height: 1100 })
+  const parent = page
+    .locator('main button.stack-add.quiet')
+    .filter({ hasText: /parent/ })
+  ok('quick stack offers the parent level', await parent.count() === 1)
+
+  await parent.first().click()
+  await page.waitForTimeout(2000)
+
+  const text = await page.locator('.hstack-warning').innerText()
+  ok(
+    'stacking with the parent shows the share of it',
+    /sits inside HS 8517/.test(text) && /% of it/.test(text),
+    text.slice(0, 80),
+  )
+  await page.close()
+}
+
 console.log('\n=== rail reaches everything ===')
 {
   const { page } = await open(BASE, '/')
