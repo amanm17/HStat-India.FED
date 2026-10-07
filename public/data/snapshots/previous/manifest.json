@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0.0",
-  "refreshedAt": "2026-10-07T10:55:16.783586+00:00",
+  "refreshedAt": "2026-09-14T09:31:13.149508+00:00",
   "fixture": false,
   "classification": "HS 2022 (H6)",
   "startYear": 1996,
@@ -8,6 +8,7 @@
   "analysisStartYear": 2022,
   "validationStartYear": 1997,
   "months": [
+    "202409",
     "202410",
     "202411",
     "202412",
@@ -28,8 +29,7 @@
     "202603",
     "202604",
     "202605",
-    "202606",
-    "202607"
+    "202606"
   ],
   "financialYears": [],
   "registry": {
@@ -447,7 +447,7 @@
     },
     "coverage": {
       "periods": 53,
-      "convertible": 40,
+      "convertible": 41,
       "missing": [
         "CY 2026",
         "MONTH 2025-08",
@@ -460,11 +460,10 @@
         "MONTH 2026-03",
         "MONTH 2026-04",
         "MONTH 2026-05",
-        "MONTH 2026-06",
-        "MONTH 2026-07"
+        "MONTH 2026-06"
       ],
       "complete": false,
-      "fraction": 0.7547169811320755
+      "fraction": 0.7735849056603774
     }
   },
   "products": 418,
