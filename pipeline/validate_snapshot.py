@@ -226,12 +226,49 @@ def check_period(report, code, period, record, mirror_bounds):
                 )
 
     else:
-        if trade is not None or rank is not None or share is not None or top:
-            report.fail(
-                code,
-                period,
-                f"headline metrics exposed with coverage status {status}",
-            )
+        # INVALID, BASELINE and HISTORICAL used to mean "expose nothing", and
+        # this check enforced that. Since 7 October the verdict triggers
+        # estimation instead of suppression, so a figure under any verdict is
+        # expected - what must hold is that it reconciles with the reporter
+        # table it was summed from, and that it declares how much of itself
+        # was estimated.
+        #
+        # Re-baselined, not removed: the old rule caught a real class of bug
+        # (a headline that did not come from the rows beneath it) and the new
+        # one still catches it.
+        has_headline = (
+            trade is not None
+            or rank is not None
+            or share is not None
+            or bool(top)
+        )
+
+        if has_headline:
+            if trade is None or trade <= 0:
+                report.fail(
+                    code,
+                    period,
+                    f"{status} coverage exposes headline metrics without "
+                    "a positive global trade figure",
+                )
+
+            elif not close(trade, net_imports):
+                report.fail(
+                    code,
+                    period,
+                    f"published {status} global trade does not equal "
+                    "net global imports",
+                )
+
+            estimation = glob.get("estimation") or {}
+
+            if not estimation.get("imports"):
+                report.fail(
+                    code,
+                    period,
+                    f"{status} coverage publishes a figure without saying "
+                    "how much of it was estimated",
+                )
 
     if share is not None and not 0 <= share <= 1:
         report.fail(code, period, f"India share out of bounds: {share}")

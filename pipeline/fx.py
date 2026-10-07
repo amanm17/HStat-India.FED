@@ -13,10 +13,22 @@ do it. Three rules shape the whole file:
      a rate. UN Comtrade reports calendar years; the DGCIS tariff-line export
      reports Indian financial years. Both are converted, each on its own basis.
 
-  3. A missing rate is missing. No interpolation, no nearest-year fallback, no
-     carry-forward. `rate()` returns None and the caller publishes dollars and
-     says why. Guessing a rate would produce a rupee figure that looks exactly
-     as authoritative as a sourced one.
+  3. A missing rate is SUBSTITUTED, in a fixed order, and never invented.
+     This rule used to read "a missing rate is missing", and `rate()` returned
+     None so the caller published dollars and said why. From 7 October 2026 a
+     month with no rate of its own takes its calendar year's average, then the
+     financial year covering it, then the nearest period on the same basis -
+     `substituted()` says which. The substitution is documented in the
+     methodology and carries no estimation marker, because an exchange rate is
+     not a trade value: it is the same rate the same month would have been
+     converted at a few weeks either side, not a projection of anybody's
+     trade. `rate()` itself is unchanged and still returns only sourced rates,
+     so a caller that must have the real thing can still ask for it.
+
+     What remains absolutely forbidden is deriving a rate from the DGCIS
+     INR-crore and USD-million columns. Those are two independent filings of
+     the same shipment, and dividing one by the other produces an implied rate
+     that no central bank published and that moves with rounding.
 
 Read `config/fx_inr_usd.csv` for the convention and the sourcing.
 """
@@ -219,6 +231,81 @@ class RateTable:
         entry = self.entry(period, basis)
 
         return entry.inr_per_usd if entry and entry.usable else None
+
+    def substituted(self, period: str, basis: str | None = None):
+        """
+        A rate for a period that has none of its own, and where it came from.
+
+        Returns (rate, source) or (None, None). `source` is the period that
+        supplied it, so the methodology page and the workbook can name the
+        substitution rather than present it as the month's own rate.
+
+        The order is the one set out in the refresh document: the calendar
+        year containing the month, then the financial year containing it, then
+        the nearest period on the same basis. Nearest is last because it is
+        the weakest - it can reach across a devaluation - and first because
+        there is nothing else when a series starts or ends mid-gap.
+        """
+        own = self.rate(period, basis)
+
+        if own is not None:
+            return own, str(period)
+
+        basis = basis or basis_of(period)
+
+        if basis is None:
+            return None, None
+
+        if basis == MONTH:
+            month = normalise_month(period) or str(period)
+            year = month[:4]
+
+            # 1. that calendar year's average
+            rate = self.rate(year, CY)
+
+            if rate is not None:
+                return rate, f"CY {year}"
+
+            # 2. the financial year covering that month: April starts one.
+            try:
+                y, m = int(month[:4]), int(month[5:7])
+            except (ValueError, IndexError):
+                y = m = None
+
+            if y is not None and m is not None:
+                start = y if m >= 4 else y - 1
+                label = f"FY {start}-{str((start + 1) % 100).zfill(2)}"
+
+                rate = self.rate(label, FY)
+
+                if rate is not None:
+                    return rate, label
+
+        # 3. the nearest period that has one, on this basis.
+        candidates = [
+            (key[1], entry.inr_per_usd)
+            for key, entry in self._rates.items()
+            if key[0] == basis and entry.usable
+        ]
+
+        if not candidates:
+            return None, None
+
+        def distance(item) -> float:
+            digits = "".join(ch for ch in item[0] if ch.isdigit())[:6]
+            target = "".join(ch for ch in str(period) if ch.isdigit())[:6]
+
+            if not digits or not target:
+                return float("inf")
+
+            # Compare on a common width so 2019 and 201904 still order.
+            width = min(len(digits), len(target))
+
+            return abs(int(digits[:width]) - int(target[:width]))
+
+        nearest = min(candidates, key=distance)
+
+        return nearest[1], f"nearest · {nearest[0]}"
 
     def to_inr(
         self, value_usd: float | None, period: str, basis: str | None = None

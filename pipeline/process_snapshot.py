@@ -18,6 +18,7 @@ import json
 
 import datasets as dataset_registry
 import fx
+import estimate
 import globaltrade
 import store
 from common import (
@@ -245,7 +246,10 @@ def load_hs8() -> dict:
 
         native = "inr" if inr is not None else "usd"
 
-        rate = table.rate(period, fx.FY)
+        # Substituted rather than skipped: a financial year with no rate of
+        # its own takes the nearest one and says so, so a tariff line is not
+        # dollars-only for want of a number that barely moved. §1.9.
+        rate, rate_source = table.substituted(period, fx.FY)
 
         if usd is None and rate is not None:
             usd = inr / rate
@@ -523,6 +527,13 @@ def reconcile_india(direct_value, frame_value) -> tuple[bool, str | None]:
     return True, None
 
 
+# Flagged estimates, gathered across the whole run and written out at the end
+# as the resolution report. Module-level because the build walks 544 nodes
+# through four call layers and threading an accumulator through all of them
+# would be four signatures changed to carry one list.
+ANOMALIES: list[dict] = []
+
+
 def build_period(
     code: str,
     period: str,
@@ -532,15 +543,58 @@ def build_period(
     scope: dict,
     analytical: bool,
     detailed: bool,
+    estimates: dict | None = None,
+    reporter_names: dict | None = None,
 ) -> dict:
     bounds = tuple(scope["globalTrade"]["mirrorWarnRatio"])
 
     imports = global_index[FLOW_IMPORTS].get(code, period)
 
-    result = globaltrade.compute(
+    # ESTIMATION
+    #
+    # The filed tables go into the coverage gate; the merged tables go into
+    # the arithmetic. That split is the whole design: the gate still judges
+    # the field of countries that actually filed, exactly as it did before,
+    # and its verdict is still carried to the page - what it no longer does
+    # is decide whether a figure exists.
+    #
+    # Merging before `compute` rather than scaling its answer afterwards is
+    # what keeps the Top Importers and Top Exporters tables consistent with
+    # the total printed above them: they are ranked from the same rows the
+    # total is summed from.
+    names = reporter_names or {}
+    per_flow = estimates or {}
+
+    import_estimates = (per_flow.get(FLOW_IMPORTS) or {}).get(period, {})
+    export_estimates = (per_flow.get(FLOW_EXPORTS) or {}).get(period, {})
+
+    merged_imports, import_meta = estimate.merge(
         imports,
-        global_index[FLOW_RE_IMPORTS].get(code, period),
+        import_estimates,
+        names.get(FLOW_IMPORTS, {}),
+    )
+
+    merged_exports, export_meta = estimate.merge(
         global_index[FLOW_EXPORTS].get(code, period),
+        export_estimates,
+        names.get(FLOW_EXPORTS, {}),
+    )
+
+    # India is a reporter like any other, so a year she did not file is
+    # estimated like any other - that is what §1.2 asks for, and it is what
+    # keeps the world total whole and her rank computable.
+    #
+    # But the India block below is about India's own filing, and a number
+    # that arrived by projection must not sit in it unannounced. The gross
+    # figures stay null, because those are her filing and she made none; the
+    # netted figures carry her estimated row, and say so.
+    india_estimated_imports = INDIA_REPORTER in import_estimates
+    india_estimated_exports = INDIA_REPORTER in export_estimates
+
+    result = globaltrade.compute(
+        merged_imports,
+        global_index[FLOW_RE_IMPORTS].get(code, period),
+        merged_exports,
         global_index[FLOW_RE_EXPORTS].get(code, period),
         mirror_bounds=bounds,
         top=TOP_ECONOMIES if detailed else 1,
@@ -561,11 +615,19 @@ def build_period(
             ),
         }
 
-    # CAUTION means "borderline but usable", and it was being computed and
-    # then discarded with the outright failures - 317 node-years that had a
-    # figure and showed nothing. It now publishes with its status attached so
-    # the page can mark it.
-    publishable = verdict.get("status") in ("VALID", "CAUTION")
+    # The verdict no longer decides whether a figure exists.
+    #
+    # It used to: VALID and CAUTION published, INVALID and HISTORICAL showed a
+    # blank, and 2,495 node-years that had numbers behind them showed nothing.
+    # Since 7 October the verdict triggers estimation instead - the gate is
+    # unchanged, its thresholds are unchanged, and its answer is carried to
+    # the reader in the calculation drawer. What publishes is everything with
+    # any reporter behind it, filed or estimated, marked for which.
+    #
+    # The one thing that still withholds is an India reconciliation failure,
+    # below: that means one of two pulls is stale, which is a fault in the
+    # inputs rather than a thin field.
+    publishable = bool(merged_imports)
 
     india_gross_imports = india_index[FLOW_IMPORTS].world_total(code, period)
 
@@ -630,10 +692,21 @@ def build_period(
             "exportsNetReExports": (
                 india_export_rank["value"] if india_export_rank else None
             ),
+            # True where the netted figure, the rank and the share above come
+            # from a projection of India's own history rather than a filing.
+            "importsEstimated": india_estimated_imports,
+            "exportsEstimated": india_estimated_exports,
         },
         "global": {
             "trade": round_usd(result["netImports"]) if publishable else None,
             "tradeStatus": verdict.get("status"),
+            # How much of the figure above was estimated, and how many
+            # countries it took. Kept in its own block so a filed value and an
+            # estimated one can never be read as the same thing.
+            "estimation": {
+                "imports": import_meta,
+                "exports": export_meta,
+            },
             "indiaRank": (
                 india_rank["rank"] if publishable and india_rank else None
             ),
@@ -1206,6 +1279,58 @@ def build_node(
         or (int(years[0]) + 1 if years else detail_start)
     )
 
+    # ESTIMATES, COMPUTED ONCE PER CODE
+    #
+    # A reporter's gap can only be judged against that reporter's own history,
+    # so this needs every year at once - which is why it sits here rather than
+    # inside build_period, where a single year is all that is in scope.
+    #
+    # Only the two gross flows are estimated. Re-imports and re-exports are a
+    # sub-flow most reporters never file at all, so an absence there means
+    # "nothing to subtract" far more often than it means "missing", and
+    # projecting one would invent a deduction from a country that never
+    # claimed it.
+    annual_estimates: dict[str, dict] = {}
+    reporter_names: dict[str, dict] = {}
+
+    for flow in (FLOW_IMPORTS, FLOW_EXPORTS):
+        tables = {year: global_index[flow].get(code, year) for year in years}
+
+        histories, names = estimate.reporter_histories(tables)
+
+        reporter_names[flow] = names
+        annual_estimates[flow] = estimate.fill(tables, years)
+
+        # Every estimate that landed outside the anomaly band, gathered for
+        # the monthly resolution report. A review queue for a person, not an
+        # automatic correction: these values publish like any other.
+        for year, filled in annual_estimates[flow].items():
+            for reporter, item in filled.items():
+                if not item.flagged:
+                    continue
+
+                ANOMALIES.append(
+                    {
+                        "code": code,
+                        "level": level,
+                        "reporter": reporter,
+                        "reporterName": names.get(reporter, reporter),
+                        "flow": flow,
+                        "year": int(year),
+                        "lastFiledYear": item.anchor_year,
+                        "lastFiledValue": round(item.anchor_value, 2),
+                        "estimatedValue": round(item.value, 2),
+                        "ratio": (
+                            round(item.value / item.anchor_value, 4)
+                            if item.anchor_value
+                            else None
+                        ),
+                        "method": item.method,
+                        "observations": item.observations,
+                        "direction": item.direction,
+                    }
+                )
+
     annual: dict[str, dict] = {}
 
     for position, year in enumerate(years):
@@ -1218,6 +1343,8 @@ def build_node(
             scope,
             analytical=int(year) >= validation_start,
             detailed=int(year) >= detail_start,
+            estimates=annual_estimates,
+            reporter_names=reporter_names,
         )
 
     monthly: dict[str, dict] = {}
@@ -1839,9 +1966,13 @@ def main():
                     "monthly averages."
                 ),
                 "missingRatePolicy": (
-                    "A period with no rate is not converted. It shows dollars "
-                    "and says the rate is missing. No interpolation, no "
-                    "nearest-year fallback, no carry-forward."
+                    "A period with no rate of its own is converted at a "
+                    "substitute, in this order: that calendar year's average, "
+                    "then the financial year covering the period, then the "
+                    "nearest period on the same basis. The substitution is "
+                    "named wherever it is used. A rate is never derived by "
+                    "dividing DGCIS rupee and dollar filings of the same "
+                    "shipment, which would imply a rate no bank published."
                 ),
                 "rates": rate_table.published(),
                 "coverage": rate_coverage,
@@ -1889,9 +2020,44 @@ def main():
         },
     )
 
+    # THE RESOLUTION REPORT
+    #
+    # Every estimate that landed more than 50% from the value it was projected
+    # from, with the working behind it: which window, how many observations,
+    # which direction. It ships with the snapshot so the count can be read in
+    # the refresh log and the rows can be worked through by a person.
+    #
+    # Written even when empty, because a missing file is ambiguous - it could
+    # mean "nothing flagged" or "the step did not run" - and those need
+    # different responses.
+    ANOMALIES.sort(
+        key=lambda row: -abs((row.get("ratio") or 1.0) - 1.0)
+    )
+
+    write_json(
+        out / "resolution-report.json",
+        {
+            "builtAt": utc_now(),
+            "band": estimate.ANOMALY_BAND,
+            "description": (
+                "Estimates further than "
+                f"{int(estimate.ANOMALY_BAND * 100)}% from the last filed "
+                "value they were projected from. These publish like any other "
+                "estimate; this is a review queue, not a correction."
+            ),
+            "flagged": len(ANOMALIES),
+            "rows": ANOMALIES,
+        },
+    )
+
     print(
         f"Staging snapshot: {len(plan)} nodes "
         f"({sum(1 for _, level in plan if level == 6)} HS-6) -> {out}"
+    )
+
+    print(
+        f"Estimates outside the {int(estimate.ANOMALY_BAND * 100)}% band: "
+        f"{len(ANOMALIES)} -> resolution-report.json"
     )
 
     if months:
