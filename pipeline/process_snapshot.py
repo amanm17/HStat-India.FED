@@ -664,9 +664,24 @@ def build_period(
     # other end of a code's life. Before it existed and after it was withdrawn,
     # there is no world trade in it to publish - §0.3's warning that a non-zero
     # residual under an obsolete code is not automatically a valid series.
+    #
+    # The verdict is relabelled too. The coverage gate knows nothing about the
+    # nomenclature, and a residual year with a healthy-looking field can come
+    # out VALID - which validate_snapshot then reads, rightly, as a VALID year
+    # with no figure. HISTORICAL is what the product page already calls a
+    # year after retirement; the gate's own answer is kept beside it.
     if retired_after is not None and str(period).isdigit():
         if int(period) > retired_after:
             publishable = False
+
+            verdict = dict(verdict)
+            verdict["gateStatus"] = verdict.get("status")
+            verdict["status"] = "HISTORICAL"
+            verdict["retired"] = (
+                f"Withdrawn from the Harmonized System after {retired_after}. "
+                "Rows still filed under this number are residuals, not a "
+                "world total, so no figure is published."
+            )
 
     india_gross_imports = india_index[FLOW_IMPORTS].world_total(code, period)
 
@@ -1433,7 +1448,23 @@ def build_node(
         scope,
     )
 
-    benchmark = latest_benchmark(annual, detail_start)
+    # A retired code has no current headline. Its last real figure is carried
+    # in lineage.retired.lastPublished, bounded by valid_to, and the page shows
+    # it as history.
+    #
+    # This only became necessary on 7 October. With analysisStartYear at 2022
+    # the benchmark search never reached back past the HS 2022 revision, so a
+    # code withdrawn in it simply found no year to headline. Widening the
+    # window to 1996 let the search walk back to 2021 and hand that year to
+    # the catalogue as the code's current global trade - which launch_sanity
+    # refused, correctly, for all seven: "declared retired but still carries a
+    # current global trade figure". The ceiling on estimation (retired_after,
+    # above) was right but was not this.
+    benchmark = (
+        None
+        if retired_after is not None
+        else latest_benchmark(annual, detail_start)
+    )
 
     latest_india_year = None
 
