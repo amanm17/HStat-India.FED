@@ -87,14 +87,14 @@ ok("the sparse projection uses both points", est.observations == 2)
 
 # Twenty years apart: outside both windows, so the whole series is used.
 wide = {1996: 50.0, 2016: 100.0}
-est = estimate_for(wide, 2020)
+est = estimate_for(wide, 2019)
 ok("a very wide series still estimates", est is not None)
 ok("it falls through to the whole series", est.method == "cagr-all", est.method if est else "")
 
 # ------------------------------------------------------- rule 4: flat
 
 single = {2015: 42.0}
-est = estimate_for(single, 2020)
+est = estimate_for(single, 2017)
 ok("one observation holds flat", close(est.value, 42.0))
 ok("flat records no growth", est.growth is None)
 ok("flat is not flagged", not est.flagged)
@@ -235,26 +235,36 @@ from estimate import MAX_GROWTH, MAX_HORIZON
 # The shape that produced $1.19e28: a series that leaps by orders of
 # magnitude inside its window, projected across many years.
 leap = {2016: 1.0, 2017: 10.0, 2018: 1_000.0, 2019: 1_000_000.0, 2020: 1e9}
-far_out = estimate_for(leap, 2025)
+far_out = estimate_for(leap, 2023)
 ok("a leaping series is held to the growth bound", far_out.capped)
 ok("its raw rate is kept for the reviewer", far_out.raw_growth > 100)
 ok(
-    "and lands at most 1.5^3 of its filing, five years out",
+    "and lands at most 1.5^3 of its filing, three years out",
     close(far_out.value, 1e9 * (1 + MAX_GROWTH) ** MAX_HORIZON),
     f"{far_out.value:.3e}",
 )
 ok("the bound is 50% a year over three years", (MAX_GROWTH, MAX_HORIZON) == (0.5, 3))
 
-# Beyond three years the value holds where the third year left it.
-steady_far = estimate_for(steady, 2030)
-ok(
-    "growth stops after three years",
-    close(steady_far.value, steady[2020] * 1.1 ** 3),
-    f"{steady_far.value:.3f}",
-)
+# Recency: beyond three years of its nearest filing a country is not
+# estimated at all - the CRT case, a trader that stopped.
+from estimate import MAX_GAP
+ok("the recency limit is three years", MAX_GAP == 3)
+ok("a country four years past its last filing is not estimated", estimate_for(steady, 2024) is None)
+ok("nor four years before its first", estimate_for(steady, 2012) is None)
+ok("three years out still is", estimate_for(steady, 2023) is not None)
+# A long interior hole fills only near its edges.
+holed = {2010: 100.0, 2011: 110.0, 2019: 200.0, 2020: 210.0}
+ok("the middle of a long hole stays empty", estimate_for(holed, 2015) is None)
+ok("its edges fill", estimate_for(holed, 2013) is not None and estimate_for(holed, 2017) is not None)
+stopped = {
+    "2008": {"156": ("China", 500.0), "076": ("Brazil", 80.0)},
+    "2009": {"156": ("China", 400.0), "076": ("Brazil", 60.0)},
+    "2025": {"156": ("China", 50.0)},
+}
+ok("fill does not carry a country that stopped", "076" not in fill(stopped, ["2025"]).get("2025", {}))
 
 # Backward, the same bounds in reverse: no estimate below 0.5^3 of its anchor.
-collapse_back = estimate_for({2010: 1.0, 2011: 1e6}, 2000)
+collapse_back = estimate_for({2010: 1.0, 2011: 1e6}, 2008)
 ok(
     "backward projection is bounded too",
     collapse_back.value >= 1.0 * (1 - MAX_GROWTH) ** MAX_HORIZON - 1e-12,

@@ -63,6 +63,21 @@ Two bounds, chosen on 7 October:
                 year left it. No estimate is ever more than 1.5^3 = 3.375x,
                 or less than 0.5^3 = 0.125x, the filing behind it.
 
+RECENCY - a country is estimated only near its own filings
+
+The bounded run of 7 October was sane and still wrong in one way. A country
+that stopped filing a line in 2010 was carried flat into every year since,
+because "held flat beyond three years" never ended. For a collapsing
+product that is a resurrection: CRT tubes (854011) came out 95% estimated
+in 2025, at 22 times the filed total, and India's rank fell from 21st to
+43rd behind countries that had not traded CRTs in a decade.
+
+So a reporter is estimated for a year only when it filed the same line
+within MAX_GAP years of it, on either side. That keeps what estimation is
+for - a late filer's missing 2025, a one-year hole in a series - and
+refuses what it is not: inventing trade for a country that has stopped.
+With MAX_GAP equal to MAX_HORIZON, no estimate is ever a flat hold.
+
 Still no floor on what publishes: an estimate is never withheld for being
 far from its anchor or for being most of a total. An estimate whose rate was
 held back by MAX_GROWTH is flagged for review, as is one that lands outside
@@ -86,6 +101,9 @@ WINDOWS = (5, 10)
 # See BOUNDED GROWTH in the module docstring.
 MAX_GROWTH = 0.50
 MAX_HORIZON = 3
+
+# See RECENCY in the module docstring.
+MAX_GAP = 3
 
 
 @dataclass(frozen=True)
@@ -180,6 +198,10 @@ def estimate_for(history: dict[int, float], target: int) -> Estimate | None:
         return None
 
     years = sorted(history)
+
+    # Recency: only a country that filed this line near the target year.
+    if min(abs(year - target) for year in years) > MAX_GAP:
+        return None
 
     anchor_year, direction = _anchor(years, target)
     anchor_value = history[anchor_year]
