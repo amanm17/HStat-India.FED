@@ -194,12 +194,39 @@ ok(
 
 # Inside the code's own lifetime nothing is limited: a 4x year-on-year series
 # still projects, flagged, uncapped.
-onward = fill(born2022, ["2024"])
+# (2024 carries one other economy's filing, so it is inside the span in which
+# the code was filed at all - see the ceiling, below.)
+onward = fill(dict(born2022, **{"2024": {"156": ("China", 50.0)}}), ["2024"])
 ok("inside its lifetime the series still projects", "2024" in onward)
 ok("and is not capped", onward["2024"]["344"].value > 400.0)
 ok("and is flagged", onward["2024"]["344"].flagged)
 
 ok("an empty table set has no floor", first_filed_year({}) is None)
+
+# ----------------------------------------------- the not-yet-filed ceiling
+
+from estimate import last_filed_year
+
+# Nobody has filed 2026 yet: it is a year that has not been reported, not a
+# gap in anyone's series.
+unreported = {
+    "2024": {"699": ("India", 100.0), "842": ("USA", 500.0)},
+    "2025": {"699": ("India", 110.0), "842": ("USA", 550.0)},
+    "2026": {},
+}
+
+ok("the ceiling is the last year anyone filed", last_filed_year(unreported) == 2025)
+
+filled = fill(unreported, ["2024", "2025", "2026"])
+ok("no year after the last filing is estimated", "2026" not in filled, str(sorted(filled)))
+
+# Once one economy files the year, the rest of the field is estimated.
+unreported["2026"] = {"699": ("India", 121.0)}
+filled = fill(unreported, ["2026"])
+ok("a year with one filing estimates the rest", "842" in filled.get("2026", {}))
+ok("and still leaves the filing alone", "699" not in filled.get("2026", {}))
+
+ok("an empty table set has no ceiling", last_filed_year({}) is None)
 
 # -------------------------------------------------------- determinism
 

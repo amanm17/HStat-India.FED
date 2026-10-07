@@ -286,13 +286,42 @@ def first_filed_year(tables: dict[str, dict]) -> int | None:
     return min(years) if years else None
 
 
+def last_filed_year(tables: dict[str, dict]) -> int | None:
+    """
+    The latest year any reporter anywhere filed this code.
+
+    The ceiling for forward projection, and the floor's twin.
+
+    A year nobody has filed is not a gap in anyone's series - it is a year
+    that has not been reported yet. In October 2026 not one economy has filed
+    annual 2026 data for anything, because the year is not over. Without this
+    the ladder projected every reporter forward from 2025 and published a
+    complete-looking 2026 world total with no filing anywhere beneath it:
+    for laptops, $171bn of nothing.
+
+    Once a single economy files the year, it is a year with a field, and the
+    rest of the field is estimated and marked like any other - that is the
+    method working as intended, with the estimated share saying how much.
+
+    A refusal, not a cap: nothing inside the filed range is limited.
+    """
+    years = [
+        int(period)
+        for period, table in tables.items()
+        if table and str(period).isdigit()
+    ]
+
+    return max(years) if years else None
+
+
 def fill(tables: dict[str, dict], periods) -> dict[str, dict[str, Estimate]]:
     """
     Every estimate for one code and one flow, keyed by period then reporter.
 
     A reporter is considered for a year only if it filed this code in some
-    other year - rule 3 - and no year before the code itself was ever filed
-    is estimated at all; see `first_filed_year`.
+    other year - rule 3 - and no year outside the span in which anyone filed
+    the code at all is estimated; see `first_filed_year` and
+    `last_filed_year`.
     """
     histories, _ = reporter_histories(tables)
 
@@ -300,6 +329,7 @@ def fill(tables: dict[str, dict], periods) -> dict[str, dict[str, Estimate]]:
         return {}
 
     floor = first_filed_year(tables)
+    ceiling = last_filed_year(tables)
 
     out: dict[str, dict[str, Estimate]] = {}
 
@@ -310,6 +340,9 @@ def fill(tables: dict[str, dict], periods) -> dict[str, dict[str, Estimate]]:
             continue
 
         if floor is not None and year < floor:
+            continue
+
+        if ceiling is not None and year > ceiling:
             continue
 
         filled: dict[str, Estimate] = {}
