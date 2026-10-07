@@ -539,6 +539,40 @@ RESOLUTION_ROWS = 500
 RESOLUTION_TOP_CODES = 50
 
 
+# The first revision this dashboard is built on. A line the lineage file marks
+# `new` was created in it.
+BASE_REVISION_YEAR = 2022
+
+
+def born_in(code: str) -> int | None:
+    """
+    The first year this code existed, where the lineage file says it began
+    at a revision; None for a code that has been there all along.
+
+    The other end of a retired code's valid_to. A split or a new line has no
+    world total before the revision that created it - its trade sat in the
+    predecessor, and the HS-4 parent carries the continuous series. A
+    reporter or two filing the new number a year early (it happens: some
+    customs offices adopt a revision before it is in force) is a stray, not a
+    field, and estimation would otherwise fill the rest of the world in
+    around it. 851713 smartphones published a 2021 world total that way on
+    7 October.
+    """
+    years = []
+
+    for item in lineage_for().get(code, ()):
+        if item.relation == "split" and item.predecessor_valid_to:
+            years.append(item.predecessor_valid_to + 1)
+        elif item.relation == "new":
+            years.append(
+                item.predecessor_valid_to + 1
+                if item.predecessor_valid_to
+                else BASE_REVISION_YEAR
+            )
+
+    return max(years) if years else None
+
+
 def build_period(
     code: str,
     period: str,
@@ -551,6 +585,7 @@ def build_period(
     estimates: dict | None = None,
     reporter_names: dict | None = None,
     retired_after: int | None = None,
+    born: int | None = None,
 ) -> dict:
     bounds = tuple(scope["globalTrade"]["mirrorWarnRatio"])
 
@@ -675,6 +710,19 @@ def build_period(
     # out VALID - which validate_snapshot then reads, rightly, as a VALID year
     # with no figure. HISTORICAL is what the product page already calls a
     # year after retirement; the gate's own answer is kept beside it.
+    if born is not None and str(period).isdigit() and len(str(period)) == 4:
+        if int(period) < born:
+            publishable = False
+
+            verdict = dict(verdict)
+            verdict["gateStatus"] = verdict.get("status")
+            verdict["status"] = "HISTORICAL"
+            verdict["notYetCreated"] = (
+                f"This code was created in the HS revision in force from "
+                f"{born}. Before then its trade was reported under the "
+                "predecessor code, so no world total is published."
+            )
+
     if retired_after is not None and str(period).isdigit():
         if int(period) > retired_after:
             publishable = False
@@ -1358,10 +1406,13 @@ def build_node(
     retirement = retired_in_place().get(code)
     retired_after = retirement.valid_to if retirement else None
 
+    born = born_in(code)
+
     estimable = [
         year
         for year in years
-        if retired_after is None or int(year) <= retired_after
+        if (retired_after is None or int(year) <= retired_after)
+        and (born is None or int(year) >= born)
     ]
 
     for flow in (FLOW_IMPORTS, FLOW_EXPORTS):
@@ -1417,6 +1468,7 @@ def build_node(
             estimates=annual_estimates,
             reporter_names=reporter_names,
             retired_after=retired_after,
+            born=born,
         )
 
     monthly: dict[str, dict] = {}

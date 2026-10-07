@@ -37,6 +37,15 @@ from definition import (
 # has to get through (GitHub's is 100 MB).
 MAX_FILE_BYTES = 25 * 2**20
 
+# No node in this dashboard - not an HS-6 line, not chapter 85 as a whole -
+# imports anything like ten trillion dollars a year; all world goods trade is
+# about twenty-five. A figure above this is not a large number, it is a
+# broken one. Added after 7 October, when every gate passed a snapshot that
+# put laptops' 2025 world trade at $1.19e28: each check was asking whether
+# the parts agreed with each other, and none asked whether the whole was a
+# number that could exist.
+PLAUSIBLE_MAX_USD = 10e12
+
 
 def close(a, b, tolerance=1.0) -> bool:
     """Snapshot values are whole dollars; a dollar of drift is rounding."""
@@ -180,6 +189,14 @@ def check_period(report, code, period, record, mirror_bounds):
     status = glob.get("coverage", {}).get("status")
 
     trade = glob.get("trade")
+
+    if trade is not None and trade > PLAUSIBLE_MAX_USD:
+        report.fail(
+            code,
+            period,
+            f"published global trade ${trade:.3e} is beyond any physically "
+            f"possible value (limit ${PLAUSIBLE_MAX_USD:.0e})",
+        )
 
     rank = glob.get("indiaRank")
 

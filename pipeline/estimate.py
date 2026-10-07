@@ -39,13 +39,34 @@ the Top Importers and Top Exporters tables built on partial data underneath a
 complete-looking headline - a table that does not add up to the total printed
 above it.
 
-NO CAP, NO FLOOR
+BOUNDED GROWTH - A DELIBERATE DEPARTURE FROM "NO CAP"
 
-Nothing here clamps an estimate to a band, limits how many consecutive years
-may be extended, or withholds a figure for being mostly estimated. A long
-extrapolation from a short history can produce a number far from its anchor;
-that is what the anomaly flag is for (see `flagged`), and the flagged values
-still publish. The review queue is a human's job, not an automatic correction.
+The method as written said nothing here clamps an estimate or limits how far
+a series may be extended. It met real Comtrade data on 7 October and
+published laptops' 2025 world trade as $1.19e28.
+
+A reporter whose filed value jumps by orders of magnitude inside a five-year
+window - a unit error, a first-year partial filing, a reclassification -
+yields a compound growth rate in the thousands of percent, and compounding
+that over the years a projection spans reached x2.2e137 for one cell
+(Bangladesh, 850990 exports). One such cell outweighs every filed value in
+the world total, so the median published product-year came out 98.8%
+estimated. The arithmetic was faithful and the result was not a number.
+
+Two bounds, chosen on 7 October:
+
+  MAX_GROWTH    the rate applied is held within +/-50% a year, whatever the
+                series' own slope. A steeper slope is still read - its sign
+                and the fact it was steep - but not compounded at face value.
+  MAX_HORIZON   growth is applied for at most three years from the filing
+                it projects from. Beyond that the value holds where the third
+                year left it. No estimate is ever more than 1.5^3 = 3.375x,
+                or less than 0.5^3 = 0.125x, the filing behind it.
+
+Still no floor on what publishes: an estimate is never withheld for being
+far from its anchor or for being most of a total. An estimate whose rate was
+held back by MAX_GROWTH is flagged for review, as is one that lands outside
+the anomaly band; both publish.
 """
 
 from __future__ import annotations
@@ -61,6 +82,10 @@ ANOMALY_BAND = 0.50
 # Five is the working window; ten is the fallback for a sparse series that
 # cannot produce two usable points inside five.
 WINDOWS = (5, 10)
+
+# See BOUNDED GROWTH in the module docstring.
+MAX_GROWTH = 0.50
+MAX_HORIZON = 3
 
 
 @dataclass(frozen=True)
@@ -79,8 +104,13 @@ class Estimate:
     growth: float | None
     # forward from the last filing, or backward into pre-history.
     direction: str
-    # Outside ANOMALY_BAND of the anchor. Published, and reported.
+    # Outside ANOMALY_BAND of the anchor, or its rate was held back by
+    # MAX_GROWTH. Published, and reported.
     flagged: bool
+    # The series' own rate, before MAX_GROWTH; equal to `growth` unless held.
+    raw_growth: float | None = None
+    # True when MAX_GROWTH held the rate back.
+    capped: bool = False
 
     def as_dict(self) -> dict:
         return asdict(self)
@@ -194,13 +224,22 @@ def estimate_for(history: dict[int, float], target: int) -> Estimate | None:
     if growth is not None and 1.0 + growth <= 0:
         growth, method, used = None, "flat", 1
 
+    raw_growth = growth
+    capped = False
+
+    if growth is not None and abs(growth) > MAX_GROWTH:
+        growth = MAX_GROWTH if growth > 0 else -MAX_GROWTH
+        capped = True
+
     if growth is None:
         # One observation, or none of the windows could produce a rate. Hold
         # the anchor flat: it is the only defensible reading of a series with
         # no slope to read.
         value = anchor_value
     else:
-        value = anchor_value * ((1.0 + growth) ** (target - anchor_year))
+        distance = target - anchor_year
+        steps = min(abs(distance), MAX_HORIZON)
+        value = anchor_value * ((1.0 + growth) ** (steps if distance > 0 else -steps))
 
     # A projection can only be as positive as its anchor. Negative output
     # would mean the arithmetic ran away, not that a country traded less than
@@ -208,7 +247,7 @@ def estimate_for(history: dict[int, float], target: int) -> Estimate | None:
     if value < 0 or value != value or value in (float("inf"), float("-inf")):
         return None
 
-    flagged = (
+    flagged = capped or (
         anchor_value > 0 and abs(value / anchor_value - 1.0) > ANOMALY_BAND
     )
 
@@ -221,6 +260,8 @@ def estimate_for(history: dict[int, float], target: int) -> Estimate | None:
         growth=growth,
         direction=direction,
         flagged=flagged,
+        raw_growth=raw_growth,
+        capped=capped,
     )
 
 
