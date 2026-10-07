@@ -816,6 +816,86 @@ def main():
 
         del entries
 
+    # --- The front page and the detail files (Phase 2) ------------------
+    #
+    # Both are derived from the same merged reporter tables as the nodes, so
+    # they must add up to them exactly. A scope total that drifted from the
+    # products listed beneath it would put two different world figures on one
+    # screen.
+    #
+    # Required only of a snapshot the Phase 2 pipeline wrote, which the
+    # catalogue says by carrying the gross benchmark. The code that writes
+    # these files reaches main before the refresh that runs it, and QA on
+    # that push must not fail on a snapshot that predates them.
+    scope_path = root / "scope.json"
+
+    phase2 = any("globalTradeGross" in entry for entry in catalogue)
+
+    if not phase2:
+        report.warn(
+            None,
+            None,
+            "snapshot predates scope.json and detail files; rebuild to add them",
+        )
+    elif not scope_path.exists():
+        report.fail(None, None, "scope.json missing")
+    else:
+        scope_summary = json.loads(scope_path.read_text())
+
+        for period, year in (scope_summary.get("years") or {}).items():
+            products_total = sum(row[1] for row in year.get("products") or [])
+            importers_total = sum(row[1] for row in year.get("importers") or [])
+            world = year.get("worldImports") or 0
+
+            if world and abs(products_total - world) > max(1.0, world * 1e-6) * len(year.get("products") or [1]):
+                report.fail(
+                    None,
+                    period,
+                    f"scope world imports {world} != sum of its products "
+                    f"{products_total}",
+                )
+
+            if world and abs(importers_total - world) > max(1.0, world * 1e-6) * max(1, len(year.get("importers") or [])):
+                report.fail(
+                    None,
+                    period,
+                    f"scope importers sum {importers_total} != world imports {world}",
+                )
+
+            if year.get("lines") != len(year.get("products") or []):
+                report.fail(None, period, "scope line count disagrees with its product list")
+
+    detail_dir = root / "detail"
+
+    for entry in catalogue if phase2 else []:
+        detail_path = detail_dir / f"{entry['code']}.json"
+
+        if not detail_path.exists():
+            report.fail(entry["code"], None, "detail file missing")
+            continue
+
+        detail = json.loads(detail_path.read_text())
+
+        for period, block in (detail.get("years") or {}).items():
+            # India's partner rows are India's bilateral filings and need not
+            # sum to her world total (the partner_set coverage figure says by
+            # how much); only the world rankings are summed from one table.
+            for key in ("importers", "exporters"):
+                table = block.get(key)
+
+                if not table or not table.get("complete"):
+                    continue
+
+                summed = sum(row[1] for row in table["rows"])
+                total = table.get("total") or 0
+
+                if total and abs(summed - total) > max(1.0, total * 1e-6) * len(table["rows"]):
+                    report.fail(
+                        entry["code"],
+                        period,
+                        f"detail {key} rows sum {summed} != total {total}",
+                    )
+
     # Every file has to be deliverable. Cloudflare Pages refuses any single
     # asset over 25 MiB and GitHub refuses a pushed file over 100 MB, and both
     # refusals arrive after promotion - the first real reprocess built a

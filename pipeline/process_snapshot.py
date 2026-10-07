@@ -67,6 +67,23 @@ TOP_ECONOMIES = 10
 TOP_ECONOMIES_BENCHMARK = 25
 TOP_PARTNERS = 20
 
+# GROSS RANKINGS (7 October 2026, Phase 2)
+#
+# The page headline is world imports GROSS - what the reporters filed, plus
+# what estimation added - and the tables beneath it rank countries on the same
+# basis, so the rows add up to the figure printed above them. The netted
+# tables (topEconomies / topExporters) stay in the node for the calculation
+# drawer and for every reader that already uses them.
+#
+#   node file     the top GROSS_TOP of each list, every year
+#   detail file   every reporter, from FULL_LISTS_FROM on; GROSS_DETAIL_TOP
+#                 before it. Full lists for all thirty years would add
+#                 roughly 95 MB to every snapshot; the decade a reader
+#                 actually works in costs about a third of that.
+GROSS_TOP = 10
+GROSS_DETAIL_TOP = 25
+FULL_LISTS_FROM = 2016
+
 # A financial year and a calendar year are different periods, so the check
 # below cannot be tight. Its job is to catch a units blunder - rupees loaded
 # into the dollar column would be roughly 85x out - not to reconcile two
@@ -539,6 +556,300 @@ RESOLUTION_ROWS = 500
 RESOLUTION_TOP_CODES = 50
 
 
+def gross_ranking(merged: dict, estimated: dict) -> list[tuple]:
+    """
+    Every reporter in a merged table, largest first, as
+    (code, name, value, estimated_value).
+
+    `estimated_value` is the part of the row that came from projection: the
+    whole row for an estimated reporter, nothing for a filed one. A row is one
+    or the other - rule 1 means an estimate never shares a cell with a filing.
+    """
+    rows = []
+
+    for reporter, entry in (merged or {}).items():
+        name, value = entry
+
+        if value is None or value <= 0:
+            continue
+
+        rows.append(
+            (
+                reporter,
+                name,
+                float(value),
+                float(value) if reporter in (estimated or {}) else 0.0,
+            )
+        )
+
+    rows.sort(key=lambda row: -row[2])
+
+    return rows
+
+
+def ranked_rows(rows: list[tuple], total: float, limit: int) -> list[dict]:
+    """The top of a gross ranking, in the node's row shape."""
+    if not total or total <= 0:
+        return []
+
+    return [
+        {
+            "rank": position + 1,
+            "code": code,
+            "name": name,
+            "value": round_usd(value),
+            "share": round_ratio(value / total),
+            **({"estimated": True} if estimated_value else {}),
+        }
+        for position, (code, name, value, estimated_value) in enumerate(
+            rows[:limit]
+        )
+    ]
+
+
+def detail_for(code: str, lists: dict) -> dict:
+    """
+    The detail file for one node: every ranking the page can expand to
+    "view all", and that the workbook exports in full.
+
+    Rows are compact arrays - [reporter, value, estimated] for world rankings,
+    [partner, value] for India's partners - with names held once in
+    `reporters`. Years before FULL_LISTS_FROM keep the top GROSS_DETAIL_TOP and
+    say so in `complete`; nothing is padded or guessed to fill them.
+    """
+    names: dict[str, str] = {}
+    years: dict[str, dict] = {}
+
+    for period, entry in sorted(lists.items()):
+        if not entry or not str(period).isdigit():
+            continue
+
+        full = int(period) >= FULL_LISTS_FROM
+        limit = None if full else GROSS_DETAIL_TOP
+
+        block: dict[str, dict] = {}
+
+        for key, total_key in (("importers", "importsTotal"), ("exporters", "exportsTotal")):
+            rows = entry.get(key) or []
+
+            if not rows:
+                continue
+
+            kept = rows if limit is None else rows[:limit]
+
+            for code_, name, _, _ in kept:
+                names.setdefault(code_, name)
+
+            block[key] = {
+                "total": round_usd(entry.get(total_key)),
+                "count": len(rows),
+                "complete": len(kept) == len(rows),
+                "rows": [
+                    [code_, round_usd(value), 1 if estimated_value else 0]
+                    for code_, _, value, estimated_value in kept
+                ],
+            }
+
+        for key, total_key in (
+            ("indiaSuppliers", "indiaImports"),
+            ("indiaDestinations", "indiaExports"),
+        ):
+            rows = entry.get(key) or []
+            total = entry.get(total_key)
+
+            if not rows or not total:
+                continue
+
+            kept = rows if limit is None else rows[:limit]
+
+            for code_, name, _ in kept:
+                names.setdefault(code_, name)
+
+            block[key] = {
+                "total": round_usd(total),
+                "count": len(rows),
+                "complete": len(kept) == len(rows),
+                "rows": [[code_, round_usd(value)] for code_, _, value in kept],
+            }
+
+        if block:
+            years[str(period)] = block
+
+    return {
+        "code": code,
+        "basis": "gross",
+        "fullListsFrom": FULL_LISTS_FROM,
+        "reporters": names,
+        "years": years,
+    }
+
+
+class ScopeSummary:
+    """
+    The front page's numbers: the FED scope, summed across every published
+    HS-6 line, year by year.
+
+    Built from the same merged reporter tables each product page ranks, so a
+    country's scope total is exactly the sum of its rows on the product pages
+    and the tiles add up to the products listed beneath them. Only published
+    product-years count: a line before it existed, or after it was retired,
+    contributes nothing, exactly as its own page shows nothing.
+    """
+
+    def __init__(self) -> None:
+        self.names: dict[str, str] = {}
+        self.years: dict[str, dict] = {}
+
+    def _year(self, period: str) -> dict:
+        return self.years.setdefault(
+            period,
+            {
+                "lines": 0,
+                "worldImports": 0.0,
+                "estimatedImports": 0.0,
+                "worldExports": 0.0,
+                "estimatedExports": 0.0,
+                "indiaImports": 0.0,
+                "indiaExports": 0.0,
+                "indiaImportLines": 0,
+                "indiaExportLines": 0,
+                "importers": {},
+                "exporters": {},
+                "products": [],
+            },
+        )
+
+    def add(self, code: str, lists: dict) -> None:
+        for period, entry in lists.items():
+            if not entry or not str(period).isdigit():
+                continue
+
+            year = self._year(str(period))
+
+            # India's own filings count whether or not the world figure
+            # published: they are India's, not the world's.
+            if entry.get("indiaImports"):
+                year["indiaImports"] += entry["indiaImports"]
+                year["indiaImportLines"] += 1
+
+            if entry.get("indiaExports"):
+                year["indiaExports"] += entry["indiaExports"]
+                year["indiaExportLines"] += 1
+
+            if not entry.get("publishable"):
+                continue
+
+            year["lines"] += 1
+            year["worldImports"] += entry.get("importsTotal") or 0.0
+            year["worldExports"] += entry.get("exportsTotal") or 0.0
+            year["estimatedImports"] += entry.get("estimatedImports") or 0.0
+            year["estimatedExports"] += entry.get("estimatedExports") or 0.0
+
+            for key in ("importers", "exporters"):
+                bucket = year[key]
+
+                for reporter, name, value, estimated_value in entry.get(key) or []:
+                    self.names.setdefault(reporter, name)
+                    slot = bucket.setdefault(reporter, [0.0, 0.0])
+                    slot[0] += value
+                    slot[1] += estimated_value
+
+            total = entry.get("importsTotal") or 0.0
+
+            if total > 0:
+                # [code, world imports gross, estimated share, India imports,
+                # India exports] - enough for the front page's product
+                # rankings and its category stacks without loading 418 nodes.
+                year["products"].append(
+                    [
+                        code,
+                        round_usd(total),
+                        round_ratio((entry.get("estimatedImports") or 0.0) / total),
+                        round_usd(entry.get("indiaImports")),
+                        round_usd(entry.get("indiaExports")),
+                    ]
+                )
+
+    def as_dict(self, lines_in_scope: int) -> dict:
+        years = {}
+
+        for period, year in sorted(self.years.items()):
+            def ranked(bucket: dict) -> list:
+                rows = sorted(bucket.items(), key=lambda item: -item[1][0])
+
+                return [
+                    [reporter, round_usd(value), round_usd(estimated)]
+                    for reporter, (value, estimated) in rows
+                    if value > 0
+                ]
+
+            years[period] = {
+                "lines": year["lines"],
+                "worldImports": round_usd(year["worldImports"]),
+                "estimatedImports": round_usd(year["estimatedImports"]),
+                "worldExports": round_usd(year["worldExports"]),
+                "estimatedExports": round_usd(year["estimatedExports"]),
+                "indiaImports": round_usd(year["indiaImports"]),
+                "indiaExports": round_usd(year["indiaExports"]),
+                "indiaImportLines": year["indiaImportLines"],
+                "indiaExportLines": year["indiaExportLines"],
+                "importers": ranked(year["importers"]),
+                "exporters": ranked(year["exporters"]),
+                "products": sorted(year["products"], key=lambda row: -row[1]),
+            }
+
+        return {
+            "builtAt": utc_now(),
+            "basis": "gross",
+            "currency": "USD",
+            "linesInScope": lines_in_scope,
+            "reporters": self.names,
+            "years": years,
+        }
+
+
+def gross_benchmark(node: dict) -> dict:
+    """The benchmark year's gross figure, estimated share and India's gross
+    positions, for the catalogue."""
+    benchmark = node.get("globalTrade")
+
+    if not benchmark:
+        return {
+            "globalTradeGross": None,
+            "estimatedGrossShare": None,
+            "indiaImportPosition": None,
+            "indiaExportPosition": None,
+        }
+
+    record = (node["annual"].get(str(benchmark["year"])) or {}).get("global") or {}
+
+    return {
+        "globalTradeGross": (record.get("observed") or {}).get("grossImports"),
+        "estimatedGrossShare": (
+            ((record.get("estimation") or {}).get("imports") or {}).get(
+                "estimatedGrossShare"
+            )
+        ),
+        "indiaImportPosition": record.get("indiaImportPosition"),
+        "indiaExportPosition": record.get("indiaExportPosition"),
+    }
+
+
+def position_of(rows: list[tuple], reporter: str, total: float) -> dict | None:
+    """Where one reporter sits in a full ranking, wherever that is."""
+    for position, (code, _, value, estimated_value) in enumerate(rows):
+        if code == reporter:
+            return {
+                "rank": position + 1,
+                "of": len(rows),
+                "value": round_usd(value),
+                "share": round_ratio(value / total) if total else None,
+                "estimated": bool(estimated_value),
+            }
+
+    return None
+
+
 # The first revision this dashboard is built on. A line the lineage file marks
 # `new` was created in it.
 BASE_REVISION_YEAR = 2022
@@ -838,6 +1149,64 @@ def build_period(
             },
             "coverage": verdict,
         },
+    }
+
+    # GROSS: the basis the page headline and its tables use. See GROSS
+    # RANKINGS at the top of this file.
+    importer_rows = gross_ranking(merged_imports, import_estimates)
+    exporter_rows = gross_ranking(merged_exports, export_estimates)
+
+    gross_imports_total = sum(row[2] for row in importer_rows)
+    gross_exports_total = sum(row[2] for row in exporter_rows)
+
+    estimated_gross_imports = sum(row[3] for row in importer_rows)
+    estimated_gross_exports = sum(row[3] for row in exporter_rows)
+
+    record["global"]["estimation"]["imports"]["estimatedGrossValue"] = round_usd(
+        estimated_gross_imports
+    )
+    record["global"]["estimation"]["imports"]["estimatedGrossShare"] = (
+        round_ratio(estimated_gross_imports / gross_imports_total)
+        if gross_imports_total > 0
+        else None
+    )
+    record["global"]["estimation"]["exports"]["estimatedGrossValue"] = round_usd(
+        estimated_gross_exports
+    )
+    record["global"]["estimation"]["exports"]["estimatedGrossShare"] = (
+        round_ratio(estimated_gross_exports / gross_exports_total)
+        if gross_exports_total > 0
+        else None
+    )
+
+    if publishable:
+        record["global"]["importers"] = ranked_rows(
+            importer_rows, gross_imports_total, GROSS_TOP
+        )
+        record["global"]["exporters"] = ranked_rows(
+            exporter_rows, gross_exports_total, GROSS_TOP
+        )
+        record["global"]["indiaImportPosition"] = position_of(
+            importer_rows, INDIA_REPORTER, gross_imports_total
+        )
+        record["global"]["indiaExportPosition"] = position_of(
+            exporter_rows, INDIA_REPORTER, gross_exports_total
+        )
+
+    # Full lists ride along under a private key: build_node moves them into
+    # the detail file and the scope summary, and they never reach the node.
+    record["_lists"] = {
+        "publishable": publishable,
+        "importers": importer_rows if publishable else [],
+        "exporters": exporter_rows if publishable else [],
+        "importsTotal": gross_imports_total if publishable else None,
+        "exportsTotal": gross_exports_total if publishable else None,
+        "estimatedImports": estimated_gross_imports if publishable else 0.0,
+        "estimatedExports": estimated_gross_exports if publishable else 0.0,
+        "indiaSuppliers": india_index[FLOW_IMPORTS].partners(code, period),
+        "indiaDestinations": india_index[FLOW_EXPORTS].partners(code, period),
+        "indiaImports": india_gross_imports,
+        "indiaExports": india_gross_exports,
     }
 
     # Published, but is it settled? Computed from what is already measured and
@@ -1892,6 +2261,8 @@ def main():
     # second pass over the store is needed.
     hs6_values: dict[str, dict] = {}
 
+    scope_summary = ScopeSummary()
+
     for code, level in plan:
         node = build_node(
             code,
@@ -1919,6 +2290,25 @@ def main():
                 for period, record in node["annual"].items()
                 if int(period) >= args.analysis_start_year
             }
+
+        # The full rankings travel separately: into the detail file the page
+        # loads on demand, and - for HS-6 lines - into the scope summary.
+        lists = {
+            period: record.pop("_lists", None)
+            for period, record in node["annual"].items()
+        }
+
+        for record in node.get("monthly", {}).values():
+            record.pop("_lists", None)
+
+        write_json(
+            out / "detail" / f"{code}.json",
+            detail_for(code, lists),
+            compact=True,
+        )
+
+        if level == 6:
+            scope_summary.add(code, lists)
 
         destination = (
             out / "products" / f"{code}.json"
@@ -1997,10 +2387,24 @@ def main():
                 ),
                 "indiaImports": latest.get("india", {}).get("imports"),
                 "indiaExports": latest.get("india", {}).get("exports"),
+                # The same benchmark year on the gross basis the page now
+                # leads with. The netted value above stays as it was.
+                **gross_benchmark(node),
             }
         )
 
     write_json(out / "catalogue.json", catalogue, compact=True)
+
+    # The front page's numbers. Written beside the catalogue, never into it:
+    # a reader of catalogue.json should not have to parse thirty years of
+    # rankings to find a product.
+    write_json(
+        out / "scope.json",
+        scope_summary.as_dict(
+            sum(1 for _, level in plan if level == 6)
+        ),
+        compact=True,
+    )
 
     write_json(
         out / "methodology.json",
@@ -2019,16 +2423,17 @@ def main():
                 # because the figure on screen is not always the one the
                 # formula above produces.
                 "notes": [
-                    "GROSS IMPORTS are the world's imports exactly as filed: "
-                    "the sum of every reporting economy's imports from the "
-                    "World partner, with no adjustment. This is what the page "
-                    "shows by default, under \u2018As reported\u2019.",
+                    "GLOBAL TRADE on every page is GROSS: the sum of every "
+                    "reporting economy's imports from the World partner, as "
+                    "filed, plus the estimated imports of economies that have "
+                    "not filed the year (see estimation). The country tables "
+                    "rank on the same basis, so they add up to it.",
                     "RE-IMPORTS are goods returning to the economy that "
                     "exported them, where that economy files them separately "
                     "(flow RM). Total imports as filed already include them "
                     "(M = FM + RM + MIP + MOP), so leaving them in counts the "
                     "same goods twice.",
-                    "NET IMPORTS, shown under \u2018Net of re-imports\u2019, "
+                    "NET IMPORTS, shown in the calculation drawer, "
                     "subtract them reporter by reporter - each economy's own "
                     "re-imports come off its own imports, never off the world "
                     "total in aggregate.",
@@ -2041,12 +2446,19 @@ def main():
                     "imports, the adjustment is refused rather than allowed to "
                     "produce a negative. Those reporters are counted as "
                     "clamped and carried at their gross value.",
-                    "India's rank and share are computed on the NET table, "
-                    "whichever basis is on screen. India's own figure in the "
-                    "rank is likewise net of its re-imports.",
-                    "Reporter coverage is validated on the GROSS import table, "
-                    "before netting, by comparing a year with the one before "
-                    "it. No figure is published for a period that fails.",
+                    "India's position in the country tables is on the gross "
+                    "basis, like the tables themselves. The netted rank and "
+                    "share are kept in the calculation drawer.",
+                    "Where gross and net differ by more than 10%, the page "
+                    "says so beside the figure: those are the products where "
+                    "re-imports are large enough that the gross total "
+                    "misleads.",
+                    "Reporter coverage is validated on the filed import "
+                    "table, before netting and before estimation, by "
+                    "comparing a year with the one before it. The verdict "
+                    "(VALID, CAUTION, INVALID) is shown in the calculation "
+                    "drawer; where coverage is short, the missing reporters "
+                    "are estimated rather than the figure withheld.",
                     "Coverage looks only at the import side. A year can pass "
                     "and still be filling in - where reporters that filed last "
                     "year have not filed this one, the page says so beside the "
@@ -2058,6 +2470,42 @@ def main():
                     "India's bilateral partner rows are gross: re-imports are "
                     "not filed by partner.",
                 ],
+            },
+            "estimation": {
+                "statement": (
+                    "Where an economy has not filed a year for a product, its "
+                    "value is projected from its own history of that product "
+                    "and flow, and the world total is re-summed from the "
+                    "reporter table. A filed value is never changed by "
+                    "estimation, and estimated values are marked * with their "
+                    "share of the figure."
+                ),
+                "notes": [
+                    "Growth is the compound annual rate over the five years "
+                    "before the gap (ten if five cannot support a rate), held "
+                    "within +/-50% a year and applied for at most three years.",
+                    "An economy is estimated only within three years of its "
+                    "own filings of that product. One that has stopped is not "
+                    "assumed to be trading.",
+                    "Nothing is estimated before anyone filed a product, after "
+                    "the last year anyone did, before an HS 2022 line was "
+                    "created, or after a retired line was withdrawn.",
+                    "Estimates far from the filing they were projected from "
+                    "are flagged for review each month; they publish like any "
+                    "other estimate.",
+                    "India's tariff lines (DGCIS, HS-8) are reported data only "
+                    "and are never estimated.",
+                ],
+            },
+            "fx": {
+                "statement": (
+                    "Rupee figures convert each period at its own average "
+                    "rate. A missing month takes that calendar year's average; "
+                    "failing that, the financial-year average covering it; "
+                    "failing that, the nearest period's rate. Substitution "
+                    "carries no asterisk. No rate is ever derived from DGCIS "
+                    "rupee and dollar values."
+                ),
             },
             "definition": {
                 "source": "config/fed_sector_definition.csv",
@@ -2109,7 +2557,7 @@ def main():
                     "A period with no rate of its own is converted at a "
                     "substitute, in this order: that calendar year's average, "
                     "then the financial year covering the period, then the "
-                    "nearest period on the same basis. The substitution is "
+                    "nearest period that has a rate. The substitution is "
                     "named wherever it is used. A rate is never derived by "
                     "dividing DGCIS rupee and dollar filings of the same "
                     "shipment, which would imply a rate no bank published."
@@ -2157,6 +2605,10 @@ def main():
             "nodes": len(plan),
             "globalTradeBasis": scope["globalTrade"]["basis"],
             "monthlyEnabled": bool(months),
+            # The page-level files added in the Phase 2 refresh. The frontend
+            # asks for them only when the manifest says they were written, so
+            # a snapshot built before them does not 404 in the console.
+            "pageFiles": {"scope": "scope.json", "detail": "detail/"},
         },
     )
 

@@ -361,6 +361,51 @@ def main():
             "to apply it"
         )
 
+    # --- The front page summary and the detail files ---------------------
+    #
+    # Same transition rule as above: a snapshot built before the Phase 2
+    # pipeline has neither, and the build that ships the code that writes
+    # them must not be blocked by their absence. Once the catalogue carries
+    # the gross benchmark, the refresh that wrote it also wrote these.
+    phase2 = any("globalTradeGross" in entry for entry in six)
+
+    scope_file = snapshot / "scope.json"
+    detail_dir = snapshot / "detail"
+
+    if phase2:
+        check.require(scope_file.exists(), "scope.json is missing")
+
+        missing_detail = [
+            entry["code"]
+            for entry in catalogue
+            if not (detail_dir / f"{entry['code']}.json").exists()
+        ]
+
+        check.require(
+            not missing_detail,
+            f"{len(missing_detail)} nodes have no detail file: "
+            + ", ".join(missing_detail[:8]),
+        )
+
+        if scope_file.exists():
+            scope_doc = read(scope_file) or {}
+            scope_years = scope_doc.get("years") or {}
+            scope_published = [scope_period for scope_period, scope_year in scope_years.items() if scope_year.get('lines')]
+            scope_latest = max(scope_published) if scope_published else None
+
+            check.require(scope_latest is not None, "scope.json has no years")
+
+            if scope_latest:
+                check.note(
+                    f"scope {scope_latest}: {scope_years[scope_latest]['lines']} lines, world "
+                    f"imports ${scope_years[scope_latest]['worldImports'] / 1e12:,.2f}tn"
+                )
+    else:
+        check.note(
+            "this snapshot predates the scope summary and detail files; "
+            "rebuild the data to add them"
+        )
+
     # --- India's figure must be India's ----------------------------------
     #
     # The homepage tile used to show the world total under a heading about
