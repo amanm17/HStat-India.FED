@@ -1211,7 +1211,7 @@
     },
     "coverage": {
       "periods": 53,
-      "convertible": 41,
+      "convertible": 40,
       "missing": [
         "CY 2026",
         "MONTH 2025-08",
@@ -1224,10 +1224,11 @@
         "MONTH 2026-03",
         "MONTH 2026-04",
         "MONTH 2026-05",
-        "MONTH 2026-06"
+        "MONTH 2026-06",
+        "MONTH 2026-07"
       ],
       "complete": false,
-      "fraction": 0.7735849056603774
+      "fraction": 0.7547169811320755
     }
   }
 }
