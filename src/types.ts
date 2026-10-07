@@ -137,6 +137,21 @@ export type Mirror = {
   status: 'OK' | 'WARNING' | 'UNAVAILABLE' | string
 }
 
+/*
+ * The estimation behind one flow's figure for one period.
+ *
+ * `estimatedShare` is the part of the published total that came from
+ * projection: 0 means every reporter filed, 1 means none did. It is what the
+ * asterisk on a figure reveals.
+ */
+export type EstimationMeta = {
+  estimatedReporters: number
+  filedReporters: number
+  estimatedValue: number
+  estimatedShare: number | null
+  flaggedReporters: number
+}
+
 export type Observed = {
   grossImports: number | null
   reImportsRemoved: number | null
@@ -167,6 +182,18 @@ export type PeriodRecord = {
     tradeStatus: string
     indiaRank: number | null
     indiaShare: number | null
+    /*
+     * How much of `trade` was estimated rather than filed.
+     *
+     * Absent on snapshots built before 7 October 2026, which is why every
+     * reader of it treats absence as "nothing estimated" rather than as an
+     * error: an old snapshot and a fully-filed year say the same thing here,
+     * and they mean the same thing.
+     */
+    estimation?: {
+      imports: EstimationMeta
+      exports: EstimationMeta
+    }
     observed: Observed
     mirror: Mirror
     coverage: Coverage

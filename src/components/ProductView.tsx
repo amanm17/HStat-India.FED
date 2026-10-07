@@ -86,6 +86,8 @@ import {
   MiniMetric,
   PanelHead,
   StatusPill,
+  Estimated,
+  MarkerLegend,
   SeriesTable,
   Tabs,
   Tile,
@@ -462,7 +464,13 @@ function GlobalTradeCard({
         <div className="hero-figure">
           <span>Global trade</span>
 
-          <strong>{usd(benchmark.value)}</strong>
+          <strong>
+            {usd(benchmark.value)}
+            <Estimated
+              share={selected?.estimation?.imports.estimatedShare}
+              reporters={selected?.estimation?.imports.estimatedReporters}
+            />
+          </strong>
 
           <small>
             {basis === 'gross'
@@ -539,6 +547,12 @@ function GlobalTradeCard({
 
         </div>
       </div>
+
+      <MarkerLegend
+        estimated={Boolean(
+          (selected?.estimation?.imports.estimatedShare ?? 0) > 0,
+        )}
+      />
 
       <Disclosure summary="How this figure is calculated">
         <p className="method-formula">
@@ -2784,6 +2798,10 @@ export function ProductView({
                       annual.global.trade
                     : annual.global.trade,
               )}
+              <Estimated
+                share={annual.global.estimation?.imports.estimatedShare}
+                reporters={annual.global.estimation?.imports.estimatedReporters}
+              />
             </strong>
             <small>
               {annual.global.trade === null
@@ -3025,7 +3043,22 @@ export function ProductView({
                   ]}
                   rows={[...globalTrend].reverse().map(point => ({
                     year: point.label,
-                    trade: point.trade === null ? null : usd(point.trade),
+                    trade:
+                      point.trade === null ? null : (
+                        <>
+                          {usd(point.trade)}
+                          <Estimated
+                            share={
+                              node.annual[point.label]?.global.estimation
+                                ?.imports.estimatedShare
+                            }
+                            reporters={
+                              node.annual[point.label]?.global.estimation
+                                ?.imports.estimatedReporters
+                            }
+                          />
+                        </>
+                      ),
                     predecessor:
                       point.predecessor === null ||
                       point.predecessor === undefined

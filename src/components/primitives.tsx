@@ -337,6 +337,67 @@ export function ExplainMetric({
  * plotted from. That is the whole point: a table assembled separately can
  * disagree with the picture beside it, and then neither can be trusted.
  */
+/*
+ * THE ESTIMATION MARKER
+ *
+ * Since 7 October a published figure may contain values no country filed:
+ * where the coverage gate used to withhold a year, the pipeline now projects
+ * the missing reporters from their own history and re-sums the total. That is
+ * a deliberate trade - a usable figure instead of a blank - and it is only
+ * defensible while the two kinds of number are told apart on sight.
+ *
+ * So: `*` after any figure containing estimated components, revealing the
+ * estimated share on hover or tap. Deliberately not colour. Colour carries
+ * one meaning in this dashboard - which series a line belongs to - and a
+ * second meaning laid over the first makes both unreadable.
+ *
+ * A share of zero renders nothing at all. Marking a fully-filed figure would
+ * train readers to ignore the mark, which costs more than it buys.
+ */
+export function Estimated({
+  share,
+  reporters,
+}: {
+  /* 0-1, or null where the snapshot predates estimation. */
+  share: number | null | undefined
+  /* How many reporters were projected, for the explanation. */
+  reporters?: number
+}) {
+  if (share === null || share === undefined || share <= 0) return null
+
+  const pct = share < 0.001 ? '<0.1%' : `${(share * 100).toFixed(1)}%`
+
+  const detail =
+    reporters && reporters > 0
+      ? `${pct} of this figure is estimated, across ${reporters} ` +
+        `${reporters === 1 ? 'economy that has' : 'economies that have'} not filed. ` +
+        'Estimated from each economy\u2019s own history of this code.'
+      : `${pct} of this figure is estimated from reporters that have not filed.`
+
+  return (
+    <abbr className="estimated-mark" title={detail} aria-label={detail}>
+      *
+    </abbr>
+  )
+}
+
+/*
+ * The legend that makes the mark mean something, for the foot of any page
+ * that shows one.
+ */
+export function MarkerLegend({ estimated }: { estimated?: boolean }) {
+  if (!estimated) return null
+
+  return (
+    <p className="marker-legend">
+      <span className="estimated-mark">*</span> contains estimated values.
+      Where an economy has not filed a year, its value is projected from its
+      own history of that code and the world total is re-summed. Hover a mark
+      to see how much of that figure it is. Figures with no mark are as filed.
+    </p>
+  )
+}
+
 export type ChartView = 'chart' | 'table'
 
 /*
@@ -358,7 +419,9 @@ export function SeriesTable({
   caption,
 }: {
   columns: { key: string; label: string; numeric?: boolean }[]
-  rows: Record<string, string | number | null>[]
+  /* A cell may be a node rather than a string: a figure containing estimated
+   * values carries its marker, and the marker is an element. */
+  rows: Record<string, ReactNode>[]
   /* Read by screen readers in place of the chart it replaces. */
   caption: string
 }) {

@@ -568,13 +568,16 @@ def build_period(
     import_estimates = (per_flow.get(FLOW_IMPORTS) or {}).get(period, {})
     export_estimates = (per_flow.get(FLOW_EXPORTS) or {}).get(period, {})
 
-    merged_imports, import_meta = estimate.merge(
+    re_imports = global_index[FLOW_RE_IMPORTS].get(code, period)
+    re_exports = global_index[FLOW_RE_EXPORTS].get(code, period)
+
+    merged_imports, _ = estimate.merge(
         imports,
         import_estimates,
         names.get(FLOW_IMPORTS, {}),
     )
 
-    merged_exports, export_meta = estimate.merge(
+    merged_exports, _ = estimate.merge(
         global_index[FLOW_EXPORTS].get(code, period),
         export_estimates,
         names.get(FLOW_EXPORTS, {}),
@@ -593,11 +596,29 @@ def build_period(
 
     result = globaltrade.compute(
         merged_imports,
-        global_index[FLOW_RE_IMPORTS].get(code, period),
+        re_imports,
         merged_exports,
-        global_index[FLOW_RE_EXPORTS].get(code, period),
+        re_exports,
         mirror_bounds=bounds,
         top=TOP_ECONOMIES if detailed else 1,
+    )
+
+    # The share is of the figure the page actually shows, which is net of
+    # re-imports - so it is taken once the netting has happened, not before.
+    _, import_meta = estimate.merge(
+        imports,
+        import_estimates,
+        names.get(FLOW_IMPORTS, {}),
+        reverse=re_imports,
+        published_total=result["netImports"],
+    )
+
+    _, export_meta = estimate.merge(
+        global_index[FLOW_EXPORTS].get(code, period),
+        export_estimates,
+        names.get(FLOW_EXPORTS, {}),
+        reverse=re_exports,
+        published_total=result["netExports"],
     )
 
     if analytical and prior is not None:

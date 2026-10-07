@@ -326,7 +326,13 @@ def fill(tables: dict[str, dict], periods) -> dict[str, dict[str, Estimate]]:
     return out
 
 
-def merge(filed: dict, estimates: dict[str, Estimate], names: dict) -> tuple[dict, dict]:
+def merge(
+    filed: dict,
+    estimates: dict[str, Estimate],
+    names: dict,
+    reverse: dict | None = None,
+    published_total: float | None = None,
+) -> tuple[dict, dict]:
     """
     Lay estimates into a filed reporter table without disturbing it.
 
@@ -335,6 +341,18 @@ def merge(filed: dict, estimates: dict[str, Estimate], names: dict) -> tuple[dic
     resulting total was estimated. A filed reporter is copied through
     untouched; the assertion below is rule 1 written as code, because this is
     the one function where breaking it would be silent.
+
+    NET, NOT GROSS
+
+    `reverse` is the re-import (or re-export) table, and `published_total` the
+    figure that will actually appear on the page. Both matter because the
+    published total is net of re-imports while an estimate is gross, so a
+    share taken before netting describes a number nobody is shown.
+
+    It is a small error - a fraction of a percent - and it was found by
+    verify_filed.py reconciling the published figure against the raw store,
+    which is exactly the job that check exists to do. Omitting both arguments
+    gives the gross reading, which is right when there is nothing to net.
     """
     merged = dict(filed or {})
 
@@ -348,17 +366,29 @@ def merge(filed: dict, estimates: dict[str, Estimate], names: dict) -> tuple[dic
 
         merged[reporter] = (names.get(reporter, reporter), estimate.value)
 
-        estimated_value += estimate.value
+        # The same netting globaltrade.net_by_reporter applies, including its
+        # refusal to manufacture a negative out of an inconsistent filing.
+        back = (reverse or {}).get(reporter)
+
+        net = estimate.value
+
+        if back is not None and back[1] <= estimate.value:
+            net = estimate.value - back[1]
+
+        estimated_value += net
 
         if estimate.flagged:
             flagged += 1
 
-    total = sum(value for _, value in merged.values()) if merged else 0.0
+    total = published_total
+
+    if total is None:
+        total = sum(value for _, value in merged.values()) if merged else 0.0
 
     return merged, {
         "estimatedReporters": len(estimates or {}),
         "filedReporters": len(filed or {}),
         "estimatedValue": estimated_value,
-        "estimatedShare": (estimated_value / total) if total > 0 else None,
+        "estimatedShare": (estimated_value / total) if total and total > 0 else None,
         "flaggedReporters": flagged,
     }

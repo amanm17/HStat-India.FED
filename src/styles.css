@@ -9346,3 +9346,49 @@ table.contribution tfoot th {
     min-height: 44px;
   }
 }
+
+/* ---------------------------------------------------------
+ * The estimation marker
+ *
+ * A figure that contains projected values wears an asterisk. Deliberately
+ * typographic rather than coloured: colour on this dashboard says which
+ * series a mark belongs to, and one channel cannot carry two meanings.
+ * --------------------------------------------------------- */
+
+.estimated-mark {
+  margin-left: 0.15em;
+
+  color: var(--muted);
+
+  font-size: 0.62em;
+  font-weight: 700;
+  vertical-align: super;
+  line-height: 0;
+
+  text-decoration: none;
+  border: 0;
+
+  /* It explains itself on hover and on tap, so it reads as something to
+     interrogate rather than a typo. */
+  cursor: help;
+}
+
+.marker-legend {
+  margin: 10px 0 0;
+
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.marker-legend .estimated-mark {
+  font-size: 1em;
+  vertical-align: baseline;
+  cursor: default;
+}
+
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  .marker-legend {
+    font-size: 12.5px;
+  }
+}

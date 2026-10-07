@@ -119,3 +119,27 @@ PW_CHROME=/opt/pw-browsers/chromium-1194/chrome-linux/chrome node qa/suite/mobil
 ```
 
 On a machine where `npx playwright install` has run, it needs no such thing.
+
+
+## The estimation marker
+
+```
+node qa/suite/estimated.mjs    # 7 — the asterisk, and what it says
+```
+
+Needs only the main server on 4178; it builds and serves its own doctored
+copy of `dist` on 4193 and removes it afterwards.
+
+Since 7 October a published figure may contain values no country filed. That
+is defensible only while the two kinds of number are told apart on sight, so
+this asserts the mark appears exactly when the data says something was
+estimated, says how much and across how many reporters, and - the half that is
+easy to forget - does **not** appear on a year that was entirely filed.
+
+It doctors a copy rather than waiting for real estimated data because the
+live snapshot carries no estimation block until the first reprocess, and a
+check that cannot run until then is a check nobody runs.
+
+The mark is typographic, never coloured. Colour on this dashboard says which
+series a line belongs to; a second meaning laid over the first makes both
+unreadable, so the suite asserts the mark is an asterisk.
