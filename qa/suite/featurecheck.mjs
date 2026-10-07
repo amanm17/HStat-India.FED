@@ -58,7 +58,7 @@ console.log('\n=== availability page ===')
 {
   const { page, errs } = await open(BARE, '/availability')
   const t = await page.innerText('body')
-  ok('without data it explains itself', /Not fetched yet/i.test(t))
+  ok('without data it explains itself', /Coverage file not built yet/i.test(t))
   ok('and names the command', /fetch_availability\.py/.test(t))
   ok('no errors', errs.length === 0, errs[0] ?? '')
   await page.close()

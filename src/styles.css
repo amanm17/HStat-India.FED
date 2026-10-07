@@ -6005,9 +6005,16 @@ table.contribution tfoot th {
 
   color: var(--navy);
 
-  font-size: 9px;
+  /*
+   * 9px until the October refresh, which was the first to mark a test
+   * product's latest year provisional - so the phone suite had never seen
+   * this badge render and never measured it. It carries a caveat about the
+   * figure above it, which is content rather than structure, so it takes the
+   * 11px floor rather than a named exemption from it.
+   */
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.07em;
   white-space: nowrap;
 }
 
@@ -8836,6 +8843,32 @@ table.contribution tfoot th {
 /* ---------------------------------------------------------
    TOUCH TARGETS
    --------------------------------------------------------- */
+
+/*
+ * The 11px floor, on the controls and labels a phone can now see.
+ *
+ * These sizes are not new. What is new is that they render: before the
+ * October refresh the test product's latest year was withheld, so the whole
+ * global-trade card - its label, its caption, its basis switch and the panel
+ * buttons under it - never drew on a phone and the type audit never measured
+ * them. The refresh published that year and eight checks went red at once.
+ *
+ * Raised rather than exempted. An eyebrow or a tab label is structure and may
+ * sit at 10px; "Global trade" over a figure, and a button that says CSV, are
+ * things a reader has to read.
+ */
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  .hero-figure span,
+  .hero-figure small,
+  .yearpicker label,
+  .panel-actions button,
+  .tableactions button,
+  .chart-controls .control-group button,
+  .basis-switch button,
+  .dgcis-csv {
+    font-size: 11px;
+  }
+}
 
 /*
  * 44px, on everything, below 640.
