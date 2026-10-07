@@ -1,5 +1,6 @@
 import type { EconomyRow, HsNode, PeriodRecord } from '../types'
 
+
 /*
  * HStack — trade for a basket of HS codes read as one line item.
  *
@@ -14,6 +15,20 @@ import type { EconomyRow, HsNode, PeriodRecord } from '../types'
  *    right leaders but an understated tail, so every aggregated table
  *    carries the share of basket trade it actually covers.
  */
+
+
+/*
+ * Global Trade on the gross basis the rest of the site leads with since the
+ * Phase 2 refresh. A year that is not publishable stays null; a snapshot
+ * that predates the gross field falls back to the published figure.
+ */
+function grossTrade(
+  entry: { global: { trade: number | null; observed?: { grossImports: number | null } | null } } | null | undefined,
+): number | null {
+  if (!entry || entry.global.trade === null || entry.global.trade === undefined) return null
+
+  return entry.global.observed?.grossImports ?? entry.global.trade
+}
 
 export type BasketEntry = {
   code: string
@@ -304,7 +319,7 @@ export function combinedSeries(nodes: HsNode[]): CombinedPoint[] {
 
         add(
           node.code,
-          record?.global.trade,
+          grossTrade(record),
           record?.india.imports,
           record?.india.exports,
           false,
@@ -481,13 +496,13 @@ export function summarise(
   const parentTrade = new Map<string, number | null>()
 
   for (const node of nodes) {
-    parentTrade.set(node.code, record(node, year)?.global.trade ?? null)
+    parentTrade.set(node.code, grossTrade(record(node, year)))
   }
 
   for (const node of nodes) {
     const entry = record(node, year)
 
-    const trade = entry?.global.trade ?? null
+    const trade = grossTrade(entry)
 
     const holder = inside.get(node.code) ?? null
 

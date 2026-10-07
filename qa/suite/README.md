@@ -143,3 +143,29 @@ check that cannot run until then is a check nobody runs.
 The mark is typographic, never coloured. Colour on this dashboard says which
 series a line belongs to; a second meaning laid over the first makes both
 unreadable, so the suite asserts the mark is an asterisk.
+
+## Since the Phase 2/3 refresh (October 2026)
+
+```
+node qa/suite/serve.mjs /tmp/dist-p2 4190 &   # dist + a fixture snapshot that has
+                                              # scope.json and detail/ files
+node qa/suite/exportcheck.mjs  # 164 — workbooks (HS-2/4/6/8, home), CSV, PDF/PNG
+node qa/suite/contrast.mjs     # every visible text element, both themes, 4.5:1
+BASE=http://127.0.0.1:4190 node qa/suite/contrast.mjs
+```
+
+`/tmp/dist-p2` is `dist` with `data/snapshots/current` replaced by a fixture
+snapshot built with the current pipeline (`scripts/dev-fixture.sh`, or
+`process_snapshot.py --fixture ... --out <dir>`). A real snapshot gains
+`scope.json` and `detail/` only at its next reprocess, and "every row, not the
+top 5" can only be asserted against one that has them.
+
+`exportcheck.mjs` reads workbooks with `fflate` (a dependency already); the
+`xlsx` package left the project with the in-house workbook writer.
+
+Selectors moved with the refresh: the tariff-line box is
+`#section-dgcis .dgcis`, its lines are `.rf-tariff-tile`, sections are
+`.rf-section`, the download control is `.download-master` opening
+`.rf-download-menu`, and the HS-8 page shows both flows at once (no flow
+switch). The 375px HS-6 overflow that `postdeploy.mjs` used to excuse is
+fixed, so the excuse is gone.

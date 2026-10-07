@@ -9,7 +9,7 @@ for (const [port, label] of [[4184, 'no dgcis data'], [4178, 'full data']]) {
   await page.goto(`http://127.0.0.1:${port}/hs/851762`, { waitUntil: 'networkidle' })
   await page.waitForTimeout(900)
   const note = await page.locator('.tariff-absent').count()
-  const panel = await page.locator('section.dgcis').count()
+  const panel = await page.locator('#section-dgcis .dgcis').count()
   ok(`[${label}] exactly one of panel/note is shown`, note + panel === 1, `note=${note} panel=${panel}`)
   if (label === 'no dgcis data') ok('[no dgcis data] the note is the one shown', note === 1)
   if (label === 'full data') ok('[full data] the panel is the one shown', panel === 1)

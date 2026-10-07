@@ -35,7 +35,7 @@ const extra = sw.reqs.length - sw.afterLoad
 console.log('\nFLOW SWITCH (imports then back): extra data requests =', extra, '(expect 0)')
 
 const nav = await trace('/hs/851713', async page => {
-  await page.locator('section.dgcis td.dgcis-code button').first().click()
+  await page.locator('#section-dgcis .rf-tariff-tile').first().click()
   await page.waitForTimeout(900)
 })
 console.log('NAVIGATE HS-6 -> HS-8: extra data requests =', nav.reqs.length - nav.afterLoad,

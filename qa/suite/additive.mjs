@@ -43,7 +43,7 @@ const scenario = process.argv[2]
      `${text.length} chars, ${tiles} sections`)
   ok(`[${scenario}] product page throws nothing`, errors.length === 0, errors[0] ?? '')
   ok(`[${scenario}] DGCIS panel is absent, not broken`,
-     (await page.locator('section.dgcis').count()) === 0)
+     (await page.locator('#section-dgcis .dgcis').count()) === 0)
   ok(`[${scenario}] world trade figure still shown`, /world|global/i.test(text))
   await page.close()
 }

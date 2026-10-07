@@ -455,7 +455,7 @@ export function HStackPanel({
 
                 <small>
                   {summary.linesCounted} of {summary.lines.length} codes
-                  counted, net of re-imports
+                  counted, gross
                 </small>
               </div>
 
@@ -512,7 +512,7 @@ export function HStackPanel({
                       (spansRevision
                         ? 'Retired codes contribute the years they were reported under, the current codes contribute theirs. They do not overlap, so this is a sum rather than a spliced series. '
                         : 'Combined global trade for every code in the stack. ') +
-                      'Years that failed coverage validation are left blank rather than estimated, so a break in the line is a withheld year and not a fall in trade.'
+                      'A year that could not be published is left blank: a break in the line is a withheld year, not a fall in trade.'
                     }
                     onCsv={() =>
                       downloadCsv(

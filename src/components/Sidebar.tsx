@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   ChevronDown,
   ChevronLeft,
@@ -6,291 +6,223 @@ import {
   Download,
   Eye,
   FileText,
+  Image as ImageIcon,
   LayoutGrid,
-  GripVertical,
   Pencil,
-  Pin,
   RotateCcw,
   Trash2,
   X,
 } from 'lucide-react'
 
 import { Sheet } from './Sheet'
-import { useNoRail, useTouch } from '../lib/viewport'
-
+import { useNoRail } from '../lib/viewport'
+import { REPORT_SECTIONS } from '../lib/reportdata'
 import {
   TILES,
   type CodeRef,
   type Level,
-  type ReportScope,
   type SavedReport,
   type Workspace,
 } from '../lib/workspace'
 
 /*
- * The reader's rail.
+ * The reader's rail: pins, history, which sections the page shows and in
+ * what order, the report builder, and saved reports. Personal and local to
+ * this browser.
  *
- * Everything in here is personal and local: what they pinned, where they have
- * been, which tiles they want, and the reports they have built. It is a rail
- * rather than a page because none of it is the subject - the product is - and
- * it collapses to a strip so that stays true.
+ * Simplified in the Phase 2 refresh: Glance View is no longer a way to read
+ * the page (it is a download layout now), and drag-to-reorder - which never
+ * worked on a touchscreen and was easy to trigger by accident with a mouse -
+ * is replaced by plain up and down buttons that always do what they say.
  */
+
+export type ReportRequest = {
+  name: string
+  codes: { code: string; level: 2 | 4 | 6 }[]
+  years: number[]
+  sections: string[]
+  layout: 'report' | 'glance'
+  format: 'pdf' | 'png'
+}
 
 function when(iso: string): string {
   const date = new Date(iso)
 
   return Number.isNaN(date.getTime())
     ? ''
-    : date.toLocaleDateString(undefined, {
-        day: 'numeric',
-        month: 'short',
-      })
+    : date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
 }
 
 function ReportBuilder({
-  scope,
-  subject,
-  hasStack,
-  order,
-  onScope,
-  onGenerate,
-  onReorderTile,
+  current,
+  candidates,
+  years,
+  year,
   busy,
+  onGenerate,
 }: {
-  scope: ReportScope
-  subject: string
-  hasStack: boolean
-  /* The reader's arrangement. A report runs in the order they arranged the
-   * page in, because they already said what order they wanted. */
-  order: string[]
-  onScope: (scope: ReportScope) => void
-  onGenerate: (
-    name: string,
-    tiles: string[],
-    format: 'pdf' | 'png',
-  ) => void
-  onReorderTile: (dragged: string, before: string | null) => void
+  current: CodeRef
+  /* Codes the reader can add: their pins and their HStack. */
+  candidates: CodeRef[]
+  years: number[]
+  year: number
   busy: boolean
+  onGenerate: (request: ReportRequest) => void
 }) {
   const [name, setName] = useState('')
+  const [codes, setCodes] = useState<string[]>([current.code])
+  const [chosenYears, setChosenYears] = useState<number[]>([year])
+  const [sections, setSections] = useState<string[]>(['headline', 'trend', 'world', 'partners'])
+  const [layout, setLayout] = useState<'report' | 'glance'>('report')
+  const [allYears, setAllYears] = useState(false)
 
-  const [chosen, setChosen] = useState<string[]>([
-    'identity',
-    'global',
-    'year',
-    'trends',
-    'importers',
-  ])
+  useEffect(() => setCodes(value => (value.includes(current.code) ? value : [current.code, ...value])), [current.code])
+  useEffect(() => setChosenYears(value => (value.includes(year) ? value : [year])), [year])
 
-  const [drag, setDrag] = useState<string | null>(null)
+  const pool = useMemo(() => {
+    const seen = new Set<string>()
 
-  /*
-   * Reordering by drag needs a pointer that can hover, press without
-   * scrolling and move precisely. On a touchscreen the pick-up gesture and
-   * the scroll gesture are the same one, so the list moves when you meant to
-   * read it and reads when you meant to move it. Two buttons per row are
-   * slower and always do what they say.
-   */
-  const touch = useTouch()
+    return [current, ...candidates].filter(entry => {
+      if (entry.level === 8 || seen.has(entry.code)) return false
 
-  const ordered = order
-    .map(id => TILES.find(tile => tile.id === id))
-    .filter((tile): tile is (typeof TILES)[number] => Boolean(tile))
+      seen.add(entry.code)
+      return true
+    })
+  }, [current, candidates])
 
-  const toggle = (id: string) =>
-    setChosen(current =>
-      current.includes(id)
-        ? current.filter(item => item !== id)
-        : [...current, id],
-    )
+  const shownYears = allYears ? years : years.slice(0, 10)
+
+  const toggle = <T,>(list: T[], value: T) => (list.includes(value) ? list.filter(item => item !== value) : [...list, value])
+
+  const ready = codes.length > 0 && chosenYears.length > 0 && sections.length > 0
+
+  const request = (format: 'pdf' | 'png'): ReportRequest => ({
+    name,
+    codes: pool
+      .filter(entry => codes.includes(entry.code))
+      .map(entry => ({ code: entry.code, level: entry.level as 2 | 4 | 6 })),
+    years: [...chosenYears].sort((a, b) => b - a),
+    sections: REPORT_SECTIONS.map(item => item.id).filter(id => sections.includes(id)),
+    layout,
+    format,
+  })
 
   return (
     <div className="rail-report">
-      <div className="rail-scope">
-        {(['product', 'hstack'] as const).map(option => (
-          <button
-            key={option}
-            className={scope === option ? 'active' : ''}
-            disabled={option === 'hstack' && !hasStack}
-            title={
-              option === 'hstack' && !hasStack
-                ? 'Add codes to HStack first'
-                : undefined
-            }
-            onClick={() => onScope(option)}
-          >
-            {option === 'product' ? 'This product' : 'HStack'}
-          </button>
-        ))}
-      </div>
-
-      <p className="rail-subject">{subject}</p>
-
       <label className="rail-field">
         <span>Report name</span>
-
-        <input
-          value={name}
-          onChange={event => setName(event.target.value)}
-          placeholder="Smartphones — import dependence"
-        />
+        <input value={name} onChange={event => setName(event.target.value)} placeholder="Smartphones — 2023 to 2025" />
       </label>
 
-      <div className="rail-tilepick">
-        <span className="rail-subhead">Include</span>
-
-        {ordered.map((tile, position) => (
-          <label
-            key={tile.id}
-            className={
-              touch
-                ? 'rail-check bytouch'
-                : drag === tile.id
-                  ? 'rail-check dragging'
-                  : 'rail-check'
-            }
-            draggable={!touch}
-            onDragStart={
-              touch
-                ? undefined
-                : event => {
-                    setDrag(tile.id)
-                    event.dataTransfer.effectAllowed = 'move'
-                  }
-            }
-            onDragEnd={touch ? undefined : () => setDrag(null)}
-            onDragOver={
-              touch
-                ? undefined
-                : event => {
-                    if (drag && drag !== tile.id) event.preventDefault()
-                  }
-            }
-            onDrop={
-              touch
-                ? undefined
-                : event => {
-                    event.preventDefault()
-
-                    if (drag && drag !== tile.id) onReorderTile(drag, tile.id)
-
-                    setDrag(null)
-                  }
-            }
-          >
-            <input
-              type="checkbox"
-              checked={chosen.includes(tile.id)}
-              onChange={() => toggle(tile.id)}
-            />
-
+      <fieldset className="rail-fieldset">
+        <legend>Codes</legend>
+        {pool.map(entry => (
+          <label key={entry.code} className="rail-check">
+            <input type="checkbox" checked={codes.includes(entry.code)} onChange={() => setCodes(value => toggle(value, entry.code))} />
             <span>
-              {tile.label}
-              <em>{tile.note}</em>
+              HS-{entry.level} {entry.code}
+              <em>{entry.label}</em>
             </span>
-
-            {touch ? (
-              <span className="rail-move">
-                <button
-                  type="button"
-                  disabled={position === 0}
-                  aria-label={`Move ${tile.label} up`}
-                  onClick={event => {
-                    event.preventDefault()
-                    onReorderTile(tile.id, ordered[position - 1].id)
-                  }}
-                >
-                  <ChevronUp size={15} />
-                </button>
-
-                <button
-                  type="button"
-                  disabled={position === ordered.length - 1}
-                  aria-label={`Move ${tile.label} down`}
-                  onClick={event => {
-                    event.preventDefault()
-                    onReorderTile(tile.id, ordered[position + 2]?.id ?? null)
-                  }}
-                >
-                  <ChevronDown size={15} />
-                </button>
-              </span>
-            ) : (
-              <GripVertical size={12} className="rail-check-grip" />
-            )}
           </label>
         ))}
-      </div>
+        {pool.length === 1 && <p className="rail-hint">Pin codes or add them to HStack to report on several at once.</p>}
+      </fieldset>
+
+      <fieldset className="rail-fieldset">
+        <legend>Years</legend>
+        <div className="rail-years">
+          {shownYears.map(item => (
+            <button
+              key={item}
+              type="button"
+              className={chosenYears.includes(item) ? 'active' : ''}
+              aria-pressed={chosenYears.includes(item)}
+              onClick={() => setChosenYears(value => toggle(value, item))}
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+        {years.length > 10 && (
+          <button type="button" className="rail-more" onClick={() => setAllYears(value => !value)}>
+            {allYears ? 'Fewer years' : `All ${years.length} years`}
+          </button>
+        )}
+      </fieldset>
+
+      <fieldset className="rail-fieldset">
+        <legend>Sections</legend>
+        {REPORT_SECTIONS.map(item => (
+          <label key={item.id} className="rail-check">
+            <input type="checkbox" checked={sections.includes(item.id)} onChange={() => setSections(value => toggle(value, item.id))} />
+            <span>{item.label}</span>
+          </label>
+        ))}
+      </fieldset>
+
+      <fieldset className="rail-fieldset">
+        <legend>Layout</legend>
+        <div className="rail-years">
+          {(['report', 'glance'] as const).map(option => (
+            <button
+              key={option}
+              type="button"
+              className={layout === option ? 'active' : ''}
+              aria-pressed={layout === option}
+              onClick={() => setLayout(option)}
+            >
+              {option === 'report' ? 'Report' : 'Glance'}
+            </button>
+          ))}
+        </div>
+        <p className="rail-hint">
+          {layout === 'report' ? 'Sections stacked, A4 portrait, with a contents page.' : 'One tile per page, A4 landscape.'}
+        </p>
+      </fieldset>
 
       <div className="rail-generate">
-        <button
-          className="primary"
-          disabled={busy || !chosen.length}
-          onClick={() =>
-            onGenerate(name, order.filter(id => chosen.includes(id)), 'pdf')
-          }
-        >
-          <FileText size={14} />
-          {busy ? 'Rendering…' : 'PDF'}
+        <button className="primary" disabled={busy || !ready} onClick={() => onGenerate(request('pdf'))}>
+          <FileText size={15} /> {busy ? 'Rendering…' : 'PDF'}
         </button>
-
-        <button
-          disabled={busy || !chosen.length}
-          onClick={() =>
-            onGenerate(name, order.filter(id => chosen.includes(id)), 'png')
-          }
-        >
-          <Download size={14} />
-          PNG
+        <button disabled={busy || !ready} onClick={() => onGenerate(request('png'))}>
+          <ImageIcon size={15} /> PNG
         </button>
       </div>
-
-      <p className="rail-hint">
-        Tiles are captured from the page, so the report matches what you see.
-        Tiles not currently on the page flash up briefly while captured.
-      </p>
     </div>
   )
 }
 
 export function Sidebar({
   workspace,
-  currentCode,
-  subject,
-  hasStack,
+  current,
+  candidates,
+  years,
+  year,
   busy,
-  scope,
-  onScope,
   onToggle,
   onOpen,
   onUnpin,
+  onMove,
   onResetLayout,
-  onView,
   onTogglePin,
   onGenerate,
-  onReorderTile,
   onRunReport,
   onRenameReport,
   onRemoveReport,
 }: {
   workspace: Workspace
-  currentCode: string
-  subject: string
-  hasStack: boolean
+  current: CodeRef
+  candidates: CodeRef[]
+  years: number[]
+  year: number
   busy: boolean
-  scope: ReportScope
-  onScope: (scope: ReportScope) => void
   onToggle: () => void
   onOpen: (code: string, level: Level) => void
   onUnpin: (id: string) => void
+  onMove: (id: string, before: string | null) => void
   onResetLayout: () => void
-  /* The report/glance switch lives in the title bar on a desktop and in this
-   * sheet on a phone, where the bar has room for three things and this was
-   * the fourth. */
-  onView?: (view: 'report' | 'glance') => void
   onTogglePin: (entry: CodeRef) => void
-  onGenerate: (name: string, tiles: string[], format: 'pdf' | 'png') => void
-  onReorderTile: (dragged: string, before: string | null) => void
+  onGenerate: (request: ReportRequest) => void
   onRunReport: (report: SavedReport, format: 'pdf' | 'png' | 'view') => void
   onRenameReport: (id: string, name: string) => void
   onRemoveReport: (id: string) => void
@@ -298,45 +230,17 @@ export function Sidebar({
   const [renaming, setRenaming] = useState<string | null>(null)
   const [draft, setDraft] = useState('')
 
-  /*
-   * Keyed on the rail's own breakpoint, not on a phone-sized width. Below
-   * 900 there is no room for a 300px aside, which is exactly why .navrail
-   * hides itself there - so a rotated phone at 844px gets the sheet too,
-   * rather than a 34px handle clinging to the right edge of a 390px-tall
-   * screen.
-   */
   const phone = useNoRail()
 
-  const hidden = useMemo(
-    () => TILES.filter(tile => workspace.hiddenTiles.includes(tile.id)),
-    [workspace.hiddenTiles],
-  )
+  const sections = workspace.order
+    .map(id => TILES.find(tile => tile.id === id))
+    .filter((tile): tile is (typeof TILES)[number] => Boolean(tile) && !tile!.always)
 
-  /*
-   * On a phone the rail is a sheet, and its handle joins the floating dock
-   * above the tab bar rather than clinging to the right edge at 34px wide
-   * halfway down the screen - which is where a thumb never is, and which
-   * overlapped the header's own buttons at 390px.
-   */
-  /*
-   * No floating handle on a phone.
-   *
-   * It was pinned to the right edge, vertically centred - which on a 6-inch
-   * screen is both out of a thumb's reach and directly on top of whatever
-   * the page is saying there. The button moved into the title bar beside the
-   * other controls that act on this page, which is where a reader already
-   * looks for them and where it covers nothing.
-   */
   if (!workspace.sidebarOpen) {
     if (phone) return null
 
     return (
-      <button
-        className="rail-handle"
-        onClick={onToggle}
-        title="Open the workspace rail"
-        aria-label="Open the workspace rail"
-      >
+      <button className="rail-handle" onClick={onToggle} title="Open the workspace" aria-label="Open the workspace">
         <LayoutGrid size={15} />
         <span>{workspace.pinned.length || ''}</span>
       </button>
@@ -345,63 +249,29 @@ export function Sidebar({
 
   const body = (
     <>
-      {phone && onView && (
-        <section className="rail-block">
-          <div className="rail-subhead">How the tiles are laid out</div>
-
-          <div className="viewswitch insheet" role="group" aria-label="View mode">
-            {(['report', 'glance'] as const).map(mode => (
-              <button
-                key={mode}
-                className={workspace.view === mode ? 'active' : ''}
-                aria-pressed={workspace.view === mode}
-                onClick={() => onView(mode)}
-              >
-                {mode === 'report' ? 'Stacked' : 'One at a time'}
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
-
       <section className="rail-block">
         <div className="rail-subhead">
-          Quick view
+          Pinned
           <em>{workspace.pinned.length}</em>
         </div>
 
         {workspace.pinned.length ? (
           <div className="rail-pins">
             {workspace.pinned.map(entry => (
-              <div
-                key={entry.code}
-                className={
-                  entry.code === currentCode ? 'rail-pin active' : 'rail-pin'
-                }
-              >
-                <button
-                  className="rail-pin-open"
-                  onClick={() => onOpen(entry.code, entry.level)}
-                >
+              <div key={entry.code} className={entry.code === current.code ? 'rail-pin active' : 'rail-pin'}>
+                <button className="rail-pin-open" onClick={() => onOpen(entry.code, entry.level)}>
                   <span className="result-level">HS-{entry.level}</span>
                   <strong>{entry.code}</strong>
                   <span>{entry.label}</span>
                 </button>
-
-                <button
-                  className="rail-pin-drop"
-                  onClick={() => onTogglePin(entry)}
-                  aria-label={`Unpin ${entry.code}`}
-                >
-                  <X size={12} />
+                <button className="rail-pin-drop" onClick={() => onTogglePin(entry)} aria-label={`Unpin ${entry.code}`}>
+                  <X size={13} />
                 </button>
               </div>
             ))}
           </div>
         ) : (
-          <p className="rail-empty">
-            Pin a code from its page to keep it here.
-          </p>
+          <p className="rail-empty">Pin a code from its page to keep it here.</p>
         )}
       </section>
 
@@ -411,11 +281,7 @@ export function Sidebar({
         {workspace.recent.length ? (
           <div className="rail-recent">
             {workspace.recent.map(entry => (
-              <button
-                key={entry.code}
-                onClick={() => onOpen(entry.code, entry.level)}
-                title={entry.label}
-              >
+              <button key={entry.code} onClick={() => onOpen(entry.code, entry.level)} title={entry.label}>
                 <strong>{entry.code}</strong>
                 <span>{entry.label}</span>
               </button>
@@ -428,63 +294,50 @@ export function Sidebar({
 
       <section className="rail-block">
         <div className="rail-subhead">
-          Tiles
-          <em>
-            {TILES.length - hidden.length}/{TILES.length}
-          </em>
-
-          <button
-            className="rail-reset"
-            onClick={onResetLayout}
-            title="Put every tile back on the page, in the order and slides the dashboard ships with"
-          >
-            <RotateCcw size={11} />
-            Reset
+          Sections on the page
+          <button className="rail-reset" onClick={onResetLayout} title="Show every section, in the order the dashboard ships with">
+            <RotateCcw size={12} /> Reset
           </button>
         </div>
 
-        <div className="rail-tiles">
-          {workspace.order
-            .map(id => TILES.find(tile => tile.id === id))
-            .filter((tile): tile is (typeof TILES)[number] => Boolean(tile))
-            .map(tile => {
+        <div className="rail-sections">
+          {sections.map((tile, position) => {
             const off = workspace.hiddenTiles.includes(tile.id)
 
             return (
-              <button
-                key={tile.id}
-                className={off ? 'rail-tile off' : 'rail-tile'}
-                disabled={tile.always}
-                title={
-                  tile.always
-                    ? 'Always shown'
-                    : off
-                      ? `Put ${tile.label} back on the page`
-                      : `Take ${tile.label} off the page`
-                }
-                onClick={() => onUnpin(tile.id)}
-              >
-                <Pin size={12} />
-                {tile.label}
-              </button>
+              <div key={tile.id} className={off ? 'rail-section off' : 'rail-section'}>
+                <label>
+                  <input type="checkbox" checked={!off} onChange={() => onUnpin(tile.id)} />
+                  <span>{tile.label}</span>
+                </label>
+
+                <span className="rail-move">
+                  <button
+                    type="button"
+                    disabled={position === 0}
+                    aria-label={`Move ${tile.label} up`}
+                    onClick={() => onMove(tile.id, sections[position - 1].id)}
+                  >
+                    <ChevronUp size={16} />
+                  </button>
+                  <button
+                    type="button"
+                    disabled={position === sections.length - 1}
+                    aria-label={`Move ${tile.label} down`}
+                    onClick={() => onMove(tile.id, sections[position + 2]?.id ?? null)}
+                  >
+                    <ChevronDown size={16} />
+                  </button>
+                </span>
+              </div>
             )
           })}
         </div>
       </section>
 
       <section className="rail-block">
-        <div className="rail-subhead">Generate report</div>
-
-        <ReportBuilder
-          scope={scope}
-          subject={subject}
-          hasStack={hasStack}
-          order={workspace.order}
-          onScope={onScope}
-          onGenerate={onGenerate}
-          onReorderTile={onReorderTile}
-          busy={busy}
-        />
+        <div className="rail-subhead">Build a report</div>
+        <ReportBuilder current={current} candidates={candidates} years={years} year={year} busy={busy} onGenerate={onGenerate} />
       </section>
 
       <section className="rail-block">
@@ -506,44 +359,27 @@ export function Sidebar({
                       setRenaming(null)
                     }}
                   >
-                    <input
-                      autoFocus
-                      value={draft}
-                      onChange={event => setDraft(event.target.value)}
-                      onBlur={() => setRenaming(null)}
-                    />
+                    <input autoFocus value={draft} onChange={event => setDraft(event.target.value)} onBlur={() => setRenaming(null)} />
                   </form>
                 ) : (
                   <div className="rail-report-name">
                     <strong>{report.name}</strong>
-
                     <span>
-                      {report.scope === 'hstack'
-                        ? 'HStack'
-                        : `HS-${report.level} ${report.code}`}{' '}
-                      · {report.year} · {report.tiles.length} tiles ·{' '}
-                      {when(report.createdAt)}
+                      {(report.codes ?? (report.code ? [{ code: report.code, level: report.level ?? 6 }] : []))
+                        .map(item => `HS ${item.code}`)
+                        .join(', ')}{' '}
+                      · {(report.years ?? [report.year]).join(', ')} · {when(report.createdAt)}
                     </span>
                   </div>
                 )}
 
                 <div className="rail-report-actions">
-                  <button
-                    title="Open this report's product and tiles again"
-                    aria-label="View again"
-                    onClick={() => onRunReport(report, 'view')}
-                  >
-                    <Eye size={13} />
+                  <button title="Open this report's code and year" aria-label="View again" onClick={() => onRunReport(report, 'view')}>
+                    <Eye size={14} />
                   </button>
-
-                  <button
-                    title="Download as PDF"
-                    aria-label="Download as PDF"
-                    onClick={() => onRunReport(report, 'pdf')}
-                  >
-                    <Download size={13} />
+                  <button title="Download as PDF" aria-label="Download as PDF" onClick={() => onRunReport(report, 'pdf')}>
+                    <Download size={14} />
                   </button>
-
                   <button
                     title="Rename"
                     aria-label="Rename"
@@ -552,25 +388,17 @@ export function Sidebar({
                       setRenaming(report.id)
                     }}
                   >
-                    <Pencil size={13} />
+                    <Pencil size={14} />
                   </button>
-
-                  <button
-                    title="Delete"
-                    aria-label="Delete"
-                    onClick={() => onRemoveReport(report.id)}
-                  >
-                    <Trash2 size={13} />
+                  <button title="Delete" aria-label="Delete" onClick={() => onRemoveReport(report.id)}>
+                    <Trash2 size={14} />
                   </button>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <p className="rail-empty">
-            Reports you generate are listed here, in this browser only. Clearing
-            site data removes them.
-          </p>
+          <p className="rail-empty">Reports you build are listed here, in this browser only.</p>
         )}
       </section>
     </>
@@ -588,8 +416,7 @@ export function Sidebar({
     <aside className="rail" aria-label="Workspace">
       <div className="rail-head">
         <strong>Workspace</strong>
-
-        <button onClick={onToggle} aria-label="Collapse the workspace rail">
+        <button onClick={onToggle} aria-label="Collapse the workspace">
           <ChevronLeft size={16} />
         </button>
       </div>

@@ -13,6 +13,17 @@ export type EconomyRow = {
   name: string
   value: number
   share: number
+  /* Gross rankings only: the row is a projection, not a filing. */
+  estimated?: boolean
+}
+
+/* Where India sits in a full gross ranking, wherever that is. */
+export type Position = {
+  rank: number
+  of: number
+  value: number
+  share: number | null
+  estimated: boolean
 }
 
 export type PartnerRow = {
@@ -150,6 +161,10 @@ export type EstimationMeta = {
   estimatedValue: number
   estimatedShare: number | null
   flaggedReporters: number
+  /* The same, against the GROSS total the page leads with. Absent on
+   * snapshots built before the gross headline. */
+  estimatedGrossValue?: number
+  estimatedGrossShare?: number | null
 }
 
 export type Observed = {
@@ -204,6 +219,12 @@ export type PeriodRecord = {
     provisional?: string[] | null
     topEconomies?: EconomyRow[]
     topExporters?: EconomyRow[]
+    /* Gross rankings, the basis the headline uses. Top ten here; every
+     * reporter in the detail file. */
+    importers?: EconomyRow[]
+    exporters?: EconomyRow[]
+    indiaImportPosition?: Position | null
+    indiaExportPosition?: Position | null
   }
 }
 
@@ -388,6 +409,11 @@ export type CatalogueEntry = {
   latestIndiaMonth: string | null
   globalTradeYear: number | null
   globalTrade: number | null
+  /* The benchmark year on the gross basis. */
+  globalTradeGross?: number | null
+  estimatedGrossShare?: number | null
+  indiaImportPosition?: Position | null
+  indiaExportPosition?: Position | null
   indiaRank: number | null
   indiaShare: number | null
   indiaImports: number | null
@@ -441,6 +467,8 @@ export type Manifest = {
   nodes: number
   globalTradeBasis: string
   monthlyEnabled: boolean
+  /* Written by snapshots built since the Phase 2 refresh. */
+  pageFiles?: { scope: string; detail: string }
 }
 
 export type Methodology = {
@@ -451,6 +479,13 @@ export type Methodology = {
     statement: string
     formula: string
     notes: string[]
+  }
+  estimation?: {
+    statement: string
+    notes: string[]
+  }
+  fx?: {
+    statement: string
   }
   definition: {
     source: string

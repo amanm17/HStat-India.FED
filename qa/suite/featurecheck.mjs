@@ -40,12 +40,19 @@ console.log('\n=== HS-8 reports ===')
   const page = await ctx.newPage()
   const errs = []; page.on('pageerror', e => errs.push(String(e)))
   await page.goto(BASE + '/hs/85176290', { waitUntil: 'networkidle' }); await page.waitForTimeout(1200)
-  ok('PDF and PNG controls present', await page.locator('[aria-label="Report"] button').count() === 2)
-  for (const id of ['hs8-metrics','hs8-heading','hs8-chart','hs8-years','hs8-siblings'])
-    ok(`capture target #tile-${id} exists`, await page.locator(`#tile-${id}`).count() === 1)
+  /* Since the Phase 3 refresh every page has one Download data menu: the
+   * workbook, a CSV per table, and the laid-out report in two layouts. The
+   * report is drawn from data, so there are no capture targets to assert. */
+  await page.locator('.download-master').click(); await page.waitForTimeout(300)
+  const menu = page.locator('.rf-download-menu')
+  ok('download menu opens', await menu.count() === 1)
+  ok('workbook offered', /Excel workbook/.test(await menu.innerText()))
+  ok('PDF and PNG for both layouts', await menu.locator('.rf-download-pair button').count() === 4)
+  for (const id of ['hs8-metrics','hs8-heading','hs8-exports','hs8-siblings'])
+    ok(`section #tile-${id} exists`, await page.locator(`#tile-${id}`).count() === 1)
   const [dl] = await Promise.all([
     page.waitForEvent('download', { timeout: 90000 }),
-    page.locator('[aria-label="Report"] button').first().click(),
+    menu.locator('.rf-download-pair button').first().click(),
   ])
   const name = dl.suggestedFilename()
   ok('a PDF actually downloads', /\.pdf$/i.test(name), name)
@@ -136,8 +143,10 @@ console.log('\n=== the rank says which side it measures ===')
 
   /* 47th as a buyer and 1st as a seller. Showing one without the other is the
    * bug an outside reviewer read as broken data. */
-  ok('names the import ranking', /india: import ranking/i.test(text))
-  ok('names the export ranking', /india: export ranking/i.test(text))
+  /* Since the Phase 2 refresh the rank sits under its own headline tile,
+   * so the side it measures is the tile it is printed under. */
+  ok('names the import ranking', /India Imports[\s\S]{0,120}of all importers/.test(text))
+  ok('names the export ranking', /India Exports[\s\S]{0,120}(of all exporters|of world exports)/.test(text))
   ok('import rank says what it is out of', /of all importers/i.test(text))
   ok('export standing is published too', /of all exporters|outside the top ten/i.test(text))
   ok('no unlabelled "India share" is left', !/India share · \d{4}/.test(text))

@@ -4,10 +4,17 @@ import { inr, usd } from './format'
 /*
  * Converting a displayed figure to rupees.
  *
- * The rule the pipeline enforces and this mirrors: a period converts at its
- * own rate, or it does not convert at all. There is no nearest-year fallback
- * here either, because a rupee figure produced from the wrong year's rate is
- * indistinguishable on the page from one produced from the right year's.
+ * A period converts at its own rate where one exists. Where one does not,
+ * a substitute is taken in a fixed order (execution prompt §1.9):
+ *
+ *   1. a missing month takes that calendar year's average rate;
+ *   2. failing that, the financial-year average covering the month;
+ *   3. failing that, the nearest available period's rate.
+ *
+ * A substituted rate is not an estimate and carries no asterisk, but it is
+ * never silent either: the entry comes back with `substitute` set, and the
+ * rate note under a converted figure names the period whose rate was used.
+ * No rate is ever derived from DGCIS INR-crore / USD-million pairs.
  *
  * Scope is deliberately narrow. India's own figures and the tariff-line detail
  * convert; global trade, economy rankings and partner tables do not. An RBI
@@ -59,22 +66,116 @@ export function useFallbackRates(
   fallbackRates = rates ?? {}
 }
 
+export type ResolvedRate = RateEntry & {
+  /* Set when the period had no rate of its own: the label of the period
+   * whose rate stands in for it, e.g. "CY 2025". */
+  substitute?: string
+}
+
+function own(
+  currency: CurrencyBlock | undefined,
+  basis: Basis,
+  key: string,
+): RateEntry | null {
+  return currency?.rates?.[basis]?.[key] ?? fallbackRates[basis]?.[key] ?? null
+}
+
+function keysOf(currency: CurrencyBlock | undefined, basis: Basis): string[] {
+  return Array.from(
+    new Set([
+      ...Object.keys(currency?.rates?.[basis] ?? {}),
+      ...Object.keys(fallbackRates[basis] ?? {}),
+    ]),
+  )
+}
+
+/* A comparable position on one time line, in months. FY "2024-25" sits at
+ * its middle, October 2024; CY 2024 at its middle, July. */
+function position(basis: Basis, key: string): number | null {
+  if (basis === 'MONTH') {
+    const match = /^(\d{4})-(\d{2})$/.exec(key)
+    return match ? Number(match[1]) * 12 + Number(match[2]) - 1 : null
+  }
+
+  if (basis === 'CY') return /^\d{4}$/.test(key) ? Number(key) * 12 + 6 : null
+
+  const match = /^(\d{4})-\d{2}$/.exec(key)
+  return match ? Number(match[1]) * 12 + 9 : null
+}
+
+function fyOf(year: number, month: number): string {
+  const start = month >= 4 ? year : year - 1
+  return `${start}-${String((start + 1) % 100).padStart(2, '0')}`
+}
+
+function nearest(
+  currency: CurrencyBlock | undefined,
+  at: number,
+  prefer: Basis,
+): { basis: Basis; key: string; entry: RateEntry } | null {
+  let best: { basis: Basis; key: string; entry: RateEntry; gap: number; rank: number } | null = null
+  const order: Basis[] = [prefer, ...(['MONTH', 'CY', 'FY'] as Basis[]).filter(item => item !== prefer)]
+
+  for (const basis of order) {
+    for (const key of keysOf(currency, basis)) {
+      const where = position(basis, key)
+      const entry = own(currency, basis, key)
+
+      if (where === null || !entry) continue
+
+      const gap = Math.abs(where - at)
+      const rank = order.indexOf(basis)
+
+      if (!best || gap < best.gap || (gap === best.gap && rank < best.rank)) {
+        best = { basis, key, entry, gap, rank }
+      }
+    }
+  }
+
+  return best
+}
+
 export function rateFor(
   currency: CurrencyBlock | undefined,
   period: string,
   basis?: Basis,
-): RateEntry | null {
+): ResolvedRate | null {
   const resolved = basis ?? basisOf(period)
 
   if (!resolved) return null
 
   const key = resolved === 'MONTH' ? canonicalMonth(period) : period
+  const exact = own(currency, resolved, key)
 
-  return (
-    currency?.rates?.[resolved]?.[key] ??
-    fallbackRates[resolved]?.[key] ??
-    null
-  )
+  if (exact) return exact
+
+  const at = position(resolved, key)
+
+  if (at === null) return null
+
+  if (resolved === 'MONTH') {
+    const year = Number(key.slice(0, 4))
+    const month = Number(key.slice(5, 7))
+
+    const calendar = own(currency, 'CY', String(year))
+    if (calendar) return { ...calendar, substitute: `CY ${year}` }
+
+    const fy = fyOf(year, month)
+    const financial = own(currency, 'FY', fy)
+    if (financial) return { ...financial, substitute: `FY ${fy}` }
+  }
+
+  if (resolved === 'FY') {
+    const start = Number(key.slice(0, 4))
+    const calendar = own(currency, 'CY', String(start))
+    if (calendar) return { ...calendar, substitute: `CY ${start}` }
+  }
+
+  const found = nearest(currency, at, resolved)
+
+  return found
+    ? { ...found.entry, substitute: periodLabel(found.key, found.basis) }
+    : null
 }
 
 /* How many of the periods a page needs can actually be converted. Used for
@@ -147,6 +248,10 @@ export function rateNote(
 
   if (!entry) {
     return `No ${periodLabel(period, basis)} rate — shown in US dollars`
+  }
+
+  if (entry.substitute) {
+    return `Converted at ₹${entry.rate.toFixed(2)}/$ (${entry.substitute} average; no ${periodLabel(period, basis)} rate)`
   }
 
   return `Converted at ₹${entry.rate.toFixed(2)}/$ (${periodLabel(period, basis)} average)`

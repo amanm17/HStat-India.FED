@@ -35,14 +35,14 @@ async function open(path) {
   const text = await page.innerText('body')
   ok('product page renders', text.includes('851762'), '')
   ok('product page has no errors', errors.length === 0, errors.slice(0, 2).join(' | '))
-  const panel = await page.locator('section.dgcis').count()
+  const panel = await page.locator('#section-dgcis .dgcis').count()
   ok('DGCIS panel present', panel === 1, `${panel} found`)
-  const panelText = panel ? await page.locator('section.dgcis').innerText() : ''
+  const panelText = panel ? await page.locator('#section-dgcis .dgcis').innerText() : ''
   ok('panel says exports, not imports',
      /export/i.test(panelText) && !/India’s imports|India's imports/i.test(panelText),
      panelText.split('\n')[1] ?? '')
-  ok('panel shows a share column', /Share/.test(panelText) && /%/.test(panelText))
-  const codes = await page.locator('section.dgcis td.dgcis-code button').count()
+  ok('panel shows each line\'s share', /% of heading/.test(panelText))
+  const codes = await page.locator('#section-dgcis .rf-tariff-tile').count()
   ok('tariff lines are links', codes >= 2, `${codes} links`)
   await page.close()
 }
@@ -50,13 +50,13 @@ async function open(path) {
 // 3 — clicking through to a tariff line
 {
   const { page, errors } = await open('/hs/851762')
-  await page.locator('section.dgcis td.dgcis-code button').first().click()
+  await page.locator('#section-dgcis .rf-tariff-tile').first().click()
   await page.waitForTimeout(900)
   const url = page.url()
   ok('click navigates to an HS-8 URL', /\/hs\/\d{8}$/.test(url), url.replace(BASE, ''))
   const text = await page.innerText('body')
   ok('HS-8 page shows the parent heading card', text.includes('HS 851762'))
-  ok('HS-8 page shows siblings', /Other tariff lines in this heading/i.test(text))
+  ok('HS-8 page shows siblings', /Other tariff lines in HS \d{6}/i.test(text))
   ok('HS-8 click-through has no errors', errors.length === 0, errors.slice(0, 2).join(' | '))
   // back button must return to the heading
   await page.goBack(); await page.waitForTimeout(700)
@@ -70,7 +70,7 @@ async function open(path) {
   const text = await page.innerText('body')
   ok("cold deep link to HS-8 renders", text.includes("85176290") && /Last 12 months/i.test(text))
   ok('cold deep link has no errors', errors.length === 0, errors.slice(0, 2).join(' | '))
-  ok('HS-8 page states it is not world trade', /no\s+eight-digit world figure/i.test(text))
+  ok('HS-8 page states it is not world trade', /not world trade/i.test(text))
   await page.close()
 }
 
@@ -88,7 +88,7 @@ async function open(path) {
   const { page, errors } = await open('/hs/320890')
   const text = await page.innerText('body')
   ok('product without DGCIS still renders', text.includes('320890') && text.length > 800)
-  ok('product without DGCIS shows no panel', (await page.locator('section.dgcis').count()) === 0)
+  ok('product without DGCIS shows no panel', (await page.locator('#section-dgcis .dgcis').count()) === 0)
   ok('product without DGCIS has no errors', errors.length === 0, errors.slice(0, 2).join(' | '))
   await page.close()
 }

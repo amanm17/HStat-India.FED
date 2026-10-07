@@ -62,7 +62,7 @@ console.log('\n=== #87 no refetch of the parent payload ===')
   await page.goto(BASE + '/hs/851762', { waitUntil: 'networkidle' })
   await page.waitForTimeout(900)
   const afterLoad = reqs.length
-  await page.locator('section.dgcis td.dgcis-code button').first().click()
+  await page.locator('#section-dgcis .rf-tariff-tile').first().click()
   await page.waitForTimeout(1000)
   ok('HS-6 page fetches its payload once', afterLoad === 1, `${afterLoad} request(s)`)
   ok('drilling into HS-8 refetches nothing', reqs.length === afterLoad, `${reqs.length - afterLoad} extra: ${reqs.slice(afterLoad).join(',')}`)

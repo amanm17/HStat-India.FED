@@ -1,5 +1,4 @@
-import * as XLSX from 'xlsx'
-import { toPng, toSvg } from 'html-to-image'
+import { writeXlsx, type Cell, type CellStyle, type SheetSpec } from './xlsx'
 
 /*
  * Downloads.
@@ -66,9 +65,11 @@ function save(blob: Blob, filename: string) {
 
   link.href = url
   link.download = filename
+  document.body.appendChild(link)
   link.click()
+  link.remove()
 
-  URL.revokeObjectURL(url)
+  window.setTimeout(() => URL.revokeObjectURL(url), 4000)
 }
 
 export function downloadJson(name: string, data: unknown, meta?: ExportMeta) {
@@ -139,80 +140,60 @@ export function downloadCsv(
 /*
  * Number formats are inferred from the column heading, which is why the
  * headings in these workbooks are written out in full with their units. A
- * column called "Global trade (USD)" formats as currency; "Share of heading"
- * formats as a percentage and keeps its underlying fraction, so it still
- * sums and charts correctly.
+ * column called "Global trade (USD)" formats as whole numbers; "Share of
+ * heading" formats as a percentage and keeps its underlying fraction, so it
+ * still sums and charts correctly.
+ *
+ * Written with the dashboard's own workbook writer (lib/xlsx) since the
+ * Phase 3 refresh: the `xlsx` package has an unfixed advisory and no
+ * supported upgrade on npm, and this writer also freezes the header row,
+ * which the old one could not.
  */
-function numberFormat(heading: string): string | null {
+function styleFor(heading: string): CellStyle {
   const key = heading.toLowerCase()
 
-  if (key.includes('share') || key.includes('%') || key.includes('gap')) {
-    return '0.0%'
-  }
+  if (key.includes('share') || key.includes('%') || key.includes('gap')) return 'pct'
+  if (key.includes('rate')) return 'dec1'
 
-  if (key.includes('(usd)') || key.includes('(₹)') || key.includes('(inr)')) {
-    return '#,##0'
-  }
-
-  if (key.includes('rate')) return '0.000'
-
-  if (key.includes('rank') || key.includes('lines') || key.includes('count')) {
-    return '0'
-  }
-
-  return null
+  return 'int'
 }
 
-function columnWidths(
-  columns: string[],
-  rows: Record<string, unknown>[],
-): { wch: number }[] {
+function widths(columns: string[], rows: Record<string, unknown>[]): number[] {
   return columns.map(column => {
     const longest = rows.reduce((width, row) => {
       const text = row[column]
 
-      return Math.max(
-        width,
-        text === null || text === undefined ? 0 : String(text).length,
-      )
+      return Math.max(width, text === null || text === undefined ? 0 : String(text).length)
     }, column.length)
 
-    return { wch: Math.min(Math.max(longest + 2, 10), 52) }
+    return Math.min(Math.max(longest + 2, 10), 52)
   })
 }
 
-function sheetFrom(rows: Record<string, unknown>[]): XLSX.WorkSheet {
-  const sheet = XLSX.utils.json_to_sheet(rows)
-
-  if (!rows.length) return sheet
-
+function sheetFrom(label: string, rows: Record<string, unknown>[]): SheetSpec {
   const columns = Array.from(new Set(rows.flatMap(row => Object.keys(row))))
 
-  sheet['!cols'] = columnWidths(columns, rows)
+  const header: Cell[] = columns.map(column => ({ v: column, s: 'header' }))
 
-  /* An autofilter on the header row, which is what makes a thirty-year
-   * sheet usable. Frozen panes are a SheetJS Pro feature and are not
-   * available here, so they are not attempted. */
-  sheet['!autofilter'] = {
-    ref: XLSX.utils.encode_range({
-      s: { r: 0, c: 0 },
-      e: { r: rows.length, c: columns.length - 1 },
+  const body: Cell[][] = rows.map(row =>
+    columns.map(column => {
+      const value = row[column]
+
+      if (typeof value === 'number') {
+        return Number.isFinite(value) ? { v: value, s: styleFor(column) } : { v: null }
+      }
+
+      return { v: value === null || value === undefined ? null : String(value), s: 'text' }
     }),
+  )
+
+  return {
+    name: label,
+    rows: [header, ...body],
+    cols: widths(columns, rows),
+    freezeRows: 1,
+    autofilter: { from: [0, 0], to: [rows.length, columns.length - 1] },
   }
-
-  columns.forEach((column, index) => {
-    const format = numberFormat(column)
-
-    if (!format) return
-
-    for (let row = 1; row <= rows.length; row += 1) {
-      const cell = sheet[XLSX.utils.encode_cell({ r: row, c: index })]
-
-      if (cell && cell.t === 'n') cell.z = format
-    }
-  })
-
-  return sheet
 }
 
 export function downloadXlsx(
@@ -220,58 +201,39 @@ export function downloadXlsx(
   sheets: Record<string, Record<string, unknown>[]>,
   meta?: ExportMeta,
 ) {
-  const book = XLSX.utils.book_new()
+  const specs: SheetSpec[] = []
 
   /* The About sheet goes first so it is what opens. A workbook that cannot
    * say which code and which year it describes is not evidence of anything. */
   if (meta) {
-    const about = XLSX.utils.aoa_to_sheet([
-      ['HStat.India export'],
-      [],
-      ...metaPairs(meta),
-    ])
-
-    about['!cols'] = [{ wch: 18 }, { wch: 92 }]
-
-    XLSX.utils.book_append_sheet(book, about, 'About')
+    specs.push({
+      name: 'About',
+      rows: [
+        [{ v: 'HStat.India export', s: 'title' }],
+        [],
+        ...metaPairs(meta).map(([key, value]): Cell[] => [
+          { v: key, s: 'label' },
+          { v: value, s: 'text' },
+        ]),
+      ],
+      cols: [18, 92],
+    })
   }
 
   for (const [label, rows] of Object.entries(sheets)) {
     if (!rows?.length) continue
 
-    XLSX.utils.book_append_sheet(book, sheetFrom(rows), label.slice(0, 31))
+    specs.push(sheetFrom(label, rows))
   }
 
-  if (!book.SheetNames.length) return
+  if (!specs.length) return
 
-  XLSX.writeFile(book, `${name}-${stamp()}.xlsx`)
-}
+  const bytes = writeXlsx(specs, { title: meta?.title ?? name })
 
-/*
- * Charts are exported onto the page's own background rather than onto
- * transparency. A transparent PNG dropped into a slide deck loses its axis
- * labels against a dark background and its gridlines against a light one,
- * which is the same picture failing in both directions.
- */
-export async function downloadChart(
-  id: string,
-  name: string,
-  format: 'png' | 'svg',
-) {
-  const node = document.getElementById(id)
-
-  if (!node) return
-
-  const background = getComputedStyle(document.body).backgroundColor || '#fff'
-
-  const url =
-    format === 'png'
-      ? await toPng(node, { pixelRatio: 2, backgroundColor: background })
-      : await toSvg(node, { backgroundColor: background })
-
-  const link = document.createElement('a')
-
-  link.href = url
-  link.download = `${name}-${stamp()}.${format}`
-  link.click()
+  save(
+    new Blob([bytes as Uint8Array<ArrayBuffer>], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    }),
+    `${name}-${stamp()}.xlsx`,
+  )
 }

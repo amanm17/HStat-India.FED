@@ -31,7 +31,7 @@ const flowBtns = p => p.locator('[aria-label="Flow"] button')
 console.log('\n=== J. two-flow switching — HS-6 851713 ===')
 {
   const { page, errors } = await open('/hs/851713')
-  const panel = page.locator('section.dgcis')
+  const panel = page.locator('#section-dgcis .dgcis')
   ok('HS-6 DGCIS panel renders', await panel.count() === 1)
   ok('two flow buttons', await flowBtns(page).count() === 2, await flowBtns(page).allInnerTexts().then(t => t.join('/')))
   ok('exports is the default selection',
@@ -66,30 +66,32 @@ console.log('\n=== J. two-flow switching — HS-6 851713 ===')
   await page.close()
 }
 
-// ─────────── J. two-flow UI, HS-8 ───────────
-console.log('\n=== J. two-flow switching — HS-8 85171300 ===')
+// ─────────── J. both flows, HS-8 ───────────
+// Since the Phase 2 refresh the tariff-line page shows the export table and
+// the import table together (execution prompt §2.5), so there is no flow
+// switch to exercise; what has to hold is that both are there, both are
+// right, and they are not the same numbers.
+console.log('\n=== J. both flows — HS-8 85171300 ===')
 {
   const { page, errors } = await open('/hs/85171300')
-  ok('two flow buttons on the tariff-line page', await flowBtns(page).count() === 2)
-  let t = await page.innerText('body')
-  ok('chart heading says Exports', /Exports, month by month/i.test(t))
-  const ex12 = t.match(/LAST 12 MONTHS[^\n]*\n([\d,]+)/i)?.[1]
+  const t = await page.innerText('body')
+  ok('export table present', /India Exports, month by month/i.test(t))
+  ok('import table present', /India Imports, month by month/i.test(t))
+  const ex12 = t.match(/India Exports · last 12 months\s*\n([\d,]+)/i)?.[1]
+  const im12 = t.match(/India Imports · last 12 months\s*\n([\d,]+)/i)?.[1]
   ok('export headline metric present', !!ex12, `12m = ${ex12}`)
-
-  await flowBtns(page).nth(1).click(); await page.waitForTimeout(700)
-  t = await page.innerText('body')
-  ok('chart heading switches to Imports', /Imports, month by month/i.test(t))
-  const im12 = t.match(/LAST 12 MONTHS[^\n]*\n([\d,]+)/i)?.[1]
-  ok('headline metric changed', im12 !== ex12, `${ex12} -> ${im12}`)
-  ok('lede switches to imports wording', /India.s imports from the world/i.test(t))
-  ok('annual summaries changed', /Imports, month by month/i.test(t))
-  ok('calendar-year table still renders', /Calendar years/i.test(t) && /MONTHS FILED/i.test(t))
-
-  await flowBtns(page).nth(0).click(); await page.waitForTimeout(700)
-  t = await page.innerText('body')
-  ok('switching back restores the export view', /Exports, month by month/i.test(t) &&
-     (t.match(/LAST 12 MONTHS[^\n]*\n([\d,]+)/i)?.[1] === ex12))
-  ok('no page errors during HS-8 flow switching', errors.length === 0, errors[0] ?? '')
+  ok('import headline metric present', !!im12, `12m = ${im12}`)
+  ok('the two flows differ', !!ex12 && !!im12 && ex12 !== im12, `${ex12} vs ${im12}`)
+  ok('each table carries a Last 12 Months Total', (t.match(/Last 12 Months Total/gi) || []).length === 2)
+  const tables = page.locator('.hs8-chart table')
+  ok('two month-by-month tables', await tables.count() === 2)
+  const head = await tables.first().locator('thead').innerText()
+  ok('calendar months in calendar view', /JAN[\s\S]*DEC/i.test(head))
+  await page.getByRole('button', { name: 'Financial' }).first().click(); await page.waitForTimeout(500)
+  const fyHead = await page.locator('.hs8-chart table').first().locator('thead').innerText()
+  ok('financial view runs April to March', /APR[\s\S]*MAR/i.test(fyHead) && !/JAN[\s\S]*APR/i.test(fyHead.split('\n')[0] ?? ''))
+  ok('financial rows are named FY', /FY 20\d{2}-\d{2}/.test(await page.locator('.hs8-chart table').first().innerText()))
+  ok('no page errors on the HS-8 page', errors.length === 0, errors[0] ?? '')
   await page.close()
 }
 
@@ -147,7 +149,7 @@ console.log('\n=== L. retired and predecessor routes ===')
   ok('predecessor HS-8 renders', /85171211/.test(t))
   ok('predecessor wording present', /lineage predecessor/i.test(t))
   ok('no Comtrade card it cannot fill', await page.locator('.hs8-parent-card').count() === 0)
-  ok('two flows available on a predecessor line', await flowBtns(page).count() === 2)
+  ok('two flows available on a predecessor line', /India Exports, month by month/i.test(t) && /India Imports, month by month/i.test(t))
   ok('breadcrumb does not offer a product page that does not exist',
      !/HS 851712 · undefined/i.test(t))
   ok('predecessor route throws nothing', errors.length === 0, errors[0] ?? '')
@@ -156,7 +158,7 @@ console.log('\n=== L. retired and predecessor routes ===')
 for (const code of ['851770', '850740']) {
   const { page, errors } = await open(`/hs/${code}`)
   const t = await page.innerText('body')
-  const panel = await page.locator('section.dgcis').count()
+  const panel = await page.locator('#section-dgcis .dgcis').count()
   ok(`retired HS-6 ${code} page renders`, t.includes(code) && t.length > 1200)
   ok(`retired HS-6 ${code} keeps its DGCIS history`, panel === 1)
   ok(`retired HS-6 ${code} is not presented as current`, /retire|no longer|left the Harmonized/i.test(t))
@@ -171,35 +173,20 @@ for (const [w, h] of [[375, 812], [768, 1024], [1440, 900]]) {
     const { page, errors } = await open(path, { width: w, height: h })
     const overflow = await page.evaluate(() =>
       document.documentElement.scrollWidth - document.documentElement.clientWidth)
-    if (w === 375 && label === 'HS-6') {
-      // Known pre-existing: .download-master / .stack-add / .pulldata push the
-      // page to 554px with DGCIS removed too. What this work owns is that the
-      // tariff table scrolls inside its own wrapper and adds nothing.
-      const fromDgcis = await page.evaluate(() => {
-        const vw = document.documentElement.clientWidth
-        const panel = document.querySelector('section.dgcis')
-        if (!panel) return 0
-        let n = 0
-        panel.querySelectorAll('*').forEach(el => {
-          const b = el.getBoundingClientRect()
-          if (b.right <= vw + 1 || b.width <= 30) return
-          let a = el, scrolls = false
-          while ((a = a.parentElement)) {
-            const ov = getComputedStyle(a).overflowX
-            if (ov === 'auto' || ov === 'scroll') { scrolls = true; break }
-          }
-          if (!scrolls) n++
-        })
-        return n
-      })
-      ok(`${w}px ${label}: DGCIS panel adds no page overflow`, fromDgcis === 0,
-         `${fromDgcis} unscrolled overflowing elements in the panel (page total ${overflow}px is pre-existing)`)
-    } else {
-      ok(`${w}px ${label}: no horizontal page overflow`, overflow <= 1, `${overflow}px`)
-    }
-    if (path !== '/') {
+    /* The 179px HS-6 overflow at 375px that this check used to excuse
+     * (.download-master, .stack-add, .pulldata) was fixed in the Phase 2
+     * refresh, so every page and width is now held to the same bar. */
+    ok(`${w}px ${label}: no horizontal page overflow`, overflow <= 1, `${overflow}px`)
+    if (label === 'HS-6') {
+      const toggle = page.locator('#section-dgcis .rf-section-toggle')
+      if (await toggle.count() && (await toggle.getAttribute('aria-expanded')) === 'false') {
+        await toggle.click(); await page.waitForTimeout(300)
+      }
       const n = await flowBtns(page).count()
-      ok(`${w}px ${label}: flow switch reachable`, n === 2 || path === '/', `${n} buttons`)
+      ok(`${w}px ${label}: flow switch reachable`, n === 2, `${n} buttons`)
+    } else if (label === 'HS-8') {
+      const n = await page.locator('.hs8-chart table, .hs8-chart .rows').count()
+      ok(`${w}px ${label}: both flows reachable`, n >= 2, `${n} flow tables`)
     }
     ok(`${w}px ${label}: no errors`, errors.length === 0, errors[0] ?? '')
     await page.close()
@@ -216,7 +203,7 @@ async function scenario(label, routes, path = '/hs/851713') {
   await page.goto(BASE + path, { waitUntil: 'networkidle' })
   await page.waitForTimeout(900)
   const t = await page.innerText('body')
-  const panel = await page.locator('section.dgcis').count()
+  const panel = await page.locator('#section-dgcis .dgcis').count()
   const note = await page.locator('.tariff-absent').count()
   const comtradeAlive = /world|global/i.test(t) && t.length > 1200
   ok(`[${label}] Comtrade page survives`, comtradeAlive, `${t.length} chars`)

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { LayoutGrid, Moon, Pin, Sigma, Sun } from 'lucide-react'
+import { LayoutGrid, Moon, Sigma, Sun } from 'lucide-react'
 
 import type {
   CatalogueEntry,
@@ -38,7 +38,8 @@ import { useFallbackRates } from './lib/currency'
 import { loadDgcisIndex } from './lib/dgcis'
 import { nameOf } from './lib/format'
 import { SearchHub, type Command } from './components/SearchHub'
-import { ProductView } from './components/ProductView'
+import { ProductPage } from './components/ProductPage'
+import { ViewAll, VIEW_ALL_SLUGS, type ViewAllTarget } from './components/ViewAll'
 import { Hs8View } from './components/Hs8View'
 import { TariffLines } from './components/TariffLines'
 import { Guide } from './components/Guide'
@@ -52,9 +53,10 @@ import { Sheet } from './components/Sheet'
 import { useNoRail } from './lib/viewport'
 import { focusSearchBox, useSlashToSearch } from './lib/hotkeys'
 import { Safely } from './components/Safely'
-import { HomeView } from './components/HomeView'
+import { HomePage, type HomeRankKind } from './components/HomePage'
+import type { RankKind } from './lib/scope'
 import { HStackPanel } from './components/HStackPanel'
-import { Sidebar } from './components/Sidebar'
+import { Sidebar, type ReportRequest } from './components/Sidebar'
 
 import {
   noteVisit,
@@ -67,17 +69,17 @@ import {
   touchReport,
   writeWorkspace,
   DEFAULT_TILES,
-  arrangeSlides,
   moveTile,
   resetLayout,
-  visibleTiles,
-  TILES,
-  type ReportScope,
+  type CodeRef,
   type SavedReport,
   type Workspace,
 } from './lib/workspace'
 
-import { reportToPdf, reportToPng } from './lib/report'
+import { saveReport as saveReportFile } from './lib/report'
+import { productDocument, type ReportEntry } from './lib/reportdata'
+import { loadDetail, usePageFiles } from './lib/scope'
+import { loadDgcis } from './lib/dgcis'
 
 /*
  * Routing.
@@ -104,6 +106,18 @@ type Route =
   | { kind: 'guide' }
   | { kind: 'availability' }
   | { kind: 'query' }
+  /* A ranking in full: the "view all" step of the + pattern. */
+  | { kind: 'viewall'; target: ViewAllTarget }
+
+const SLUG_KINDS: Record<string, RankKind> = Object.fromEntries(
+  Object.entries(VIEW_ALL_SLUGS).map(([kind, slug]) => [slug, kind as RankKind]),
+)
+
+function yearParam(): number | null {
+  const value = Number(new URLSearchParams(window.location.search).get('year'))
+
+  return Number.isInteger(value) && value > 1900 ? value : null
+}
 
 function levelOf(code: string): 2 | 4 | 6 {
   return code.length === 2 ? 2 : code.length === 4 ? 4 : 6
@@ -114,6 +128,24 @@ function routeFromPath(path: string): Route {
   if (/^\/guide\/?$/.test(path)) return { kind: 'guide' }
   if (/^\/availability\/?$/.test(path)) return { kind: 'availability' }
   if (/^\/query\/?$/.test(path)) return { kind: 'query' }
+
+  const top = /^\/top\/(importers|exporters|finished|components)\/?$/.exec(path)
+
+  if (top) {
+    return {
+      kind: 'viewall',
+      target: { scope: 'home', kind: top[1] as HomeRankKind, year: yearParam() },
+    }
+  }
+
+  const ranking = /^\/hs\/(\d{2}|\d{4}|\d{6})\/(importers|exporters|import-partners|export-partners)\/?$/.exec(path)
+
+  if (ranking) {
+    return {
+      kind: 'viewall',
+      target: { scope: 'product', code: ranking[1], kind: SLUG_KINDS[ranking[2]], year: yearParam() },
+    }
+  }
 
   const match = /^\/hs\/(\d{2}|\d{4}|\d{6}|\d{8})\/?$/.exec(path)
 
@@ -130,6 +162,15 @@ function pathFor(route: Route): string {
   if (route.kind === 'availability') return '/availability'
   if (route.kind === 'query') return '/query'
   if (route.kind === 'tariff') return `/hs/${route.hs8}`
+
+  if (route.kind === 'viewall') {
+    const target = route.target
+    const query = target.year ? `?year=${target.year}` : ''
+
+    return target.scope === 'home'
+      ? `/top/${target.kind}${query}`
+      : `/hs/${target.code}/${VIEW_ALL_SLUGS[target.kind]}${query}`
+  }
 
   return route.kind === 'product' ? `/hs/${route.code}` : '/'
 }
@@ -185,6 +226,9 @@ function App() {
   const [showHs8, setShowHs8] = useState(false)
   const [currency, setCurrency] = useState<CurrencyMode>('USD')
 
+  /* The front page's year, kept here so returning to it keeps the choice. */
+  const [homeYear, setHomeYear] = useState<number | null>(null)
+
   /*
    * The reader's own state: pins, history, which tiles they keep, and their
    * report library. Local to this browser and never sent anywhere.
@@ -194,19 +238,11 @@ function App() {
     recent: [],
     hiddenTiles: [],
     order: DEFAULT_TILES,
-    merged: [],
-    autoPack: true,
-    view: 'report',
     sidebarOpen: false,
     reports: [],
   }))
 
-  /* Tiles a report needs that the reader has taken off the page. They are
-   * put back just long enough to be captured, then removed again. */
-  const [forced, setForced] = useState<string[]>([])
-
   const [reportBusy, setReportBusy] = useState(false)
-  const [reportScope, setReportScope] = useState<ReportScope>('product')
   const [flash, setFlash] = useState<string | null>(null)
 
   const [basket, setBasket] = useState<BasketEntry[]>([])
@@ -245,6 +281,8 @@ function App() {
 
     ;(async () => {
       const loaded = await loadManifest()
+
+      usePageFiles(loaded.manifest)
 
       setManifest(loaded.manifest)
       setSnapshot(loaded.snapshot)
@@ -298,16 +336,23 @@ function App() {
     document.documentElement.dataset.theme = dark ? 'dark' : 'light'
   }, [dark])
 
+  /* The depth accent on page chrome follows the HS level being read. */
+  useEffect(() => {
+    const level =
+      route.kind === 'tariff'
+        ? '8'
+        : route.kind === 'product' && node && node.code === route.code
+          ? String(node.level)
+          : route.kind === 'viewall' && route.target.scope === 'product'
+            ? String(route.target.code.length)
+            : 'home'
+
+    document.documentElement.dataset.level = level
+  }, [route, node])
+
   useEffect(() => {
     writeWorkspace(workspace)
   }, [workspace])
-
-  /* The rail sits over the page on narrow screens and beside it on wide
-   * ones. The page needs to know which, so it can give the rail room rather
-   * than have its right-hand column disappear underneath it. */
-  useEffect(() => {
-    document.documentElement.dataset.view = workspace.view
-  }, [workspace.view])
 
   useEffect(() => {
     if (workspace.sidebarOpen) {
@@ -460,6 +505,15 @@ function App() {
       window.history.pushState({}, '', pathFor(target))
     }
 
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [])
+
+  const openViewAll = useCallback((target: ViewAllTarget) => {
+    const next: Route = { kind: 'viewall', target }
+
+    setRoute(next)
+    setStackOpen(false)
+    window.history.pushState({}, '', pathFor(next))
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [])
 
@@ -709,97 +763,113 @@ function App() {
     setBasket(current => current.filter(entry => entry.code !== code))
   }, [])
 
-  /* Tiles the page is currently showing: the reader's choice, plus anything
-   * a report is capturing right now. */
-  const hiddenTiles = useMemo(
-    () => workspace.hiddenTiles.filter(id => !forced.includes(id)),
-    [workspace.hiddenTiles, forced],
-  )
+  const hiddenTiles = workspace.hiddenTiles
 
-  const reportSubject = useMemo(() => {
-    if (reportScope === 'hstack') {
-      return basket.length
-        ? `${basket.length} codes in HStack`
-        : 'Nothing stacked yet'
+  /* Codes the report builder offers besides the one on screen: the reader's
+   * pins and their HStack. Tariff lines are left out - a report is built
+   * from Comtrade nodes. */
+  const reportCandidates = useMemo<CodeRef[]>(() => {
+    const byCode = new Map(catalogue.map(entry => [entry.code, entry]))
+    const out: CodeRef[] = []
+
+    for (const entry of workspace.pinned) {
+      if (entry.level !== 8) out.push(entry)
     }
 
-    return node ? `${nameOf(node)} · HS-${node.level} ${node.code}` : ''
-  }, [reportScope, basket, node])
+    for (const entry of comtradeEntries(basket)) {
+      const found = byCode.get(entry.code)
+
+      out.push({
+        code: entry.code,
+        level: entry.level,
+        label: found ? nameOf(found) : entry.code,
+      })
+    }
+
+    return out
+  }, [workspace.pinned, basket, catalogue])
 
   /*
    * Rendering a report.
    *
-   * Tiles are captured from the live page, so anything the report asks for
-   * that the reader has taken off has to be put back first. React needs a
-   * paint for that, and Recharts needs a beat after it to lay an axis out, so
-   * the wait is deliberate rather than superstitious.
+   * Since the Phase 3 refresh a report is laid out from the data rather than
+   * captured from the screen: every code and year asked for is loaded, and
+   * the document is drawn with real text, so it does not depend on what the
+   * reader happens to have open or folded away.
    */
   const runReport = useCallback(
-    async (
-      name: string,
-      tiles: string[],
-      format: 'pdf' | 'png',
-      scope: ReportScope,
-      forYear: number,
-      remember: boolean,
-    ) => {
-      if (!node || !manifest || forYear === null) return
+    async (request: ReportRequest, remember: boolean) => {
+      if (!manifest || !request.codes.length || !request.years.length) return
 
       setReportBusy(true)
 
-      const missing = tiles.filter(id => workspace.hiddenTiles.includes(id))
-
-      if (missing.length) setForced(missing)
-
-      await new Promise(resolve => window.setTimeout(resolve, missing.length ? 900 : 350))
-
-      const subject =
-        scope === 'hstack'
-          ? `HStack · ${basket.length} codes`
-          : `${nameOf(node)} · HS-${node.level} ${node.code}`
-
-      const title = name.trim() || `HStat report — ${subject}`
-
-      const chosen = TILES.filter(tile => tiles.includes(tile.id)).map(tile => ({
-        id: tile.id,
-        label: tile.label,
-      }))
-
       try {
-        const header = {
-          title,
-          subtitle: subject,
-          meta: [
-            `Calendar year ${forYear} · figures in ${currency === 'INR' ? 'rupees where a rate exists' : 'US dollars'}`,
-            `Source: UN Comtrade · snapshot built ${new Date(manifest.refreshedAt).toLocaleDateString()}`,
-            'Global trade is every reporting economy\'s imports from the world, less re-imports. Valued CIF.',
-          ],
-        }
+        const nodes = await loadHsNodes(snapshot, request.codes)
 
-        const ok =
-          format === 'pdf'
-            ? await reportToPdf(header, chosen)
-            : await reportToPng(header, chosen)
+        const entries: ReportEntry[] = await Promise.all(
+          nodes.map(async item => {
+            const [detail, dgcis, children] = await Promise.all([
+              loadDetail(snapshot, item.code).catch(() => null),
+              request.sections.includes('dgcis') && item.level === 6
+                ? loadDgcis(item.code).catch(() => null)
+                : Promise.resolve(null),
+              request.sections.includes('inside')
+                ? (() => {
+                    const refs: { code: string; level: 2 | 4 | 6 }[] =
+                      item.level === 4
+                        ? (item.members ?? []).map(code => ({ code, level: 6 as const }))
+                        : item.level === 2
+                          ? catalogue
+                              .filter(entry => entry.level === 4 && entry.code.startsWith(item.code))
+                              .map(entry => ({ code: entry.code, level: 4 as const }))
+                          : []
 
-        if (!ok) {
-          setFlash('Nothing could be captured — the chosen tiles are not on this page.')
-        } else if (remember) {
+                    return refs.length && refs.length <= 60
+                      ? loadHsNodes(snapshot, refs).catch(() => [] as HsNode[])
+                      : Promise.resolve([] as HsNode[])
+                  })()
+                : Promise.resolve([] as HsNode[]),
+            ])
+
+            return { node: item, detail, dgcis, children }
+          }),
+        )
+
+        const first = nodes[0]
+        const subject =
+          nodes.length > 1
+            ? `${nodes.length} codes`
+            : `${nameOf(first)} · HS-${first.level} ${first.code}`
+
+        const title = request.name.trim() || `HStat.India — ${subject}`
+
+        const doc = productDocument(entries, request.years, request.sections, manifest, title)
+
+        const slug =
+          nodes.length > 1 ? `hstat-${nodes.length}-codes` : `hstat-hs${first.level}-${first.code}`
+
+        await saveReportFile(doc, request.layout, request.format, slug)
+
+        if (remember) {
           setWorkspace(current => {
             const { workspace: next } = saveReport(current, {
               name: title,
-              scope,
-              code: node.code,
-              level: node.level,
+              scope: nodes.length > 1 ? 'hstack' : 'product',
+              code: first.code,
+              level: first.level,
               subject,
-              year: forYear,
+              year: Math.max(...request.years),
               currency,
-              tiles,
+              tiles: request.sections,
+              codes: request.codes,
+              years: request.years,
+              layout: request.layout,
             })
 
             return next
           })
 
-          setFlash('Report saved to your library.')
+          setFlash('Report downloaded and saved to your library.')
         } else {
           setFlash('Report downloaded.')
         }
@@ -807,11 +877,10 @@ function App() {
         console.error(reason)
         setFlash('The report could not be rendered.')
       } finally {
-        setForced([])
         setReportBusy(false)
       }
     },
-    [node, manifest, basket, currency, workspace.hiddenTiles],
+    [manifest, snapshot, catalogue, currency],
   )
 
   if (error) {
@@ -859,7 +928,8 @@ function App() {
   const onGuide = route.kind === 'guide'
   const onAvailability = route.kind === 'availability'
   const onQuery = route.kind === 'query'
-  const standalone = onLines || onGuide || onAvailability || onQuery
+  const onViewAllPage = route.kind === 'viewall'
+  const standalone = onLines || onGuide || onAvailability || onQuery || onViewAllPage
   const onProduct =
     !onTariff && !standalone && route.kind === 'product' && !!node && year !== null
   const showHome = !onTariff && !standalone && !onProduct
@@ -886,20 +956,28 @@ function App() {
     <div className="app">
       <header className="topbar">
         <div className="identity">
-          <button
-            type="button"
-            className="brand"
-            onClick={goHome}
-            aria-label="HStat.India home"
-            title="Back to the front page"
-          >
-            HStat.<strong>India</strong>
-          </button>
+          <span className="fed-link" title="Foundation for Economic Development">
+            <img className="fed-logo color" src="/brand/fed-logo.png" alt="Foundation for Economic Development" />
+            <img className="fed-logo reversed" src="/brand/fed-logo-reversed.png" alt="" aria-hidden="true" />
+          </span>
 
-          <div className="refresh">
-            {manifest.products} products · updated{' '}
-            {new Date(manifest.refreshedAt).toLocaleDateString()}
-            {snapshot === 'previous' && ' · showing last validated snapshot'}
+          <span className="identity-divider" aria-hidden="true" />
+
+          <div className="identity-text">
+            <button
+              type="button"
+              className="brand"
+              onClick={goHome}
+              aria-label="HStat.India home"
+              title="Back to the front page"
+            >
+              HStat.<strong>India</strong>
+            </button>
+
+            <div className="refresh">
+              Updated {new Date(manifest.refreshedAt).toLocaleDateString('en-GB')}
+              {snapshot === 'previous' && ' · last validated snapshot'}
+            </div>
           </div>
         </div>
 
@@ -941,72 +1019,6 @@ function App() {
             * the product page is where the absence gets explained, in one
             * line, to whoever goes looking for it.
             */}
-          {tariffAvailable && onProduct && (
-            <button
-              className={showHs8 ? 'ind-toggle active' : 'ind-toggle'}
-              aria-pressed={showHs8}
-              title="Show India ITC(HS)-8 tariff-line detail alongside the six-digit figures"
-              onClick={() => setShowHs8(value => !value)}
-            >
-              HS-8
-            </button>
-          )}
-
-          {/*
-            * Currency and view mode both act on a product page's tiles. On the
-            * front page there is nothing for either to change, so they read as
-            * controls that do not work.
-            */}
-          {onProduct && (
-          <button
-            className="currency-toggle"
-            aria-label={
-              currency === 'USD'
-                ? 'Show India figures in rupees'
-                : 'Show India figures in US dollars'
-            }
-            title={
-              currency === 'USD'
-                ? 'Show India and tariff-line figures in rupees'
-                : 'Show India and tariff-line figures in US dollars'
-            }
-            onClick={() =>
-              setCurrency(value => (value === 'USD' ? 'INR' : 'USD'))
-            }
-          >
-            <span className={currency === 'USD' ? 'active' : ''}>$</span>
-            <span className="divider">/</span>
-            <span className={currency === 'INR' ? 'active' : ''}>₹</span>
-          </button>
-          )}
-
-          {/*
-            * Two ways of reading the same tiles. Report View is the page to
-            * read through; Glance View is the same tiles as slides to move
-            * across when you already know what you are after.
-            */}
-          {onProduct && !noRail && (
-          <div className="viewswitch" role="group" aria-label="View mode">
-            {(['report', 'glance'] as const).map(mode => (
-              <button
-                key={mode}
-                className={workspace.view === mode ? 'active' : ''}
-                aria-pressed={workspace.view === mode}
-                title={
-                  mode === 'report'
-                    ? 'Report view — everything stacked, read top to bottom'
-                    : 'Glance view — one panel at a time, move across with the arrows'
-                }
-                onClick={() =>
-                  setWorkspace(current => ({ ...current, view: mode }))
-                }
-              >
-                {mode === 'report' ? 'Report' : 'Glance'}
-              </button>
-            ))}
-          </div>
-          )}
-
           {/* The rail's handle, in the bar rather than floating over the page. */}
           {noRail && onProduct && !workspace.sidebarOpen && (
             <button
@@ -1111,78 +1123,58 @@ function App() {
               onHome={goHome}
               onQuickStack={addManyToBasket}
               inBasket={inBasket}
+              manifest={manifest}
+            />
+          </Safely>
+        ) : onViewAllPage && route.kind === 'viewall' ? (
+          <Safely label="ViewAll">
+            <ViewAll
+              target={route.target}
+              snapshot={snapshot}
+              catalogue={catalogue}
+              currency={currency}
+              currencyBlock={manifest.currency}
+              onOpen={openCode}
+              onBack={() => window.history.back()}
             />
           </Safely>
         ) : onProduct && node && year !== null ? (
-        <ProductView
-          workspace={workspace}
-          onReorder={(dragged, before) =>
-            setWorkspace(current => moveTile(current, dragged, before))
-          }
-          onArrange={groups =>
-            setWorkspace(current => arrangeSlides(current, groups))
-          }
-          onAuto={() =>
-            setWorkspace(current => ({
-              ...current,
-              autoPack: true,
-              merged: [],
-            }))
-          }
-          /*
-           * Changing the year says the year is what you came for, so it
-           * takes the lead slot - but only by moving ahead of the world
-           * market card, and only when it is not already there. It is an
-           * ordinary reorder, so a reader who has arranged the page
-           * deliberately keeps their arrangement.
-           */
-          onYearLead={() =>
-            setWorkspace(current => {
-              const year = current.order.indexOf('year')
-              const global = current.order.indexOf('global')
-
-              if (year < 0 || global < 0 || year < global) return current
-
-              return moveTile(current, 'year', 'global')
-            })
-          }
-          hiddenTiles={hiddenTiles}
-          onUnpinTile={id =>
-            setWorkspace(current => toggleTile(current, id))
-          }
-          pinned={workspace.pinned.some(entry => entry.code === node.code)}
-          onTogglePin={() =>
-            setWorkspace(current =>
-              togglePin(current, {
-                code: node.code,
-                level: node.level,
-                label: nameOf(node),
-              }),
-            )
-          }
-          node={node}
-          year={year}
-          onYearChange={setYear}
-          methodology={methodology}
-          dark={dark}
-          showHs8={showHs8}
-          currency={currency}
-          currencyBlock={manifest.currency}
-          snapshot={snapshot}
-          catalogue={catalogue}
-          inBasket={inBasket(node.code)}
-          onOpen={openCode}
-          onAddToStack={() =>
-            addToBasket({ code: node.code, level: node.level })
-          }
-          onQuickStack={addManyToBasket}
-          onOpenHs8={openHs8}
-        />
+          <ProductPage
+            node={node}
+            year={year}
+            onYearChange={setYear}
+            methodology={methodology}
+            manifest={manifest}
+            dark={dark}
+            currency={currency}
+            onCurrency={setCurrency}
+            currencyBlock={manifest.currency}
+            snapshot={snapshot}
+            catalogue={catalogue}
+            workspace={workspace}
+            hiddenTiles={hiddenTiles}
+            inBasket={inBasket(node.code)}
+            pinned={workspace.pinned.some(entry => entry.code === node.code)}
+            onTogglePin={() =>
+              setWorkspace(current =>
+                togglePin(current, { code: node.code, level: node.level, label: nameOf(node) }),
+              )
+            }
+            onAddToStack={() => addToBasket({ code: node.code, level: node.level })}
+            onQuickStack={addManyToBasket}
+            onOpen={openCode}
+            onOpenHs8={openHs8}
+            onHome={goHome}
+            onViewAll={(kind, forYear) =>
+              openViewAll({ scope: 'product', code: node.code, kind, year: forYear })
+            }
+          />
         ) : (
-          <HomeView
+          <HomePage
             onOpenHs8={openHs8}
             catalogue={catalogue}
             manifest={manifest}
+            snapshot={snapshot}
             index={index}
             recent={recent}
             inBasket={inBasket}
@@ -1192,10 +1184,15 @@ function App() {
             onLines={() => goTo({ kind: 'lines' })}
             reports={workspace.reports}
             onOpenReport={report => {
-              /* Put the page back the way the report was built, then let the
-               * reader regenerate or just read it live. */
               if (report.code) openRef(report.code, (report.level ?? 6) as 2 | 4 | 6 | 8)
             }}
+            onViewAll={(kind, forYear) => openViewAll({ scope: 'home', kind, year: forYear })}
+            onStack={addManyToBasket}
+            currency={currency}
+            onCurrency={setCurrency}
+            dark={dark}
+            year={homeYear}
+            onYear={setHomeYear}
           />
         )}
       </main>
@@ -1203,15 +1200,14 @@ function App() {
       {onProduct && node && year !== null && (
         <Sidebar
           workspace={workspace}
-          onReorderTile={(dragged, before) =>
-            setWorkspace(current => moveTile(current, dragged, before))
-          }
-          currentCode={node.code}
-          subject={reportSubject}
-          hasStack={basket.length > 0}
+          current={{ code: node.code, level: node.level, label: nameOf(node) }}
+          candidates={reportCandidates}
+          years={Object.entries(node.annual)
+            .filter(([, record]) => record.global.trade !== null || record.india.imports !== null || record.india.exports !== null)
+            .map(([key]) => Number(key))
+            .sort((a, b) => b - a)}
+          year={year}
           busy={reportBusy}
-          scope={reportScope}
-          onScope={setReportScope}
           onToggle={() =>
             setWorkspace(current => ({
               ...current,
@@ -1220,45 +1216,42 @@ function App() {
           }
           onOpen={openRef}
           onUnpin={id => setWorkspace(current => toggleTile(current, id))}
+          onMove={(id, before) => setWorkspace(current => moveTile(current, id, before))}
           onResetLayout={() => {
             setWorkspace(current => resetLayout(current))
-            setFlash('Tiles and slides are back to how they ship.')
+            setFlash('Sections are back to how they ship.')
           }}
-          onView={view => setWorkspace(current => ({ ...current, view }))}
           onTogglePin={entry => setWorkspace(current => togglePin(current, entry))}
-          onGenerate={(name, tiles, format) =>
-            runReport(name, tiles, format, reportScope, year, true)
-          }
+          onGenerate={request => {
+            void runReport(request, true)
+          }}
           onRunReport={async (report: SavedReport, action) => {
-            /* "View again" is not a download: it puts the page back into the
-             * state the report was built from, so the reader can read it live
-             * and see figures that may have been revised since. */
-            if (report.code && report.code !== node.code) {
-              await openCode(report.code, (report.level ?? 6) as 2 | 4 | 6)
-            }
-  
-            setYear(report.year)
-  
-            setWorkspace(current => ({
-              ...current,
-              hiddenTiles: TILES.filter(
-                tile => !tile.always && !report.tiles.includes(tile.id),
-              ).map(tile => tile.id),
-            }))
-  
+            const codes = report.codes ?? (report.code ? [{ code: report.code, level: (report.level ?? 6) as 2 | 4 | 6 }] : [])
+            const years = report.years ?? [report.year]
+
             if (action === 'view') {
-              setFlash(`Showing ${report.name} as it was built.`)
+              /* "View again" puts the page back on the report's first code
+               * and latest year, so the reader sees today's figures. */
+              if (codes[0] && codes[0].code !== node.code) {
+                await openCode(codes[0].code, codes[0].level)
+              }
+
+              setYear(Math.max(...years))
+              setFlash(`Showing ${report.name}.`)
               return
             }
-  
+
             setWorkspace(current => touchReport(current, report.id))
-  
+
             await runReport(
-              report.name,
-              report.tiles,
-              action,
-              report.scope,
-              report.year,
+              {
+                name: report.name,
+                codes,
+                years,
+                sections: report.tiles,
+                layout: report.layout ?? 'report',
+                format: action,
+              },
               false,
             )
           }}

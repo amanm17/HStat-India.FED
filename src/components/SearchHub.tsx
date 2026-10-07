@@ -472,7 +472,7 @@ export function SearchHub({
   const phone = usePhone()
 
   useEffect(() => {
-    if (!bar || !open) return
+    if (!open) return
 
     function onPointer(event: MouseEvent) {
       if (!shell.current?.contains(event.target as Node)) setOpen(false)
@@ -489,11 +489,11 @@ export function SearchHub({
       document.removeEventListener('mousedown', onPointer)
       document.removeEventListener('keydown', onKey)
     }
-  }, [bar, open])
+  }, [open])
 
   const outcome = useMemo(() => search(index, query), [index, query])
 
-  const suggestions = useMemo(() => suggestedTerms(index, 10), [index])
+  const suggestions = useMemo(() => suggestedTerms(index, 6), [index])
 
   const tariffMatches = useTariffMatches(onOpenHs8 ? query : '', outcome)
 
@@ -519,8 +519,13 @@ export function SearchHub({
       )
     : outcome.results
 
-  /* In the bar, nothing is shown until the reader asks for it. */
-  const showPanel = bar ? open : true
+  /*
+   * Nothing is shown until the reader asks for it - in the title bar and on
+   * the front page alike (execution prompt §2.3: Tip, Try and Recent were
+   * three rows of chips permanently under the box). They collapse into a
+   * panel that opens when the box is focused or holds a query.
+   */
+  const showPanel = open || Boolean(query.trim())
 
   return (
     <section
@@ -579,7 +584,7 @@ export function SearchHub({
               ? 'Product or HS code'
               : bar
                 ? 'Search products and codes…'
-                : 'Search a product or an HS code — laptop, smartphone, 854231 — or type / for commands'
+                : 'Search a product or HS code, e.g. laptop, smartphone, 854231'
           }
           aria-label="Search products and HS codes"
           aria-expanded={bar ? open : undefined}
@@ -696,18 +701,21 @@ export function SearchHub({
       )}
 
       {!query.trim() && (
-        <>
-          {commands.length > 0 && (
-            <div className="smart-suggestions command-hint">
-              <span>Tip</span>
-              <button onClick={() => setQuery('/')}>
-                type <kbd>/</kbd> for commands
-              </button>
+        <div className="search-focus-panel">
+          {recent.length > 0 && (
+            <div className="smart-suggestions recent">
+              <span>Recent</span>
+
+              {recent.slice(0, 6).map(term => (
+                <button key={term} onClick={() => setQuery(term)}>
+                  {term}
+                </button>
+              ))}
             </div>
           )}
 
           <div className="smart-suggestions">
-            <span>Try</span>
+            <span>Suggested</span>
 
             {suggestions.map(term => (
               <button key={term} onClick={() => setQuery(term)}>
@@ -716,18 +724,12 @@ export function SearchHub({
             ))}
           </div>
 
-          {recent.length > 0 && (
-            <div className="smart-suggestions recent">
-              <span>Recent</span>
-
-              {recent.map(term => (
-                <button key={term} onClick={() => setQuery(term)}>
-                  {term}
-                </button>
-              ))}
-            </div>
+          {commands.length > 0 && (
+            <button type="button" className="search-commands-link" onClick={() => setQuery('/')}>
+              Commands: type <kbd>/</kbd>
+            </button>
           )}
-        </>
+        </div>
       )}
 
       </div>

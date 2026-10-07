@@ -658,3 +658,101 @@ export function flowPhrase(flow: DgcisFlow): string {
 export function flowWord(flow: DgcisFlow): string {
   return flow === 'exports' ? 'Exports' : 'Imports'
 }
+
+/*
+ * A tariff line as a year-by-month grid (execution prompt §2.5).
+ *
+ * One row per year; twelve month columns, January first for calendar years
+ * and April first for Indian financial years; and a Last 12 Months total.
+ * The financial year is a pure regrouping of the same calendar months -
+ * nothing is pulled, converted or estimated to make it.
+ *
+ * The Last 12 Months figure on each row is the twelve months ending at that
+ * row's latest filed month, so the newest row always carries the rolling
+ * total to the latest month the source has published, and it moves forward
+ * as the data does. Null wherever any of those twelve months is missing: a
+ * part-window total would understate, and understating reads as decline.
+ */
+export type MonthGridRow = {
+  label: string
+  months: Array<number | null>
+  last12: number | null
+  last12To: string | null
+  filled: number
+}
+
+export const CY_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+export const FY_MONTHS = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar']
+
+export function monthGrid(
+  series: Array<number | null>,
+  periods: string[],
+  basis: 'CY' | 'FY',
+): MonthGridRow[] {
+  const rows = new Map<string, MonthGridRow & { lastIndex: number }>()
+
+  periods.forEach((period, index) => {
+    const year = Number(period.slice(0, 4))
+    const month = Number(period.slice(5, 7))
+
+    if (!year || !month) return
+
+    const start = basis === 'CY' ? year : month >= 4 ? year : year - 1
+    const label = basis === 'CY' ? String(year) : `FY ${start}-${String((start + 1) % 100).padStart(2, '0')}`
+    const column = basis === 'CY' ? month - 1 : (month + 8) % 12
+
+    const row = rows.get(label) ?? {
+      label,
+      months: Array(12).fill(null),
+      last12: null,
+      last12To: null,
+      filled: 0,
+      lastIndex: -1,
+    }
+
+    const value = series[index]
+
+    if (value !== null && value !== undefined) {
+      row.months[column] = value
+      row.filled += 1
+      row.lastIndex = index
+    }
+
+    rows.set(label, row)
+  })
+
+  /*
+   * Years before the line's first non-zero month are dropped: DGCIS files
+   * zeros for a code before it existed (85171300 before April 2022), and a
+   * screen of zero rows says nothing. Zeros after trade begins stay - those
+   * are filings.
+   */
+  const firstTrade = series.findIndex(value => value !== null && value !== undefined && value !== 0)
+  const firstYear = firstTrade >= 0 ? Number((periods[firstTrade] ?? '').slice(0, 4)) : null
+  const firstMonth = firstTrade >= 0 ? Number((periods[firstTrade] ?? '').slice(5, 7)) : null
+  const firstLabel =
+    firstYear === null || firstMonth === null
+      ? null
+      : basis === 'CY'
+        ? String(firstYear)
+        : (() => {
+            const start = firstMonth >= 4 ? firstYear : firstYear - 1
+            return `FY ${start}-${String((start + 1) % 100).padStart(2, '0')}`
+          })()
+
+  return [...rows.values()]
+    .filter(row => row.filled > 0)
+    .filter(row => firstLabel === null || row.label >= firstLabel)
+    .map(row => {
+      const total = row.lastIndex >= 11 ? windowTotal(series, row.lastIndex - 11, row.lastIndex + 1) : null
+
+      return {
+        label: row.label,
+        months: row.months,
+        last12: total,
+        last12To: row.lastIndex >= 0 ? periods[row.lastIndex] : null,
+        filled: row.filled,
+      }
+    })
+    .sort((a, b) => b.label.localeCompare(a.label))
+}

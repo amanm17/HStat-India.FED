@@ -322,7 +322,7 @@ export function Availability({
         Source: {data.source}. Built {data.builtAt.slice(0, 10)} by
         pipeline/comtrade/fetch_availability.py, which uses Comtrade's public
         endpoint and needs no subscription key. This page reports what the
-        source holds; it does not estimate anything that is missing.
+        source holds; estimates elsewhere on the site are not shown here.
       </p>
     </div>
   )

@@ -375,15 +375,15 @@ export function Guide({
           caption="The top of a product page. World market on one side, India&rsquo;s position in it on the other; change the year and the two swap places."
         />
 
-        <h3>4.1 &nbsp;World trade</h3>
+        <h3>4.1 &nbsp;Global Trade</h3>
 
         <p>
-          Every reporting economy&rsquo;s imports from the world, added up,
-          with re-imports taken out. Goods that leave a country and come back
-          are already inside its import total, so summing across the world
-          counts them twice. The subtraction can only ever pull the figure
-          down, which means any error left runs one way: understated, never
-          overstated.
+          Every reporting economy&rsquo;s imports from the world, added up, as
+          filed (gross). The calculation drawer under the headline holds the
+          same figure net of re-imports, the gap between the two, the coverage
+          verdict and how much of the figure is estimated. Where the gross and
+          net figures differ by more than 10%, the page says so beside the
+          headline.
         </p>
 
         <h3>4.2 &nbsp;India&rsquo;s position</h3>
@@ -391,17 +391,16 @@ export function Guide({
         <p>
           India&rsquo;s own imports of the same product, its share of the world
           figure, and its rank among every reporting economy. The share is that
-          Indian figure divided by that world figure — nothing is estimated
-          from the other.
+          Indian figure divided by that world figure.
         </p>
 
         <h3>4.3 &nbsp;Top importers and exporters</h3>
 
         <p>
-          The largest importing and exporting economies for the selected year.
-          These are gross figures: re-imports are not filed partner by partner,
-          so they cannot be netted at this level, and the lists will not sum to
-          the headline.
+          The largest importing and exporting economies for the selected year,
+          gross, with each economy&rsquo;s share of the product&rsquo;s Global
+          Trade. Top 5 by default; <strong>+</strong> shows 10, and
+          &ldquo;View all&rdquo; opens the full ranking.
         </p>
 
         <h3>4.4 &nbsp;Child lines and coverage</h3>
@@ -479,19 +478,30 @@ export function Guide({
       <section className="guide-chapter" id="blank">
         <div className="guide-chapter-head">
           <span className="guide-chapter-n">6</span>
-          <h2>Blank and withheld years</h2>
+          <h2>Estimated and blank values</h2>
         </div>
 
-        <h3>6.1 &nbsp;A blank is not a zero</h3>
+        <h3>6.1 &nbsp;Estimated values</h3>
 
         <p>
-          A world figure is published only when enough countries have filed to
-          defend it. When they have not, the year is left blank rather than
-          estimated. <strong>Blank means &ldquo;we do not know&rdquo;</strong>,
-          never &ldquo;nothing was traded&rdquo;.
+          Where an economy that normally files has not yet filed a year, its
+          value is estimated from its own history of that code (five-year
+          growth, falling back to ten, bounded at &plusmn;50% a year, and only
+          within three years of its last filing). A filed value always replaces
+          an estimate. A figure containing estimated values carries{' '}
+          <strong>*</strong>; hover or tap it for the estimated share. Tariff
+          lines and exchange rates are never estimated.
         </p>
 
-        <h3>6.2 &nbsp;Usually one missing reporter</h3>
+        <h3>6.2 &nbsp;A blank is not a zero</h3>
+
+        <p>
+          A year that cannot be published even with estimates is left blank.{' '}
+          <strong>Blank means &ldquo;we do not know&rdquo;</strong>, never
+          &ldquo;nothing was traded&rdquo;.
+        </p>
+
+        <h3>6.3 &nbsp;Usually one missing reporter</h3>
 
         <p>
           {biggestGap ? (
@@ -513,7 +523,7 @@ export function Guide({
           the tariff-line panels are fresher than the world figures above them.
         </p>
 
-        <h3>6.3 &nbsp;Checking against the source</h3>
+        <h3>6.4 &nbsp;Checking against the source</h3>
 
         <p>
           The availability page holds Comtrade&rsquo;s own record of which

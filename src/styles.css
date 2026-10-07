@@ -1,12 +1,5 @@
 :root {
-  font-family:
-    Inter,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+  font-family: Arial, Helvetica, sans-serif;
 
   --bg: #f5f7f8;
   --panel: #ffffff;
@@ -132,7 +125,7 @@ button {
   padding: 0;
 
   font-family: inherit;
-  font-size: 20px;
+  font-size: 21px;
   line-height: 1;
   letter-spacing: -0.5px;
   color: var(--navy);
@@ -157,7 +150,7 @@ button {
 .refresh {
   margin-top: 5px;
 
-  font-size: 10px;
+  font-size: 11px;
   color: var(--muted);
 }
 
@@ -193,7 +186,7 @@ button {
   color: var(--text);
   background: transparent;
 
-  font-size: 13px;
+  font-size: 16px;
 }
 
 
@@ -268,7 +261,7 @@ button {
 
   color: var(--green);
 
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
 }
 
@@ -304,7 +297,7 @@ button {
 
   border-radius: 7px;
 
-  font-size: 11px;
+  font-size: 12px;
 
   cursor: pointer;
 }
@@ -366,7 +359,7 @@ main {
 .eyebrow {
   color: var(--green);
 
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.2;
   font-weight: 800;
 
@@ -402,7 +395,7 @@ h1 {
 
   color: var(--muted);
 
-  font-size: 11px;
+  font-size: 12px;
 }
 
 
@@ -439,7 +432,7 @@ h1 {
 .yearpicker label {
   color: var(--muted);
 
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
 
   text-transform: uppercase;
@@ -508,7 +501,7 @@ h1 {
 
   color: var(--muted);
 
-  font-size: 9.5px;
+  font-size: 11px;
   line-height: 1.35;
   font-weight: 700;
 
@@ -541,7 +534,7 @@ h1 {
 
   color: var(--faint);
 
-  font-size: 9.5px;
+  font-size: 11px;
 }
 
 
@@ -589,7 +582,7 @@ h1 {
 
   color: var(--muted);
 
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.25;
 
   text-overflow: ellipsis;
@@ -606,7 +599,7 @@ h1 {
 
   overflow: hidden;
 
-  font-size: 15px;
+  font-size: 17px;
   line-height: 1.15;
 
   text-overflow: ellipsis;
@@ -630,7 +623,7 @@ h1 {
 
   color: var(--green);
 
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.4;
 }
 
@@ -670,7 +663,7 @@ h1 {
     0
     8px;
 
-  font-size: 14px;
+  font-size: 16px;
 }
 
 
@@ -687,7 +680,7 @@ h1 {
   border-top:
     1px solid var(--border);
 
-  font-size: 11.5px;
+  font-size: 13px;
   line-height: 1.45;
 }
 
@@ -700,7 +693,7 @@ h1 {
 .empty-inline {
   color: var(--muted);
 
-  font-size: 11px;
+  font-size: 12px;
 }
 
 
@@ -777,7 +770,7 @@ h1 {
     0
     0;
 
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.2;
 }
 
@@ -814,7 +807,7 @@ h1 {
 
   padding: 4px 7px;
 
-  font-size: 9px;
+  font-size: 11px;
 }
 
 
@@ -848,7 +841,7 @@ h1 {
   color: var(--faint);
   background: var(--panel);
 
-  font-size: 9px;
+  font-size: 11px;
 }
 
 
@@ -869,7 +862,7 @@ table {
 
   table-layout: auto;
 
-  font-size: 11px;
+  font-size: 12px;
 }
 
 
@@ -895,7 +888,7 @@ th {
   color: var(--muted);
   background: var(--panel);
 
-  font-size: 8.5px;
+  font-size: 11px;
   font-weight: 800;
 
   letter-spacing: 0.03em;
@@ -948,7 +941,7 @@ td:first-child {
     0
     0;
 
-  font-size: 20px;
+  font-size: 21px;
 
   letter-spacing: -0.3px;
 }
@@ -966,7 +959,7 @@ td:first-child {
 
   text-align: center;
 
-  font-size: 11px;
+  font-size: 12px;
 }
 
 /* An explanation, not a placeholder: it belongs on the card's text column,
@@ -975,7 +968,7 @@ td:first-child {
   max-width: 82ch;
   padding: 2px 0 4px;
 
-  font-size: 11.5px;
+  font-size: 13px;
   line-height: 1.6;
   text-align: left;
 }
@@ -998,7 +991,7 @@ td:first-child {
   border-top:
     1px solid var(--border);
 
-  font-size: 9.5px;
+  font-size: 11px;
 }
 
 
@@ -1182,9 +1175,9 @@ main {
   }
 
 
-  .toggles button:first-child {
-    display: none;
-  }
+  /* (The rule that hid the first header toggle here hid the HS-8 switch,
+   * which left the header in the Phase 2 refresh; it would now hide the
+   * workspace button.) */
 
 
   .results button {
@@ -1235,7 +1228,7 @@ main {
 
   color: var(--faint);
 
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 800;
 
   text-transform: uppercase;
@@ -1261,7 +1254,7 @@ main {
 
   border-radius: 5px;
 
-  font-size: 9px;
+  font-size: 11px;
 
   cursor: pointer;
 }
@@ -1269,7 +1262,7 @@ main {
 .shortcut-row button small {
   color: var(--green);
 
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .keyword-row button {
@@ -1282,7 +1275,7 @@ main {
 
   border: 0;
 
-  font-size: 9px;
+  font-size: 11px;
 
   cursor: pointer;
 }
@@ -1362,13 +1355,13 @@ main {
 
   color: var(--muted);
 
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .tariff-context strong {
   color: var(--green);
 
-  font-size: 10px;
+  font-size: 11px;
 }
 
 
@@ -1382,7 +1375,7 @@ main {
 
   color: var(--muted);
 
-  font-size: 11.5px;
+  font-size: 13px;
   line-height: 1.55;
 }
 
@@ -1395,7 +1388,7 @@ main {
 
   color: var(--green);
 
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 800;
 
   letter-spacing: 0.09em;
@@ -1433,7 +1426,7 @@ main {
 
   color: var(--faint);
 
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 800;
 
   text-transform: uppercase;
@@ -1463,7 +1456,7 @@ main {
 
   border-radius: 5px;
 
-  font-size: 8.5px;
+  font-size: 11px;
 
   cursor: pointer;
 }
@@ -1479,7 +1472,7 @@ main {
 .quick-navigate button small {
   color: var(--green);
 
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 800;
 }
 
@@ -1495,7 +1488,7 @@ main {
 
   border: 0;
 
-  font-size: 8.5px;
+  font-size: 11px;
 
   cursor: pointer;
 }
@@ -1575,7 +1568,7 @@ main {
   color: var(--text);
   background: transparent;
 
-  font-size: 20px;
+  font-size: 21px;
 
   letter-spacing: -0.15px;
 }
@@ -1596,7 +1589,7 @@ main {
   background: var(--navy);
   color: #fff;
 
-  font-size: 17px;
+  font-size: 18px;
 
   cursor: pointer;
 }
@@ -1671,7 +1664,7 @@ main {
 .result-level {
   color: var(--green);
 
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
 }
 
@@ -1695,7 +1688,7 @@ main {
 
   color: var(--muted);
 
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
 
   letter-spacing: 0.10em;
@@ -1716,7 +1709,7 @@ main {
 
   border-radius: 999px;
 
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
 
   cursor: pointer;
@@ -1752,7 +1745,7 @@ main {
 
   color: var(--faint);
 
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .smart-suggestions > span {
@@ -1773,7 +1766,7 @@ main {
   background: transparent;
   color: var(--navy);
 
-  font-size: 10px;
+  font-size: 11px;
 
   cursor: pointer;
 }
@@ -1830,7 +1823,7 @@ main {
   }
 
   .search-primary input {
-    font-size: 15px;
+    font-size: 17px;
   }
 
   .search-open {
@@ -1890,7 +1883,7 @@ main {
 
 .release-section-head h2 {
   margin: 4px 0 0;
-  font-size: 19px;
+  font-size: 20px;
   line-height: 1.2;
   letter-spacing: -0.02em;
 }
@@ -1914,7 +1907,7 @@ main {
   display: block;
   min-height: 28px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 650;
   line-height: 1.35;
 }
@@ -1934,7 +1927,7 @@ main {
   display: block;
   margin-top: 6px;
   color: var(--faint);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .coverage-pair {
@@ -1950,7 +1943,7 @@ main {
   border-radius: 999px;
   background: var(--panel-soft);
   color: var(--muted);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 750;
 }
 
@@ -1973,7 +1966,7 @@ main {
   background: var(--panel-soft);
   border-left: 3px solid var(--border-strong);
   color: var(--muted);
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.45;
 }
 
@@ -1993,7 +1986,7 @@ main {
 
 .benchmark-title {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
 }
 
@@ -2012,7 +2005,7 @@ main {
   gap: 20px;
   padding: 6px 0;
   border-top: 1px solid var(--border);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .benchmark-stat span {
@@ -2033,14 +2026,14 @@ main {
   border: 1px solid var(--border);
   border-radius: 9px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.4;
 }
 
 .parent-category-context strong {
   flex: 0 0 auto;
   color: var(--green);
-  font-size: 9px;
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: .06em;
 }
@@ -2073,7 +2066,7 @@ main {
   border-radius: 5px;
   background: transparent;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -2194,7 +2187,7 @@ main {
   background: var(--panel-soft);
   color: var(--muted);
 
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -2243,7 +2236,7 @@ main {
 
   color: var(--muted);
 
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -2260,7 +2253,7 @@ main {
 
   color: var(--muted);
 
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.6;
 }
 
@@ -2282,8 +2275,8 @@ main {
 
   color: var(--text);
 
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 10.5px;
+  font-family: Arial, Helvetica, sans-serif; font-variant-numeric: tabular-nums;
+  font-size: 11px;
 }
 
 .method-caveat {
@@ -2318,7 +2311,7 @@ main {
 .hero-figure > span {
   color: var(--muted);
 
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2335,7 +2328,7 @@ main {
 
 .hero-figure > small {
   color: var(--faint);
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.45;
 }
 
@@ -2376,7 +2369,7 @@ main {
 
   color: var(--muted);
 
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
 
   cursor: pointer;
@@ -2408,7 +2401,7 @@ main {
 .answer-eyebrow {
   color: var(--muted);
 
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -2423,7 +2416,7 @@ main {
 
   color: var(--faint);
 
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
 }
 
@@ -2466,14 +2459,14 @@ main {
 .answer-description {
   margin: 0 0 6px;
   color: var(--muted);
-  font-size: 11.5px;
+  font-size: 13px;
   line-height: 1.55;
 }
 
 .answer-note {
   margin: 0 0 10px;
   color: var(--text);
-  font-size: 11.5px;
+  font-size: 13px;
   line-height: 1.55;
 }
 
@@ -2489,7 +2482,7 @@ main {
 .answer-keywords > span {
   color: var(--faint);
 
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -2504,7 +2497,7 @@ main {
 
   color: var(--muted);
 
-  font-size: 10px;
+  font-size: 11px;
   font-style: normal;
 }
 
@@ -2526,7 +2519,7 @@ main {
 
   border-radius: 9px;
 
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 
   cursor: pointer;
@@ -2553,7 +2546,7 @@ main {
 
 .answer-flag {
   color: var(--faint);
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .answer-alsoin {
@@ -2570,7 +2563,7 @@ main {
 
 .answer-alsoin > span {
   color: var(--faint);
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .answer-alsoin button {
@@ -2586,7 +2579,7 @@ main {
 
   color: var(--text);
 
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
 
   cursor: pointer;
@@ -2607,7 +2600,7 @@ main {
 
   color: var(--faint);
 
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -2649,7 +2642,7 @@ main {
 
   color: var(--text);
 
-  font-size: 11px;
+  font-size: 12px;
   text-align: left;
 
   cursor: pointer;
@@ -2660,7 +2653,7 @@ main {
 }
 
 .search-result-open strong {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
 }
 
@@ -2676,7 +2669,7 @@ main {
 
   color: var(--faint);
 
-  font-size: 9px;
+  font-size: 11px;
   text-align: right;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2733,7 +2726,7 @@ main {
 
   color: var(--muted);
 
-  font-size: 12px;
+  font-size: 14px;
   text-align: center;
 }
 
@@ -2750,7 +2743,7 @@ main {
 
   color: var(--muted);
 
-  font-size: 10px;
+  font-size: 11px;
 
   cursor: pointer;
 }
@@ -2769,7 +2762,7 @@ main {
 
   color: var(--faint);
 
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 1.5;
 }
 
@@ -2779,7 +2772,7 @@ main {
 
   color: var(--faint);
 
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.45;
 }
 
@@ -2823,7 +2816,7 @@ main {
 
   color: var(--muted);
 
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
 
   cursor: pointer;
@@ -2839,7 +2832,7 @@ main {
 }
 
 .chart-point-label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
 }
 
@@ -2853,7 +2846,7 @@ main {
 
   padding: 0 12px;
 
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -2866,7 +2859,7 @@ main {
 
   color: #fff;
 
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
   text-align: center;
 }
@@ -2910,7 +2903,7 @@ main {
 
 .hstack-head h2 {
   margin: 2px 0 0;
-  font-size: 20px;
+  font-size: 21px;
   font-weight: 600;
 }
 
@@ -2934,7 +2927,7 @@ main {
 
   color: var(--muted);
 
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 
   cursor: pointer;
@@ -2954,20 +2947,20 @@ main {
 .hstack-empty h3 {
   margin: 4px 0 0;
   color: var(--text);
-  font-size: 16px;
+  font-size: 17px;
 }
 
 .hstack-empty p {
   max-width: 48ch;
   margin: 0;
-  font-size: 11.5px;
+  font-size: 13px;
   line-height: 1.6;
 }
 
 .hstack-loading {
   padding: 40px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 14px;
   text-align: center;
 }
 
@@ -2980,7 +2973,7 @@ main {
 
   color: var(--muted);
 
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 1.5;
 }
 
@@ -3038,7 +3031,7 @@ main {
 
   color: var(--text);
 
-  font-size: 11px;
+  font-size: 12px;
   text-align: left;
 
   cursor: pointer;
@@ -3059,13 +3052,13 @@ main {
 }
 
 .hstack-line-value {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 }
 
 .hstack-line-share {
   color: var(--faint);
-  font-size: 9px;
+  font-size: 11px;
   text-align: right;
 }
 
@@ -3102,11 +3095,11 @@ main {
   }
 
   .answer-headline {
-    font-size: 18px;
+    font-size: 19px;
   }
 
   .answer-code {
-    font-size: 17px;
+    font-size: 18px;
   }
 
   .search-result-open,
@@ -3132,7 +3125,7 @@ main {
   max-width: 52ch;
   margin: 0;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.6;
 }
 
@@ -3143,7 +3136,7 @@ main {
   border: 1px solid var(--border);
   border-radius: 5px;
 
-  font-size: 12px;
+  font-size: 14px;
 }
 
 
@@ -3172,7 +3165,7 @@ main {
 .lineage-start {
   color: var(--faint);
 
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -3183,7 +3176,7 @@ main {
 
   color: var(--muted);
 
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.55;
 }
 
@@ -3199,7 +3192,7 @@ main {
 
   color: var(--text);
 
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
 }
 
@@ -3216,7 +3209,7 @@ main {
 
   color: var(--text);
 
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
 
   cursor: pointer;
@@ -3243,7 +3236,7 @@ main {
 .currency-toggle span {
   color: var(--muted);
 
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
 
   transition: color 140ms ease;
@@ -3281,7 +3274,7 @@ main {
 
   color: var(--muted);
 
-  font-size: 11px;
+  font-size: 12px;
   font-style: italic;
 }
 
@@ -3295,7 +3288,7 @@ main {
 .tariff-periods label {
   color: var(--muted);
 
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
 
   letter-spacing: 0.08em;
@@ -3315,7 +3308,7 @@ main {
 
   border-radius: 5px;
 
-  font-size: 11px;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -3344,7 +3337,7 @@ main {
 
   border-radius: 999px;
 
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 600;
 
   letter-spacing: 0.04em;
@@ -3381,7 +3374,7 @@ main {
 
   color: var(--muted);
 
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.6;
 }
 
@@ -3403,7 +3396,7 @@ main {
 
   color: var(--muted);
 
-  font-size: 10.5px;
+  font-size: 11px;
   font-style: italic;
   line-height: 1.55;
 }
@@ -3451,7 +3444,7 @@ main {
 
   color: var(--muted);
 
-  font-size: 11.5px;
+  font-size: 13px;
   line-height: 1.55;
 }
 
@@ -3472,7 +3465,7 @@ main {
   border: 1px solid var(--navy);
   border-radius: 6px;
 
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
 
   white-space: nowrap;
@@ -3532,7 +3525,7 @@ main {
 }
 
 .search-hub.bar .search-primary input {
-  font-size: 14px;
+  font-size: 16px;
   letter-spacing: 0;
 }
 
@@ -3592,7 +3585,7 @@ main {
 
   border-radius: 6px;
 
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
@@ -3606,7 +3599,7 @@ main {
 .id-cat {
   color: var(--green);
 
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
 
   letter-spacing: 0.095em;
@@ -3621,7 +3614,7 @@ main {
   border: 1px solid var(--border-strong);
   border-radius: 5px;
 
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -3639,14 +3632,14 @@ main {
 
   color: var(--text);
 
-  font-size: 16px;
+  font-size: 17px;
   line-height: 1.5;
 }
 
 .product-meta {
   color: var(--faint);
 
-  font-size: 11.5px;
+  font-size: 13px;
   letter-spacing: 0.01em;
 }
 
@@ -3675,7 +3668,7 @@ main {
   border: 0;
   border-radius: 6px;
 
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
 
   cursor: pointer;
@@ -3720,7 +3713,7 @@ main {
 
   border: 0;
 
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
 
   text-align: left;
@@ -3750,7 +3743,7 @@ main {
 
   color: var(--muted);
 
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.55;
 }
 
@@ -3813,7 +3806,7 @@ main {
 
   color: var(--faint);
 
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.55;
 }
 
@@ -3909,7 +3902,7 @@ table.contribution .cell-value {
 
   color: var(--text);
 
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
 }
 
@@ -3922,7 +3915,7 @@ table.contribution .cell-share {
 
   color: var(--blue);
 
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
 }
 
@@ -3938,7 +3931,7 @@ table.contribution tr[data-excluded] .hstack-line-label {
 
   color: var(--faint);
 
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 1.4;
 }
 
@@ -3952,7 +3945,7 @@ table.contribution tfoot td {
 table.contribution tfoot th {
   color: var(--muted);
 
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
 
   letter-spacing: 0.08em;
@@ -3989,7 +3982,7 @@ table.contribution tfoot th {
   border: 1px solid var(--border);
   border-radius: 6px;
 
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1;
 
   opacity: 0;
@@ -4091,7 +4084,7 @@ table.contribution tfoot th {
   border-left: 3px solid var(--blue);
   border-radius: 8px;
 
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.5;
 
   max-width: 88ch;
@@ -4120,7 +4113,7 @@ table.contribution tfoot th {
 
   border-radius: 8px;
 
-  font-size: 13px;
+  font-size: 16px;
 
   box-shadow: 0 10px 30px rgba(18, 43, 65, 0.28);
 }
@@ -4165,7 +4158,7 @@ table.contribution tfoot th {
 }
 
 .rail-handle span {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
@@ -4210,7 +4203,7 @@ table.contribution tfoot th {
 }
 
 .rail-head strong {
-  font-size: 14px;
+  font-size: 16px;
   letter-spacing: -0.2px;
 }
 
@@ -4249,7 +4242,7 @@ table.contribution tfoot th {
 
   color: var(--muted);
 
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
 
   letter-spacing: 0.095em;
@@ -4280,7 +4273,7 @@ table.contribution tfoot th {
   border-radius: 999px;
 
   font: inherit;
-  font-size: 9.5px;
+  font-size: 11px;
 
   cursor: pointer;
 }
@@ -4295,7 +4288,7 @@ table.contribution tfoot th {
 
   color: var(--faint);
 
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.5;
 }
 
@@ -4337,7 +4330,7 @@ table.contribution tfoot th {
 
   border: 0;
 
-  font-size: 12px;
+  font-size: 14px;
 
   text-align: left;
   cursor: pointer;
@@ -4397,7 +4390,7 @@ table.contribution tfoot th {
   border: 0;
   border-radius: 6px;
 
-  font-size: 12px;
+  font-size: 14px;
 
   text-align: left;
   cursor: pointer;
@@ -4433,7 +4426,7 @@ table.contribution tfoot th {
   border: 1px solid var(--border);
   border-radius: 999px;
 
-  font-size: 11px;
+  font-size: 12px;
 
   cursor: pointer;
 }
@@ -4476,7 +4469,7 @@ table.contribution tfoot th {
   border: 0;
   border-radius: 6px;
 
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
 
   cursor: pointer;
@@ -4497,7 +4490,7 @@ table.contribution tfoot th {
 
   color: var(--muted);
 
-  font-size: 11.5px;
+  font-size: 13px;
   line-height: 1.45;
 }
 
@@ -4514,7 +4507,7 @@ table.contribution tfoot th {
 
   color: var(--muted);
 
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .rail-field input,
@@ -4530,7 +4523,7 @@ table.contribution tfoot th {
   border-radius: 7px;
 
   font: inherit;
-  font-size: 12.5px;
+  font-size: 15px;
 }
 
 .rail-tilepick {
@@ -4549,7 +4542,7 @@ table.contribution tfoot th {
 
   padding: 4px 2px;
 
-  font-size: 12px;
+  font-size: 14px;
 
   cursor: pointer;
 }
@@ -4559,7 +4552,7 @@ table.contribution tfoot th {
 
   color: var(--faint);
 
-  font-size: 10.5px;
+  font-size: 11px;
   font-style: normal;
   line-height: 1.35;
 }
@@ -4587,7 +4580,7 @@ table.contribution tfoot th {
   border: 1px solid var(--border-strong);
   border-radius: 8px;
 
-  font-size: 12.5px;
+  font-size: 15px;
   font-weight: 600;
 
   cursor: pointer;
@@ -4609,7 +4602,7 @@ table.contribution tfoot th {
 
   color: var(--faint);
 
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 1.45;
 }
 
@@ -4636,7 +4629,7 @@ table.contribution tfoot th {
 
   overflow: hidden;
 
-  font-size: 12.5px;
+  font-size: 15px;
 
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -4645,7 +4638,7 @@ table.contribution tfoot th {
 .rail-report-name span {
   color: var(--faint);
 
-  font-size: 10.5px;
+  font-size: 11px;
 }
 
 .rail-report-actions {
@@ -4775,7 +4768,7 @@ table.contribution tfoot th {
 
   color: var(--faint);
 
-  font-size: 12px;
+  font-size: 14px;
   text-align: center;
 
   transition: min-height 0.12s;
@@ -4788,491 +4781,6 @@ table.contribution tfoot th {
 
   border: 2px dashed var(--blue);
   border-radius: 10px;
-}
-
-
-/* --- Glance View ----------------------------------------------------
- *
- * The same tiles, one frame at a time. The first attempt was a horizontal
- * scroller wrapped around panels designed for a vertical document, and it
- * showed: the panel ran full-bleed with a stray label dangling under it, the
- * position pill sat in the page flow rather than the viewport, and the dots
- * were driven by clicks instead of by where the deck actually was.
- *
- * This version gives a slide its own frame: a card of fixed height that
- * scrolls its own overflow, a strip above it saying where you are, and the
- * neighbouring cards just visible at the edges so it reads as a deck.
- * ------------------------------------------------------------------- */
-
-.tiledeck.glance-view {
-  display: flex;
-  flex-direction: column;
-
-  /* Header, then the deck, and nothing below it. */
-  height: calc(100vh - 92px);
-
-  margin: 0 -18px;
-
-  /* One number decides the deck's width. The slide is a fixed share of the
-   * track, the card fills the slide, and the track is capped - so the amount
-   * of the next card you can see stays the same on a laptop and on a large
-   * monitor instead of vanishing as the window grows. */
-  --glance-width: 1500px;
-  --glance-slide: 84%;
-}
-
-.glance-bar {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-
-  align-items: center;
-
-  gap: 14px;
-
-  /* Lines up with the card below it rather than with the window. */
-  width: 100%;
-  max-width: var(--glance-width);
-
-  margin: 0 auto;
-  padding: 0 30px 10px;
-}
-
-.glance-pos {
-  display: flex;
-  align-items: baseline;
-
-  gap: 4px;
-
-  color: var(--text);
-
-  font-size: 17px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-
-.glance-pos em {
-  color: var(--faint);
-
-  font-size: 12px;
-  font-style: normal;
-  font-weight: 500;
-}
-
-.glance-bar h2 {
-  overflow: hidden;
-
-  margin: 0;
-
-  color: var(--muted);
-
-  font-size: 11px;
-  font-weight: 800;
-
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.glance-bar-actions button {
-  display: inline-flex;
-  align-items: center;
-
-  gap: 6px;
-
-  padding: 4px 11px;
-
-  color: var(--muted);
-  background: var(--panel);
-
-  border: 1px solid var(--border);
-  border-radius: 999px;
-
-  font-size: 11.5px;
-
-  cursor: pointer;
-}
-
-.glance-bar-actions button:hover {
-  color: var(--text);
-  border-color: var(--border-strong);
-}
-
-.glance-track {
-  flex: 1;
-
-  display: flex;
-
-  width: 100%;
-  max-width: var(--glance-width);
-
-  min-height: 0;
-
-  margin: 0 auto;
-
-  overflow-x: auto;
-  overflow-y: hidden;
-
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
-}
-
-.glance-track::-webkit-scrollbar {
-  display: none;
-}
-
-/*
- * A slide is narrower than the track, so the cards either side stay just in
- * view. That is what makes it read as a deck you are moving through rather
- * than a page that happens to scroll sideways - and it is why the
- * neighbouring cards are drawn faded and slightly back rather than hidden.
- */
-.glance-slide {
-  flex: 0 0 var(--glance-slide);
-
-  display: flex;
-  align-items: stretch;
-  justify-content: center;
-
-  min-width: var(--glance-slide);
-  height: 100%;
-
-  padding: 2px 16px 8px;
-
-  scroll-snap-align: center;
-}
-
-/* Runway either end, so the first and last cards can still sit in the
- * middle of the frame with their neighbour showing on one side. */
-.glance-track::before,
-.glance-track::after {
-  content: "";
-
-  flex: 0 0 calc((100% - var(--glance-slide)) / 2);
-}
-
-/*
- * Every card is the same size and fills its frame, the way slides in a deck
- * are the same size. The first version let the card hug its content, which
- * meant a short panel floated in the middle of a lot of empty paper and the
- * frame changed shape as you moved across - the two things that stopped it
- * reading as a deck.
- */
-.glance-card {
-  display: flex;
-  flex-direction: column;
-
-  /* The content sits in the middle of the frame: a slide with a short panel
-   * is a headline in the middle of the card, not one stuck to the ceiling
-   * with a screen of white below it. Content taller than the frame scrolls,
-   * and the frame itself never moves. */
-  justify-content: safe center;
-
-  width: 100%;
-  height: 100%;
-
-  padding: 22px 26px;
-
-  overflow-y: auto;
-  overscroll-behavior: contain;
-
-  background: var(--panel);
-
-  border: 1px solid var(--border);
-  border-radius: 16px;
-
-  box-shadow: 0 2px 10px rgba(18, 43, 65, 0.05);
-
-  /* Cards either side sit back, so the deck has depth without motion. */
-  opacity: 0.4;
-  transform: scale(0.975);
-
-  transition: opacity 0.28s ease, transform 0.28s ease;
-}
-
-/*
- * The content of a slide: two columns, and every tile says how many it
- * takes. A tile that reads well in half a slide - a note, a list, a ranked
- * table - takes one when it has a neighbour; everything else takes both.
- * The card's own height is exactly what these tiles need, which is what the
- * deck measures when it packs and scales a slide.
- */
-.glance-fill {
-  display: grid;
-
-  gap: 18px 22px;
-
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-auto-rows: min-content;
-
-  align-items: start;
-
-  width: 100%;
-}
-
-.glance-fill > .tile-slot {
-  min-width: 0;
-  min-height: 0;
-
-  grid-column: span 2;
-}
-
-@media (min-width: 1000px) {
-  .glance-fill > .tile-slot[data-span="1"] {
-    grid-column: span 1;
-  }
-
-  /* Separated from what it sits next to, along whichever axis that is. */
-  .glance-fill > .tile-slot[data-edge="col"] {
-    padding-left: 22px;
-
-    border-left: 1px solid var(--border);
-  }
-}
-
-.glance-fill > .tile-slot[data-edge="row"] {
-  padding-top: 18px;
-
-  border-top: 1px solid var(--border);
-}
-
-/*
- * Where tiles are measured before the deck decides what goes on a slide.
- * It carries the card's class because the rules above change what a tile is
- * - panels lose their frames, charts change height - and a measurement
- * taken anywhere else would be of a different tile.
- */
-.glance-stage {
-  position: fixed;
-  left: -10000px;
-  top: 0;
-  z-index: -1;
-
-  display: block;
-
-  height: auto;
-  max-height: none;
-
-  padding: 0;
-
-  overflow: visible;
-  visibility: hidden;
-  pointer-events: none;
-
-  opacity: 0;
-  transform: none;
-  box-shadow: none;
-  border: 0;
-}
-
-.glance-card::-webkit-scrollbar {
-  width: 6px;
-}
-
-.glance-card::-webkit-scrollbar-thumb {
-  background: var(--border-strong);
-  border-radius: 999px;
-}
-
-
-.glance-card.current {
-  opacity: 1;
-  transform: none;
-
-  box-shadow: 0 10px 34px rgba(18, 43, 65, 0.1);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .glance-card {
-    transition: none;
-  }
-}
-
-
-/*
- * A chart on a slide should use the slide. In the page a chart is one band
- * of a long document and 295px is right; on a screen of its own that leaves
- * a plot floating in the middle of a card, so it grows with the frame.
- */
-/*
- * One height, whatever else is on the slide. A chart that changed size
- * depending on its company would be measured at one height and drawn at
- * another, and the slide that was packed to fit would not; a chart with the
- * slide to itself is filled out by the scale-to-frame pass instead.
- */
-.glance-card .chart-shell {
-  height: clamp(230px, 34vh, 390px);
-}
-
-/* Inside a card the panels are already framed by the card itself. */
-.glance-card .panel,
-.glance-card .release-section,
-.glance-card .insight-panel,
-.glance-card .lineage-note {
-  border: 0;
-  box-shadow: none;
-  background: transparent;
-
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.glance-card .product-head {
-  margin-bottom: 0;
-}
-
-/*
- * The control from the reference: one pill, chevrons either side of the
- * position. Pinned to the deck rather than the document, so it is in the
- * same place on every slide.
- */
-.glance-nav {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  gap: 4px;
-
-  width: fit-content;
-
-  margin: 14px auto 0;
-  padding: 7px 10px;
-
-  background: color-mix(in srgb, var(--panel) 88%, transparent);
-
-  border: 1px solid var(--border-strong);
-  border-radius: 999px;
-
-  box-shadow: 0 8px 26px rgba(18, 43, 65, 0.16);
-
-  backdrop-filter: blur(9px);
-}
-
-.glance-nav > button {
-  display: grid;
-  place-items: center;
-
-  width: 30px;
-  height: 30px;
-
-  padding: 0;
-
-  color: var(--muted);
-  background: transparent;
-
-  border: 0;
-  border-radius: 50%;
-
-  cursor: pointer;
-}
-
-.glance-nav > button:hover:not(:disabled) {
-  color: var(--text);
-  background: var(--panel-soft);
-}
-
-.glance-nav > button:disabled {
-  opacity: 0.3;
-  cursor: default;
-}
-
-.glance-dots {
-  display: flex;
-  align-items: center;
-
-  gap: 9px;
-
-  padding: 0 8px;
-}
-
-.glance-dots button {
-  width: 9px;
-  height: 9px;
-
-  padding: 0;
-
-  background: var(--border-strong);
-
-  border: 0;
-  border-radius: 50%;
-
-  cursor: pointer;
-
-  transition: background 0.15s, transform 0.15s;
-}
-
-.glance-dots button:hover {
-  transform: scale(1.3);
-}
-
-.glance-dots button.on {
-  background: var(--text);
-
-  transform: scale(1.15);
-}
-
-.glance-count select {
-  max-width: 210px;
-
-  padding: 3px 8px;
-
-  color: var(--text);
-  background: transparent;
-
-  border: 1px solid var(--border);
-  border-radius: 6px;
-
-  font: inherit;
-  font-size: 11.5px;
-}
-
-/* Glance is a focused view: the page furniture below the deck is not part
- * of it, and leaving it there was most of why the first version read as a
- * scrolled page rather than a deck. */
-:root[data-view="glance"] .footerbar,
-:root[data-view="glance"] .rate-banner {
-  display: none;
-}
-
-:root[data-view="glance"] body,
-:root[data-view="glance"] main {
-  overflow-x: hidden;
-}
-
-
-/* --- the header view switch --- */
-
-.viewswitch {
-  display: inline-flex;
-
-  padding: 2px;
-
-  background: var(--panel-soft);
-
-  border: 1px solid var(--border);
-  border-radius: 8px;
-}
-
-.viewswitch button {
-  padding: 4px 11px;
-
-  color: var(--muted);
-  background: transparent;
-
-  border: 0;
-  border-radius: 6px;
-
-  font-size: 12px;
-  font-weight: 600;
-
-  cursor: pointer;
-}
-
-.viewswitch button.active {
-  color: var(--text);
-  background: var(--panel);
-
-  box-shadow: 0 1px 3px rgba(18, 43, 65, 0.12);
 }
 
 
@@ -5332,7 +4840,7 @@ table.contribution tfoot th {
   padding: 4px 10px;
 
   font: inherit;
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 600;
   line-height: 1.2;
   color: var(--muted);
@@ -5356,7 +4864,7 @@ table.contribution tfoot th {
 .global-trade-fallback {
   margin: 12px 0 0;
 
-  font-size: 13.5px;
+  font-size: 16px;
   color: var(--muted);
 }
 
@@ -5387,7 +4895,7 @@ table.contribution tfoot th {
 
 .lineage-series-head {
   margin-bottom: 8px;
-  font-size: 13px;
+  font-size: 16px;
   color: var(--muted);
 }
 
@@ -5402,14 +4910,14 @@ table.contribution tfoot th {
 .lineage-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12.5px;
+  font-size: 15px;
   font-variant-numeric: tabular-nums;
 }
 
 .lineage-table th {
   padding: 5px 10px 5px 0;
   text-align: left;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -5435,7 +4943,7 @@ table.contribution tfoot th {
 
 .lineage-caveat {
   margin: 8px 0 0;
-  font-size: 12.5px;
+  font-size: 15px;
   line-height: 1.5;
   color: var(--muted);
 }
@@ -5475,7 +4983,7 @@ table.contribution tfoot th {
 
   color: var(--navy);
 
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.09em;
   white-space: nowrap;
@@ -5496,14 +5004,14 @@ table.contribution tfoot th {
 
   color: var(--faint);
 
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
 }
 
 .lineage-family-label {
   display: block;
   margin-bottom: 6px;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -5549,7 +5057,7 @@ table.contribution tfoot th {
 .home-eyebrow {
   margin: 0 0 14px;
 
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -5574,7 +5082,7 @@ table.contribution tfoot th {
   max-width: 62ch;
   margin: 16px 0 0;
 
-  font-size: 15.5px;
+  font-size: 17px;
   line-height: 1.6;
   color: var(--muted);
 }
@@ -5623,7 +5131,7 @@ table.contribution tfoot th {
 }
 
 .home-panel-note {
-  font-size: 11.5px;
+  font-size: 13px;
   color: var(--faint);
 }
 
@@ -5664,7 +5172,7 @@ table.contribution tfoot th {
 
   min-width: 38px;
 
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: var(--green);
@@ -5681,7 +5189,7 @@ table.contribution tfoot th {
 .home-list-main strong {
   overflow: hidden;
 
-  font-size: 13.5px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--text);
   text-overflow: ellipsis;
@@ -5689,14 +5197,14 @@ table.contribution tfoot th {
 }
 
 .home-list-main small {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
 }
 
 .home-list-value {
   flex: none;
 
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--navy);
@@ -5734,13 +5242,13 @@ table.contribution tfoot th {
 }
 
 .home-cat-grid strong {
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--text);
 }
 
 .home-cat-grid span {
-  font-size: 11px;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
   color: var(--muted);
 }
@@ -5759,7 +5267,7 @@ table.contribution tfoot th {
 
   margin-bottom: 8px;
 
-  font-size: 13px;
+  font-size: 16px;
   color: var(--text);
 }
 
@@ -5780,7 +5288,7 @@ table.contribution tfoot th {
   padding: 7px 8px;
 
   font: inherit;
-  font-size: 12.5px;
+  font-size: 15px;
   text-align: left;
 
   background: none;
@@ -5826,7 +5334,7 @@ table.contribution tfoot th {
 .home-empty {
   margin: 4px 0 12px;
 
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.55;
   color: var(--muted);
 }
@@ -5835,7 +5343,7 @@ table.contribution tfoot th {
   max-width: 46ch;
   margin: 10px 0 0;
 
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.5;
   color: var(--muted);
 }
@@ -5870,7 +5378,7 @@ table.contribution tfoot th {
 
   color: var(--text);
 
-  font-size: 13.5px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: -0.01em;
 }
@@ -5878,7 +5386,7 @@ table.contribution tfoot th {
 .home-segment-head span {
   color: var(--faint);
 
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .home-cat-open-side {
@@ -5886,7 +5394,7 @@ table.contribution tfoot th {
 
   color: var(--faint);
 
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -5907,7 +5415,7 @@ table.contribution tfoot th {
   width: 58px;
 
   color: var(--green);
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
@@ -5936,7 +5444,7 @@ table.contribution tfoot th {
 .home-list-money strong {
   color: var(--text);
 
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
@@ -5944,7 +5452,7 @@ table.contribution tfoot th {
 .home-list-money small {
   color: var(--muted);
 
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -5953,7 +5461,7 @@ table.contribution tfoot th {
 .home-list-money em {
   color: var(--faint);
 
-  font-size: 11px;
+  font-size: 12px;
   font-style: normal;
   font-variant-numeric: tabular-nums;
 }
@@ -5993,7 +5501,7 @@ table.contribution tfoot th {
 
   color: var(--text);
 
-  font-size: 11.5px;
+  font-size: 13px;
 }
 
 .provisional-badge {
@@ -6012,7 +5520,7 @@ table.contribution tfoot th {
    * figure above it, which is content rather than structure, so it takes the
    * 11px floor rather than a named exemption from it.
    */
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.07em;
   white-space: nowrap;
@@ -6028,7 +5536,7 @@ table.contribution tfoot th {
 
   color: var(--muted);
 
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
@@ -6063,7 +5571,7 @@ table.contribution tfoot th {
 /* .linklike is `font: inherit`, so in a panel whose text is larger it came
    out bigger than the controls beside it. Pinned. */
 .pulldata-panel .linklike {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.2;
 }
 
@@ -6084,7 +5592,7 @@ table.contribution tfoot th {
 
   color: var(--muted);
 
-  font-size: 11.5px;
+  font-size: 13px;
   line-height: 1.55;
 }
 
@@ -6101,7 +5609,7 @@ table.contribution tfoot th {
 .pulldata-year label {
   color: var(--faint);
 
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -6149,7 +5657,7 @@ table.contribution tfoot th {
 
   color: var(--text);
 
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
 }
 
@@ -6158,7 +5666,7 @@ table.contribution tfoot th {
 
   color: var(--faint);
 
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 1.45;
 }
 
@@ -6175,7 +5683,7 @@ table.contribution tfoot th {
 
   color: var(--text);
 
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   text-decoration: none;
   white-space: nowrap;
@@ -6190,7 +5698,7 @@ table.contribution tfoot th {
   margin-top: 11px;
 
   color: var(--faint);
-  font-size: 10.5px;
+  font-size: 11px;
 }
 
 .pulldata-foot a {
@@ -6235,7 +5743,7 @@ table.contribution tfoot th {
 
   color: var(--muted);
 
-  font-size: 11.5px;
+  font-size: 13px;
   line-height: 1.55;
 }
 
@@ -6246,7 +5754,7 @@ table.contribution tfoot th {
   border-top: 1px solid var(--border);
 
   color: var(--faint);
-  font-size: 10.5px;
+  font-size: 11px;
 }
 
 .dgcis-table-wrap {
@@ -6266,7 +5774,7 @@ table.contribution tfoot th {
 
   color: var(--faint);
 
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.07em;
   text-align: left;
@@ -6281,7 +5789,7 @@ table.contribution tfoot th {
 
   color: var(--text);
 
-  font-size: 11.5px;
+  font-size: 13px;
   vertical-align: top;
 }
 
@@ -6295,7 +5803,7 @@ table.contribution tfoot th {
 
   color: var(--faint);
 
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .dgcis-table .num {
@@ -6313,7 +5821,7 @@ table.contribution tfoot th {
 
 .dgcis-month {
   color: var(--faint);
-  font-size: 10.5px;
+  font-size: 11px;
 }
 
 .dgcis-table .up {
@@ -6394,7 +5902,7 @@ table.contribution tfoot th {
 .dgcis-table.compact td,
 .dgcis-table.compact th {
   padding-right: 6px;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .dgcis-table .partial {
@@ -6404,7 +5912,7 @@ table.contribution tfoot th {
 .dgcis-table .partial::after {
   content: ' of 12';
   color: var(--faint);
-  font-size: 9.5px;
+  font-size: 11px;
 }
 
 /* ---------------------------------------------------------
@@ -6424,7 +5932,7 @@ table.contribution tfoot th {
 .hs8-page.loading,
 .hs8-page.missing {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 16px;
 }
 
 .hs8-page.missing h1 {
@@ -6457,7 +5965,7 @@ table.contribution tfoot th {
 
   color: var(--faint);
 
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .hs8-breadcrumb button {
@@ -6509,7 +6017,7 @@ table.contribution tfoot th {
 
   color: var(--muted);
 
-  font-size: 11.5px;
+  font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -6519,7 +6027,7 @@ table.contribution tfoot th {
 
   color: var(--muted);
 
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.6;
 }
 
@@ -6551,7 +6059,7 @@ table.contribution tfoot th {
 
   color: var(--text);
 
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 640;
   letter-spacing: -0.01em;
 }
@@ -6562,7 +6070,7 @@ table.contribution tfoot th {
 
   color: var(--muted);
 
-  font-size: 11.5px;
+  font-size: 13px;
   line-height: 1.55;
 }
 
@@ -6589,7 +6097,7 @@ table.contribution tfoot th {
 
   color: var(--blue);
 
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
 }
@@ -6628,7 +6136,7 @@ table.contribution tfoot th {
 
   color: var(--text);
 
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 640;
 }
 
@@ -6638,7 +6146,7 @@ table.contribution tfoot th {
 
   color: var(--faint);
 
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 1.5;
 }
 
@@ -6674,7 +6182,7 @@ table.contribution tfoot th {
 
   color: var(--faint);
 
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
@@ -6696,7 +6204,7 @@ table.contribution tfoot th {
 
   color: var(--faint);
 
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 1.5;
 }
 
@@ -6716,7 +6224,7 @@ table.contribution tfoot th {
 
   color: var(--muted);
 
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.04em;
   cursor: pointer;
@@ -6735,7 +6243,7 @@ table.contribution tfoot th {
 
   color: var(--faint);
 
-  font-size: 10.5px;
+  font-size: 11px;
   font-style: italic;
 }
 
@@ -6808,7 +6316,7 @@ table.contribution tfoot th {
 
   color: var(--muted);
 
-  font-size: 12px;
+  font-size: 14px;
   text-align: left;
   white-space: nowrap;
   cursor: pointer;
@@ -6835,13 +6343,13 @@ table.contribution tfoot th {
   border-radius: 4px;
 
   color: var(--faint);
-  font-size: 9.5px;
+  font-size: 11px;
 }
 
 .nav-code {
   flex: none;
   color: var(--navy);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
@@ -6849,7 +6357,7 @@ table.contribution tfoot th {
 .nav-label {
   overflow: hidden;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   text-overflow: ellipsis;
 }
 
@@ -6863,7 +6371,7 @@ table.contribution tfoot th {
 
   color: var(--faint);
 
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -6936,7 +6444,7 @@ table.contribution tfoot th {
   max-width: 88ch;
   margin: 0;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.6;
 }
 
@@ -6950,7 +6458,7 @@ table.contribution tfoot th {
   border-radius: 8px;
 
   color: var(--text);
-  font-size: 12.5px;
+  font-size: 15px;
 }
 
 .lines-groups { display: flex; flex-direction: column; gap: 14px; }
@@ -6977,47 +6485,47 @@ table.contribution tfoot th {
 .lines-group-head strong {
   margin-right: 8px;
   color: var(--navy);
-  font-size: 12px;
+  font-size: 14px;
   font-variant-numeric: tabular-nums;
 }
 
-.lines-group-head span { color: var(--text); font-size: 12px; }
-.lines-group-head em { margin-left: 8px; color: var(--faint); font-size: 10px; }
+.lines-group-head span { color: var(--text); font-size: 14px; }
+.lines-group-head em { margin-left: 8px; color: var(--faint); font-size: 11px; }
 
 .lines-group-right { display: flex; gap: 12px; align-items: baseline; }
 
 .lines-total {
   color: var(--text);
-  font-size: 12px;
+  font-size: 14px;
   font-variant-numeric: tabular-nums;
 }
 
-.lines-total small { color: var(--faint); font-size: 9.5px; }
+.lines-total small { color: var(--faint); font-size: 11px; }
 
-.lines-unnamed { color: var(--faint); font-size: 10.5px; }
+.lines-unnamed { color: var(--faint); font-size: 11px; }
 
-.lines-more { margin-top: 14px; color: var(--faint); font-size: 11px; }
+.lines-more { margin-top: 14px; color: var(--faint); font-size: 12px; }
 
 .guide-page section { margin-top: 26px; }
 
 .guide-page h2 {
   margin: 0 0 8px;
   color: var(--text);
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 640;
 }
 
 .guide-page h3 {
   margin: 0 0 4px;
   color: var(--navy);
-  font-size: 12.5px;
+  font-size: 15px;
 }
 
 .guide-page p,
 .guide-page li {
   max-width: 86ch;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.65;
 }
 
@@ -7025,7 +6533,7 @@ table.contribution tfoot th {
   padding: 1px 4px;
   background: var(--panel-soft);
   border-radius: 4px;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .guide-page kbd {
@@ -7033,7 +6541,7 @@ table.contribution tfoot th {
   background: var(--panel-soft);
   border: 1px solid var(--border);
   border-radius: 4px;
-  font-size: 10.5px;
+  font-size: 11px;
 }
 
 .guide-two {
@@ -7062,19 +6570,19 @@ table.contribution tfoot th {
 .guide-levels dt {
   margin-top: 10px;
   color: var(--navy);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
 }
 
 .guide-levels dd {
   margin: 2px 0 0;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.6;
 }
 
 .guide-list li { margin-bottom: 6px; }
-.guide-home { margin-top: 28px; font-size: 12px; }
+.guide-home { margin-top: 28px; font-size: 14px; }
 
 /* The command palette. Same furniture as a search result, so the box does not
    feel like it became a different thing — it just changed what it is listing. */
@@ -7082,7 +6590,7 @@ table.contribution tfoot th {
   display: block;
   margin-top: 2px;
   color: var(--faint);
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
@@ -7094,7 +6602,7 @@ table.contribution tfoot th {
   background: var(--panel);
   border: 1px solid var(--border-strong);
   border-radius: 4px;
-  font-size: 10px;
+  font-size: 11px;
 }
 
 /*
@@ -7113,7 +6621,7 @@ table.contribution tfoot th {
 
 .command-more .command-slug {
   color: var(--blue);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   font-variant-numeric: normal;
   letter-spacing: 0;
@@ -7179,14 +6687,14 @@ table.contribution tfoot th {
 .home-hs8-cols h3 {
   margin: 0;
   color: var(--text);
-  font-size: 12.5px;
+  font-size: 15px;
   font-weight: 640;
 }
 
 .home-hs8-note {
   margin: 2px 0 8px;
   color: var(--faint);
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.45;
 }
 
@@ -7213,7 +6721,7 @@ table.contribution tfoot th {
 
 .home-hs8-code {
   color: var(--navy);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
@@ -7221,14 +6729,14 @@ table.contribution tfoot th {
 .home-hs8-name {
   overflow: hidden;
   color: var(--muted);
-  font-size: 11.5px;
+  font-size: 13px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .home-hs8-value {
   color: var(--text);
-  font-size: 11.5px;
+  font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -7302,7 +6810,7 @@ table.contribution tfoot th {
 
   color: var(--text);
 
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 640;
   line-height: 1.25;
 }
@@ -7325,7 +6833,7 @@ table.contribution tfoot th {
 
   color: var(--muted);
 
-  font-size: 11.5px;
+  font-size: 13px;
   line-height: 1.6;
 }
 
@@ -7353,7 +6861,7 @@ table.contribution tfoot th {
 
   color: var(--blue);
 
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
 }
@@ -7418,7 +6926,7 @@ table.contribution tfoot th {
 
   color: var(--text);
 
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 640;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -7430,14 +6938,14 @@ table.contribution tfoot th {
 
   color: var(--faint);
 
-  font-size: 10px;
+  font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .home-report-when {
   color: var(--faint);
-  font-size: 10px;
+  font-size: 11px;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -7476,7 +6984,7 @@ table.contribution tfoot th {
   max-width: 88ch;
   margin: 0;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.6;
 }
 
@@ -7485,7 +6993,7 @@ table.contribution tfoot th {
   gap: 5px;
   align-items: center;
   color: var(--blue);
-  font-size: 11px;
+  font-size: 12px;
   text-decoration: none;
 }
 
@@ -7511,13 +7019,13 @@ table.contribution tfoot th {
   color: var(--green);
 }
 
-.avail-verdict strong { display: block; font-size: 13px; }
+.avail-verdict strong { display: block; font-size: 16px; }
 
 .avail-verdict span {
   display: block;
   margin-top: 3px;
   color: var(--muted);
-  font-size: 11.5px;
+  font-size: 13px;
   line-height: 1.55;
 }
 
@@ -7526,7 +7034,7 @@ table.contribution tfoot th {
 .avail-block h2 {
   margin: 0 0 6px;
   color: var(--text);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 640;
 }
 
@@ -7534,7 +7042,7 @@ table.contribution tfoot th {
   max-width: 80ch;
   margin: 0 0 10px;
   color: var(--faint);
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 1.55;
 }
 
@@ -7576,11 +7084,11 @@ table.contribution tfoot th {
   margin-bottom: 4px;
 }
 
-.avail-hole-head strong { color: var(--text); font-size: 12.5px; }
+.avail-hole-head strong { color: var(--text); font-size: 15px; }
 
 .avail-hole-year {
   color: var(--faint);
-  font-size: 10.5px;
+  font-size: 11px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -7589,20 +7097,20 @@ table.contribution tfoot th {
   background: color-mix(in srgb, var(--green) 14%, transparent);
   border-radius: 999px;
   color: var(--green);
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 700;
 }
 
-.avail-hole p { margin: 0 0 6px; color: var(--muted); font-size: 11.5px; line-height: 1.5; }
+.avail-hole p { margin: 0 0 6px; color: var(--muted); font-size: 13px; line-height: 1.5; }
 
 .avail-sample { display: flex; gap: 8px; flex-wrap: wrap; }
-.avail-sample button { font-size: 10.5px; font-variant-numeric: tabular-nums; }
+.avail-sample button { font-size: 11px; font-variant-numeric: tabular-nums; }
 
 .avail-page.missing p,
 .qb-why p {
   max-width: 78ch;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.65;
 }
 
@@ -7618,8 +7126,8 @@ table.contribution tfoot th {
 
   color: var(--text);
 
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 11px;
+  font-family: Arial, Helvetica, sans-serif; font-variant-numeric: tabular-nums;
+  font-size: 12px;
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-all;
@@ -7639,7 +7147,7 @@ table.contribution tfoot th {
 
 .qb-field > span {
   color: var(--faint);
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -7654,7 +7162,7 @@ table.contribution tfoot th {
   border-radius: 7px;
 
   color: var(--text);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .qb-field.qb-wide select { margin-top: 6px; }
@@ -7662,7 +7170,7 @@ table.contribution tfoot th {
 .qb-chosen {
   margin: 4px 0 18px;
   color: var(--muted);
-  font-size: 11.5px;
+  font-size: 13px;
   line-height: 1.5;
 }
 
@@ -7684,21 +7192,21 @@ table.contribution tfoot th {
   justify-content: space-between;
 }
 
-.qb-out-head strong { color: var(--text); font-size: 12.5px; }
+.qb-out-head strong { color: var(--text); font-size: 15px; }
 
 .qb-out-head .linkish,
 .qb-out-head a {
   display: inline-flex;
   gap: 4px;
   align-items: center;
-  font-size: 11px;
+  font-size: 12px;
   text-decoration: none;
 }
 
 .qb-note {
   margin: 0;
   color: var(--faint);
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 1.5;
 }
 
@@ -7707,11 +7215,11 @@ table.contribution tfoot th {
 .qb-why h2 {
   margin: 0 0 8px;
   color: var(--text);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 640;
 }
 
-.qb-home, .guide-home { margin-top: 26px; font-size: 12px; }
+.qb-home, .guide-home { margin-top: 26px; font-size: 14px; }
 
 /* ---------------------------------------------------------
    NARROW-SCREEN FIXES
@@ -7828,7 +7336,7 @@ table.contribution tfoot th {
   flex: none;
 
   color: var(--green);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.01em;
@@ -7843,7 +7351,7 @@ table.contribution tfoot th {
   overflow: hidden;
 
   color: var(--text);
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.45;
 
   -webkit-box-orient: vertical;
@@ -7859,7 +7367,7 @@ table.contribution tfoot th {
   margin-top: 3px;
 
   color: var(--faint);
-  font-size: 11px;
+  font-size: 12px;
   font-style: normal;
 }
 
@@ -7871,7 +7379,7 @@ table.contribution tfoot th {
   margin-bottom: 6px;
 
   color: var(--faint);
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -7891,7 +7399,7 @@ table.contribution tfoot th {
 
 .helpcard-facts dt {
   color: var(--faint);
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -7904,7 +7412,7 @@ table.contribution tfoot th {
   display: block;
 
   color: var(--text);
-  font-size: 13.5px;
+  font-size: 16px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
@@ -7915,7 +7423,7 @@ table.contribution tfoot th {
   margin-top: 2px;
 
   color: var(--muted);
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 1.35;
 }
 
@@ -7943,13 +7451,13 @@ table.contribution tfoot th {
   width: 104px;
 
   color: var(--text);
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 600;
 }
 
 .helpcard-panels span {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.4;
 }
 
@@ -7997,7 +7505,7 @@ table.contribution tfoot th {
   margin-bottom: 8px;
 
   color: var(--faint);
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -8022,7 +7530,7 @@ table.contribution tfoot th {
   padding: 3px 0;
 
   color: var(--text);
-  font-size: 12px;
+  font-size: 14px;
   text-decoration: none;
 }
 
@@ -8035,7 +7543,7 @@ table.contribution tfoot th {
   width: 16px;
 
   color: var(--faint);
-  font-size: 11px;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
@@ -8065,7 +7573,7 @@ table.contribution tfoot th {
   padding: 2px 0;
 
   color: var(--green);
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1;
@@ -8078,14 +7586,14 @@ table.contribution tfoot th {
 .guide-chapter-head h2 {
   margin: 0;
 
-  font-size: 17px;
+  font-size: 18px;
   letter-spacing: -0.01em;
 }
 
 .guide-chapter h3 {
   margin: 18px 0 5px;
 
-  font-size: 12.5px;
+  font-size: 15px;
   font-weight: 650;
 }
 
@@ -8130,7 +7638,7 @@ table.contribution tfoot th {
   margin-top: 7px;
 
   color: var(--faint);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
@@ -8161,7 +7669,7 @@ table.contribution tfoot th {
   }
 
   .guide-chapter-head h2 {
-    font-size: 15px;
+    font-size: 17px;
   }
 }
 
@@ -8283,7 +7791,7 @@ table.contribution tfoot th {
 
   color: var(--faint);
   font: inherit;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.01em;
 
@@ -8392,7 +7900,7 @@ table.contribution tfoot th {
   margin: 0;
 
   color: var(--text);
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 650;
 }
 
@@ -8448,7 +7956,7 @@ table.contribution tfoot th {
 
   color: var(--text);
   font: inherit;
-  font-size: 13.5px;
+  font-size: 16px;
   text-align: left;
 
   background: none;
@@ -8479,7 +7987,7 @@ table.contribution tfoot th {
   margin-bottom: 4px;
 
   color: var(--faint);
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -8489,7 +7997,7 @@ table.contribution tfoot th {
   flex: none;
 
   color: var(--green);
-  font-size: 12px;
+  font-size: 14px;
   font-variant-numeric: tabular-nums;
   font-weight: 700;
 }
@@ -8521,7 +8029,7 @@ table.contribution tfoot th {
   }
 
   .home-lede {
-    font-size: 12.5px;
+    font-size: 15px;
     line-height: 1.55;
   }
 
@@ -8545,7 +8053,7 @@ table.contribution tfoot th {
     min-height: 36px;
     padding: 7px 13px;
 
-    font-size: 12.5px;
+    font-size: 15px;
   }
 }
 
@@ -8581,7 +8089,7 @@ table.contribution tfoot th {
   .status-pill,
   .quick-label,
   .suggested-keywords > span {
-    font-size: 10px;
+    font-size: 11px;
     letter-spacing: 0.06em;
   }
 
@@ -8609,7 +8117,7 @@ table.contribution tfoot th {
   .tariff-flags .flag,
   .mini-metric small,
   .mini-metric span {
-    font-size: 11px;
+    font-size: 12px;
   }
 
   .panel-note,
@@ -8630,7 +8138,7 @@ table.contribution tfoot th {
   .qb-note,
   .hs8-metrics small,
   .hs8-parent-metrics small {
-    font-size: 11px;
+    font-size: 12px;
   }
 
   .dgcis-table th,
@@ -8638,7 +8146,7 @@ table.contribution tfoot th {
   .dgcis-table .num,
   table th,
   table td {
-    font-size: 11.5px;
+    font-size: 13px;
   }
 
   /* Body copy gets a point too: 12px prose is a squint on a phone, and the
@@ -8651,7 +8159,7 @@ table.contribution tfoot th {
   .avail-lede,
   .qb-lede,
   .empty-reason {
-    font-size: 13px;
+    font-size: 16px;
     line-height: 1.6;
   }
 }
@@ -8707,14 +8215,14 @@ table.contribution tfoot th {
   overflow: hidden;
 
   color: var(--text);
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
   line-height: 1.3;
 }
 
 .row-sub {
   color: var(--faint);
-  font-size: 11px;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -8735,7 +8243,7 @@ table.contribution tfoot th {
 
 .row-figure b {
   color: var(--text);
-  font-size: 13.5px;
+  font-size: 16px;
   font-weight: 700;
 }
 
@@ -8745,7 +8253,7 @@ table.contribution tfoot th {
 
 .row-figure i {
   color: var(--faint);
-  font-size: 10px;
+  font-size: 11px;
   font-style: normal;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -8791,7 +8299,7 @@ table.contribution tfoot th {
 
 .row-detail dt {
   color: var(--faint);
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -8801,7 +8309,7 @@ table.contribution tfoot th {
   margin: 1px 0 0;
 
   color: var(--text);
-  font-size: 13px;
+  font-size: 16px;
 }
 
 .row-detail dd.num {
@@ -8821,7 +8329,7 @@ table.contribution tfoot th {
 
   color: var(--blue);
   font: inherit;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 650;
 
   background: var(--panel-soft);
@@ -8866,7 +8374,7 @@ table.contribution tfoot th {
   .chart-controls .control-group button,
   .basis-switch button,
   .dgcis-csv {
-    font-size: 11px;
+    font-size: 12px;
   }
 }
 
@@ -8927,7 +8435,7 @@ table.contribution tfoot th {
   input:not([type]),
   select,
   textarea {
-    font-size: 16px;
+    font-size: 17px;
   }
 
   .brand {
@@ -9185,7 +8693,7 @@ table.contribution tfoot th {
 
   color: var(--faint);
   font-family: inherit;
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 700;
   line-height: 1;
 
@@ -9258,13 +8766,13 @@ table.contribution tfoot th {
 .series-table td {
   padding: 7px 10px;
   border-bottom: 1px solid var(--border);
-  font-size: 13px;
+  font-size: 16px;
   text-align: left;
 }
 
 .series-table th {
   color: var(--muted);
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -9377,7 +8885,7 @@ table.contribution tfoot th {
   margin: 10px 0 0;
 
   color: var(--muted);
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.5;
 }
 
@@ -9389,6 +8897,6 @@ table.contribution tfoot th {
 
 @media (max-width: 640px), (hover: none) and (pointer: coarse) {
   .marker-legend {
-    font-size: 12.5px;
+    font-size: 15px;
   }
 }

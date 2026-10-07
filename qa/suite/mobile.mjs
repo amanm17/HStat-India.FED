@@ -294,10 +294,12 @@ ok('with no drag handles', (await page.locator('.rail-check-grip').count()) === 
 ok('and buttons to move a tile instead', (await page.locator('.rail-move button').count()) > 4)
 
 {
-  const before = await page.locator('.rail-check').first().innerText()
+  /* Sections, since the Phase 2 refresh; .rail-check is now the report
+   * builder's code list. */
+  const before = await page.locator('.rail-section').first().innerText()
   await page.locator('.rail-move button').nth(1).tap()
   await page.waitForTimeout(400)
-  const after = await page.locator('.rail-check').first().innerText()
+  const after = await page.locator('.rail-section').first().innerText()
   ok('moving a tile actually moves it', before !== after)
 }
 

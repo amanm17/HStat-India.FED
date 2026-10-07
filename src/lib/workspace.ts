@@ -45,66 +45,18 @@ export type TileSpec = {
 }
 
 export const TILES: TileSpec[] = [
-  { id: 'identity', label: 'Product', note: 'Name, code and official definition', always: true },
-  { id: 'lineage', label: 'Code history', note: 'What this code was before HS 2022' },
-  { id: 'global', label: 'World trade', note: 'World imports, adjusted for re-imports' },
-  { id: 'year', label: 'India this year', note: 'Imports, exports, and rank on each side' },
-  { id: 'whats-inside', label: 'Inside this code', note: 'Child lines and their shares' },
-  { id: 'signals', label: 'Signals', note: 'Year-on-year changes and sourcing concentration' },
-  { id: 'coverage', label: 'Coverage', note: 'How much of the heading is tracked' },
-  { id: 'trends', label: 'Trends', note: 'India trade and the world market over time' },
-  { id: 'importers', label: 'Top importers', note: 'Largest importing economies' },
-  { id: 'exporters', label: 'Top exporters', note: 'Largest exporting economies' },
-  { id: 'partners', label: 'Trade partners', note: "India's import and export partners" },
-  { id: 'tariff', label: 'Tariff lines', note: 'India ITC(HS)-8 detail, when supplied' },
-  /* Flow-neutral on purpose. This note read "tariff-line imports" for as
-   * long as the pipeline believed the extract was imports; it was exports,
-   * and the panel now carries both. A static registry cannot know which flow
-   * the reader has selected, so it names none and the panel names the one it
-   * is showing. */
-  { id: 'dgcis', label: 'India HS8 detail', note: "India's own tariff lines, monthly, from DGCIS" },
+  { id: 'identity', label: 'Product', note: 'Code, name and tagging', always: true },
+  { id: 'headline', label: 'Headline', note: 'Global Trade, India Exports and India Imports, with the calculation drawer', always: true },
+  { id: 'trend', label: 'Trend', note: 'Global Trade and India trade over time, as a table or a chart' },
+  { id: 'world', label: 'Importers & Exporters', note: 'The largest importing and exporting countries' },
+  { id: 'partners', label: "India's Partners", note: "India's import and export partners" },
+  { id: 'dgcis', label: 'Tariff Lines', note: "India's own eight-digit lines, monthly, from DGCIS" },
+  { id: 'inside', label: 'Inside', note: 'The headings or lines inside this code, with their shares' },
+  { id: 'signals', label: 'Key Changes', note: 'Year-on-year changes and import concentration' },
+  { id: 'lineage', label: 'Classification', note: 'What this code was before HS 2022' },
 ]
 
 export const DEFAULT_TILES = TILES.map(tile => tile.id)
-
-/*
- * How the tiles are clubbed into slides out of the box.
- *
- * One tile per slide is the honest default for a page, and the wrong one for
- * a deck: it makes twelve thin slides where the identity block or the
- * coverage note has a whole screen to itself. These four pairings are the
- * ones that belong together when you are reading a screen at a time - the
- * product and where its code came from, the world market beside India's year
- * in it, what stands out beside how much of the heading is tracked, and the
- * two sides of the trade. Everything else earns its own slide because it is
- * a full-width chart or table.
- *
- * A reader can merge and split from the slide's own bar; the moment they do,
- * their arrangement is what is stored and these defaults stop applying.
- */
-export const DEFAULT_SLIDES: string[][] = [
-  ['identity', 'lineage'],
-  ['global', 'year'],
-  ['signals', 'coverage'],
-  ['importers', 'exporters'],
-]
-
-/*
- * Tiles that read properly in half a slide: a short note, a list, a ranked
- * table. Everything else - the identity banner, the figure cards, a chart,
- * a wide table - needs the width of the slide and takes both columns.
- */
-const NARROW_TILES = new Set([
-  'lineage',
-  'signals',
-  'coverage',
-  'importers',
-  'exporters',
-])
-
-export function isNarrowTile(id: string): boolean {
-  return NARROW_TILES.has(id)
-}
 
 export type ReportScope = 'product' | 'hstack'
 
@@ -121,53 +73,38 @@ export type SavedReport = {
   tiles: string[]
   /* Bumped every time the report is regenerated, so the list can show it. */
   lastRunAt: string
+  /* Since the report builder took several codes and several years. Absent
+   * on reports saved before; those mean their one code and one year. */
+  codes?: { code: string; level: 2 | 4 | 6 }[]
+  years?: number[]
+  layout?: 'report' | 'glance'
 }
-
-export type ViewMode = 'report' | 'glance'
 
 export type Workspace = {
   pinned: CodeRef[]
   recent: CodeRef[]
   hiddenTiles: string[]
-  /*
-   * One arrangement, used everywhere: the page in Report View, the slides in
-   * Glance View, and the running order of a generated report. Two orders
-   * would mean the report never quite matched what you arranged.
-   */
+  /* The order the page's sections run in, which is also the order a report
+   * built from them runs in. */
   order: string[]
-  /*
-   * Slides that carry more than one tile. Each entry is a list of tile ids
-   * that share a slide in Glance View; the first id is where the group sits
-   * in the order. Report View ignores this - a merged pair is just two tiles
-   * next to each other there.
-   */
-  merged: string[][]
-  /*
-   * Whether the deck arranges itself.
-   *
-   * How full a tile is depends on the data behind it: "who sells" is a
-   * ranked table for one code and a single line saying the export side is
-   * not published for another, and a fixed grouping gives that one line a
-   * whole screen. When this is on, the deck measures every tile and packs
-   * as many as fit into each slide. The moment the reader merges or splits
-   * a slide themselves it goes off and their arrangement stands.
-   */
-  autoPack: boolean
-  view: ViewMode
   sidebarOpen: boolean
   reports: SavedReport[]
 }
 
-const KEY = 'hstat-workspace-v1'
+/*
+ * v2 since the Phase 2 refresh: the page's sections were renamed and
+ * reordered, so a stored v1 arrangement would put them in an order nobody
+ * chose. Pins, history and saved reports carry over from v1; the layout
+ * does not.
+ */
+const KEY = 'hstat-workspace-v2'
+const LEGACY_KEY = 'hstat-workspace-v1'
 
 const EMPTY: Workspace = {
   pinned: [],
   recent: [],
   hiddenTiles: [],
   order: DEFAULT_TILES,
-  merged: [],
-  autoPack: true,
-  view: 'report',
   sidebarOpen: false,
   reports: [],
 }
@@ -207,10 +144,15 @@ function isCodeRef(value: unknown): value is CodeRef {
 export function readWorkspace(): Workspace {
   try {
     const raw = window.localStorage.getItem(KEY)
+    const legacy = raw ? null : window.localStorage.getItem(LEGACY_KEY)
 
-    if (!raw) return { ...EMPTY }
+    if (!raw && !legacy) return { ...EMPTY }
 
-    const parsed = JSON.parse(raw) as Partial<Workspace>
+    const parsed = (
+      raw
+        ? JSON.parse(raw)
+        : { ...JSON.parse(legacy as string), order: undefined, hiddenTiles: [] }
+    ) as Partial<Workspace>
 
     return {
       pinned: (parsed.pinned ?? []).filter(isCodeRef),
@@ -219,12 +161,6 @@ export function readWorkspace(): Workspace {
         id => typeof id === 'string' && !TILES.find(t => t.id === id)?.always,
       ),
       order: reconcileOrder(parsed.order),
-      merged: (parsed.merged ?? [])
-        .filter(group => Array.isArray(group) && group.length > 1)
-        .map(group => group.filter(id => DEFAULT_TILES.includes(id)))
-        .filter(group => group.length > 1),
-      autoPack: parsed.autoPack !== false,
-      view: parsed.view === 'glance' ? 'glance' : 'report',
       sidebarOpen: Boolean(parsed.sidebarOpen),
       reports: (parsed.reports ?? []).filter(
         report => report && typeof report.id === 'string',
@@ -341,9 +277,9 @@ export function removeReport(workspace: Workspace, id: string): Workspace {
 /* --- arrangement ---------------------------------------------------- */
 
 /*
- * Move one tile to sit immediately before another. This is the whole of
- * reordering: a drag ends on some tile, and the dragged one lands in front
- * of it. Dropping on the last tile's trailing edge appends instead.
+ * Move one section to sit immediately before another (null: to the end).
+ * The rail's up and down buttons are the only caller since drag-to-reorder
+ * was retired in the Phase 2 refresh.
  */
 export function moveTile(
   workspace: Workspace,
@@ -364,95 +300,12 @@ export function moveTile(
   }
 }
 
-/* The slide a tile belongs to: itself, or the group it was merged into. */
-export function slideOf(workspace: Workspace, id: string): string[] {
-  return workspace.merged.find(group => group.includes(id)) ?? [id]
-}
-
-/*
- * Glance View slides, in order, each one or more tiles.
- *
- * A group is placed where its first visible member sits in the order, and
- * every other member is absorbed there, so merging never silently changes
- * where a slide appears.
- */
-export function slides(workspace: Workspace, visible: string[]): string[][] {
-  const seen = new Set<string>()
-
-  const out: string[][] = []
-
-  for (const id of workspace.order) {
-    if (!visible.includes(id) || seen.has(id)) continue
-
-    const group = slideOf(workspace, id).filter(
-      item => visible.includes(item),
-    )
-
-    for (const item of group) seen.add(item)
-
-    out.push(group)
-  }
-
-  return out
-}
-
-/*
- * The reader has arranged the slides themselves. Whatever the deck was
- * showing becomes the arrangement - including the groups the packer had
- * chosen - so a merge changes one slide rather than rearranging the deck
- * under them.
- */
-export function arrangeSlides(
-  workspace: Workspace,
-  groups: string[][],
-): Workspace {
-  return {
-    ...workspace,
-    merged: groups.filter(group => group.length > 1),
-    autoPack: false,
-  }
-}
-
-export function mergeWithNext(
-  workspace: Workspace,
-  visible: string[],
-): (id: string) => Workspace {
-  return id => {
-    const list = slides(workspace, visible)
-
-    const index = list.findIndex(group => group.includes(id))
-
-    if (index < 0 || index === list.length - 1) return workspace
-
-    const combined = [...list[index], ...list[index + 1]]
-
-    return {
-      ...workspace,
-      merged: [
-        ...workspace.merged.filter(
-          group => !group.some(item => combined.includes(item)),
-        ),
-        combined,
-      ],
-    }
-  }
-}
-
-export function splitSlide(workspace: Workspace, id: string): Workspace {
-  return {
-    ...workspace,
-    merged: workspace.merged.filter(group => !group.includes(id)),
-  }
-}
-
 /* Back to the arrangement the dashboard ships with. Pins, history and saved
  * reports are the reader's own and are left alone. */
 export function resetLayout(workspace: Workspace): Workspace {
   return {
     ...workspace,
     order: DEFAULT_TILES,
-    merged: [],
-    autoPack: true,
     hiddenTiles: [],
   }
 }

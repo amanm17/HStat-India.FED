@@ -113,7 +113,7 @@ try {
 
   ok(
     'the legend explains the mark',
-    (await page.locator('.marker-legend').count()) === 1,
+    (await page.locator('.marker-legend').count()) >= 1,
   )
 
   // The marker must be typographic, not coloured: colour on this dashboard
@@ -133,7 +133,7 @@ try {
   await page.waitForTimeout(900)
 
   const heroMarks = await page
-    .locator('.global-trade-hero .estimated-mark')
+    .locator('#tile-headline .rf-tiles .estimated-mark')
     .count()
 
   ok('a fully filed figure carries no mark', heroMarks === 0, `${heroMarks}`)

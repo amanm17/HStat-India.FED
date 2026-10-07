@@ -1,0 +1,269 @@
+/*
+ * FED brand layer.
+ *
+ * Loaded after styles.css, so every legacy rule that reads a token picks up
+ * the FED palette without being rewritten. Colour discipline (execution
+ * prompt §2.1):
+ *
+ *   Indigo Dye      #133E68  primary, headings, and the GLOBAL TRADE series
+ *   Ming            #009F75  the INDIA EXPORTS series, nothing else
+ *   English Red     #9F4A54  the INDIA IMPORTS series, nothing else
+ *   Light Sky Blue  #7DE2D1  the FINISHED GOODS segment
+ *   Yellow Orange   #FEB95F  the COMPONENTS & INPUTS segment
+ *   Silver          #C2C1C2  structure, rules, disabled
+ *
+ * Interface accents (links, active tabs, focus) are Indigo or neutral, never
+ * Ming or Red, because those two already say "India exports" and "India
+ * imports" on every chart. The one sanctioned exception is the depth accent
+ * on page chrome - header band, breadcrumb, code chip, section rules - which
+ * follows the HS level and never touches a data series.
+ *
+ * Dark mode is derived from the same hues, lightened until every text pair
+ * clears 4.5:1 and the three series stay apart from each other.
+ */
+
+:root {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 16px;
+
+  --fed-indigo: #133E68;
+  --fed-ming: #009F75;
+  --fed-red: #9F4A54;
+  --fed-sky: #7DE2D1;
+  --fed-orange: #FEB95F;
+  --fed-silver: #C2C1C2;
+
+  --bg: #F2F5F8;
+  --panel: #FFFFFF;
+  --panel-soft: #F7F8FA;
+
+  --text: #161616;
+  --muted: #444A52;
+  --faint: #5F656D;
+
+  --border: #DADDE1;
+  --border-strong: #C2C1C2;
+
+  --navy: #133E68;
+  --blue: #133E68;
+  --green: #133E68;
+  --ochre: #7A5410;
+
+  --link: #133E68;
+  --focus: #133E68;
+
+  --series-global: #133E68;
+  --series-exports: #009F75;
+  --series-imports: #9F4A54;
+
+  --seg-finished: #7DE2D1;
+  --seg-finished-ink: #0E4F45;
+  --seg-components: #FEB95F;
+  --seg-components-ink: #6B4508;
+
+  --accent: #133E68;
+  --accent-ink: #FFFFFF;
+
+  --shadow: none;
+  --radius: 4px;
+}
+
+:root[data-theme="dark"] {
+  --bg: #0A1828;
+  --panel: #10233A;
+  --panel-soft: #142A45;
+
+  --text: #F2F5F8;
+  --muted: #C6CFD9;
+  --faint: #A9B5C2;
+
+  --border: #263F5C;
+  --border-strong: #3A5677;
+
+  --navy: #C9DAEE;
+  --blue: #A9C6E8;
+  --green: #A9C6E8;
+  --ochre: #F2C27C;
+
+  --link: #A9C6E8;
+  --focus: #A9C6E8;
+
+  --series-global: #8DB2E0;
+  --series-exports: #3CCB9F;
+  --series-imports: #E4919B;
+
+  --seg-finished: #7DE2D1;
+  --seg-finished-ink: #0B2A26;
+  --seg-components: #FEB95F;
+  --seg-components-ink: #2E1D03;
+
+  --accent: #8DB2E0;
+  --accent-ink: #0A1828;
+}
+
+/* The depth accent: page chrome only. */
+:root[data-level="4"] { --accent: #009F75; --accent-ink: #06261C; }
+:root[data-level="6"] { --accent: #7DE2D1; --accent-ink: #0B2A26; }
+:root[data-level="8"] { --accent: #FEB95F; --accent-ink: #2E1D03; }
+:root[data-theme="dark"][data-level="4"] { --accent: #3CCB9F; --accent-ink: #06261C; }
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  line-height: 1.45;
+  background: var(--bg);
+  color: var(--text);
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+a {
+  color: var(--link);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------- header */
+
+.topbar {
+  height: 72px;
+  border-bottom: 4px solid var(--accent);
+  background: var(--panel);
+  grid-template-columns: auto minmax(280px, 640px) auto;
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.fed-logo {
+  display: block;
+  height: 34px;
+  width: auto;
+}
+
+.fed-logo.reversed { display: none; }
+
+:root[data-theme="dark"] .fed-logo.color { display: none; }
+:root[data-theme="dark"] .fed-logo.reversed { display: block; }
+
+.identity-divider {
+  width: 1px;
+  height: 34px;
+  background: var(--border-strong);
+}
+
+.brand {
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--navy);
+}
+
+.brand strong {
+  font-weight: 700;
+}
+
+.refresh {
+  font-size: 12px;
+  color: var(--faint);
+}
+
+@media (max-width: 899px) {
+  .topbar {
+    height: 60px;
+  }
+
+  .fed-logo {
+    height: 26px;
+  }
+
+  .identity-divider,
+  .identity .refresh {
+    display: none;
+  }
+
+  .brand {
+    font-size: 19px;
+  }
+}
+
+@media (max-width: 420px) {
+  .fed-logo {
+    height: 22px;
+  }
+
+  .identity {
+    gap: 9px;
+  }
+
+  .brand {
+    font-size: 17px;
+  }
+}
+
+/* ------------------------------------------------- shared surface rules */
+
+.status-pill {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border-strong);
+}
+
+.status-pill[data-status="VALID"],
+.status-pill[data-status="CAUTION"],
+.status-pill[data-status="INVALID"],
+.status-pill[data-status="HISTORICAL"],
+.status-pill[data-status="BASELINE"] {
+  background: transparent;
+  color: var(--muted);
+}
+
+.estimated-mark {
+  color: var(--navy);
+  font-weight: 700;
+  text-decoration: none;
+  cursor: help;
+  margin-left: 1px;
+}
+
+.carried-mark {
+  color: var(--navy);
+  font-weight: 700;
+  margin-left: 1px;
+}
+
+@media (max-width: 900px) {
+  .topbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 640px) {
+  .topbar .stack-toggle {
+    gap: 4px;
+    padding-left: 9px;
+    padding-right: 9px;
+    font-size: 0;
+  }
+
+  .topbar .stack-toggle .stack-count {
+    font-size: 12px;
+  }
+
+  .topbar .toggles {
+    gap: 6px;
+  }
+}
