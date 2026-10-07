@@ -220,6 +220,7 @@ jobs:
             public/data/snapshots/current/qa.json
             data/staging/*/qa.json
             data/logs/call-errors.jsonl
+            data/reports/resolution-full.jsonl.gz
           if-no-files-found: ignore
           retention-days: 30
 

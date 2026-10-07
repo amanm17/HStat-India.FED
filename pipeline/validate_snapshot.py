@@ -33,6 +33,11 @@ from definition import (
 )
 
 
+# Cloudflare Pages' per-asset limit, the stricter of the two the snapshot
+# has to get through (GitHub's is 100 MB).
+MAX_FILE_BYTES = 25 * 2**20
+
+
 def close(a, b, tolerance=1.0) -> bool:
     """Snapshot values are whole dollars; a dollar of drift is rounding."""
     if a is None or b is None:
@@ -793,6 +798,23 @@ def main():
             )
 
         del entries
+
+    # Every file has to be deliverable. Cloudflare Pages refuses any single
+    # asset over 25 MiB and GitHub refuses a pushed file over 100 MB, and both
+    # refusals arrive after promotion - the first real reprocess built a
+    # 364 MB review file that passed every check here and was then turned
+    # away by GitHub at the very last step. Checked here, before promotion,
+    # where a failure leaves `current` untouched.
+    for path in sorted(root.rglob("*")):
+        if path.is_file() and path.stat().st_size > MAX_FILE_BYTES:
+            report.fail(
+                None,
+                None,
+                f"{path.relative_to(root)} is "
+                f"{path.stat().st_size / 2**20:.1f} MiB; no file in a snapshot "
+                f"may exceed {MAX_FILE_BYTES / 2**20:.0f} MiB (Cloudflare Pages "
+                "per-file limit)",
+            )
 
     check_pull_coverage(
         report,

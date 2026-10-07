@@ -68,3 +68,7 @@ data/dgcis/_superseded/
 
 # Local Comtrade availability cache
 /data/comtrade/
+
+# The full estimation review queue. Too big to ship; uploaded as a refresh
+# run artifact instead. See THE RESOLUTION REPORT in process_snapshot.py.
+data/reports/

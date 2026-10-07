@@ -14,6 +14,7 @@ from __future__ import annotations
 from pathlib import Path
 import argparse
 import csv
+import gzip
 import json
 
 import datasets as dataset_registry
@@ -532,6 +533,10 @@ def reconcile_india(direct_value, frame_value) -> tuple[bool, str | None]:
 # through four call layers and threading an accumulator through all of them
 # would be four signatures changed to carry one list.
 ANOMALIES: list[dict] = []
+
+# How much of the review queue ships with the site. See THE RESOLUTION REPORT.
+RESOLUTION_ROWS = 500
+RESOLUTION_TOP_CODES = 50
 
 
 def build_period(
@@ -2107,15 +2112,57 @@ def main():
     #
     # Every estimate that landed more than 50% from the value it was projected
     # from, with the working behind it: which window, how many observations,
-    # which direction. It ships with the snapshot so the count can be read in
-    # the refresh log and the rows can be worked through by a person.
+    # which direction. A review queue for a person, not a correction - these
+    # values publish like any other estimate.
+    #
+    # TWO FILES, BECAUSE THE FULL LIST DOES NOT FIT IN A WEBSITE
+    #
+    # The first real reprocess flagged enough cells to make a 364 MB file.
+    # GitHub refused the push (its limit is 100 MB) and Cloudflare would have
+    # refused the deploy (25 MB). Nothing a reader sees needs it, so:
+    #
+    #   snapshot/resolution-report.json   ships. Counts broken down by flow,
+    #                                     direction, method and year, the codes
+    #                                     with the most flags, and the rows
+    #                                     that move a published total most.
+    #   data/reports/resolution-full...   does not ship. Every row, gzipped
+    #                                     JSON lines, uploaded by the refresh
+    #                                     workflow as a run artifact.
+    #
+    # Rows are ranked by dollars moved, not by ratio. Sorting by ratio put a
+    # small reporter's 40x projection on a $3,000 line above a 0.6x projection
+    # that shifts a world total by $2bn; the second is the one to look at.
     #
     # Written even when empty, because a missing file is ambiguous - it could
     # mean "nothing flagged" or "the step did not run" - and those need
     # different responses.
-    ANOMALIES.sort(
-        key=lambda row: -abs((row.get("ratio") or 1.0) - 1.0)
-    )
+    def dollars_moved(row: dict) -> float:
+        return abs(
+            (row.get("estimatedValue") or 0.0) - (row.get("lastFiledValue") or 0.0)
+        )
+
+    ANOMALIES.sort(key=dollars_moved, reverse=True)
+
+    def tally(field: str) -> dict:
+        counts: dict = {}
+
+        for row in ANOMALIES:
+            key = str(row.get(field))
+            counts[key] = counts.get(key, 0) + 1
+
+        return dict(sorted(counts.items()))
+
+    per_code: dict[str, int] = {}
+
+    for row in ANOMALIES:
+        per_code[row["code"]] = per_code.get(row["code"], 0) + 1
+
+    full_path = DATA / "reports" / "resolution-full.jsonl.gz"
+    full_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with gzip.open(full_path, "wt", encoding="utf-8") as handle:
+        for row in ANOMALIES:
+            handle.write(json.dumps(row, separators=(",", ":")) + "\n")
 
     write_json(
         out / "resolution-report.json",
@@ -2126,10 +2173,23 @@ def main():
                 "Estimates further than "
                 f"{int(estimate.ANOMALY_BAND * 100)}% from the last filed "
                 "value they were projected from. These publish like any other "
-                "estimate; this is a review queue, not a correction."
+                "estimate; this is a review queue, not a correction. Rows are "
+                "the ones that move a published total most; the full list is "
+                "a refresh-run artifact, not part of the site."
             ),
             "flagged": len(ANOMALIES),
-            "rows": ANOMALIES,
+            "byFlow": tally("flow"),
+            "byDirection": tally("direction"),
+            "byMethod": tally("method"),
+            "byYear": tally("year"),
+            "topCodes": dict(
+                sorted(per_code.items(), key=lambda item: -item[1])[
+                    :RESOLUTION_TOP_CODES
+                ]
+            ),
+            "rowsShown": min(len(ANOMALIES), RESOLUTION_ROWS),
+            "rows": ANOMALIES[:RESOLUTION_ROWS],
+            "fullList": "data/reports/resolution-full.jsonl.gz (run artifact)",
         },
     )
 
