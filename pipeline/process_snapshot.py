@@ -545,6 +545,7 @@ def build_period(
     detailed: bool,
     estimates: dict | None = None,
     reporter_names: dict | None = None,
+    retired_after: int | None = None,
 ) -> dict:
     bounds = tuple(scope["globalTrade"]["mirrorWarnRatio"])
 
@@ -649,6 +650,23 @@ def build_period(
     # below: that means one of two pulls is stale, which is a fault in the
     # inputs rather than a thin field.
     publishable = bool(merged_imports)
+
+    # A DEAD CODE STAYS DEAD
+    #
+    # The publish rule above - anything with a reporter behind it - resurrected
+    # the seven retired classifications. A code that left the nomenclature
+    # still collects a shrinking trickle of filings under its old number for
+    # years afterwards, and with estimation on top those stragglers added up to
+    # a confident-looking current world figure. launch_sanity caught it:
+    # "declared retired but still carries a current global trade figure".
+    #
+    # This is the same rule as the pre-existence floor in estimate.py, at the
+    # other end of a code's life. Before it existed and after it was withdrawn,
+    # there is no world trade in it to publish - §0.3's warning that a non-zero
+    # residual under an obsolete code is not automatically a valid series.
+    if retired_after is not None and str(period).isdigit():
+        if int(period) > retired_after:
+            publishable = False
 
     india_gross_imports = india_index[FLOW_IMPORTS].world_total(code, period)
 
@@ -1314,13 +1332,25 @@ def build_node(
     annual_estimates: dict[str, dict] = {}
     reporter_names: dict[str, dict] = {}
 
+    # The year this code left the nomenclature, where it did. Estimation stops
+    # there: projecting a withdrawn code forward invents trade in something
+    # that no longer exists to be traded.
+    retirement = retired_in_place().get(code)
+    retired_after = retirement.valid_to if retirement else None
+
+    estimable = [
+        year
+        for year in years
+        if retired_after is None or int(year) <= retired_after
+    ]
+
     for flow in (FLOW_IMPORTS, FLOW_EXPORTS):
         tables = {year: global_index[flow].get(code, year) for year in years}
 
         histories, names = estimate.reporter_histories(tables)
 
         reporter_names[flow] = names
-        annual_estimates[flow] = estimate.fill(tables, years)
+        annual_estimates[flow] = estimate.fill(tables, estimable)
 
         # Every estimate that landed outside the anomaly band, gathered for
         # the monthly resolution report. A review queue for a person, not an
@@ -1366,6 +1396,7 @@ def build_node(
             detailed=int(year) >= detail_start,
             estimates=annual_estimates,
             reporter_names=reporter_names,
+            retired_after=retired_after,
         )
 
     monthly: dict[str, dict] = {}
