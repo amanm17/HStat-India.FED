@@ -1,11 +1,11 @@
 {
   "schemaVersion": "2.0.0",
-  "refreshedAt": "2026-10-07T17:36:35.998450+00:00",
+  "refreshedAt": "2026-10-07T10:55:16.783586+00:00",
   "fixture": false,
   "classification": "HS 2022 (H6)",
   "startYear": 1996,
   "endYear": 2026,
-  "analysisStartYear": 1996,
+  "analysisStartYear": 2022,
   "validationStartYear": 1997,
   "months": [
     "202410",
