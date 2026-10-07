@@ -912,7 +912,7 @@
     "statement": "Every stored value is in US dollars, because that is how both sources are denominated. The rupee view converts each period at that period's own average rate - never a single fixed rate, which would turn an exchange-rate movement into an apparent trade movement. Financial-year figures use the financial-year rate and calendar-year figures use the calendar-year rate.",
     "source": "config/fx_inr_usd.csv",
     "convention": "RBI annual average reference rate. Financial-year rates come from the Economic Survey Statistical Appendix, Table 5.4; calendar-year rates are the mean of that year's RBI monthly averages.",
-    "missingRatePolicy": "A period with no rate is not converted. It shows dollars and says the rate is missing. No interpolation, no nearest-year fallback, no carry-forward.",
+    "missingRatePolicy": "A period with no rate of its own is converted at a substitute, in this order: that calendar year's average, then the financial year covering the period, then the nearest period on the same basis. The substitution is named wherever it is used. A rate is never derived by dividing DGCIS rupee and dollar filings of the same shipment, which would imply a rate no bank published.",
     "rates": {
       "CY": {
         "1996": {
