@@ -198,6 +198,19 @@ def main():
 
     run(sys.executable, "pipeline/validate_snapshot.py", staging)
 
+    # THE RAW RECOMPUTE, BEFORE ANYTHING IS PROMOTED
+    #
+    # §1.10 of the refresh document asks for proof that estimation changed no
+    # filed value: every published figure re-summed straight out of the raw
+    # store and compared against the snapshot. This is the only place it can
+    # run - the store exists here and nowhere else - and it belongs before the
+    # promote rather than after it, so a snapshot that cannot reconcile with
+    # its own source never reaches `current`.
+    #
+    # It needs no network and no key, and it is cheap next to the build that
+    # precedes it.
+    run(sys.executable, "pipeline/verify_filed.py", staging)
+
     if args.no_promote:
         print(f"\nValidated staging snapshot left at {staging}")
         print("Promotion skipped (--no-promote).")
