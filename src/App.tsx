@@ -77,6 +77,9 @@ import {
 } from './lib/workspace'
 
 import { saveReport as saveReportFile } from './lib/report'
+import { useLook } from './lib/look'
+import { LookSwitch } from './components/LookSwitch'
+import { AmanMark } from './components/AmanMark'
 import { productDocument, type ReportEntry } from './lib/reportdata'
 import { loadDetail, usePageFiles } from './lib/scope'
 import { loadDgcis } from './lib/dgcis'
@@ -244,6 +247,11 @@ function App() {
 
   const [reportBusy, setReportBusy] = useState(false)
   const [flash, setFlash] = useState<string | null>(null)
+  const [helpOpen, setHelpOpen] = useState(false)
+
+  /* The secret look (lib/look): presentation only. Read here so the whole
+   * tree, charts included, re-renders when it changes. */
+  const look = useLook()
 
   const [basket, setBasket] = useState<BasketEntry[]>([])
   const [basketNodes, setBasketNodes] = useState<HsNode[]>([])
@@ -956,12 +964,18 @@ function App() {
     <div className="app">
       <header className="topbar">
         <div className="identity">
-          <span className="fed-link" title="Foundation for Economic Development">
-            <img className="fed-logo color" src="/brand/fed-logo.png" alt="Foundation for Economic Development" />
-            <img className="fed-logo reversed" src="/brand/fed-logo-reversed.png" alt="" aria-hidden="true" />
-          </span>
+          {look === 'aman' ? (
+            <AmanMark />
+          ) : (
+            <>
+              <span className="fed-link" title="Foundation for Economic Development">
+                <img className="fed-logo color" src="/brand/fed-logo.png" alt="Foundation for Economic Development" />
+                <img className="fed-logo reversed" src="/brand/fed-logo-reversed.png" alt="" aria-hidden="true" />
+              </span>
 
-          <span className="identity-divider" aria-hidden="true" />
+              <span className="identity-divider" aria-hidden="true" />
+            </>
+          )}
 
           <div className="identity-text">
             <button
@@ -972,6 +986,7 @@ function App() {
               title="Back to the front page"
             >
               HStat.<strong>India</strong>
+              {look === 'aman' && <em className="brand-by"> by Aman</em>}
             </button>
 
             <div className="refresh">
@@ -1044,6 +1059,12 @@ function App() {
               <span className="stack-count">{basket.length}</span>
             )}
           </button>
+
+          {!noRail && (
+            <Safely label="HelpButton">
+              <HelpButton topic={helpTopic} onGuide={() => goTo({ kind: 'guide' })} />
+            </Safely>
+          )}
 
           <button
             title={dark ? 'Light theme' : 'Dark theme'}
@@ -1264,9 +1285,27 @@ function App() {
         />
       )}
 
-      <Safely label="HelpButton">
-        <HelpButton topic={helpTopic} onGuide={() => goTo({ kind: 'guide' })} />
+      <Safely label="LookSwitch">
+        <LookSwitch
+          onStart={() => {
+            setSearchOpen(false)
+            setMoreOpen(false)
+            setHelpOpen(false)
+          }}
+        />
       </Safely>
+
+      {noRail && (
+        <Safely label="HelpButton">
+          <HelpButton
+            topic={helpTopic}
+            onGuide={() => goTo({ kind: 'guide' })}
+            floating={false}
+            open={helpOpen}
+            onOpenChange={setHelpOpen}
+          />
+        </Safely>
+      )}
 
       {/*
         * The bottom bar exists only where the rail does not. It is rendered
@@ -1291,6 +1330,10 @@ function App() {
             pinned={workspace.pinned}
             recent={workspace.recent}
             onOpen={ref => openRef(ref.code, ref.level)}
+            onHelp={() => {
+              setMoreOpen(false)
+              setHelpOpen(true)
+            }}
             onGuide={() => goTo({ kind: 'guide' })}
             onQuery={() => goTo({ kind: 'query' })}
             onAvailability={() => goTo({ kind: 'availability' })}

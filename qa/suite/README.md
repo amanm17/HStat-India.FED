@@ -169,3 +169,24 @@ Selectors moved with the refresh: the tariff-line box is
 `.rf-download-menu`, and the HS-8 page shows both flows at once (no flow
 switch). The 375px HS-6 overflow that `postdeploy.mjs` used to excuse is
 fixed, so the excuse is gone.
+
+## Overlap audit and the secret look (October 2026, second pass)
+
+```
+node qa/suite/overlap.mjs          # 3,068 — 15 pages × 7 shapes × 2 themes,
+                                   # at rest and with everything opened
+LOOK=aman node qa/suite/overlap.mjs
+node qa/suite/easteregg.mjs        # 36 — the ~AM1708 switch, end to end
+LOOK=aman node --import ./qa/suite/look-env.mjs qa/suite/mobile.mjs   # any suite, secret look
+```
+
+`overlap.mjs` measures what a reader notices first: text on text (line boxes
+from Range rects, clipped to what is actually drawn), text cut off by a
+clipping ancestor, text spilling out of its tile/cell/button, intersecting
+flex/grid siblings, sideways overflow, fixed/sticky chrome covering text as
+the page is scrolled a viewport at a time, and section order against the
+section tabs. Popovers over the page count only if they are see-through.
+
+`look-env.mjs` wraps playwright's chromium so every context starts with
+`localStorage['hstat-look'] = 'aman'` when `LOOK=aman`; it also passes
+`PW_CHROME` as the executable. Suites run unchanged otherwise.

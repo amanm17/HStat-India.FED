@@ -1629,3 +1629,102 @@
 .rf-headline.hs8-metrics {
   display: block;
 }
+
+/* Help on phones and tablets: opened from More, shown as a card pinned
+ * above the tab bar, never a button floating over the page. */
+.helpdock.docked {
+  position: fixed;
+  left: calc(10px + var(--safe-l, 0px));
+  right: calc(10px + var(--safe-r, 0px));
+  bottom: calc(var(--tabbar-h, 64px) + 10px);
+  z-index: 60;
+}
+
+.helpdock.docked .helpcard {
+  position: static;
+  width: auto;
+  max-width: none;
+  max-height: min(70vh, calc(100vh - var(--tabbar-h, 64px) - 120px));
+  overflow: auto;
+}
+
+/* Phone list rows: a long name wraps inside its own column instead of
+ * running under the figure beside it. */
+.row-head .row-main {
+  min-width: 0;
+}
+
+.row-head .row-title,
+.row-head .row-sub {
+  white-space: normal;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+/* Help in the header (desktop): the card drops below the button. */
+.helpdock.inheader {
+  position: relative;
+  right: auto;
+  bottom: auto;
+  z-index: 70;
+  display: inline-flex;
+}
+
+.helpdock.inheader .helpbutton {
+  width: 40px;
+  height: 40px;
+  box-shadow: none;
+  border-radius: var(--radius);
+  color: var(--navy);
+}
+
+.helpdock.inheader .helpcard {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  box-shadow: 0 12px 32px rgba(10, 24, 40, 0.18);
+}
+
+/* A gutter for the closed rail's handle (fixed to the right edge). */
+@media (min-width: 901px) {
+  :root[data-handle="on"] main {
+    padding-right: 40px;
+  }
+}
+
+.rail-scrim {
+  display: none;
+}
+
+@media (min-width: 901px) and (max-width: 1179px) {
+  .rail-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 69;
+    background: rgba(8, 18, 32, 0.38);
+  }
+}
+
+/* Search result rows: the code column grows to fit an eight-digit code in
+ * any typeface rather than letting it run under the product name. */
+.search-results-large .search-result-open {
+  grid-template-columns: 34px minmax(64px, max-content) minmax(0, 1fr) 92px;
+}
+
+@media (max-width: 760px) {
+  .search-results-large .search-result-open,
+  .search-result-open,
+  .hstack-line-open {
+    grid-template-columns: 30px minmax(58px, max-content) minmax(0, 1fr);
+  }
+}
+
+/* Long action labels in the classification section wrap on narrow screens
+ * instead of running out of the section (buttons are nowrap by default). */
+.lineage-actions button {
+  max-width: 100%;
+  white-space: normal;
+  text-align: left;
+}

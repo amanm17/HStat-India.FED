@@ -819,9 +819,14 @@ export function PullData({
 export function LineageNote({
   node,
   onOpen,
+  carriedInTrend = false,
 }: {
   node: HsNode
   onOpen?: (code: string, level: 2 | 4 | 6) => void
+  /* The product page's trend table already carries the predecessor's
+   * years (marked **); the history section then points there rather than
+   * printing the same figures a second time. */
+  carriedInTrend?: boolean
 }) {
   const lineage = node.lineage
 
@@ -939,6 +944,16 @@ export function LineageNote({
         if (!years.length) return null
 
         const shown = years.slice(-6)
+
+        if (carriedInTrend) {
+          return (
+            <p key={code} className="lineage-caveat">
+              HS {code}&rsquo;s own filings for {years[0]}&ndash;{years[years.length - 1]} are in
+              the trend table above, marked <b className="carried-mark">**</b>: the old code&rsquo;s
+              whole value, never apportioned and never added to this one.
+            </p>
+          )
+        }
 
         return (
           <div key={code} className="lineage-series">

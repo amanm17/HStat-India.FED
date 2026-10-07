@@ -13,6 +13,7 @@
 import { chromium } from 'playwright'
 
 const BASE = process.env.BASE || 'http://127.0.0.1:4178'
+const LOOK = process.env.LOOK || 'fed'   /* 'aman' audits the secret look */
 const PAGES = ['/', '/hs/85', '/hs/8517', '/hs/851713', '/hs/85171300', '/tariff-lines', '/availability', '/guide', '/query']
 const b = await chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : undefined)
 let total = 0
@@ -20,7 +21,10 @@ const failures = []
 
 for (const theme of ['light', 'dark']) {
   for (const [w, h] of [[1440, 900], [390, 844]]) {
-    const page = await b.newPage({ viewport: { width: w, height: h } })
+    const page = await b.newPage({ viewport: { width: w, height: h }, reducedMotion: 'reduce' })
+    if (LOOK === 'aman') {
+      await page.addInitScript(() => { try { localStorage.setItem('hstat-look', 'aman') } catch {} })
+    }
     for (const path of PAGES) {
       await page.goto(BASE + path, { waitUntil: 'networkidle' })
       await page.waitForTimeout(700)
@@ -97,5 +101,5 @@ for (const f of failures) {
 }
 for (const f of unique.values())
   console.log(`FAIL  ${f.theme} ${f.w}px ${f.path}  ${f.ratio}:1 < ${f.need}  .${f.cls}  "${f.text}" (x${f.count})`)
-console.log(`\n${total - failures.length}/${total} text elements pass`)
+console.log(`\n${total - failures.length}/${total} text elements pass (look: ${LOOK})`)
 process.exit(failures.length ? 1 : 0)

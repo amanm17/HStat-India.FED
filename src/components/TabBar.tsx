@@ -1,4 +1,4 @@
-import { BookOpen, Clock, Database, Home, Layers, MoreHorizontal, Pin, Search, Terminal } from 'lucide-react'
+import { BookOpen, Clock, Database, Home, Layers, MoreHorizontal, Pin, Search, Terminal, HelpCircle } from 'lucide-react'
 
 import type { CodeRef } from '../lib/workspace'
 import { Sheet } from './Sheet'
@@ -41,6 +41,7 @@ export function TabBar({
   onGuide,
   onQuery,
   onAvailability,
+  onHelp,
 }: {
   active: TabId | null
   moreOpen: boolean
@@ -52,6 +53,8 @@ export function TabBar({
   onGuide: () => void
   onQuery: () => void
   onAvailability: () => void
+  /* The page's own help card; on a phone it lives here, not in a corner. */
+  onHelp?: () => void
 }) {
   const tabs: { id: TabId; label: string; icon: typeof Home }[] = [
     { id: 'home', label: 'Home', icon: Home },
@@ -98,6 +101,14 @@ export function TabBar({
 
       <Sheet open={moreOpen} title="More" onClose={onCloseMore}>
         <ul className="moresheet-links">
+          {onHelp && (
+            <li>
+              <button className="moresheet-help" onClick={onHelp}>
+                <HelpCircle size={17} />
+                <span className="moresheet-label">About this page</span>
+              </button>
+            </li>
+          )}
           <li>
             <button
               onClick={() => {

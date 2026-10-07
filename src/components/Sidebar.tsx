@@ -236,6 +236,21 @@ export function Sidebar({
     .map(id => TILES.find(tile => tile.id === id))
     .filter((tile): tile is (typeof TILES)[number] => Boolean(tile) && !tile!.always)
 
+  /* The closed rail's handle sits on the right edge of the window; the page
+   * keeps a gutter for it so it never lands on a control or a figure. */
+  const handleShown = !workspace.sidebarOpen && !phone
+
+  useEffect(() => {
+    const root = document.documentElement
+
+    if (handleShown) root.dataset.handle = 'on'
+    else delete root.dataset.handle
+
+    return () => {
+      delete root.dataset.handle
+    }
+  }, [handleShown])
+
   if (!workspace.sidebarOpen) {
     if (phone) return null
 
@@ -413,6 +428,11 @@ export function Sidebar({
   }
 
   return (
+    <>
+    {/* Between 901 and 1179px there is no column to give the rail, so it
+      * opens over the page as a dialog: the page dims behind it and a click
+      * there closes it, rather than the rail sitting on top of live content. */}
+    <div className="rail-scrim" onClick={onToggle} aria-hidden="true" />
     <aside className="rail" aria-label="Workspace">
       <div className="rail-head">
         <strong>Workspace</strong>
@@ -423,5 +443,6 @@ export function Sidebar({
 
       {body}
     </aside>
+    </>
   )
 }

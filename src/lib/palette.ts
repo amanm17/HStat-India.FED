@@ -1,3 +1,5 @@
+import { currentLook } from './look'
+
 /*
  * Chart colours - the FED palette, one meaning per hue (execution prompt
  * §2.1), identical on every page so charts stay comparable across pages:
@@ -55,6 +57,39 @@ const DARK: Palette = {
   components: '#FEB95F',
 }
 
+/*
+ * The secret look (lib/look) keeps the original dashboard's blue and green
+ * for the two India series and adds a violet for Global Trade, so the three
+ * still read apart. Same rule: one meaning per hue on every page.
+ */
+const AMAN_LIGHT: Palette = {
+  global: '#5B45C9',
+  imports: '#1F5F99',
+  exports: '#2F8F6B',
+  primary: '#5B45C9',
+  grid: '#E3E9EE',
+  axis: '#5A6676',
+  surface: '#FFFFFF',
+  text: '#182334',
+  finished: '#38BDF8',
+  components: '#F59E0B',
+}
+
+const AMAN_DARK: Palette = {
+  global: '#B4A6FF',
+  imports: '#6AB0F0',
+  exports: '#4CCB9C',
+  primary: '#B4A6FF',
+  grid: '#273646',
+  axis: '#A9B6C4',
+  surface: '#121C27',
+  text: '#E9EEF4',
+  finished: '#38BDF8',
+  components: '#FBBF24',
+}
+
 export function palette(dark: boolean): Palette {
+  if (currentLook() === 'aman') return dark ? AMAN_DARK : AMAN_LIGHT
+
   return dark ? DARK : LIGHT
 }

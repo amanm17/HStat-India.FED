@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { usePhone } from '../lib/viewport'
+import { lookCommand, requestLook } from '../lib/look'
 import { Plus, Search } from 'lucide-react'
 
 import type { SearchIndex, SearchOutcome } from '../lib/search'
@@ -467,6 +468,7 @@ export function SearchHub({
   const [open, setOpen] = useState(false)
 
   const shell = useRef<HTMLDivElement>(null)
+  const input = useRef<HTMLInputElement>(null)
 
   const bar = variant === 'bar'
   const phone = usePhone()
@@ -525,7 +527,27 @@ export function SearchHub({
    * three rows of chips permanently under the box). They collapse into a
    * panel that opens when the box is focused or holds a query.
    */
-  const showPanel = open || Boolean(query.trim())
+  const secret = lookCommand(query)
+  const showPanel = secret === null && (open || Boolean(query.trim()))
+
+  /* The secret look (lib/look). Enter fires it at once; otherwise it fires
+   * when the code has sat in the box for a moment, which lets "~AM1708/"
+   * be typed straight through "~AM1708". */
+  const fireLook = (look: 'fed' | 'aman') => {
+    setQuery('')
+    setOpen(false)
+    input.current?.blur()
+    requestLook(look)
+  }
+
+  useEffect(() => {
+    if (secret !== 'aman' && secret !== 'fed') return
+
+    const timer = window.setTimeout(() => fireLook(secret), 650)
+
+    return () => window.clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [secret])
 
   return (
     <section
@@ -536,6 +558,7 @@ export function SearchHub({
         <Search size={bar ? 16 : 22} />
 
         <input
+          ref={input}
           value={query}
           onChange={event => setQuery(event.target.value)}
           onKeyDown={event => {
@@ -545,6 +568,13 @@ export function SearchHub({
             }
 
             if (event.key !== 'Enter') return
+
+            if (secret === 'aman' || secret === 'fed') {
+              fireLook(secret)
+              return
+            }
+
+            if (secret === 'pending') return
 
             if (commanding) {
               const text = query.replace(/^\//, '').trim().toLowerCase()

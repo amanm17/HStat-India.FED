@@ -684,7 +684,7 @@ export function ProductPage(props: Props) {
         if (id === 'lineage') {
           return (
             <Section key={id} {...sectionProps(id)} title="Classification History">
-              <LineageNote node={node} onOpen={onOpen} />
+              <LineageNote node={node} onOpen={onOpen} carriedInTrend />
             </Section>
           )
         }

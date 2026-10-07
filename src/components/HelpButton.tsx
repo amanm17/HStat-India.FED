@@ -34,11 +34,30 @@ export type HelpTopic = PageHelp & {
 export function HelpButton({
   topic,
   onGuide,
+  floating = true,
+  open: openProp,
+  onOpenChange,
 }: {
   topic: HelpTopic
   onGuide: () => void
+  /*
+   * The button used to float in the bottom-right corner, where, as the
+   * reader scrolled, it sat over figures. On a desktop it now lives in the
+   * header beside the theme switch (`floating` keeps its old name for the
+   * callers); on phones and tablets the card is opened from the More sheet
+   * and `open` is controlled. Nothing floats over the page either way.
+   */
+  floating?: boolean
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }) {
-  const [open, setOpen] = useState(false)
+  const [ownOpen, setOwnOpen] = useState(false)
+  const open = openProp ?? ownOpen
+  const setOpen = (value: boolean | ((current: boolean) => boolean)) => {
+    const next = typeof value === 'function' ? value(open) : value
+    setOwnOpen(next)
+    onOpenChange?.(next)
+  }
   const shell = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -61,8 +80,10 @@ export function HelpButton({
     }
   }, [open])
 
+  if (!floating && !open) return null
+
   return (
-    <div className="helpdock" ref={shell}>
+    <div className={floating ? 'helpdock inheader' : 'helpdock docked'} ref={shell}>
       {open && (
         <div className="helpcard" role="dialog" aria-label="About this page">
           <div className="helpcard-head">
@@ -147,7 +168,7 @@ export function HelpButton({
         </div>
       )}
 
-      <button
+      {floating && <button
         className={open ? 'helpbutton open' : 'helpbutton'}
         onClick={() => setOpen(value => !value)}
         aria-expanded={open}
@@ -155,7 +176,7 @@ export function HelpButton({
         title="About this page"
       >
         <HelpCircle size={18} />
-      </button>
+      </button>}
     </div>
   )
 }

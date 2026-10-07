@@ -136,8 +136,17 @@ for (const [w] of WIDTHS) {
   const page = await b.newPage({ viewport: { width: w, height: 900 } })
   await page.goto(BASE + '/hs/851762', { waitUntil: 'networkidle' })
   await page.waitForTimeout(800)
-  await page.locator('.helpbutton').click()
+  /* Desktop: the button in the header. Phones and tablets: More, then
+   * "About this page" (nothing floats over the page there). */
+  if (w > 900) {
+    await page.locator('.helpbutton').click()
+  } else {
+    await page.locator('.tabbar .tab', { hasText: 'More' }).click()
+    await page.waitForTimeout(300)
+    await page.locator('.moresheet-help').click()
+  }
   await page.waitForTimeout(400)
+  ok(`${w}px help card opens`, (await page.locator('.helpcard').count()) === 1)
   const r = await page.evaluate(`(${audit})()`)
   ok(`${w}px help card: no overlap`, r.overlap.length === 0, r.overlap.join(' | '))
   ok(`${w}px help card: fits the viewport`, r.overflow.length === 0, r.overflow.join(' | '))
