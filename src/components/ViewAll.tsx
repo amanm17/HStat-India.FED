@@ -7,6 +7,7 @@
  * the ten there. Where the snapshot holds only the top of a list (years
  * before full lists begin) the page says so instead of padding it.
  */
+import { Mark, estimateTip } from './primitives'
 import { useEffect, useMemo, useState } from 'react'
 import { ArrowLeft, Download } from 'lucide-react'
 
@@ -105,6 +106,7 @@ export function ViewAll({
               value,
               share: total ? value / total : null,
               estimated: estimated > 0,
+              estimatedShare: value ? estimated / value : null,
             })),
           )
         } else {
@@ -118,6 +120,7 @@ export function ViewAll({
                 value,
                 share: record.worldImports ? value / record.worldImports : null,
                 estimated: estimatedShare > 0,
+                estimatedShare,
               })),
           )
         }
@@ -269,7 +272,7 @@ export function ViewAll({
                   </td>
                   <td className="num">
                     {format(row.value)}
-                    {row.estimated && <abbr className="estimated-mark" title="Contains estimated values">*</abbr>}
+                    {row.estimated && <Mark tip={estimateTip(row.estimatedShare, row.name, product ? 'line' : 'country')} />}
                   </td>
                   <td className="num">{pct(row.share, 2)}</td>
                 </tr>

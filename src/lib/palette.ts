@@ -45,45 +45,45 @@ const LIGHT: Palette = {
 }
 
 const DARK: Palette = {
-  global: '#8DB2E0',
-  imports: '#E4919B',
-  exports: '#3CCB9F',
-  primary: '#8DB2E0',
-  grid: '#263F5C',
-  axis: '#C6CFD9',
-  surface: '#10233A',
-  text: '#F2F5F8',
+  global: '#93B2D8',
+  imports: '#D99AA3',
+  exports: '#5FC2A2',
+  primary: '#93B2D8',
+  grid: '#2A3542',
+  axis: '#A6B0BC',
+  surface: '#1B2430',
+  text: '#D3DAE2',
   finished: '#7DE2D1',
   components: '#FEB95F',
 }
 
 /*
  * The secret look (lib/look) keeps the original dashboard's blue and green
- * for the two India series and adds a violet for Global Trade, so the three
+ * (brightened) for the two India series and a violet for Global Trade, so the three
  * still read apart. Same rule: one meaning per hue on every page.
  */
 const AMAN_LIGHT: Palette = {
-  global: '#5B45C9',
-  imports: '#1F5F99',
-  exports: '#2F8F6B',
-  primary: '#5B45C9',
-  grid: '#E3E9EE',
-  axis: '#5A6676',
+  global: '#6656D8',
+  imports: '#2F6FB5',
+  exports: '#23936C',
+  primary: '#6656D8',
+  grid: '#E4E4E7',
+  axis: '#52525B',
   surface: '#FFFFFF',
-  text: '#182334',
+  text: '#18181B',
   finished: '#38BDF8',
   components: '#F59E0B',
 }
 
 const AMAN_DARK: Palette = {
-  global: '#B4A6FF',
-  imports: '#6AB0F0',
-  exports: '#4CCB9C',
-  primary: '#B4A6FF',
-  grid: '#273646',
-  axis: '#A9B6C4',
-  surface: '#121C27',
-  text: '#E9EEF4',
+  global: '#A99CF0',
+  imports: '#7BAEE3',
+  exports: '#5CC2A0',
+  primary: '#A99CF0',
+  grid: '#2A2A31',
+  axis: '#A7A7B0',
+  surface: '#1A1A1E',
+  text: '#DCDCE0',
   finished: '#38BDF8',
   components: '#FBBF24',
 }

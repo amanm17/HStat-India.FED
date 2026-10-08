@@ -70,7 +70,7 @@ import {
 } from '../lib/scope'
 import { Safely } from './Safely'
 import { DownloadMenu } from './DownloadMenu'
-import { Disclosure, Estimated, Tabs, type ChartView } from './primitives'
+import { Disclosure, Estimated, Mark, Tabs, type ChartView } from './primitives'
 import {
   axisScale,
   buildCoverage,
@@ -385,19 +385,23 @@ export function ProductPage(props: Props) {
       </nav>
 
       <section className="rf-identity" data-tile="identity" id="tile-identity">
-        <div className="rf-idline">
-          <span className="code-chip rf-code-chip">
-            HS-{node.level} {node.code}
+        {/* A detail line, not a row of buttons: the code (carrying the level
+          * accent), then the segment and category it is tagged with. */}
+        <p className="rf-idline">
+          <span className="rf-id-item rf-id-code">
+            <i className="rf-id-mark" aria-hidden="true" />
+            HS-{node.level} <b>{node.code}</b>
           </span>
           {segment && (
-            <span className="rf-seg-tag" data-segment={segment}>
+            <span className="rf-id-item" data-segment={segment}>
+              <i className="rf-id-dot" aria-hidden="true" />
               {segmentTitle(node.segment)}
             </span>
           )}
-          {node.category && <span className="rf-cat-tag">{node.category}</span>}
-          {!node.inFedDefinition && <span className="rf-cat-tag">Reference only</span>}
-          {retired && <span className="rf-cat-tag">Retired in HS {retired.revision}</span>}
-        </div>
+          {node.category && <span className="rf-id-item">{node.category}</span>}
+          {!node.inFedDefinition && <span className="rf-id-item">Reference only</span>}
+          {retired && <span className="rf-id-item">Retired in HS {retired.revision}</span>}
+        </p>
 
         <h1>{nameOf(node)}</h1>
 
@@ -407,6 +411,7 @@ export function ProductPage(props: Props) {
       </section>
 
       <div className="rf-furniture" role="toolbar" aria-label="Page controls">
+        <div className="rf-furniture-controls">
         <label className="rf-control">
           <span>Year</span>
           <select
@@ -433,6 +438,8 @@ export function ProductPage(props: Props) {
               { id: 'INR', label: 'INR', title: "Rupees, for India's own figures" },
             ]}
           />
+        </div>
+
         </div>
 
         <div className="rf-furniture-actions">
@@ -1139,11 +1146,7 @@ function TrendSection({
 function Carried({ code }: { code: string }) {
   const detail = `Carried from retired HS ${code}: that code's whole value as reported, not apportioned, and not added to this one.`
 
-  return (
-    <abbr className="carried-mark" title={detail} aria-label={detail}>
-      **
-    </abbr>
-  )
+  return <Mark tip={detail} carried />
 }
 
 function TrendChart({

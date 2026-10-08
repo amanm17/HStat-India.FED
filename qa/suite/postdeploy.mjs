@@ -77,12 +77,12 @@ console.log('\n=== J. both flows — HS-8 85171300 ===')
   const t = await page.innerText('body')
   ok('export table present', /India Exports, month by month/i.test(t))
   ok('import table present', /India Imports, month by month/i.test(t))
-  const ex12 = t.match(/India Exports · last 12 months\s*\n([\d,]+)/i)?.[1]
-  const im12 = t.match(/India Imports · last 12 months\s*\n([\d,]+)/i)?.[1]
+  const ex12 = t.match(/India Exports\s*\n([\d,]+)/)?.[1]
+  const im12 = t.match(/India Imports\s*\n([\d,]+)/)?.[1]
   ok('export headline metric present', !!ex12, `12m = ${ex12}`)
   ok('import headline metric present', !!im12, `12m = ${im12}`)
   ok('the two flows differ', !!ex12 && !!im12 && ex12 !== im12, `${ex12} vs ${im12}`)
-  ok('each table carries a Last 12 Months Total', (t.match(/Last 12 Months Total/gi) || []).length === 2)
+  ok('each table ends with the row total', (t.match(/Year total/gi) || []).length === 2)
   const tables = page.locator('.hs8-chart table')
   ok('two month-by-month tables', await tables.count() === 2)
   const head = await tables.first().locator('thead').innerText()

@@ -1,117 +1,116 @@
 /*
  * HStat.India by Aman - the secret look (lib/look.ts).
  *
- * A modern take on the dashboard's original design language, before the FED
- * brand pass: Inter, a cool slate ground, navy / blue / green, soft rounded
- * cards - pushed further with glass surfaces, a slow aurora behind the page,
- * gradient chrome, a scroll-progress line, lift on hover, a spotlight that
- * follows the pointer, and a page that rises in after the switch.
+ * The dashboard's original design language (Inter, navy/blue/green, rounded
+ * cards), refined into something sleek: a quiet zinc ground, hairline
+ * borders instead of heavy frames, near-black primary actions, one violet
+ * accent for focus and selection, tight type, and motion that is felt more
+ * than seen - a scroll-progress hairline, a 1px lift on hover, a page that
+ * settles in after the switch.
  *
- * Everything is scoped to :root[data-look="aman"], so the FED design is
- * untouched unless the code is typed. Motion lives only inside
- * (prefers-reduced-motion: no-preference). Text colours are solid (gradient
- * text keeps a solid `color` whose contrast is what the audit measures, and
- * every gradient stop clears the same bar).
+ * Scoped to :root[data-look="aman"]; the FED design is untouched unless the
+ * code is typed. Motion lives inside (prefers-reduced-motion: no-preference).
+ * Text colours are solid and clear 4.5:1 in both themes.
  *
- * Series keep one meaning each, as in the FED look:
+ * Series keep one meaning each:
  *   Global Trade  violet   India Imports  blue   India Exports  green
  */
 
 /* ----------------------------------------------------------- tokens */
 
 :root[data-look="aman"] {
-  --aman-a: #1f5f99;
-  --aman-b: #5b45c9;
-  --aman-c: #2f8f6b;
-  --aman-glow: 91, 69, 201;
+  --aman-accent: #5b4cd6;
+  --aman-accent-soft: rgba(91, 76, 214, 0.12);
+  --aman-ink: #18181b;
+  --aman-glow: 91, 76, 214;
 
-  --bg: #f3f6f9;
+  --bg: #f6f6f7;
   --panel: #ffffff;
   --panel-solid: #ffffff;
-  --panel-soft: #f6f8fb;
+  --panel-soft: #f4f4f5;
 
-  --text: #182334;
-  --muted: #4e5b6c;
-  --faint: #5d6a7b;
+  --text: #18181b;
+  --muted: #52525b;
+  --faint: #63636d;
 
-  --border: rgba(24, 35, 52, 0.09);
-  --border-strong: rgba(24, 35, 52, 0.16);
+  --border: rgba(24, 24, 27, 0.08);
+  --border-strong: rgba(24, 24, 27, 0.15);
 
-  --navy: #17365d;
-  --blue: #1f5f99;
-  /* Text green: a shade under the exports series so it clears 4.5:1. */
-  --green: #22744f;
+  --navy: #18181b;
+  --blue: #2f6fb5;
+  --green: #1e7a59;
   --ochre: #8a5a00;
 
-  --link: #1f5f99;
-  --focus: #5b45c9;
+  --link: #3b5bdb;
+  --focus: #5b4cd6;
 
-  --series-global: #5b45c9;
-  --series-imports: #1f5f99;
-  --series-exports: #2f8f6b;
+  --series-global: #6656d8;
+  --series-imports: #2f6fb5;
+  --series-exports: #23936c;
 
   --seg-finished: #38bdf8;
   --seg-finished-ink: #0b3954;
   --seg-components: #f59e0b;
   --seg-components-ink: #5a3700;
 
-  --accent: #1f5f99;
+  --accent: #18181b;
   --accent-ink: #ffffff;
 
-  --radius: 14px;
-  --aman-radius: 18px;
-  --shadow: 0 1px 2px rgba(16, 32, 56, 0.05), 0 8px 24px rgba(16, 32, 56, 0.07);
-  --aman-shadow-lift: 0 2px 4px rgba(16, 32, 56, 0.06), 0 18px 40px rgba(16, 32, 56, 0.12);
-  --aman-gradient: linear-gradient(120deg, var(--aman-a), var(--aman-b) 55%, var(--aman-c));
+  --radius: 10px;
+  --aman-radius: 14px;
+  --shadow: 0 1px 2px rgba(24, 24, 27, 0.04);
+  --aman-shadow-lift: 0 1px 2px rgba(24, 24, 27, 0.05), 0 8px 24px rgba(24, 24, 27, 0.07);
 
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   font-feature-settings: "cv11", "ss01", "tnum";
 }
 
 :root[data-look="aman"][data-theme="dark"] {
-  --aman-a: #6ab0f0;
-  --aman-b: #b4a6ff;
-  --aman-c: #4ccb9c;
-  --aman-glow: 180, 166, 255;
+  /* Subtle dark: soft graphite rather than black, text a step below white,
+   * borders barely there. */
+  --aman-accent: #a99cf0;
+  --aman-accent-soft: rgba(169, 156, 240, 0.14);
+  --aman-ink: #e4e4e7;
+  --aman-glow: 169, 156, 240;
 
-  --bg: #0b121b;
-  --panel: #121c27;
-  --panel-solid: #121c27;
-  --panel-soft: #16212d;
+  --bg: #141417;
+  --panel: #1a1a1e;
+  --panel-solid: #1a1a1e;
+  --panel-soft: #212126;
 
-  --text: #e9eef4;
-  --muted: #b3bfcc;
-  --faint: #a2afbd;
+  --text: #dcdce0;
+  --muted: #a7a7b0;
+  --faint: #95959f;
 
-  --border: rgba(233, 238, 244, 0.09);
-  --border-strong: rgba(233, 238, 244, 0.17);
+  --border: rgba(220, 220, 224, 0.07);
+  --border-strong: rgba(220, 220, 224, 0.13);
 
-  --navy: #c1d4e9;
-  --blue: #8cc2f2;
-  --green: #73d2ac;
-  --ochre: #f2c27c;
+  --navy: #e4e4e7;
+  --blue: #8cb8e8;
+  --green: #7fcfae;
+  --ochre: #e2b878;
 
-  --link: #8cc2f2;
-  --focus: #b4a6ff;
+  --link: #9db4f0;
+  --focus: #a99cf0;
 
-  --series-global: #b4a6ff;
-  --series-imports: #6ab0f0;
-  --series-exports: #4ccb9c;
+  --series-global: #a99cf0;
+  --series-imports: #7baee3;
+  --series-exports: #5cc2a0;
 
-  --accent: #8cc2f2;
-  --accent-ink: #0b121b;
+  --accent: #dcdce0;
+  --accent-ink: #141417;
 
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 30px rgba(0, 0, 0, 0.25);
-  --aman-shadow-lift: 0 2px 6px rgba(0, 0, 0, 0.35), 0 22px 48px rgba(0, 0, 0, 0.35);
+  --shadow: none;
+  --aman-shadow-lift: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
-/* The depth accent, re-cut for this look: chrome only, never a series. */
-:root[data-look="aman"][data-level="4"] { --accent: #22744f; --accent-ink: #ffffff; }
-:root[data-look="aman"][data-level="6"] { --accent: #5b45c9; --accent-ink: #ffffff; }
-:root[data-look="aman"][data-level="8"] { --accent: #b45309; --accent-ink: #ffffff; }
-:root[data-look="aman"][data-theme="dark"][data-level="4"] { --accent: #73d2ac; --accent-ink: #0b121b; }
-:root[data-look="aman"][data-theme="dark"][data-level="6"] { --accent: #b4a6ff; --accent-ink: #0b121b; }
-:root[data-look="aman"][data-theme="dark"][data-level="8"] { --accent: #fbbf24; --accent-ink: #0b121b; }
+/* The level accent: chrome only, never a series. */
+:root[data-look="aman"][data-level="4"] { --accent: #1e7a59; }
+:root[data-look="aman"][data-level="6"] { --accent: #5b4cd6; }
+:root[data-look="aman"][data-level="8"] { --accent: #b45309; }
+:root[data-look="aman"][data-theme="dark"][data-level="4"] { --accent: #7fcfae; }
+:root[data-look="aman"][data-theme="dark"][data-level="6"] { --accent: #a99cf0; }
+:root[data-look="aman"][data-theme="dark"][data-level="8"] { --accent: #e9ac5c; }
 
 /* ---------------------------------------------------------- ground */
 
@@ -119,7 +118,7 @@
   font-family: inherit;
   background: var(--bg);
   color: var(--text);
-  letter-spacing: -0.006em;
+  letter-spacing: -0.011em;
 }
 
 :root[data-look="aman"] button,
@@ -129,97 +128,92 @@
   font-family: inherit;
 }
 
-/* The aurora: three soft lights behind everything, on a pseudo-element so
- * the page's own backgrounds stay solid colours. */
+/* One soft light at the top of the page and a fine dot field under the
+ * header - on a pseudo-element, so every surface keeps a solid colour. */
 :root[data-look="aman"] body::before {
   content: "";
   position: fixed;
-  inset: -20vmax;
+  inset: 0 0 auto 0;
+  height: 520px;
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(38vmax 30vmax at 12% 8%, rgba(31, 95, 153, 0.16), transparent 70%),
-    radial-gradient(34vmax 28vmax at 88% 14%, rgba(91, 69, 201, 0.14), transparent 70%),
-    radial-gradient(40vmax 30vmax at 70% 92%, rgba(47, 143, 107, 0.13), transparent 70%);
+    radial-gradient(60% 100% at 50% 0%, rgba(var(--aman-glow), 0.09), transparent 70%),
+    radial-gradient(rgba(24, 24, 27, 0.07) 1px, transparent 1px) 0 0 / 22px 22px;
+  mask-image: linear-gradient(#000, transparent);
+  -webkit-mask-image: linear-gradient(#000, transparent);
 }
 
 :root[data-look="aman"][data-theme="dark"] body::before {
   background:
-    radial-gradient(38vmax 30vmax at 12% 8%, rgba(106, 176, 240, 0.12), transparent 70%),
-    radial-gradient(34vmax 28vmax at 88% 14%, rgba(180, 166, 255, 0.11), transparent 70%),
-    radial-gradient(40vmax 30vmax at 70% 92%, rgba(76, 203, 156, 0.1), transparent 70%);
+    radial-gradient(60% 100% at 50% 0%, rgba(var(--aman-glow), 0.08), transparent 70%),
+    radial-gradient(rgba(220, 220, 224, 0.06) 1px, transparent 1px) 0 0 / 22px 22px;
 }
 
 :root[data-look="aman"] ::selection {
-  background: rgba(var(--aman-glow), 0.25);
+  background: var(--aman-accent-soft);
 }
 
 :root[data-look="aman"] :focus-visible {
   outline: 2px solid var(--focus);
-  outline-offset: 3px;
-}
-
-:root[data-look="aman"] * {
-  scrollbar-color: rgba(var(--aman-glow), 0.35) transparent;
+  outline-offset: 2px;
 }
 
 /* ---------------------------------------------------------- header */
 
 :root[data-look="aman"] .topbar {
-  background: color-mix(in srgb, var(--panel-solid) 80%, transparent);
-  backdrop-filter: saturate(160%) blur(16px);
-  -webkit-backdrop-filter: saturate(160%) blur(16px);
+  background: color-mix(in srgb, var(--bg) 78%, transparent);
+  backdrop-filter: saturate(180%) blur(14px);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
   border-bottom: 1px solid var(--border);
 }
 
-/* A gradient hairline under the header, which also shows how far down the
- * page the reader is (scroll-driven where the browser supports it). */
+/* A hairline under the header that fills as the page is read. */
 :root[data-look="aman"] .topbar::after {
   content: "";
   position: absolute;
   left: 0;
   right: 0;
   bottom: -1px;
-  height: 2px;
-  background: var(--aman-gradient);
+  height: 1px;
+  background: linear-gradient(90deg, var(--aman-accent), var(--series-imports));
   transform-origin: 0 50%;
+  transform: scaleX(0);
   pointer-events: none;
 }
 
 :root[data-look="aman"] .identity {
-  gap: 12px;
+  gap: 11px;
 }
 
 :root[data-look="aman"] .aman-mark {
   display: inline-flex;
   flex: none;
-  border-radius: 11px;
-  box-shadow: 0 6px 18px rgba(var(--aman-glow), 0.35);
 }
 
 :root[data-look="aman"] .brand {
-  font-size: 22px;
-  font-weight: 800;
+  font-size: 19px;
+  font-weight: 700;
   letter-spacing: -0.03em;
-  color: var(--navy);
-  background: var(--aman-gradient);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text);
 }
 
 :root[data-look="aman"] .brand strong {
-  font-weight: 800;
+  font-weight: 700;
 }
 
 :root[data-look="aman"] .brand-by {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 11.5px;
   font-style: normal;
   font-weight: 600;
-  font-size: 0.62em;
-  letter-spacing: 0.01em;
-  margin-left: 2px;
-  -webkit-text-fill-color: var(--muted);
-  color: var(--muted);
+  letter-spacing: 0;
+  vertical-align: 3px;
   white-space: nowrap;
 }
 
@@ -229,27 +223,27 @@
 
 :root[data-look="aman"] .topbar .toggles button,
 :root[data-look="aman"] .helpdock.inheader .helpbutton {
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid var(--border-strong);
-  background: var(--panel-solid);
-  color: var(--navy);
-  transition: box-shadow 0.18s ease, border-color 0.18s ease;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: var(--shadow);
 }
 
 :root[data-look="aman"] .topbar .toggles button:hover,
 :root[data-look="aman"] .helpdock.inheader .helpbutton:hover {
-  border-color: rgba(var(--aman-glow), 0.55);
-  box-shadow: 0 6px 18px rgba(var(--aman-glow), 0.18);
+  border-color: var(--text);
 }
 
 @media (max-width: 420px) {
   :root[data-look="aman"] .brand {
-    font-size: 18px;
+    font-size: 17px;
     white-space: nowrap;
   }
 
   :root[data-look="aman"] .brand-by {
     font-size: 11px;
+    padding: 0 6px;
   }
 }
 
@@ -261,156 +255,181 @@
 }
 
 :root[data-look="aman"] .nav-item {
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
 /* ----------------------------------------------------------- search */
 
-:root[data-look="aman"] .search-primary {
-  border-radius: 20px;
-  background: var(--panel-solid);
+:root[data-look="aman"] .rf-home-hero {
+  border: 1px solid var(--border);
+  border-radius: var(--aman-radius);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+:root[data-look="aman"] .rf-home-hero::before {
+  height: 1px;
+  border-radius: var(--aman-radius) var(--aman-radius) 0 0;
+  background: linear-gradient(90deg, transparent, var(--aman-accent), transparent);
+}
+
+:root[data-look="aman"] .search-primary,
+:root[data-look="aman"] .rf-home-search .search-primary {
+  border-radius: 12px;
+  background: var(--panel);
   border: 1px solid var(--border-strong);
   box-shadow: var(--shadow);
-  transition: box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
-:root[data-look="aman"] .search-primary:focus-within {
-  border-color: rgba(var(--aman-glow), 0.6);
-  box-shadow: 0 0 0 4px rgba(var(--aman-glow), 0.14), var(--aman-shadow-lift);
+:root[data-look="aman"] .search-primary:focus-within,
+:root[data-look="aman"] .rf-home-search .search-primary:focus-within {
+  border-color: var(--aman-accent);
+  box-shadow: 0 0 0 4px var(--aman-accent-soft);
 }
 
-:root[data-look="aman"] .search-primary > svg {
-  color: var(--series-global);
+:root[data-look="aman"] .search-primary > svg,
+:root[data-look="aman"] .rf-home-search .search-primary > svg {
+  color: var(--muted);
 }
 
 :root[data-look="aman"] .search-focus-panel,
-:root[data-look="aman"] .search-output {
-  border-radius: 18px;
-  background: var(--panel-solid);
-  box-shadow: var(--aman-shadow-lift);
+:root[data-look="aman"] .search-output,
+:root[data-look="aman"] .rf-home-search .search-body {
+  border-radius: 12px;
+  background: var(--panel);
+  border-color: var(--border-strong);
+  box-shadow: 0 12px 40px rgba(24, 24, 27, 0.12);
+}
+
+:root[data-look="aman"] .search-hub .kb-active {
+  outline-color: var(--aman-accent);
+  background: var(--aman-accent-soft);
 }
 
 /* ---------------------------------------------- controls and buttons */
 
 :root[data-look="aman"] .rf-button {
-  border-radius: 12px;
-  border: 0;
-  background: var(--aman-gradient);
-  background-size: 160% 100%;
+  border-radius: 10px;
+  border: 1px solid var(--aman-ink);
+  background: var(--aman-ink);
   color: #ffffff;
-  font-weight: 650;
-  box-shadow: 0 6px 18px rgba(var(--aman-glow), 0.28);
-  transition: transform 0.18s ease, box-shadow 0.18s ease, background-position 0.5s ease;
+  font-weight: 600;
+  box-shadow: none;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
 }
 
 :root[data-look="aman"][data-theme="dark"] .rf-button {
-  color: #0b121b;
+  background: #2a2a31;
+  border-color: #3a3a43;
+  color: #ececf0;
 }
 
 :root[data-look="aman"] .rf-button:hover:not(:disabled) {
   filter: none;
-  background-position: 100% 0;
-  box-shadow: 0 10px 26px rgba(var(--aman-glow), 0.36);
+  background: #27272a;
+}
+
+:root[data-look="aman"][data-theme="dark"] .rf-button:hover:not(:disabled) {
+  background: #33333b;
 }
 
 :root[data-look="aman"] .rf-button.quiet,
 :root[data-look="aman"] .stack-add,
-:root[data-look="aman"] .rf-more {
-  background: var(--panel-solid);
-  color: var(--navy);
+:root[data-look="aman"] .rf-more,
+:root[data-look="aman"][data-theme="dark"] .rf-button.quiet,
+:root[data-look="aman"][data-theme="dark"] .stack-add,
+:root[data-look="aman"][data-theme="dark"] .rf-more {
+  background: var(--panel);
+  color: var(--text);
   border: 1px solid var(--border-strong);
-  border-radius: 12px;
-  box-shadow: none;
-}
-
-:root[data-look="aman"][data-theme="dark"] .rf-button.quiet {
-  color: var(--navy);
+  border-radius: 10px;
 }
 
 :root[data-look="aman"] .rf-button.quiet:hover:not(:disabled),
 :root[data-look="aman"] .stack-add:hover:not(:disabled),
 :root[data-look="aman"] .rf-more:hover {
-  border-color: rgba(var(--aman-glow), 0.5);
-  box-shadow: 0 6px 16px rgba(var(--aman-glow), 0.14);
+  background: var(--panel-soft);
+  border-color: var(--text);
 }
 
 :root[data-look="aman"] .rf-segmented {
-  border-radius: 999px;
+  border-radius: 10px;
   padding: 3px;
+  height: auto;
   gap: 2px;
   background: var(--panel-soft);
   border: 1px solid var(--border);
 }
 
 :root[data-look="aman"] .rf-segmented button {
-  border-radius: 999px;
+  height: calc(var(--ctl-h) - 8px);
+  border-radius: 7px;
   border: 0;
   background: transparent;
   color: var(--muted);
   font-weight: 600;
-  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
-:root[data-look="aman"] .rf-segmented button.active {
-  background: var(--panel-solid);
-  color: var(--navy);
-  box-shadow: 0 1px 2px rgba(16, 32, 56, 0.12), 0 4px 12px rgba(var(--aman-glow), 0.16);
+:root[data-look="aman"] .rf-segmented button.active,
+:root[data-look="aman"][data-theme="dark"] .rf-segmented button.active {
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 1px 2px rgba(24, 24, 27, 0.1), 0 0 0 1px var(--border);
 }
 
 :root[data-look="aman"][data-theme="dark"] .rf-segmented button.active {
-  background: #22303f;
-  color: #ffffff;
+  background: #2a2a31;
 }
 
 :root[data-look="aman"] .rf-control select {
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid var(--border-strong);
-  background-color: var(--panel-solid);
+  background-color: var(--panel);
   color: var(--text);
+}
+
+:root[data-look="aman"] .rf-control > span {
+  color: var(--muted);
+  letter-spacing: 0.02em;
+  text-transform: none;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 /* ----------------------------------------------------------- chrome */
 
 :root[data-look="aman"] .rf-crumbs {
-  border-bottom: 0;
-  background:
-    linear-gradient(var(--accent), var(--accent)) left bottom / 64px 2px no-repeat,
-    linear-gradient(var(--border-strong), var(--border-strong)) left bottom / 100% 1px no-repeat;
+  border-bottom: 1px solid var(--border);
 }
 
-:root[data-look="aman"] .rf-code-chip,
-:root[data-look="aman"] .code-chip.rf-code-chip {
+:root[data-look="aman"] .rf-id-mark {
   border-radius: 999px;
-  padding: 4px 12px;
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 14px;
-  letter-spacing: 0;
-  box-shadow: 0 4px 14px rgba(var(--aman-glow), 0.2);
+  width: 8px;
+  height: 8px;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
-:root[data-look="aman"] .rf-cat-tag,
-:root[data-look="aman"] .rf-seg-tag,
-:root[data-look="aman"] .chip {
-  border-radius: 999px;
-}
-
+:root[data-look="aman"] .rf-id-code,
 :root[data-look="aman"] .rf-code,
 :root[data-look="aman"] .rf-tariff-code,
 :root[data-look="aman"] .rf-code-inline,
-:root[data-look="aman"] .answer-code {
+:root[data-look="aman"] .answer-code,
+:root[data-look="aman"] .search-result-open strong {
   font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   letter-spacing: -0.01em;
 }
 
 :root[data-look="aman"] .rf-identity h1 {
-  font-weight: 800;
-  letter-spacing: -0.035em;
+  font-weight: 700;
+  letter-spacing: -0.04em;
   color: var(--text);
 }
 
 :root[data-look="aman"] .rf-h2,
-:root[data-look="aman"] .rf-section-title {
-  letter-spacing: -0.02em;
+:root[data-look="aman"] .rf-section-title,
+:root[data-look="aman"] .rf-static-title {
+  letter-spacing: -0.025em;
   color: var(--text);
 }
 
@@ -418,88 +437,43 @@
 
 :root[data-look="aman"] .rf-figure {
   position: relative;
-  overflow: hidden;
   border: 1px solid var(--border);
   border-radius: var(--aman-radius);
   background: var(--panel);
   box-shadow: var(--shadow);
-  isolation: isolate;
 }
 
-/* The series stripe, as a gradient bar across the top of the tile. */
-:root[data-look="aman"] .rf-figure::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 4px;
-  background: linear-gradient(90deg, var(--series-global), color-mix(in srgb, var(--series-global) 35%, transparent));
-}
-
-:root[data-look="aman"] .rf-figure[data-series="exports"]::before {
-  background: linear-gradient(90deg, var(--series-exports), color-mix(in srgb, var(--series-exports) 35%, transparent));
-}
-
-:root[data-look="aman"] .rf-figure[data-series="imports"]::before {
-  background: linear-gradient(90deg, var(--series-imports), color-mix(in srgb, var(--series-imports) 35%, transparent));
-}
-
-:root[data-look="aman"] .rf-figure[data-series="neutral"]::before {
-  background: linear-gradient(90deg, var(--faint), transparent);
-}
-
-/* The pointer spotlight (look.ts sets --mx/--my on the card under it). */
-:root[data-look="aman"] .rf-figure::after,
-:root[data-look="aman"] .rf-cat::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  opacity: 0;
-  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), rgba(var(--aman-glow), 0.1), transparent 70%);
-  transition: opacity 0.3s ease;
-}
-
-:root[data-look="aman"] .rf-figure:hover::after,
-:root[data-look="aman"] .rf-cat:hover::after {
-  opacity: 1;
+:root[data-look="aman"] .rf-figure,
+:root[data-look="aman"] .rf-figure[data-series] {
+  border-top: 1px solid var(--border);
+  border-left: 1px solid var(--border);
 }
 
 :root[data-look="aman"] .rf-figure-label {
   color: var(--muted);
   font-size: 14px;
   font-weight: 600;
-  letter-spacing: 0.01em;
 }
 
 :root[data-look="aman"] .rf-swatch {
+  width: 8px;
+  height: 8px;
   border-radius: 999px;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--series-global) 16%, transparent);
+}
+
+:root[data-look="aman"] .rf-figure[data-series="exports"] .rf-swatch {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--series-exports) 16%, transparent);
+}
+
+:root[data-look="aman"] .rf-figure[data-series="imports"] .rf-swatch {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--series-imports) 16%, transparent);
 }
 
 :root[data-look="aman"] .rf-figure-value {
-  font-weight: 800;
-  letter-spacing: -0.035em;
+  font-weight: 700;
+  letter-spacing: -0.045em;
   color: var(--text);
-}
-
-@media (max-width: 640px) {
-  :root[data-look="aman"] .rf-figure,
-  :root[data-look="aman"] .rf-figure[data-series] {
-    border: 1px solid var(--border);
-  }
-
-  :root[data-look="aman"] .rf-figure::before {
-    right: auto;
-    bottom: 0;
-    width: 4px;
-    height: auto;
-    background: var(--series-global);
-  }
-
-  :root[data-look="aman"] .rf-figure[data-series="exports"]::before { background: var(--series-exports); }
-  :root[data-look="aman"] .rf-figure[data-series="imports"]::before { background: var(--series-imports); }
 }
 
 /* ---------------------------------------------------------- surfaces */
@@ -517,116 +491,112 @@
 }
 
 :root[data-look="aman"] .rf-section {
-  position: relative;
-  overflow: hidden;
+  border-left: 1px solid var(--border);
 }
 
-/* The level accent, as a soft glow down the section's left edge. */
-:root[data-look="aman"] .rf-section::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 14px;
-  bottom: 14px;
-  width: 3px;
-  border-radius: 0 3px 3px 0;
-  background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 15%, transparent));
-  pointer-events: none;
+:root[data-look="aman"] .rf-panel {
+  border-top: 1px solid var(--border);
 }
 
 :root[data-look="aman"] .rf-section-toggle {
-  border-radius: 12px;
+  border-radius: 10px;
 }
 
 :root[data-look="aman"] .rf-gap-alert,
 :root[data-look="aman"] .rf-provisional,
 :root[data-look="aman"] .rf-rate-note {
-  border-radius: 14px;
+  border-radius: 10px;
 }
 
 /* ------------------------------------------------------ section tabs */
 
 :root[data-look="aman"] .rf-tabs {
-  background: color-mix(in srgb, var(--bg) 86%, transparent);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--border-strong);
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
 }
 
 :root[data-look="aman"] .rf-tabs button {
-  border-radius: 999px;
-  transition: background 0.2s ease, color 0.2s ease;
+  border-radius: 8px;
+  color: var(--muted);
 }
 
 :root[data-look="aman"] .rf-tabs button[aria-current="true"],
 :root[data-look="aman"] .rf-tabs button.active {
-  background: var(--panel-solid);
-  color: var(--navy);
-  box-shadow: 0 1px 2px rgba(16, 32, 56, 0.1), 0 4px 12px rgba(var(--aman-glow), 0.15);
+  color: var(--text);
+  background: var(--panel-soft);
+  box-shadow: inset 0 -2px 0 var(--aman-accent);
 }
 
 /* ------------------------------------------------------------ tables */
 
 :root[data-look="aman"] .rf-table thead th {
   color: var(--muted);
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   border-bottom: 1px solid var(--border-strong);
 }
 
-:root[data-look="aman"] .rf-table tbody tr {
-  transition: background 0.15s ease;
+:root[data-look="aman"] .rf-table tbody td,
+:root[data-look="aman"] .rf-table tbody th {
+  border-bottom-color: var(--border);
 }
 
 :root[data-look="aman"] .rf-table tbody tr:hover {
-  background: rgba(var(--aman-glow), 0.06);
+  background: var(--panel-soft);
 }
 
 :root[data-look="aman"] .rf-emphasis {
-  background: rgba(var(--aman-glow), 0.08);
+  background: var(--aman-accent-soft);
 }
 
 /* --------------------------------------------------- home segments */
 
 :root[data-look="aman"] .rf-cat {
-  position: relative;
-  overflow: hidden;
-  isolation: isolate;
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-left: 1px solid var(--border);
+  border-radius: 12px;
   background: var(--panel);
   box-shadow: var(--shadow);
 }
 
-:root[data-look="aman"] .rf-cat::before {
+:root[data-look="aman"] .rf-cat strong::before {
   content: "";
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 4px;
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 8px;
+  border-radius: 999px;
   background: var(--seg-finished);
-  pointer-events: none;
+  vertical-align: 2px;
 }
 
-:root[data-look="aman"] [data-segment="components"] .rf-cat::before {
+:root[data-look="aman"] [data-segment="components"] .rf-cat strong::before {
   background: var(--seg-components);
 }
 
 :root[data-look="aman"] .rf-cat:hover,
 :root[data-look="aman"] .rf-cat.active {
-  border-color: rgba(var(--aman-glow), 0.45);
+  border-color: var(--border-strong);
   box-shadow: var(--aman-shadow-lift);
+}
+
+:root[data-look="aman"] .rf-cat.active {
+  border-color: var(--aman-accent);
 }
 
 /* ------------------------------------------------------ tariff tiles */
 
 :root[data-look="aman"] .rf-tariff-tile {
-  border-radius: 16px;
-  background: var(--panel-solid);
+  border-radius: 12px;
+  background: var(--panel);
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
 }
 
 :root[data-look="aman"] .rf-tariff-tile:hover {
+  border-color: var(--border-strong);
   box-shadow: var(--aman-shadow-lift);
 }
 
@@ -634,145 +604,125 @@
 
 :root[data-look="aman"] .rf-download-menu,
 :root[data-look="aman"] .helpcard {
-  border-radius: 18px;
-  background: var(--panel-solid);
+  border-radius: 12px;
+  background: var(--panel);
   border: 1px solid var(--border-strong);
-  box-shadow: 0 24px 60px rgba(16, 32, 56, 0.22);
+  box-shadow: 0 16px 48px rgba(24, 24, 27, 0.16);
 }
 
 :root[data-look="aman"] .rail {
-  border-radius: 18px 0 0 18px;
-  background: var(--panel-solid);
+  background: var(--panel);
+  border-left: 1px solid var(--border);
 }
 
 :root[data-look="aman"] .rail-handle {
-  border-radius: 12px 0 0 12px;
-  background: var(--aman-gradient);
+  border-radius: 10px 0 0 10px;
+  background: var(--aman-ink);
   color: #ffffff;
   border: 0;
 }
 
 :root[data-look="aman"][data-theme="dark"] .rail-handle {
-  color: #0b121b;
+  background: #2a2a31;
+  color: #ececf0;
+}
+
+:root[data-look="aman"] .rail-years button.active,
+:root[data-look="aman"][data-theme="dark"] .rail-years button.active {
+  background: var(--aman-ink);
+  border-color: var(--aman-ink);
+  color: #ffffff;
+}
+
+:root[data-look="aman"][data-theme="dark"] .rail-years button.active {
+  background: #2a2a31;
+  border-color: #3a3a43;
+  color: #ececf0;
 }
 
 :root[data-look="aman"] .tabbar {
-  background: color-mix(in srgb, var(--panel-solid) 88%, transparent);
-  backdrop-filter: saturate(160%) blur(16px);
-  -webkit-backdrop-filter: saturate(160%) blur(16px);
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+  backdrop-filter: saturate(180%) blur(14px);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+}
+
+:root[data-look="aman"] .tab.on {
+  color: var(--text);
 }
 
 :root[data-look="aman"] .estimated-mark,
 :root[data-look="aman"] .carried-mark {
-  color: var(--series-global);
+  color: var(--aman-accent);
+}
+
+:root[data-look="aman"] .hstack-panel {
+  border-radius: 16px;
+  border-color: var(--border-strong);
+}
+
+:root[data-look="aman"] .hstack-title h2 {
+  color: var(--text);
+  letter-spacing: -0.03em;
 }
 
 /* ------------------------------------------------------------ motion */
 
 @media (prefers-reduced-motion: no-preference) {
-  :root[data-look="aman"] body::before {
-    animation: aman-aurora 28s ease-in-out infinite alternate;
-  }
-
   :root[data-look="aman"] .rf-figure,
   :root[data-look="aman"] .rf-cat,
   :root[data-look="aman"] .rf-tariff-tile {
-    transition: transform 0.22s cubic-bezier(.2, .8, .2, 1), box-shadow 0.22s ease, border-color 0.22s ease;
+    transition: transform 0.2s cubic-bezier(.2, .8, .2, 1), box-shadow 0.2s ease, border-color 0.2s ease;
   }
 
   :root[data-look="aman"] .rf-figure:hover,
   :root[data-look="aman"] .rf-cat:hover,
   :root[data-look="aman"] .rf-tariff-tile:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--aman-shadow-lift);
-  }
-
-  :root[data-look="aman"] .rf-button:hover:not(:disabled) {
     transform: translateY(-1px);
-  }
-
-  :root[data-look="aman"] .topbar::after {
-    background-size: 200% 100%;
-    animation: aman-sheen 6s linear infinite;
+    box-shadow: var(--aman-shadow-lift);
   }
 
   @supports (animation-timeline: scroll()) {
     :root[data-look="aman"] .topbar::after {
-      animation: aman-progress linear both, aman-sheen 6s linear infinite;
-      animation-timeline: scroll(root), auto;
+      animation: aman-progress linear both;
+      animation-timeline: scroll(root);
     }
   }
 
-  :root[data-look="aman"] .aman-mark svg {
-    transition: transform 0.5s cubic-bezier(.2, .8, .2, 1);
-  }
-
-  :root[data-look="aman"] .identity:hover .aman-mark svg {
-    transform: rotate(-8deg) scale(1.06);
-  }
-
-  /* The page arriving after the switch: each block rises in turn. */
   :root.look-arrive .rf-product > *,
   :root.look-arrive .rf-home > *,
   :root.look-arrive .rf-hs8 > * {
-    animation: aman-rise 0.7s cubic-bezier(.2, .8, .2, 1) both;
+    animation: aman-settle 0.6s cubic-bezier(.2, .8, .2, 1) both;
   }
 
   :root.look-arrive .rf-product > :nth-child(2),
   :root.look-arrive .rf-home > :nth-child(2),
-  :root.look-arrive .rf-hs8 > :nth-child(2) { animation-delay: 0.06s; }
+  :root.look-arrive .rf-hs8 > :nth-child(2) { animation-delay: 0.04s; }
   :root.look-arrive .rf-product > :nth-child(3),
   :root.look-arrive .rf-home > :nth-child(3),
-  :root.look-arrive .rf-hs8 > :nth-child(3) { animation-delay: 0.12s; }
-  :root.look-arrive .rf-product > :nth-child(4),
-  :root.look-arrive .rf-home > :nth-child(4),
-  :root.look-arrive .rf-hs8 > :nth-child(4) { animation-delay: 0.18s; }
-  :root.look-arrive .rf-product > :nth-child(5),
-  :root.look-arrive .rf-home > :nth-child(5),
-  :root.look-arrive .rf-hs8 > :nth-child(5) { animation-delay: 0.24s; }
-  :root.look-arrive .rf-product > :nth-child(n + 6),
-  :root.look-arrive .rf-home > :nth-child(n + 6),
-  :root.look-arrive .rf-hs8 > :nth-child(n + 6) { animation-delay: 0.3s; }
-
-  :root.look-arrive .topbar {
-    animation: aman-drop 0.6s cubic-bezier(.2, .8, .2, 1) both;
-  }
+  :root.look-arrive .rf-hs8 > :nth-child(3) { animation-delay: 0.08s; }
+  :root.look-arrive .rf-product > :nth-child(n + 4),
+  :root.look-arrive .rf-home > :nth-child(n + 4),
+  :root.look-arrive .rf-hs8 > :nth-child(n + 4) { animation-delay: 0.12s; }
 
   :root.look-pulse .brand,
   :root.look-pulse .fed-link {
-    animation: aman-pulse 0.9s ease;
+    animation: aman-pulse 0.8s ease;
   }
 }
 
-@keyframes aman-aurora {
-  0% { transform: translate3d(0, 0, 0) rotate(0deg); }
-  50% { transform: translate3d(2vmax, -1.5vmax, 0) rotate(4deg); }
-  100% { transform: translate3d(-2vmax, 1vmax, 0) rotate(-3deg); }
-}
-
-@keyframes aman-sheen {
-  from { background-position: 0% 0; }
-  to { background-position: 200% 0; }
-}
-
 @keyframes aman-progress {
-  from { transform: scaleX(0.04); }
+  from { transform: scaleX(0); }
   to { transform: scaleX(1); }
 }
 
-@keyframes aman-rise {
-  from { opacity: 0; transform: translateY(18px) scale(0.985); filter: blur(4px); }
-  to { opacity: 1; transform: none; filter: none; }
-}
-
-@keyframes aman-drop {
-  from { opacity: 0; transform: translateY(-14px); }
+@keyframes aman-settle {
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: none; }
 }
 
 @keyframes aman-pulse {
-  0%, 100% { filter: none; transform: none; }
-  40% { filter: drop-shadow(0 0 12px rgba(91, 69, 201, 0.7)); transform: scale(1.04); }
+  0%, 100% { transform: none; opacity: 1; }
+  40% { transform: scale(1.03); opacity: 0.75; }
 }
 
 /* ================================================================
@@ -985,4 +935,35 @@
 :root[data-look="aman"][data-theme="dark"] .stack-add,
 :root[data-look="aman"][data-theme="dark"] .rf-more {
   color: var(--navy);
+}
+
+/* On touch the pill track drops its inset so every option is a full 44px. */
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  :root[data-look="aman"] .rf-segmented {
+    padding: 0;
+  }
+
+  :root[data-look="aman"] .rf-segmented button {
+    height: var(--ctl-h);
+  }
+}
+
+/* On a phone the byline sits under the name (where "Updated" sits on a
+ * desktop), so the header's buttons keep their room. */
+@media (max-width: 640px) {
+  :root[data-look="aman"] .brand {
+    display: inline-block;
+    line-height: 1.05;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  :root[data-look="aman"] .brand-by {
+    display: block;
+    margin: 2px 0 0;
+    padding: 0;
+    border: 0;
+    font-size: 11px;
+    vertical-align: 0;
+  }
 }

@@ -48,6 +48,8 @@ export type SearchIndex = {
 export function normalizeQuery(value: string): string {
   return value
     .toLowerCase()
+    /* "8517.13" and "8517 13" are how people quote a code; both mean 851713. */
+    .replace(/(\d)[.\s](?=\d)/g, '$1')
     .replace(/[^a-z0-9]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()

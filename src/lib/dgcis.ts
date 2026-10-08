@@ -676,6 +676,8 @@ export function flowWord(flow: DgcisFlow): string {
 export type MonthGridRow = {
   label: string
   months: Array<number | null>
+  /* The row's own total: the calendar or financial year, as far as filed. */
+  total: number | null
   last12: number | null
   last12To: string | null
   filled: number
@@ -704,6 +706,7 @@ export function monthGrid(
     const row = rows.get(label) ?? {
       label,
       months: Array(12).fill(null),
+      total: null,
       last12: null,
       last12To: null,
       filled: 0,
@@ -746,9 +749,12 @@ export function monthGrid(
     .map(row => {
       const total = row.lastIndex >= 11 ? windowTotal(series, row.lastIndex - 11, row.lastIndex + 1) : null
 
+      const filedMonths = row.months.filter((value): value is number => value !== null)
+
       return {
         label: row.label,
         months: row.months,
+        total: filedMonths.length ? filedMonths.reduce((sum, value) => sum + value, 0) : null,
         last12: total,
         last12To: row.lastIndex >= 0 ? periods[row.lastIndex] : null,
         filled: row.filled,

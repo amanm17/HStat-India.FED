@@ -36,6 +36,66 @@ import {
  * is replaced by plain up and down buttons that always do what they say.
  */
 
+/* A tariff line's report: one HS-8 line, DGCIS data, so no code or year
+ * picking - the page's own figures in Report or Glance layout. */
+export type TariffReportRequest = {
+  name: string
+  layout: 'report' | 'glance'
+  format: 'pdf' | 'png'
+}
+
+function TariffReportBuilder({
+  current,
+  busy,
+  onGenerate,
+}: {
+  current: CodeRef
+  busy: boolean
+  onGenerate: (request: TariffReportRequest) => void
+}) {
+  const [name, setName] = useState('')
+  const [layout, setLayout] = useState<'report' | 'glance'>('report')
+
+  return (
+    <div className="rail-report">
+      <label className="rail-field">
+        <span>Report name</span>
+        <input value={name} onChange={event => setName(event.target.value)} placeholder={`HS-8 ${current.code}`} />
+      </label>
+
+      <fieldset className="rail-fieldset">
+        <legend>Layout</legend>
+        <div className="rail-years">
+          {(['report', 'glance'] as const).map(option => (
+            <button
+              key={option}
+              type="button"
+              className={layout === option ? 'active' : ''}
+              aria-pressed={layout === option}
+              onClick={() => setLayout(option)}
+            >
+              {option === 'report' ? 'Report' : 'Glance'}
+            </button>
+          ))}
+        </div>
+        <p className="rail-hint">
+          HS-8 {current.code}: monthly exports and imports from DGCIS, by calendar year, with the line&rsquo;s place
+          among its heading&rsquo;s lines.
+        </p>
+      </fieldset>
+
+      <div className="rail-generate">
+        <button className="primary" disabled={busy} onClick={() => onGenerate({ name, layout, format: 'pdf' })}>
+          <FileText size={15} /> {busy ? 'Rendering…' : 'PDF'}
+        </button>
+        <button disabled={busy} onClick={() => onGenerate({ name, layout, format: 'png' })}>
+          <ImageIcon size={15} /> PNG
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export type ReportRequest = {
   name: string
   codes: { code: string; level: 2 | 4 | 6 }[]
@@ -206,6 +266,7 @@ export function Sidebar({
   onResetLayout,
   onTogglePin,
   onGenerate,
+  onGenerateTariff,
   onRunReport,
   onRenameReport,
   onRemoveReport,
@@ -223,6 +284,8 @@ export function Sidebar({
   onResetLayout: () => void
   onTogglePin: (entry: CodeRef) => void
   onGenerate: (request: ReportRequest) => void
+  /* Tariff-line pages (current.level 8) build their report through this. */
+  onGenerateTariff?: (request: TariffReportRequest) => void
   onRunReport: (report: SavedReport, format: 'pdf' | 'png' | 'view') => void
   onRenameReport: (id: string, name: string) => void
   onRemoveReport: (id: string) => void
@@ -231,6 +294,10 @@ export function Sidebar({
   const [draft, setDraft] = useState('')
 
   const phone = useNoRail()
+
+  /* On a tariff-line page the rail keeps pins, history and reports; the
+   * section arrangement belongs to the HS-2/4/6 pages and is not offered. */
+  const tariff = current.level === 8
 
   const sections = workspace.order
     .map(id => TILES.find(tile => tile.id === id))
@@ -307,6 +374,7 @@ export function Sidebar({
         )}
       </section>
 
+      {!tariff && (
       <section className="rail-block">
         <div className="rail-subhead">
           Sections on the page
@@ -349,10 +417,15 @@ export function Sidebar({
           })}
         </div>
       </section>
+      )}
 
       <section className="rail-block">
         <div className="rail-subhead">Build a report</div>
-        <ReportBuilder current={current} candidates={candidates} years={years} year={year} busy={busy} onGenerate={onGenerate} />
+        {tariff ? (
+          <TariffReportBuilder current={current} busy={busy} onGenerate={request => onGenerateTariff?.(request)} />
+        ) : (
+          <ReportBuilder current={current} candidates={candidates} years={years} year={year} busy={busy} onGenerate={onGenerate} />
+        )}
       </section>
 
       <section className="rail-block">
@@ -383,7 +456,7 @@ export function Sidebar({
                       {(report.codes ?? (report.code ? [{ code: report.code, level: report.level ?? 6 }] : []))
                         .map(item => `HS ${item.code}`)
                         .join(', ')}{' '}
-                      · {(report.years ?? [report.year]).join(', ')} · {when(report.createdAt)}
+                      · {report.level === 8 ? 'monthly' : (report.years ?? [report.year]).join(', ')} · {when(report.createdAt)}
                     </span>
                   </div>
                 )}

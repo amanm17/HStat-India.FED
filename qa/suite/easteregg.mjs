@@ -59,7 +59,7 @@ for (const [w, h, shape] of [[1440, 900, 'desk'], [390, 844, 'phone']]) {
   await page.waitForTimeout(800)
   ok(`[${shape}] product pages take the look`, (await look(page)) === 'aman')
   const chart = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--series-global').trim())
-  ok(`[${shape}] series colours follow the look`, chart.toLowerCase() === '#5b45c9', chart)
+  ok(`[${shape}] series colours follow the look`, chart.toLowerCase() === '#6656d8', chart)
 
   await page.goto(BASE + '/', { waitUntil: 'networkidle' })
   await page.waitForTimeout(600)

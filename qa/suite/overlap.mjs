@@ -65,16 +65,16 @@ const b = await chromium.launch(process.env.PW_CHROME ? { executablePath: proces
 
 /* ------------------------------------------------------------ in-page */
 
-function measure() {
+function measure(includeFixed = false) {
   const vw = document.documentElement.clientWidth
-  const out = { text: [], clip: [], spill: [], siblings: [], overflow: [], order: [] }
+  const out = { text: [], clip: [], spill: [], siblings: [], overflow: [], order: [], controls: [] }
 
   const visible = el => {
     for (let n = el; n && n !== document.body; n = n.parentElement) {
       const cs = getComputedStyle(n)
       if (cs.display === 'none' || cs.visibility === 'hidden' || Number(cs.opacity) === 0) return false
       /* Fixed and sticky chrome is judged by the occlusion pass, scrolled. */
-      if (cs.position === 'fixed' || cs.position === 'sticky') return false
+      if ((cs.position === 'fixed' || cs.position === 'sticky') && !includeFixed) return false
     }
     const r = el.getBoundingClientRect()
     if (r.width < 2 || r.height < 2) return false
@@ -231,6 +231,47 @@ function measure() {
     }
   }
 
+  /* -- controls: a row of controls shares one height and one centre line -- */
+  const isControl = el =>
+    el.matches('select, input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), .rf-segmented, button') &&
+    !el.matches('.rf-link, .linkish, .rf-segmented button, .search-clear, .search-key, [role="tab"], .rf-tabs button')
+  for (const parent of document.body.querySelectorAll('*')) {
+    const cs = getComputedStyle(parent)
+    if (!/flex/.test(cs.display) || cs.flexDirection.startsWith('column') || !visible(parent)) continue
+    if (parent.closest('table, nav, .tabbar, .rf-tabs, .search-output, .search-focus-panel, .rail-pins, .rail-reports, .rows, .sheet, .rf-download-menu, .look-switch')) continue
+    const controls = []
+    for (const child of parent.children) {
+      if (!visible(child)) continue
+      let control = null
+      if (isControl(child)) control = child
+      else {
+        const inner = [...child.querySelectorAll('select, input, .rf-segmented, button')].filter(el => isControl(el) && visible(el))
+        if (inner.length === 1 && !inner[0].closest('.rf-segmented ~ *') ) control = inner[0]
+      }
+      if (control) controls.push(control)
+    }
+    if (controls.length < 2) continue
+    const boxes = controls.map(el => ({ el, r: el.getBoundingClientRect() }))
+    /* Same visual line only: a wrapped row is judged line by line. */
+    const lines = []
+    for (const box of boxes) {
+      const mid = box.r.top + box.r.height / 2
+      const line = lines.find(l => Math.abs(l.mid - mid) < 16)
+      if (line) line.items.push(box)
+      else lines.push({ mid, items: [box] })
+    }
+    for (const line of lines) {
+      if (line.items.length < 2) continue
+      const hs = line.items.map(b => b.r.height)
+      const cs2 = line.items.map(b => b.r.top + b.r.height / 2)
+      const dh = Math.max(...hs) - Math.min(...hs)
+      const dc = Math.max(...cs2) - Math.min(...cs2)
+      if (dh > 2 || dc > 2) {
+        out.controls.push(`${label(parent)}: ${line.items.map(b => `${label(b.el)} ${Math.round(b.r.height)}h@${Math.round(b.r.top + b.r.height / 2)}`).join(', ')}`)
+      }
+    }
+  }
+
   /* -- overflow -- */
   const pageOverflow = document.documentElement.scrollWidth - vw
   if (pageOverflow > 1) out.overflow.push(`page scrolls sideways by ${pageOverflow}px`)
@@ -281,6 +322,8 @@ async function occlusion(page) {
       [...document.querySelectorAll('body *')].filter(el => {
         const cs = getComputedStyle(el)
         if (cs.position !== 'fixed' && cs.position !== 'sticky') return false
+        /* A tooltip is an overlay the reader asked for by hovering. */
+        if (el.matches('[role="tooltip"]')) return false
         if (cs.display === 'none' || cs.visibility === 'hidden' || Number(cs.opacity) === 0) return false
         const r = el.getBoundingClientRect()
         return r.width > 4 && r.height > 4 && r.bottom > 0 && r.top < vh
@@ -388,6 +431,11 @@ for (const [w, h, shape] of SHAPES) {
         ok(`${tag} [${state}] sibling overlaps`, m.siblings.length === 0, m.siblings.slice(0, 3).join(' | '))
         ok(`${tag} [${state}] overflow`, m.overflow.length === 0, m.overflow.slice(0, 2).join(' | '))
         ok(`${tag} [${state}] order`, m.order.length === 0, m.order.slice(0, 2).join(' | '))
+        ok(`${tag} [${state}] control rows`, m.controls.length === 0, m.controls.slice(0, 3).join(' | '))
+        /* The header, section tabs and other pinned chrome, judged at rest. */
+        const chrome = await page.evaluate(measure, true)
+        const extra = chrome.siblings.filter(item => !m.siblings.includes(item))
+        ok(`${tag} [${state}] chrome sibling overlaps`, extra.length === 0, extra.slice(0, 3).join(' | '))
       }
       const covered = await occlusion(page)
       ok(`${tag} occlusion`, covered.length === 0, covered.slice(0, 3).join(' | '))
@@ -416,6 +464,23 @@ for (const [w, h, shape] of SHAPES) {
           await box.fill(''); await page.keyboard.press('Escape')
         }
       }
+      if (path === '/' && name === 'home') {
+        /* The HStack panel, built from a key-segment category. */
+        const cat = page.locator('.rf-cat').first()
+        if (await cat.count()) {
+          await cat.click(); await page.waitForTimeout(300)
+          const stack = page.locator('.rf-stack-actions .rf-button, .rf-stack button.rf-button').first()
+          if (await stack.count()) {
+            await stack.click(); await page.waitForTimeout(1500)
+            await page.evaluate(() => window.scrollTo(0, 0))
+            const m = await page.evaluate(measure, true)
+            ok(`${tag} [hstack] control rows`, m.controls.length === 0, m.controls.slice(0, 3).join(' | '))
+            ok(`${tag} [hstack] sibling overlaps`, m.siblings.length === 0, m.siblings.slice(0, 3).join(' | '))
+            await page.locator('.hstack-close').first().click().catch(() => {})
+            await page.evaluate(() => { try { localStorage.removeItem('hstat-basket'); localStorage.removeItem('hstat-stack-title') } catch {} })
+          }
+        }
+      }
       if (path === '/hs/851713' && (shape === 'desk' || shape === 'laptop')) {
         const handle = page.locator('.rail-handle').first()
         if (await handle.count()) {
@@ -423,6 +488,8 @@ for (const [w, h, shape] of SHAPES) {
           const m = await page.evaluate(measure)
           ok(`${tag} [rail open] text overlaps`, m.text.length === 0, m.text.slice(0, 3).join(' | '))
           ok(`${tag} [rail open] sibling overlaps`, m.siblings.length === 0, m.siblings.slice(0, 3).join(' | '))
+          const chrome2 = await page.evaluate(measure, true)
+          ok(`${tag} [rail open] chrome sibling overlaps`, chrome2.siblings.length === 0, chrome2.siblings.slice(0, 3).join(' | '))
           ok(`${tag} [rail open] overflow`, m.overflow.length === 0, m.overflow.slice(0, 2).join(' | '))
           const covered2 = await occlusion(page)
           ok(`${tag} [rail open] occlusion`, covered2.length === 0, covered2.slice(0, 3).join(' | '))

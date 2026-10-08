@@ -372,13 +372,48 @@ export function Estimated({
       ? `${pct} of this figure is estimated, across ${reporters} ` +
         `${reporters === 1 ? 'economy that has' : 'economies that have'} not filed. ` +
         'Estimated from each economy\u2019s own history of this code.'
-      : `${pct} of this figure is estimated from reporters that have not filed.`
+      : `${pct} of this figure is estimated, for economies that have not filed yet, each projected from its own history of this code. The rest is as filed.`
 
+  return <Mark tip={detail} />
+}
+
+/*
+ * A * (estimated) or ** (carried) mark whose explanation shows at once on
+ * hover, focus or tap (components/MarkTip). Focusable, with a hit area a
+ * little larger than the glyph.
+ */
+export function Mark({ tip, carried = false }: { tip: string; carried?: boolean }) {
   return (
-    <abbr className="estimated-mark" title={detail} aria-label={detail}>
-      *
+    <abbr className={carried ? 'carried-mark' : 'estimated-mark'} tabIndex={0} data-tip={tip} aria-label={tip}>
+      {carried ? '**' : '*'}
     </abbr>
   )
+}
+
+/* What a * on one figure means, in words, from how much of it is estimated.
+ * `subject` names a country (whose own filings are what is missing) or a
+ * product line (whose world figure has missing filers). */
+export function estimateTip(
+  share: number | null | undefined,
+  subject?: string,
+  kind: 'country' | 'line' = 'country',
+): string {
+  const pct =
+    share === null || share === undefined
+      ? null
+      : share < 0.001
+        ? 'under 0.1%'
+        : `${(share * 100).toFixed(1)}%`
+
+  if (kind === 'country') {
+    if (share !== null && share !== undefined && share >= 0.999) {
+      return `${subject ?? 'This economy'} has not filed this year; its value is estimated from its own history of this code (5-year growth, bounded at ±50% a year).`
+    }
+
+    return `${pct ?? 'Part'} of ${subject ? `${subject}'s` : 'this'} total is estimated: the codes it has not yet filed for this year, each projected from its own history. The rest is as filed.`
+  }
+
+  return `${pct ?? 'Part'} of ${subject ? `${subject}'s` : 'this'} world figure is estimated, for economies that have not filed yet; the rest is as filed.`
 }
 
 /*

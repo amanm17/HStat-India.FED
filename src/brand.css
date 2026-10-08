@@ -69,43 +69,48 @@
 }
 
 :root[data-theme="dark"] {
-  --bg: #0A1828;
-  --panel: #10233A;
-  --panel-soft: #142A45;
+  /* Subtle rather than stark (October 2026, second pass): a soft slate
+   * ground instead of near-black navy, text a step down from white, and
+   * hairline borders. Every text pair still clears 4.5:1. */
+  --bg: #151c25;
+  --panel: #1b2430;
+  --panel-soft: #212b38;
 
-  --text: #F2F5F8;
-  --muted: #C6CFD9;
-  --faint: #A9B5C2;
+  --text: #d3dae2;
+  --muted: #a6b0bc;
+  --faint: #939eab;
 
-  --border: #263F5C;
-  --border-strong: #3A5677;
+  --border: #2a3542;
+  --border-strong: #384554;
 
-  --navy: #C9DAEE;
-  --blue: #A9C6E8;
-  --green: #A9C6E8;
-  --ochre: #F2C27C;
+  --navy: #c3d0df;
+  --blue: #a8bfda;
+  --green: #a8bfda;
+  --ochre: #e2b878;
 
-  --link: #A9C6E8;
-  --focus: #A9C6E8;
+  --link: #a8c2e2;
+  --focus: #a8c2e2;
 
-  --series-global: #8DB2E0;
-  --series-exports: #3CCB9F;
-  --series-imports: #E4919B;
+  --series-global: #93b2d8;
+  --series-exports: #5fc2a2;
+  --series-imports: #d99aa3;
 
-  --seg-finished: #7DE2D1;
-  --seg-finished-ink: #0B2A26;
-  --seg-components: #FEB95F;
-  --seg-components-ink: #2E1D03;
+  --seg-finished: #6fcfbf;
+  --seg-finished-ink: #0b2a26;
+  --seg-components: #e9ac5c;
+  --seg-components-ink: #2e1d03;
 
-  --accent: #8DB2E0;
-  --accent-ink: #0A1828;
+  --accent: #93b2d8;
+  --accent-ink: #151c25;
 }
 
 /* The depth accent: page chrome only. */
 :root[data-level="4"] { --accent: #009F75; --accent-ink: #06261C; }
 :root[data-level="6"] { --accent: #7DE2D1; --accent-ink: #0B2A26; }
 :root[data-level="8"] { --accent: #FEB95F; --accent-ink: #2E1D03; }
-:root[data-theme="dark"][data-level="4"] { --accent: #3CCB9F; --accent-ink: #06261C; }
+:root[data-theme="dark"][data-level="4"] { --accent: #5fc2a2; --accent-ink: #0b211a; }
+:root[data-theme="dark"][data-level="6"] { --accent: #6fcfbf; --accent-ink: #0b2a26; }
+:root[data-theme="dark"][data-level="8"] { --accent: #e9ac5c; --accent-ink: #2e1d03; }
 
 body {
   font-family: Arial, Helvetica, sans-serif;
@@ -137,7 +142,7 @@ a {
   height: 72px;
   border-bottom: 4px solid var(--accent);
   background: var(--panel);
-  grid-template-columns: auto minmax(280px, 640px) auto;
+  grid-template-columns: auto minmax(0, 640px) auto;
 }
 
 .identity {

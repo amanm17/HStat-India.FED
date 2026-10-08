@@ -7,6 +7,7 @@
  * by the refresh into scope.json, from the same reporter tables the product
  * pages rank - so a total here is exactly the products listed under it.
  */
+import { Mark, estimateTip } from './primitives'
 import { useEffect, useMemo, useState } from 'react'
 import { FileText, Layers } from 'lucide-react'
 
@@ -40,7 +41,10 @@ type Props = {
   reports?: SavedReport[]
   onOpenReport?: (report: SavedReport) => void
   onViewAll: (kind: HomeRankKind, year: number) => void
-  onStack: (entries: { code: string; level: 2 | 4 | 6 | 8 }[]) => void
+  onStack: (
+    entries: { code: string; level: 2 | 4 | 6 | 8 }[],
+    title?: { name: string; segment: string; lines: number },
+  ) => void
   currency: CurrencyMode
   onCurrency: (mode: CurrencyMode) => void
   dark: boolean
@@ -146,6 +150,7 @@ export function HomePage({
         value,
         share: total ? value / total : null,
         estimated: estimated > 0,
+        estimatedShare: value ? estimated / value : null,
       }),
     )
 
@@ -162,6 +167,7 @@ export function HomePage({
         value,
         share: record?.worldImports ? value / record.worldImports : null,
         estimated: estimatedShare > 0,
+        estimatedShare,
       }))
 
   const finished = productRows('finished')
@@ -236,67 +242,71 @@ export function HomePage({
 
   return (
     <div className="rf-home">
-      <section className="rf-home-search" aria-label="Search">
-        <h1 className="sr-only">HStat.India</h1>
-        <SearchHub
-          variant="hub"
-          onOpenHs8={onOpenHs8}
-          commands={commands}
-          index={index}
-          recent={recent}
-          inBasket={inBasket}
-          onOpen={item => {
-            if (item.retired) return
+      {/* The front door: search, then the year, currency and download for
+        * everything below, on one quiet band. */}
+      <div className="rf-home-hero">
+        <section className="rf-home-search" aria-label="Search">
+          <h1 className="sr-only">HStat.India</h1>
+          <SearchHub
+            variant="hub"
+            onOpenHs8={onOpenHs8}
+            commands={commands}
+            index={index}
+            recent={recent}
+            inBasket={inBasket}
+            onOpen={item => {
+              if (item.retired) return
 
-            onOpen(item.code, item.level)
-          }}
-          onAdd={onAdd}
-        />
-      </section>
-
-      <div className="rf-controls">
-        <label className="rf-control">
-          <span>Year</span>
-          <select
-            id="home-year"
-            value={year ?? ''}
-            disabled={!years.length}
-            onChange={event => onYear(Number(event.target.value))}
-          >
-            {years.map(item => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <div className="rf-control">
-          <span>Currency</span>
-          <Segmented<CurrencyMode>
-            label="Currency"
-            value={currency}
-            onChange={onCurrency}
-            options={[
-              { id: 'USD', label: 'USD', title: 'US dollars' },
-              { id: 'INR', label: 'INR', title: "Rupees, for India's own figures" },
-            ]}
+              onOpen(item.code, item.level)
+            }}
+            onAdd={onAdd}
           />
+        </section>
+
+        <div className="rf-controls">
+          <label className="rf-control">
+            <span>Year</span>
+            <select
+              id="home-year"
+              value={year ?? ''}
+              disabled={!years.length}
+              onChange={event => onYear(Number(event.target.value))}
+            >
+              {years.map(item => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <div className="rf-control">
+            <span>Currency</span>
+            <Segmented<CurrencyMode>
+              label="Currency"
+              value={currency}
+              onChange={onCurrency}
+              options={[
+                { id: 'USD', label: 'USD', title: 'US dollars' },
+                { id: 'INR', label: 'INR', title: "Rupees, for India's own figures" },
+              ]}
+            />
+          </div>
+
+          {scope && record && year !== null && (
+            <DownloadMenu
+              filename={`HStat-scope-${year}`}
+              makeTables={() =>
+                import('../lib/workbook').then(module =>
+                  module.buildHomeDownload(scope, catalogue, year, { manifest, currency }),
+                )
+              }
+              makeReport={() =>
+                import('../lib/reportdata').then(module => module.homeDocument(scope, catalogue, year, manifest))
+              }
+            />
+          )}
         </div>
-
-        {scope && record && year !== null && (
-          <DownloadMenu
-            filename={`HStat-scope-${year}`}
-            makeTables={() =>
-              import('../lib/workbook').then(module =>
-                module.buildHomeDownload(scope, catalogue, year, { manifest, currency }),
-              )
-            }
-            makeReport={() =>
-              import('../lib/reportdata').then(module => module.homeDocument(scope, catalogue, year, manifest))
-            }
-          />
-        )}
       </div>
 
       {scope === undefined ? (
@@ -451,7 +461,10 @@ export function HomePage({
                 onOpen={code => onOpen(code, 6)}
                 onClose={() => setOpenCategory(null)}
                 onStack={() =>
-                  onStack(shownCategory.rows.map(row => ({ code: row.code, level: 6 as const })))
+                  onStack(
+                    shownCategory.rows.map(row => ({ code: row.code, level: 6 as const })),
+                    { name: shownCategory.name, segment: side.title, lines: shownCategory.rows.length },
+                  )
                 }
               />
             )}
@@ -520,6 +533,7 @@ function CategoryStack({
         name: nameOf(row),
         world: value?.[1] ?? null,
         estimated: (value?.[2] ?? 0) > 0,
+        estimatedShare: value?.[2] ?? null,
         imports: value?.[3] ?? null,
         exports: value?.[4] ?? null,
       }
@@ -586,7 +600,7 @@ function CategoryStack({
                 </td>
                 <td className="num">
                   {usd(line.world)}
-                  {line.estimated && <abbr className="estimated-mark" title="Contains estimated values">*</abbr>}
+                  {line.estimated && <Mark tip={estimateTip(line.estimatedShare, line.name, 'line')} />}
                 </td>
                 <td className="num">{line.world && world ? pct(line.world / world, 1) : '—'}</td>
                 <td className="num">{india(line.exports)}</td>

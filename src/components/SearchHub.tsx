@@ -527,6 +527,54 @@ export function SearchHub({
    * three rows of chips permanently under the box). They collapse into a
    * panel that opens when the box is focused or holds a query.
    */
+  /*
+   * Keyboard travel through the panel (October 2026, second pass).
+   *
+   *   ↑ / ↓    move through the results (or Recent and Suggested when the
+   *            box is empty), focus staying in the box so typing continues
+   *   Enter    opens the highlighted one (or the best match, as before)
+   *   .        leaves the box - except inside a code like "8517.13"
+   *   Esc      leaves the box
+   *
+   * Items are found in the panel's own markup, in reading order, so every
+   * kind of row (answer, related codes, tariff lines, commands, chips) is
+   * reachable without each list keeping its own index.
+   */
+  const [active, setActive] = useState(-1)
+
+  const navigable = () => {
+    const root = shell.current
+
+    if (!root) return [] as HTMLElement[]
+
+    return [
+      ...root.querySelectorAll<HTMLElement>(
+        '.answer-open, .search-result-open:not(:disabled), .smart-suggestions button, .search-commands-link',
+      ),
+    ].filter(el => el.offsetParent !== null)
+  }
+
+  useEffect(() => setActive(-1), [query])
+
+  useEffect(() => {
+    const items = navigable()
+
+    items.forEach((el, index) => {
+      el.classList.toggle('kb-active', index === active)
+      if (index === active) el.id = 'search-active'
+      else if (el.id === 'search-active') el.removeAttribute('id')
+    })
+
+    if (active >= 0) items[active]?.scrollIntoView({ block: 'nearest' })
+  })
+
+  const leave = () => {
+    setQuery('')
+    setOpen(false)
+    setActive(-1)
+    input.current?.blur()
+  }
+
   const secret = lookCommand(query)
   const showPanel = secret === null && (open || Boolean(query.trim()))
 
@@ -565,6 +613,43 @@ export function SearchHub({
             if (event.key === 'Escape' && query.startsWith('/')) {
               setQuery('')
               return
+            }
+
+            if (event.key === 'Escape') {
+              leave()
+              return
+            }
+
+            /* "." leaves, unless it is the dot in a code being typed. */
+            if (event.key === '.' && !event.ctrlKey && !event.metaKey && !(query && /^[\d.\s]+$/.test(query))) {
+              event.preventDefault()
+              leave()
+              return
+            }
+
+            if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+              const items = navigable()
+
+              if (!items.length) return
+
+              event.preventDefault()
+              setOpen(true)
+              setActive(current => {
+                if (event.key === 'ArrowDown') return current + 1 >= items.length ? 0 : current + 1
+                return current <= 0 ? items.length - 1 : current - 1
+              })
+              return
+            }
+
+            if (event.key === 'Enter' && active >= 0) {
+              const target = navigable()[active]
+
+              if (target) {
+                event.preventDefault()
+                target.click()
+                setActive(-1)
+                return
+              }
             }
 
             if (event.key !== 'Enter') return
@@ -618,6 +703,7 @@ export function SearchHub({
           }
           aria-label="Search products and HS codes"
           aria-expanded={bar ? open : undefined}
+          aria-activedescendant={active >= 0 ? 'search-active' : undefined}
         />
 
         {query && (
@@ -760,6 +846,14 @@ export function SearchHub({
             </button>
           )}
         </div>
+      )}
+
+      {!phone && (
+        <p className="search-hints" aria-hidden="true">
+          <span><kbd>↑</kbd><kbd>↓</kbd> move</span>
+          <span><kbd>↵</kbd> open</span>
+          <span><kbd>.</kbd> or <kbd>Esc</kbd> close</span>
+        </p>
       )}
 
       </div>

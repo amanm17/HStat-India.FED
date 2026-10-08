@@ -8,7 +8,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { ArrowUpRight } from 'lucide-react'
+import { ArrowUpRight, Layers, Pin, PinOff, Plus } from 'lucide-react'
 import { DownloadMenu } from './DownloadMenu'
 
 import type { CatalogueEntry, Manifest } from '../types'
@@ -79,6 +79,13 @@ export type Hs8DownloadRequest = {
  * is how the siblings, the share of the heading and the way back up all come
  * for free.
  */
+/* DGCIS commodity groups are filed in capitals ("TELECOM INSTRUMENTS");
+ * shown as a plain detail they read better in sentence case. */
+function sentence(text: string): string {
+  const lower = text.toLowerCase()
+  return lower.charAt(0).toUpperCase() + lower.slice(1)
+}
+
 export function Hs8View({
   hs8,
   catalogue,
@@ -89,6 +96,8 @@ export function Hs8View({
   onQuickStack,
   inBasket,
   manifest,
+  pinned,
+  onTogglePin,
 }: {
   hs8: string
   catalogue: CatalogueEntry[]
@@ -101,6 +110,9 @@ export function Hs8View({
   onQuickStack?: (entries: { code: string; level: 2 | 4 | 6 | 8 }[]) => void
   inBasket?: (code: string) => boolean
   manifest?: Manifest
+  /* The workspace pin, as on HS-2/4/6 pages. */
+  pinned?: boolean
+  onTogglePin?: () => void
 }) {
   const hs6 = parentOf(hs8)
 
@@ -346,11 +358,14 @@ export function Hs8View({
       </nav>
 
       <section className="rf-identity hs8-head">
-        <div className="rf-idline">
-          <span className="code-chip rf-code-chip">HS-8 {hs8}</span>
-          <span className="rf-cat-tag">India tariff line · DGCIS</span>
-          {line.principalCommodity && <span className="rf-cat-tag">{line.principalCommodity}</span>}
-        </div>
+        <p className="rf-idline">
+          <span className="rf-id-item rf-id-code">
+            <i className="rf-id-mark" aria-hidden="true" />
+            HS-8 <b>{hs8}</b>
+          </span>
+          <span className="rf-id-item">India tariff line · DGCIS</span>
+          {line.principalCommodity && <span className="rf-id-item">{sentence(line.principalCommodity)}</span>}
+        </p>
 
         <h1 className={line.title ? undefined : 'hs8-code-title'}>{line.title || hs8}</h1>
 
@@ -368,6 +383,7 @@ export function Hs8View({
       </section>
 
       <div className="rf-furniture" role="toolbar" aria-label="Page controls">
+        <div className="rf-furniture-controls">
         <div className="rf-control">
           <span>Year basis</span>
           <Segmented<'CY' | 'FY'>
@@ -394,6 +410,8 @@ export function Hs8View({
           />
         </div>
 
+        </div>
+
         <div className="rf-furniture-actions">
           {manifest && (
             <DownloadMenu
@@ -418,7 +436,7 @@ export function Hs8View({
                 onClick={() => onQuickStack([{ code: hs8, level: 8 }])}
                 title="Add this tariff line to HStack"
               >
-                {inBasket?.(hs8) ? 'In HStack' : 'Add to HStack'}
+                <Plus size={16} aria-hidden /> {inBasket?.(hs8) ? 'In HStack' : 'Add to HStack'}
               </button>
 
               {siblings.length > 1 && (
@@ -428,7 +446,7 @@ export function Hs8View({
                   onClick={() => onQuickStack(siblings.map(item => ({ code: item.line.hs8, level: 8 as const })))}
                   title={`Add all ${siblings.length} tariff lines under HS ${hs6} to HStack`}
                 >
-                  All {siblings.length} lines here
+                  <Layers size={16} aria-hidden /> All {siblings.length} lines here
                 </button>
               )}
 
@@ -438,9 +456,21 @@ export function Hs8View({
                 onClick={() => onQuickStack([{ code: hs8, level: 8 }, { code: hs6, level: 6 }])}
                 title={`Stack this line with HS ${hs6}, the heading it sits under`}
               >
-                With HS {hs6}
+                <Layers size={16} aria-hidden /> With HS {hs6}
               </button>
             </>
+          )}
+
+          {onTogglePin && (
+            <button
+              type="button"
+              className={pinned ? 'rf-button quiet pinned' : 'rf-button quiet'}
+              onClick={onTogglePin}
+              title={pinned ? 'Remove from the workspace' : 'Pin to the workspace'}
+            >
+              {pinned ? <PinOff size={16} aria-hidden /> : <Pin size={16} aria-hidden />}
+              {pinned ? 'Pinned' : 'Pin'}
+            </button>
           )}
         </div>
       </div>
@@ -450,17 +480,19 @@ export function Hs8View({
           {available.includes('exports') && (
             <FigureTile
               series="exports"
-              label="India Exports · last 12 months"
-              value={`${formatValue(flowTotal('exports'))} ${unit}`}
-              caption={`to ${formatPeriod(data.flows.exports?.latestPeriod ?? null)}`}
+              label="India Exports"
+              value={formatValue(flowTotal('exports'))}
+              unit={unit}
+              caption={`Last 12 months, to ${formatPeriod(data.flows.exports?.latestPeriod ?? null)}`}
             />
           )}
           {available.includes('imports') && (
             <FigureTile
               series="imports"
-              label="India Imports · last 12 months"
-              value={`${formatValue(flowTotal('imports'))} ${unit}`}
-              caption={`to ${formatPeriod(data.flows.imports?.latestPeriod ?? null)}`}
+              label="India Imports"
+              value={formatValue(flowTotal('imports'))}
+              unit={unit}
+              caption={`Last 12 months, to ${formatPeriod(data.flows.imports?.latestPeriod ?? null)}`}
             />
           )}
           <FigureTile
@@ -665,7 +697,7 @@ function MonthTable({
                       {month}
                     </th>
                   ))}
-                  <th scope="col" className="num rf-l12">Last 12 Months Total</th>
+                  <th scope="col" className="num rf-l12">{period === 'CY' ? 'Year total' : 'FY total'}</th>
                 </tr>
               </thead>
               <tbody>
@@ -677,8 +709,16 @@ function MonthTable({
                         {value === null ? '' : formatValue(value)}
                       </td>
                     ))}
-                    <td className="num rf-l12" title={row.last12To ? `12 months to ${formatPeriod(row.last12To)}` : undefined}>
-                      {formatValue(row.last12)}
+                    <td
+                      className="num rf-l12"
+                      title={
+                        row.filled < 12
+                          ? `${row.filled} of 12 months filed${row.last12To ? `, to ${formatPeriod(row.last12To)}` : ''}`
+                          : undefined
+                      }
+                    >
+                      {formatValue(row.total)}
+                      {row.filled < 12 && <span className="rf-partial">{row.filled} mo</span>}
                     </td>
                   </tr>
                 ))}

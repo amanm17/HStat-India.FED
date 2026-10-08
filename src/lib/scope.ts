@@ -143,6 +143,8 @@ export type RankRow = {
   value: number
   share: number | null
   estimated: boolean
+  /* 0-1 where known: how much of this row's value is estimated. */
+  estimatedShare?: number | null
 }
 
 export type Ranking = {
@@ -193,6 +195,9 @@ export function rankingFor(
           value,
           share: total ? value / total : null,
           estimated: kind === 'importers' || kind === 'exporters' ? Boolean(row[2]) : false,
+          /* A country row is estimated whole: it is an economy that has not
+           * filed this year. */
+          estimatedShare: (kind === 'importers' || kind === 'exporters') && row[2] ? 1 : null,
         }
       }),
       total,

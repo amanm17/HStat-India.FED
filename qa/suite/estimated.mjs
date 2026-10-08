@@ -97,7 +97,11 @@ try {
 
   ok('an estimated figure is marked', count > 0, `${count} marks`)
 
-  const title = count ? await marks.first().getAttribute('title') : ''
+  const title = count ? await marks.first().getAttribute('data-tip') : ''
+  /* The explanation shows on hover, at once (components/MarkTip). */
+  if (count) await marks.first().hover()
+  await page.waitForTimeout(200)
+  ok('hovering the mark shows its explanation', (await page.locator('.mark-tip').count()) === 1 && /18\.4%/.test(await page.locator('.mark-tip').innerText().catch(() => '')))
 
   ok(
     'the mark says how much was estimated',

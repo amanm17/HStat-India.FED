@@ -24,7 +24,7 @@ import {
   YAxis,
 } from 'recharts'
 
-import { Estimated, Tabs, type ChartView } from './primitives'
+import { Estimated, Mark, Tabs, estimateTip, type ChartView } from './primitives'
 import { ordinal, pct } from '../lib/format'
 import type { RankRow } from '../lib/scope'
 import { palette } from '../lib/palette'
@@ -176,9 +176,13 @@ export function FigureTile({
   caption,
   series,
   note,
+  unit,
 }: {
   label: string
   value: string
+  /* A unit set small after the figure ("USD mn"), so the number stays the
+   * thing read first and the tile does not wrap it. */
+  unit?: string
   estimatedShare?: number | null
   estimatedReporters?: number | null
   caption?: ReactNode
@@ -194,6 +198,7 @@ export function FigureTile({
 
       <strong className="rf-figure-value">
         {value}
+        {unit && <small className="rf-figure-unit"> {unit}</small>}
         <Estimated share={estimatedShare} reporters={estimatedReporters ?? undefined} />
       </strong>
 
@@ -311,6 +316,7 @@ export function RankedTable({
             <tbody>
               {shown.map(row => (
                 <RankLine
+                  nameLabel={nameLabel}
                   key={row.code}
                   row={row}
                   formatValue={formatValue}
@@ -322,6 +328,7 @@ export function RankedTable({
 
               {!highlightShown && pinnedRow && (
                 <RankLine
+                  nameLabel={nameLabel}
                   row={pinnedRow}
                   formatValue={formatValue}
                   extraColumns={extraColumns}
@@ -416,6 +423,7 @@ function RankLine({
   emphasis,
   pinned,
   onOpen,
+  nameLabel = 'Country',
 }: {
   row: RankRow
   formatValue: (value: number) => string
@@ -423,6 +431,7 @@ function RankLine({
   emphasis?: boolean
   pinned?: boolean
   onOpen?: (row: RankRow) => void
+  nameLabel?: string
 }) {
   return (
     <tr className={[emphasis ? 'rf-emphasis' : '', pinned ? 'rf-pinned' : ''].join(' ').trim() || undefined}>
@@ -438,14 +447,7 @@ function RankLine({
       </td>
       <td className="num">
         {formatValue(row.value)}
-        {row.estimated && (
-          <abbr
-            className="estimated-mark"
-            title="Estimated: this economy has not filed this year; its value is projected from its own history of this code."
-          >
-            *
-          </abbr>
-        )}
+        {row.estimated && <Mark tip={estimateTip(row.estimatedShare, row.name, nameLabel === 'Product' ? 'line' : 'country')} />}
       </td>
       <td className="num rf-share-col">{row.share === null ? '—' : pct(row.share, 1)}</td>
       {extraColumns.map(column => (

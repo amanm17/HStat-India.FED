@@ -30,6 +30,22 @@ function grossTrade(
   return entry.global.observed?.grossImports ?? entry.global.trade
 }
 
+/*
+ * How many codes a stack holds. 100 rather than the original 40 so that a
+ * whole key-segment category fits (the largest, Finished goods - Consumer
+ * Durables, has 90 lines); a stack cut short at 40 would total less than
+ * the category it was named after.
+ */
+export const STACK_LIMIT = 100
+
+/* What a stack was built as, when it was built as one thing: a key-segment
+ * category from the front page. Cleared as soon as the reader changes it. */
+export type StackTitle = {
+  name: string
+  segment: string
+  lines: number
+}
+
 export type BasketEntry = {
   code: string
   level: 2 | 4 | 6 | 8
@@ -695,7 +711,7 @@ export function readBasket(): BasketEntry[] {
           typeof entry?.code === 'string' &&
           [2, 4, 6, 8].includes(entry?.level),
       )
-      .slice(0, 40)
+      .slice(0, STACK_LIMIT)
   } catch {
     return []
   }
@@ -703,7 +719,7 @@ export function readBasket(): BasketEntry[] {
 
 export function saveBasket(entries: BasketEntry[]) {
   try {
-    localStorage.setItem(BASKET_KEY, JSON.stringify(entries.slice(0, 40)))
+    localStorage.setItem(BASKET_KEY, JSON.stringify(entries.slice(0, STACK_LIMIT)))
   } catch {
     /* Private browsing and blocked site data are not errors here. */
   }

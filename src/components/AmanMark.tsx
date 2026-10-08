@@ -1,24 +1,22 @@
 /*
- * The secret look's mark: an original monogram (an "H" built from three
- * rising bars, the dashboard's subject), drawn here rather than borrowed.
- * Shown only in the "aman" look; the FED logo is the mark everywhere else.
+ * The secret look's mark: an original monogram - three rising bars, the
+ * dashboard's subject - on an ink tile with a violet edge light. Drawn here,
+ * not borrowed. Shown only in the "aman" look and in its switch.
  */
 export function AmanMark() {
   return (
     <span className="aman-mark" aria-hidden="true">
-      <svg viewBox="0 0 40 40" width="34" height="34">
+      <svg viewBox="0 0 40 40" width="32" height="32">
         <defs>
-          <linearGradient id="aman-mark-fill" x1="0" y1="1" x2="1" y2="0">
-            <stop offset="0" style={{ stopColor: "var(--aman-a)" }} />
-            <stop offset="0.55" style={{ stopColor: "var(--aman-b)" }} />
-            <stop offset="1" style={{ stopColor: "var(--aman-c)" }} />
+          <linearGradient id="aman-mark-edge" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" style={{ stopColor: 'var(--aman-accent, #5b4cd6)' }} />
+            <stop offset="1" style={{ stopColor: 'var(--series-imports, #2f6fb5)' }} />
           </linearGradient>
         </defs>
-        <rect x="1" y="1" width="38" height="38" rx="11" fill="url(#aman-mark-fill)" />
-        <rect x="9" y="17" width="5" height="14" rx="2.5" fill="#fff" opacity="0.95" />
-        <rect x="17.5" y="11" width="5" height="20" rx="2.5" fill="#fff" />
-        <rect x="26" y="8" width="5" height="23" rx="2.5" fill="#fff" opacity="0.95" />
-        <rect x="9" y="19.5" width="22" height="4" rx="2" fill="#fff" opacity="0.55" />
+        <rect x="0.5" y="0.5" width="39" height="39" rx="10" fill="#18181b" stroke="url(#aman-mark-edge)" strokeWidth="1.5" />
+        <rect x="10" y="20" width="4.5" height="10" rx="2.25" fill="#ffffff" opacity="0.55" />
+        <rect x="17.75" y="14" width="4.5" height="16" rx="2.25" fill="#ffffff" opacity="0.8" />
+        <rect x="25.5" y="9" width="4.5" height="21" rx="2.25" fill="url(#aman-mark-edge)" />
       </svg>
     </span>
   )

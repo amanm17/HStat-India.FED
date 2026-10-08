@@ -52,33 +52,6 @@ function loadFonts() {
   document.head.appendChild(link)
 }
 
-/* The pointer spotlight on cards (aman.css reads --mx/--my). One passive
- * listener for the whole page, doing nothing in the FED look. */
-let spotlight = false
-
-function installSpotlight() {
-  if (spotlight) return
-
-  spotlight = true
-
-  window.addEventListener(
-    'pointermove',
-    event => {
-      if (current !== 'aman' || event.pointerType !== 'mouse') return
-
-      const card = (event.target as Element | null)?.closest?.('.rf-figure, .rf-cat') as HTMLElement | null
-
-      if (!card) return
-
-      const r = card.getBoundingClientRect()
-
-      card.style.setProperty('--mx', `${event.clientX - r.left}px`)
-      card.style.setProperty('--my', `${event.clientY - r.top}px`)
-    },
-    { passive: true },
-  )
-}
-
 export function applyLook(look: Look) {
   current = look
 
@@ -86,7 +59,6 @@ export function applyLook(look: Look) {
 
   if (look === 'aman') {
     loadFonts()
-    installSpotlight()
     root.dataset.look = 'aman'
   } else {
     delete root.dataset.look

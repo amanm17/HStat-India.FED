@@ -62,6 +62,7 @@ export function HStackPanel({
   onAdd,
   onClose,
   dark,
+  title,
 }: {
   entries: BasketEntry[]
   nodes: HsNode[]
@@ -72,6 +73,8 @@ export function HStackPanel({
   onAdd?: (code: string, level: 2 | 4 | 6) => void
   onClose: () => void
   dark: boolean
+  /* Set when the stack is a key-segment category from the front page. */
+  title?: { name: string; segment: string; lines: number } | null
 }) {
   const colours = palette(dark)
 
@@ -241,18 +244,35 @@ export function HStackPanel({
     <div className="hstack-overlay" role="dialog" aria-label="HStack">
       <div className="hstack-panel">
         <header className="hstack-head">
-          <div>
-            <div className="eyebrow">HSTACK</div>
+          <div className="hstack-title">
+            <div className="eyebrow">{title ? 'HStack · Key segment' : 'HStack'}</div>
 
             <h2>
-              {entries.length} code{entries.length === 1 ? '' : 's'} stacked
+              {title ? title.name : `${entries.length} code${entries.length === 1 ? '' : 's'} stacked`}
             </h2>
+
+            <p className="hstack-sub">
+              {title ? (
+                <>
+                  <span>{title.segment}</span>
+                  <span>
+                    {entries.length} of {title.lines} HS-6 line{title.lines === 1 ? '' : 's'} stacked
+                  </span>
+                </>
+              ) : (
+                entries.length > 0 && (
+                  <span>
+                    {[...new Set(entries.map(entry => `HS-${entry.level}`))].join(', ')} codes, each counted once
+                  </span>
+                )
+              )}
+            </p>
           </div>
 
           <div className="hstack-head-actions">
             {activeYear && years.length > 0 && (
-              <div className="yearpicker">
-                <label htmlFor="hstack-year">Year</label>
+              <label className="rf-control hstack-year">
+                <span>Year</span>
 
                 <select
                   id="hstack-year"
@@ -265,25 +285,25 @@ export function HStackPanel({
                     </option>
                   ))}
                 </select>
-              </div>
+              </label>
             )}
 
             {entries.length > 0 && (
               <>
-                <button className="download-master" onClick={exportStack}>
-                  <Download size={15} />
-                  XLSX
+                <button type="button" className="rf-button quiet hstack-tool" onClick={exportStack}>
+                  <Download size={16} aria-hidden />
+                  Excel
                 </button>
 
-                <button className="hstack-clear" onClick={onClear}>
-                  <Trash2 size={15} />
+                <button type="button" className="rf-button quiet hstack-tool" onClick={onClear}>
+                  <Trash2 size={16} aria-hidden />
                   Clear
                 </button>
               </>
             )}
 
-            <button className="hstack-close" onClick={onClose} aria-label="Close">
-              <X size={18} />
+            <button type="button" className="rf-button quiet hstack-tool hstack-close" onClick={onClose} aria-label="Close">
+              <X size={18} aria-hidden />
             </button>
           </div>
         </header>
@@ -469,7 +489,7 @@ export function HStackPanel({
                 <MiniMetric
                   label="India exports"
                   value={usd(summary.indiaExports)}
-                  detail="basket total"
+                  detail="stack total"
                 />
 
                 <MiniMetric

@@ -56,7 +56,10 @@
 }
 
 :root[data-theme="dark"] .rf-button {
-  color: #0A1828;
+  /* A quiet filled button in the dark, not a bright slab. */
+  background: #2d3f55;
+  border-color: #3e5470;
+  color: #e2e8ef;
 }
 
 .rf-button:hover:not(:disabled) {
@@ -137,7 +140,8 @@
 }
 
 :root[data-theme="dark"] .rf-segmented button.active {
-  color: #0A1828;
+  background: #2d3f55;
+  color: #e2e8ef;
 }
 
 .rf-controls,
@@ -1482,9 +1486,9 @@
 }
 
 :root[data-theme="dark"] .rail-years button.active {
-  background: var(--series-global);
-  border-color: var(--series-global);
-  color: var(--bg);
+  background: #2d3f55;
+  border-color: #3e5470;
+  color: #e2e8ef;
 }
 
 .rail-more {
@@ -1727,4 +1731,583 @@
   max-width: 100%;
   white-space: normal;
   text-align: left;
+}
+
+/* A row total that covers part of a year says how many months it holds. */
+.rf-partial {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--panel-soft);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  vertical-align: 1px;
+}
+
+/* =====================================================================
+ * Controls, one system (October 2026, second pass).
+ *
+ * Every control row - page furniture, the front page's controls, the
+ * HStack toolbar - is one line: the setting controls grouped tight on the
+ * left with their labels beside them, the actions after them, and every
+ * control the same height on the same centre line. The overlap audit's
+ * "controls" measure holds the site to it.
+ * ===================================================================== */
+
+:root {
+  --ctl-h: 40px;
+}
+
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  :root {
+    --ctl-h: 44px;
+  }
+}
+
+.rf-controls,
+.rf-furniture {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px 24px;
+}
+
+.rf-home .rf-controls {
+  justify-content: center;
+}
+
+.rf-furniture-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+}
+
+.rf-furniture-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.rf-control {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.rf-control > span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rf-control select,
+.hstack-year select {
+  height: var(--ctl-h);
+  min-height: var(--ctl-h);
+  min-width: 104px;
+  padding: 0 36px 0 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background-color: var(--panel);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%235F656D' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.rf-control select:hover {
+  border-color: var(--navy);
+}
+
+.rf-segmented {
+  height: auto;
+  align-items: stretch;
+}
+
+/* The track's border sits outside the options, so on desktop the whole
+ * control is --ctl-h tall and on touch each option is a full 44px. */
+.rf-segmented button {
+  min-height: 0;
+  height: calc(var(--ctl-h) - 2px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rf-furniture .rf-button,
+.rf-controls .rf-button,
+.rf-furniture .stack-add,
+.rf-furniture-actions .pulldata > .stack-add,
+.hstack-head-actions .rf-button {
+  height: var(--ctl-h);
+  min-height: var(--ctl-h);
+  padding-top: 0;
+  padding-bottom: 0;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* The HStack toolbar: year, Excel, Clear, close - one row, one height. */
+.hstack-head {
+  align-items: center;
+}
+
+.hstack-head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.hstack-head-actions .hstack-tool {
+  gap: 8px;
+  font-size: 15px;
+}
+
+.hstack-head-actions .hstack-close {
+  width: var(--ctl-h);
+  padding: 0;
+  justify-content: center;
+}
+
+.hstack-title .eyebrow {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hstack-title h2 {
+  margin: 2px 0 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.hstack-sub {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 0;
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.hstack-sub span + span::before {
+  content: "·";
+  margin: 0 8px;
+  color: var(--faint);
+}
+
+/* ------------------------------------------- identity: a detail line */
+
+.rf-idline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 0;
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.rf-id-item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 14px;
+}
+
+.rf-id-item:first-child {
+  padding-left: 0;
+}
+
+.rf-id-item + .rf-id-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 1px;
+  height: 14px;
+  background: var(--border-strong);
+  transform: translateY(-50%);
+}
+
+.rf-id-code {
+  color: var(--text);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.rf-id-code b {
+  font-weight: 700;
+}
+
+/* The level accent lives here now: a small mark, not a filled box. */
+.rf-id-mark {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+.rf-id-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--seg-finished);
+}
+
+[data-segment="components"] > .rf-id-dot {
+  background: var(--seg-components);
+}
+
+@media (max-width: 640px) {
+  .rf-furniture-actions {
+    margin-left: 0;
+  }
+
+  .rf-furniture-controls {
+    width: 100%;
+  }
+}
+
+/* The open rail starts under the header rather than beside it, so the
+ * header keeps its full width: squeezing it by the rail's 360px collapsed
+ * the brand under the search box at 1440px. */
+@media (min-width: 901px) {
+  .rail {
+    top: 72px;
+    height: calc(100vh - 72px);
+    border-top-left-radius: 0;
+  }
+
+  :root[data-rail="open"] .topbar {
+    padding-right: max(22px, calc((100vw - 1450px) / 2));
+  }
+}
+
+@media (min-width: 1180px) {
+  /* The page body gives the open rail its column; the header does not
+   * need to, because the rail now starts below it. */
+  :root[data-rail="open"] .topbar {
+    margin-right: -360px;
+  }
+}
+
+/* The brand never collapses under the search box: the search column is
+ * the one that gives way. */
+.topbar .identity {
+  min-width: max-content;
+}
+
+.topbar .search-hub.bar {
+  min-width: 0;
+}
+
+.rf-figure-unit {
+  margin-left: 2px;
+  color: var(--muted);
+  font-size: 0.5em;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+/* ------------------------------------------------- the front door band */
+
+.rf-home-hero {
+  position: relative;
+  margin: 8px 0 22px;
+  padding: 34px 32px 26px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(19, 62, 104, 0.07), transparent 55%),
+    radial-gradient(120% 140% at 100% 100%, rgba(19, 62, 104, 0.04), transparent 55%),
+    var(--panel);
+  overflow: visible;
+}
+
+/* A thin Indigo rule across the top. Indigo only: Ming and English Red
+ * mean India Exports and India Imports everywhere, and a decorative stripe
+ * in them would give those hues a second meaning. */
+.rf-home-hero::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 3px;
+  border-radius: 8px 8px 0 0;
+  background: var(--fed-indigo);
+}
+
+.rf-home-hero .rf-home-search {
+  padding: 0;
+}
+
+.rf-home-hero .rf-controls {
+  margin-top: 20px;
+}
+
+.rf-home-search .search-primary {
+  min-height: 60px;
+  padding: 0 18px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--panel);
+  box-shadow: 0 1px 2px rgba(19, 62, 104, 0.06), 0 6px 18px rgba(19, 62, 104, 0.07);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.rf-home-search .search-primary:hover {
+  border-color: var(--navy);
+}
+
+.rf-home-search .search-primary:focus-within {
+  border-color: var(--navy);
+  box-shadow: 0 0 0 4px rgba(19, 62, 104, 0.14), 0 10px 28px rgba(19, 62, 104, 0.12);
+}
+
+.rf-home-search .search-primary > svg {
+  color: var(--navy);
+}
+
+.rf-home-search .search-primary input {
+  font-size: 19px;
+  background: transparent;
+}
+
+.rf-home-search .search-primary input:focus {
+  outline: none;
+}
+
+.rf-home-search .search-key {
+  min-width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--panel-soft);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.rf-home-search .search-body {
+  top: calc(100% + 8px);
+  border-radius: 10px;
+  padding: 10px 10px 8px;
+}
+
+:root[data-theme="dark"] .rf-home-hero {
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(147, 178, 216, 0.08), transparent 55%),
+    var(--panel);
+}
+
+:root[data-theme="dark"] .rf-home-search .search-primary:focus-within {
+  box-shadow: 0 0 0 4px rgba(147, 178, 216, 0.18);
+}
+
+/* Keyboard travel in the search panel: the highlighted row. */
+.search-hub .kb-active {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+  background: var(--panel-soft);
+  border-radius: 6px;
+}
+
+.search-hints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 8px 0 0;
+  padding: 8px 6px 2px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.search-hints kbd {
+  display: inline-flex;
+  min-width: 20px;
+  height: 20px;
+  margin-right: 3px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  background: var(--panel-soft);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .rf-home-hero {
+    margin: 4px 0 16px;
+    padding: 20px 14px 16px;
+  }
+}
+
+/* Search results, legible: names at body size, codes bold, the level a
+ * small label, the reason quiet. */
+.search-results-large .search-result-open {
+  min-height: 44px;
+  padding: 10px 12px;
+  font-size: 15px;
+  align-items: center;
+}
+
+.search-result-open strong {
+  font-size: 15px;
+  color: var(--navy);
+}
+
+.search-result-open .result-product {
+  color: var(--text);
+}
+
+.search-result-open .result-level {
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+}
+
+.search-result-open .result-reason {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.search-more-head {
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+/* Actions sit on the same line as the settings wherever they fit. */
+.rf-furniture-actions {
+  gap: 8px;
+}
+
+.rf-furniture-actions .rf-button,
+.rf-furniture-actions .pulldata > .stack-add {
+  gap: 6px;
+  padding-left: 12px;
+  padding-right: 12px;
+  font-size: 15px;
+}
+
+/* Settings first, actions after, all from the left edge: when the row
+ * wraps, the actions line starts under the settings rather than floating
+ * to the far right. */
+.rf-furniture-actions {
+  margin-left: 0;
+}
+
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  .rf-segmented button {
+    height: var(--ctl-h);
+  }
+}
+
+@media (max-width: 640px) {
+  .topbar .identity {
+    min-width: 0;
+  }
+}
+
+/* ------------------------------------------------- the * and ** marks */
+
+.estimated-mark,
+.carried-mark {
+  position: relative;
+  padding: 0 2px;
+  border-radius: 3px;
+  cursor: help;
+  text-decoration: none;
+}
+
+/* A hit area larger than the glyph: a superscript asterisk is a few
+ * pixels wide, which is why hovering it so often found nothing. */
+.estimated-mark[data-tip]::after,
+.carried-mark[data-tip]::after {
+  content: "";
+  position: absolute;
+  inset: -10px -6px;
+}
+
+.estimated-mark[data-tip]:hover,
+.carried-mark[data-tip]:hover,
+.estimated-mark[data-tip]:focus-visible,
+.carried-mark[data-tip]:focus-visible {
+  background: var(--panel-soft);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--focus);
+}
+
+.mark-tip {
+  position: fixed;
+  z-index: 9000;
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: #1c2632;
+  color: #f3f5f8;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0;
+  text-transform: none;
+  box-shadow: 0 10px 30px rgba(10, 20, 35, 0.28);
+  pointer-events: none;
+}
+
+.mark-tip.above {
+  transform: translateY(-100%);
+}
+
+.mark-tip::after {
+  content: "";
+  position: absolute;
+  left: var(--arrow, 50%);
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  background: inherit;
+  transform: rotate(45deg);
+}
+
+.mark-tip.above::after {
+  bottom: -5px;
+}
+
+.mark-tip.below::after {
+  top: -5px;
+}
+
+:root[data-theme="dark"] .mark-tip {
+  background: #2c3846;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }

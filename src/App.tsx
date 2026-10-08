@@ -31,7 +31,9 @@ import {
   readBasket,
   saveBasket,
   comtradeEntries,
+  STACK_LIMIT,
   type BasketEntry,
+  type StackTitle,
 } from './lib/hstack'
 
 import { useFallbackRates } from './lib/currency'
@@ -56,7 +58,7 @@ import { Safely } from './components/Safely'
 import { HomePage, type HomeRankKind } from './components/HomePage'
 import type { RankKind } from './lib/scope'
 import { HStackPanel } from './components/HStackPanel'
-import { Sidebar, type ReportRequest } from './components/Sidebar'
+import { Sidebar, type ReportRequest, type TariffReportRequest } from './components/Sidebar'
 
 import {
   noteVisit,
@@ -79,8 +81,9 @@ import {
 import { saveReport as saveReportFile } from './lib/report'
 import { useLook } from './lib/look'
 import { LookSwitch } from './components/LookSwitch'
+import { MarkTip } from './components/MarkTip'
 import { AmanMark } from './components/AmanMark'
-import { productDocument, type ReportEntry } from './lib/reportdata'
+import { hs8Document, productDocument, type ReportEntry } from './lib/reportdata'
 import { loadDetail, usePageFiles } from './lib/scope'
 import { loadDgcis } from './lib/dgcis'
 
@@ -254,6 +257,27 @@ function App() {
   const look = useLook()
 
   const [basket, setBasket] = useState<BasketEntry[]>([])
+
+  /* The name a curated stack was built under (a key-segment category), kept
+   * until the reader changes the stack by hand. Per browser, like the stack. */
+  const [stackTitle, setStackTitleState] = useState<StackTitle | null>(() => {
+    try {
+      const raw = window.localStorage.getItem('hstat-stack-title')
+      return raw ? (JSON.parse(raw) as StackTitle) : null
+    } catch {
+      return null
+    }
+  })
+
+  const setStackTitle = useCallback((title: StackTitle | null) => {
+    setStackTitleState(title)
+    try {
+      if (title) window.localStorage.setItem('hstat-stack-title', JSON.stringify(title))
+      else window.localStorage.removeItem('hstat-stack-title')
+    } catch {
+      /* Private mode: the title lasts for this visit. */
+    }
+  }, [])
   const [basketNodes, setBasketNodes] = useState<HsNode[]>([])
   const [basketLoading, setBasketLoading] = useState(false)
   const [stackOpen, setStackOpen] = useState(false)
@@ -362,13 +386,21 @@ function App() {
     writeWorkspace(workspace)
   }, [workspace])
 
+  /*
+   * The page makes room for the rail only while the rail is actually on
+   * screen. It used to follow the stored "open" flag alone, so leaving a
+   * product page with the rail open kept a rail-wide gap on the front page,
+   * the guide and every other page that has no rail.
+   */
+  const railPage = (route.kind === 'product' && !!node && year !== null) || route.kind === 'tariff'
+
   useEffect(() => {
-    if (workspace.sidebarOpen) {
+    if (workspace.sidebarOpen && railPage) {
       document.documentElement.dataset.rail = 'open'
     } else {
       delete document.documentElement.dataset.rail
     }
-  }, [workspace.sidebarOpen])
+  }, [workspace.sidebarOpen, railPage])
 
   useEffect(() => {
     if (!flash) return
@@ -484,6 +516,37 @@ function App() {
 
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [])
+
+  /* A tariff line reached by a link or a reload, not through openHs8, is
+   * still a visit: it goes into history with its name, so the rail's
+   * "Recently viewed" and a pin made from it carry the line's title. */
+  const tariffCode = route.kind === 'tariff' ? route.hs8 : null
+
+  useEffect(() => {
+    if (!tariffCode) return
+
+    let cancelled = false
+
+    loadDgcisIndex().then(index => {
+      if (cancelled) return
+
+      const line = index?.lines.find(item => item.hs8 === tariffCode)
+
+      if (!line) return
+
+      setWorkspace(current =>
+        noteVisit(current, {
+          code: tariffCode,
+          level: 8,
+          label: line.title || line.headingName || 'Tariff line',
+        }),
+      )
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [tariffCode])
 
   /*
    * Open whatever a saved reference points at.
@@ -737,12 +800,13 @@ function App() {
   }, [snapshot, node?.code])
 
   const addToBasket = useCallback((entry: BasketEntry) => {
+    setStackTitle(null)
     setBasket(current =>
-      current.some(item => item.code === entry.code)
+      current.some(item => item.code === entry.code) || current.length >= STACK_LIMIT
         ? current
         : [...current, entry],
     )
-  }, [])
+  }, [setStackTitle])
 
   /*
    * Quick stacking: several codes in one gesture.
@@ -753,7 +817,17 @@ function App() {
    * limit the basket already has, so a second tap on the same button is a
    * no-op rather than a duplicate.
    */
-  const addManyToBasket = useCallback((incoming: BasketEntry[]) => {
+  const addManyToBasket = useCallback((incoming: BasketEntry[], title?: StackTitle) => {
+    /* A key-segment category is a curated stack of its own: it replaces
+     * whatever was stacked, so the totals under its name are exactly it. */
+    if (title) {
+      setBasket(incoming.slice(0, STACK_LIMIT))
+      setStackTitle(title)
+      setStackOpen(true)
+      return
+    }
+
+    setStackTitle(null)
     setBasket(current => {
       const have = new Set(current.map(entry => entry.code))
 
@@ -761,15 +835,16 @@ function App() {
 
       if (!fresh.length) return current
 
-      return [...current, ...fresh].slice(0, 40)
+      return [...current, ...fresh].slice(0, STACK_LIMIT)
     })
 
     setStackOpen(true)
-  }, [])
+  }, [setStackTitle])
 
   const removeFromBasket = useCallback((code: string) => {
+    setStackTitle(null)
     setBasket(current => current.filter(entry => entry.code !== code))
-  }, [])
+  }, [setStackTitle])
 
   const hiddenTiles = workspace.hiddenTiles
 
@@ -889,6 +964,58 @@ function App() {
       }
     },
     [manifest, snapshot, catalogue, currency],
+  )
+
+  /* A tariff line's report, from the rail on its page or a saved report. */
+  const runTariffReport = useCallback(
+    async (hs8: string, request: TariffReportRequest, remember: boolean) => {
+      if (!manifest) return
+
+      setReportBusy(true)
+
+      try {
+        const data = await loadDgcis(hs8.slice(0, 6))
+        const line = data?.lines.find(item => item && item.hs8 === hs8)
+
+        if (!data || !line) {
+          setFlash('No DGCIS data for this tariff line.')
+          return
+        }
+
+        const doc = hs8Document(hs8, data, line, manifest)
+        const title = request.name.trim() || doc.title
+
+        await saveReportFile({ ...doc, title }, request.layout, request.format, `hstat-hs8-${hs8}`)
+
+        if (remember) {
+          setWorkspace(current => {
+            const { workspace: next } = saveReport(current, {
+              name: title,
+              scope: 'product',
+              code: hs8,
+              level: 8,
+              subject: `HS-8 ${hs8}`,
+              year: Number((data.periods[data.periods.length - 1] ?? '').slice(0, 4)) || 0,
+              currency: 'USD',
+              tiles: [],
+              layout: request.layout,
+            })
+
+            return next
+          })
+
+          setFlash('Report downloaded and saved to your library.')
+        } else {
+          setFlash('Report downloaded.')
+        }
+      } catch (reason) {
+        console.error(reason)
+        setFlash('The report could not be rendered.')
+      } finally {
+        setReportBusy(false)
+      }
+    },
+    [manifest],
   )
 
   if (error) {
@@ -1145,6 +1272,16 @@ function App() {
               onQuickStack={addManyToBasket}
               inBasket={inBasket}
               manifest={manifest}
+              pinned={workspace.pinned.some(entry => entry.code === route.hs8)}
+              onTogglePin={() =>
+                setWorkspace(current =>
+                  togglePin(current, {
+                    code: route.hs8,
+                    level: 8,
+                    label: current.recent.find(entry => entry.code === route.hs8)?.label ?? 'Tariff line',
+                  }),
+                )
+              }
             />
           </Safely>
         ) : onViewAllPage && route.kind === 'viewall' ? (
@@ -1218,16 +1355,28 @@ function App() {
         )}
       </main>
 
-      {onProduct && node && year !== null && (
+      {railPage && (onTariff || (node && year !== null)) && (
         <Sidebar
           workspace={workspace}
-          current={{ code: node.code, level: node.level, label: nameOf(node) }}
+          current={
+            route.kind === 'tariff'
+              ? {
+                  code: route.hs8,
+                  level: 8,
+                  label: workspace.recent.find(entry => entry.code === route.hs8)?.label ?? 'Tariff line',
+                }
+              : { code: node!.code, level: node!.level, label: nameOf(node!) }
+          }
           candidates={reportCandidates}
-          years={Object.entries(node.annual)
-            .filter(([, record]) => record.global.trade !== null || record.india.imports !== null || record.india.exports !== null)
-            .map(([key]) => Number(key))
-            .sort((a, b) => b - a)}
-          year={year}
+          years={
+            route.kind === 'tariff' || !node
+              ? []
+              : Object.entries(node.annual)
+                  .filter(([, record]) => record.global.trade !== null || record.india.imports !== null || record.india.exports !== null)
+                  .map(([key]) => Number(key))
+                  .sort((a, b) => b - a)
+          }
+          year={year ?? 0}
           busy={reportBusy}
           onToggle={() =>
             setWorkspace(current => ({
@@ -1246,14 +1395,29 @@ function App() {
           onGenerate={request => {
             void runReport(request, true)
           }}
+          onGenerateTariff={request => {
+            if (route.kind === 'tariff') void runTariffReport(route.hs8, request, true)
+          }}
           onRunReport={async (report: SavedReport, action) => {
+            if (report.level === 8 && report.code) {
+              if (action === 'view') {
+                openHs8(report.code)
+                setFlash(`Showing ${report.name}.`)
+                return
+              }
+
+              setWorkspace(current => touchReport(current, report.id))
+              await runTariffReport(report.code, { name: report.name, layout: report.layout ?? 'report', format: action }, false)
+              return
+            }
+
             const codes = report.codes ?? (report.code ? [{ code: report.code, level: (report.level ?? 6) as 2 | 4 | 6 }] : [])
             const years = report.years ?? [report.year]
 
             if (action === 'view') {
               /* "View again" puts the page back on the report's first code
                * and latest year, so the reader sees today's figures. */
-              if (codes[0] && codes[0].code !== node.code) {
+              if (codes[0] && codes[0].code !== node?.code) {
                 await openCode(codes[0].code, codes[0].level)
               }
 
@@ -1284,6 +1448,8 @@ function App() {
           }
         />
       )}
+
+      <MarkTip />
 
       <Safely label="LookSwitch">
         <LookSwitch
@@ -1389,7 +1555,11 @@ function App() {
           dark={dark}
           onAdd={(code, level) => addToBasket({ code, level })}
           onRemove={removeFromBasket}
-          onClear={() => setBasket([])}
+          onClear={() => {
+            setStackTitle(null)
+            setBasket([])
+          }}
+          title={stackTitle}
           onOpen={openCode}
           onClose={() => setStackOpen(false)}
         />
