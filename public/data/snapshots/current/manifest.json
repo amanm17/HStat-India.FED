@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0.0",
-  "refreshedAt": "2026-10-07T17:47:22.085206+00:00",
+  "refreshedAt": "2026-10-08T06:43:59.626680+00:00",
   "fixture": false,
   "classification": "HS 2022 (H6)",
   "startYear": 1996,
@@ -474,5 +474,9 @@
   },
   "nodes": 544,
   "globalTradeBasis": "imports",
-  "monthlyEnabled": true
+  "monthlyEnabled": true,
+  "pageFiles": {
+    "scope": "scope.json",
+    "detail": "detail/"
+  }
 }

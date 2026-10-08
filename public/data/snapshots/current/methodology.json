@@ -6,17 +6,31 @@
     "statement": "Sum of every reporting economy's imports from the World, less re-imports where the reporter files them separately. Valuation is CIF. The export side, net of re-exports, is computed as a mirror check and published as a reconciliation gap.",
     "formula": "global trade = SUM over reporting economies of (imports from World - re-imports filed by that reporter)",
     "notes": [
-      "GROSS IMPORTS are the world's imports exactly as filed: the sum of every reporting economy's imports from the World partner, with no adjustment. This is what the page shows by default, under ‘As reported’.",
+      "GLOBAL TRADE on every page is GROSS: the sum of every reporting economy's imports from the World partner, as filed, plus the estimated imports of economies that have not filed the year (see estimation). The country tables rank on the same basis, so they add up to it.",
       "RE-IMPORTS are goods returning to the economy that exported them, where that economy files them separately (flow RM). Total imports as filed already include them (M = FM + RM + MIP + MOP), so leaving them in counts the same goods twice.",
-      "NET IMPORTS, shown under ‘Net of re-imports’, subtract them reporter by reporter - each economy's own re-imports come off its own imports, never off the world total in aggregate.",
+      "NET IMPORTS, shown in the calculation drawer, subtract them reporter by reporter - each economy's own re-imports come off its own imports, never off the world total in aggregate.",
       "A reporter that does not file RM separately is left unadjusted. Absent re-import data is treated as no adjustment, not as zero re-imports, and adjustment coverage reports the share of the world total that could be adjusted at all.",
       "Where a reporter files re-imports larger than its own imports, the adjustment is refused rather than allowed to produce a negative. Those reporters are counted as clamped and carried at their gross value.",
-      "India's rank and share are computed on the NET table, whichever basis is on screen. India's own figure in the rank is likewise net of its re-imports.",
-      "Reporter coverage is validated on the GROSS import table, before netting, by comparing a year with the one before it. No figure is published for a period that fails.",
+      "India's position in the country tables is on the gross basis, like the tables themselves. The netted rank and share are kept in the calculation drawer.",
+      "Where gross and net differ by more than 10%, the page says so beside the figure: those are the products where re-imports are large enough that the gross total misleads.",
+      "Reporter coverage is validated on the filed import table, before netting and before estimation, by comparing a year with the one before it. The verdict (VALID, CAUTION, INVALID) is shown in the calculation drawer; where coverage is short, the missing reporters are estimated rather than the figure withheld.",
       "Coverage looks only at the import side. A year can pass and still be filling in - where reporters that filed last year have not filed this one, the page says so beside the figure rather than withholding it.",
       "The export side, net of re-exports, is computed as a mirror check and never merged into the import league table. The published gap is the CIF/FOB and reporting difference between the two sides.",
       "India's bilateral partner rows are gross: re-imports are not filed by partner."
     ]
+  },
+  "estimation": {
+    "statement": "Where an economy has not filed a year for a product, its value is projected from its own history of that product and flow, and the world total is re-summed from the reporter table. A filed value is never changed by estimation, and estimated values are marked * with their share of the figure.",
+    "notes": [
+      "Growth is the compound annual rate over the five years before the gap (ten if five cannot support a rate), held within +/-50% a year and applied for at most three years.",
+      "An economy is estimated only within three years of its own filings of that product. One that has stopped is not assumed to be trading.",
+      "Nothing is estimated before anyone filed a product, after the last year anyone did, before an HS 2022 line was created, or after a retired line was withdrawn.",
+      "Estimates far from the filing they were projected from are flagged for review each month; they publish like any other estimate.",
+      "India's tariff lines (DGCIS, HS-8) are reported data only and are never estimated."
+    ]
+  },
+  "fx": {
+    "statement": "Rupee figures convert each period at its own average rate. A missing month takes that calendar year's average; failing that, the financial-year average covering it; failing that, the nearest period's rate. Substitution carries no asterisk. No rate is ever derived from DGCIS rupee and dollar values."
   },
   "definition": {
     "source": "config/fed_sector_definition.csv",
@@ -912,7 +926,7 @@
     "statement": "Every stored value is in US dollars, because that is how both sources are denominated. The rupee view converts each period at that period's own average rate - never a single fixed rate, which would turn an exchange-rate movement into an apparent trade movement. Financial-year figures use the financial-year rate and calendar-year figures use the calendar-year rate.",
     "source": "config/fx_inr_usd.csv",
     "convention": "RBI annual average reference rate. Financial-year rates come from the Economic Survey Statistical Appendix, Table 5.4; calendar-year rates are the mean of that year's RBI monthly averages.",
-    "missingRatePolicy": "A period with no rate of its own is converted at a substitute, in this order: that calendar year's average, then the financial year covering the period, then the nearest period on the same basis. The substitution is named wherever it is used. A rate is never derived by dividing DGCIS rupee and dollar filings of the same shipment, which would imply a rate no bank published.",
+    "missingRatePolicy": "A period with no rate of its own is converted at a substitute, in this order: that calendar year's average, then the financial year covering the period, then the nearest period that has a rate. The substitution is named wherever it is used. A rate is never derived by dividing DGCIS rupee and dollar filings of the same shipment, which would imply a rate no bank published.",
     "rates": {
       "CY": {
         "1996": {
