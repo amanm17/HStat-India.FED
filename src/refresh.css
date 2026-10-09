@@ -2367,3 +2367,208 @@
 ) {
   color: var(--bg);
 }
+
+/* ===================================================== phone: tidy layout
+ *
+ * Phones (9 October 2026). On a narrow screen the desktop row of
+ * label-beside-control wrapped into a ragged, centred stack: YEAR beside
+ * one box, CURRENCY beside a narrower one, the button floating under both.
+ * Here every control sits in a two-column grid with its label above it, all
+ * the same height and full width, and the actions line up beneath in the
+ * same grid.
+ */
+@media (max-width: 640px) {
+  .rf-home-hero .rf-controls,
+  .rf-furniture-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 12px;
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .rf-home-hero .rf-controls .rf-control,
+  .rf-furniture-controls .rf-control {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .rf-home-hero .rf-controls .rf-control > span,
+  .rf-furniture-controls .rf-control > span {
+    font-size: 12px;
+    line-height: 1.2;
+  }
+
+  .rf-home-hero .rf-controls .rf-control select,
+  .rf-furniture-controls .rf-control select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .rf-home-hero .rf-controls .rf-segmented,
+  .rf-furniture-controls .rf-segmented {
+    display: flex;
+    width: 100%;
+  }
+
+  .rf-home-hero .rf-controls .rf-segmented button,
+  .rf-furniture-controls .rf-segmented button {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0 8px;
+  }
+
+  /* The front page: Year, Currency and Download on one line. Download has
+   * no label of its own, so it sits on the controls' baseline, and drops
+   * the word "data" (its menu says what is downloaded). */
+  .rf-home-hero .rf-controls {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) auto;
+    gap: 8px;
+    align-items: end;
+  }
+
+  .rf-home-hero .rf-controls .rf-control select {
+    padding-right: 28px;
+    padding-left: 10px;
+    background-position: right 9px center;
+  }
+
+  .rf-home-hero .rf-controls .rf-download > .rf-button {
+    padding: 0 12px;
+    gap: 6px;
+    font-size: 14px;
+  }
+
+  .rf-home-hero .rf-controls .rf-download-rest {
+    display: none;
+  }
+
+  /* One height for the row. The segmented track's border makes it 46px on
+   * touch (each option keeps a full 44px target), so the select and the
+   * button match it and the two labels sit on one line. */
+  .rf-home-hero .rf-controls .rf-control select,
+  .rf-home-hero .rf-controls .download-master,
+  .rf-furniture-controls .rf-control select {
+    height: 46px;
+    min-height: 46px;
+  }
+
+  .rf-furniture {
+    gap: 12px;
+  }
+
+  /* Actions: the same two columns; an odd one out takes the full row. */
+  .rf-furniture-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px;
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .rf-furniture-actions > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  .rf-furniture-actions > *,
+  .rf-furniture-actions > * > .rf-button,
+  .rf-furniture-actions > * > .stack-add,
+  .rf-furniture-actions .rf-download > .rf-button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .rf-furniture-actions .rf-button,
+  .rf-furniture-actions .stack-add {
+    justify-content: center;
+    padding-left: 10px;
+    padding-right: 10px;
+    font-size: 14px;
+  }
+}
+
+/* Search, before anything is typed: Recent and Suggested as two labelled
+ * groups of chips, each label on its own line, then the commands hint as a
+ * quiet footer. Inline labels made the first row of chips start mid-line
+ * and wrap raggedly under the label. */
+.search-focus-panel .smart-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+
+.search-focus-panel .smart-suggestions > span {
+  flex: 0 0 100%;
+  min-width: 0;
+  margin: 0 0 2px;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+
+.search-focus-panel .smart-suggestions button {
+  margin: 0;
+  padding: 0 14px;
+  border-radius: 999px;
+}
+
+.search-focus-panel .search-commands-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin: 2px 0 0;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--border);
+  text-align: left;
+}
+
+.search-focus-panel .search-commands-link kbd {
+  display: inline-flex;
+  min-width: 22px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  background: var(--panel-soft);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  /* In the phone sheet the panel sits in the flow under the box: give it
+   * room, and drop the floating-card chrome it has on desktop. */
+  .sheet-body .search-body {
+    margin-top: 16px;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+    background: none;
+  }
+
+  .search-focus-panel .smart-suggestions button {
+    min-height: 44px;
+    font-size: 15px;
+  }
+}
+
+/* The narrowest phones (320px): Download becomes its icon alone, so Year
+ * keeps room for "2025". The button keeps its name for screen readers. */
+@media (max-width: 360px) {
+  .rf-home-hero .rf-controls .download-master > span {
+    display: none;
+  }
+
+  .rf-home-hero .rf-controls .download-master {
+    width: 46px;
+    padding: 0;
+    justify-content: center;
+  }
+}

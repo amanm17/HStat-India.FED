@@ -92,11 +92,22 @@ export function DownloadMenu({
       <button
         type="button"
         className="rf-button download-master"
+        aria-label={label}
         aria-expanded={open}
         aria-haspopup="menu"
         onClick={() => setOpen(value => !value)}
       >
-        <Download size={16} aria-hidden /> {label}
+        <Download size={16} aria-hidden />
+        {/* The last word can drop on a narrow phone row ("Download"),
+         * where the menu it opens says what is downloaded. */}
+        {label.includes(' ') ? (
+          <span>
+            {label.slice(0, label.lastIndexOf(' '))}
+            <span className="rf-download-rest">{label.slice(label.lastIndexOf(' '))}</span>
+          </span>
+        ) : (
+          label
+        )}
       </button>
 
       {open && (
