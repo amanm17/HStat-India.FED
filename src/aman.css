@@ -306,6 +306,12 @@
   background: var(--aman-accent-soft);
 }
 
+/* A filled button keeps its fill under the keyboard ring. */
+:root[data-look="aman"] .search-hub .answer-open.kb-active {
+  background: var(--navy);
+  outline-offset: 2px;
+}
+
 /* ---------------------------------------------- controls and buttons */
 
 :root[data-look="aman"] .rf-button {

@@ -187,6 +187,9 @@ export type PeriodRecord = {
     balance: number | null
     importsNetReImports: number | null
     exportsNetReExports: number | null
+    /* India's own figure for this flow is an estimate (she has not filed). */
+    importsEstimated?: boolean
+    exportsEstimated?: boolean
     suppliers?: PartnerSet
     destinations?: PartnerSet
   }

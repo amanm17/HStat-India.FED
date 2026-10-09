@@ -14,7 +14,29 @@ import { chromium } from 'playwright'
 
 const BASE = process.env.BASE || 'http://127.0.0.1:4178'
 const LOOK = process.env.LOOK || 'fed'   /* 'aman' audits the secret look */
-const PAGES = ['/', '/hs/85', '/hs/8517', '/hs/851713', '/hs/85171300', '/tariff-lines', '/availability', '/guide', '/query']
+const PAGES = ['/', '/hs/85', '/hs/8517', '/hs/851713', '/hs/85171300', '/tariff-lines', '/availability', '/guide', '/query',
+  /* Opened states: panels that only exist after a click. A page that is only
+   * audited closed can hide a failing button (the dark workspace PDF button
+   * did, until 9 October). */
+  '/hs/851713 +rail', '/hs/85171300 +rail', '/ +hstack', '/ +search']
+const STATES = {
+  rail: async page => {
+    const handle = page.locator('.rail-handle').first()
+    if (await handle.isVisible().catch(() => false)) { await handle.click(); await page.waitForTimeout(500) }
+  },
+  hstack: async page => {
+    await page.locator('.rf-segments .rf-cat').first().click().catch(() => {})
+    await page.waitForTimeout(300)
+    await page.locator('.rf-stack-actions .rf-button').first().click().catch(() => {})
+    await page.waitForTimeout(2500)
+  },
+  search: async page => {
+    await page.locator('.search-hub input').first().click().catch(() => {})
+    await page.keyboard.type('smartphone')
+    await page.waitForTimeout(900)
+    await page.keyboard.press('ArrowDown')
+  },
+}
 const b = await chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : undefined)
 let total = 0
 const failures = []
@@ -25,13 +47,16 @@ for (const theme of ['light', 'dark']) {
     if (LOOK === 'aman') {
       await page.addInitScript(() => { try { localStorage.setItem('hstat-look', 'aman') } catch {} })
     }
-    for (const path of PAGES) {
+    for (const entry of PAGES) {
+      const [path, state] = entry.split(' +')
       await page.goto(BASE + path, { waitUntil: 'networkidle' })
+      await page.evaluate(() => { try { localStorage.removeItem('hstat-basket'); localStorage.removeItem('hstat-stack-title') } catch {} })
       await page.waitForTimeout(700)
       if (theme === 'dark') {
         await page.locator('[aria-label="Switch to dark theme"]').first().click().catch(() => {})
         await page.waitForTimeout(400)
       }
+      if (state) await STATES[state](page)
       const found = await page.evaluate(() => {
         const parse = c => {
           const m = c.match(/rgba?\(([^)]+)\)/)
@@ -86,7 +111,7 @@ for (const theme of ['light', 'dark']) {
         return out
       })
       total += found.length
-      for (const item of found.filter(x => !x.ok)) failures.push({ theme, w, path, ...item })
+      for (const item of found.filter(x => !x.ok)) failures.push({ theme, w, path: entry, ...item })
     }
     await page.close()
   }

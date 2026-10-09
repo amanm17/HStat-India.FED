@@ -330,8 +330,11 @@ export function HomePage({
               label="India Exports"
               value={india(record.indiaExports)}
               caption={
-                indiaExporterRow
-                  ? `${pct(indiaExporterRow.share, 1)} of world exports`
+                /* The tile's own figure over the world total beside it. India's
+                 * row in the ranking can carry estimates for lines she did not
+                 * file, so its share would not be a share of this number. */
+                record.indiaExports && record.worldExports
+                  ? `${pct(record.indiaExports / record.worldExports, 1)} of world exports`
                   : 'India, to the world'
               }
             />
@@ -340,8 +343,8 @@ export function HomePage({
               label="India Imports"
               value={india(record.indiaImports)}
               caption={
-                indiaImporterRow
-                  ? `${pct(indiaImporterRow.share, 1)} of world imports`
+                record.indiaImports && record.worldImports
+                  ? `${pct(record.indiaImports / record.worldImports, 1)} of world imports`
                   : 'India, from the world'
               }
             />

@@ -67,6 +67,7 @@ import {
   rankingFor,
   type Detail,
   type RankKind,
+  type RankRow,
 } from '../lib/scope'
 import { Safely } from './Safely'
 import { DownloadMenu } from './DownloadMenu'
@@ -536,13 +537,13 @@ export function ProductPage(props: Props) {
             series="exports"
             label="India Exports"
             value={india(headline.indiaExports)}
-            caption={standingCaption(headline.indiaExportRank, headline.indiaExportShare, 'exporters', 'exports')}
+            caption={standingCaption(headline.indiaExportRank, headline.indiaExportShare, 'exporters', 'exports', headline.indiaExportEstimated)}
           />
           <FigureTile
             series="imports"
             label="India Imports"
             value={india(headline.indiaImports)}
-            caption={standingCaption(headline.indiaImportRank, headline.indiaImportShare, 'importers', 'imports')}
+            caption={standingCaption(headline.indiaImportRank, headline.indiaImportShare, 'importers', 'imports', headline.indiaImportEstimated)}
           />
         </div>
 
@@ -597,7 +598,7 @@ export function ProductPage(props: Props) {
                     formatValue={value => usd(value)}
                     colour={colours.global}
                     highlight="699"
-                    pinnedRow={indiaPinned(importers.rows, headline.indiaImportRank, headline.indiaImportShare, record.global.indiaImportPosition?.value ?? null)}
+                    pinnedRow={indiaPinned(importers.rows, headline.indiaImportRank, headline.indiaImportShare, record.global.indiaImportPosition?.value ?? null, headline.indiaImportEstimated)}
                     onViewAll={() => onViewAll('importers', year)}
                     footnote={importers.basis === 'net' ? 'Net of re-imports' : undefined}
                     dark={dark}
@@ -613,7 +614,7 @@ export function ProductPage(props: Props) {
                     formatValue={value => usd(value)}
                     colour={colours.global}
                     highlight="699"
-                    pinnedRow={indiaPinned(exporters.rows, headline.indiaExportRank, headline.indiaExportShare, record.global.indiaExportPosition?.value ?? null)}
+                    pinnedRow={indiaPinned(exporters.rows, headline.indiaExportRank, headline.indiaExportShare, record.global.indiaExportPosition?.value ?? null, headline.indiaExportEstimated)}
                     onViewAll={() => onViewAll('exporters', year)}
                     footnote={exporters.basis === 'net' ? 'Net of re-exports' : undefined}
                     dark={dark}
@@ -727,25 +728,43 @@ function standingCaption(
   share: number | null,
   noun: 'importers' | 'exporters',
   side: 'imports' | 'exports',
+  estimated = false,
 ): string {
+  /* India's position on an estimate (she has not filed this year) says so:
+   * the tile above it shows no figure, and an unmarked rank beneath a blank
+   * would read as a filed one. */
+  const mark = estimated ? ' (estimated)' : ''
+
   if (rank !== null && share !== null) {
-    return `${ordinal(rank)} of all ${noun} · ${pct(share, 1)} of world ${side}`
+    return `${ordinal(rank)} of all ${noun} · ${pct(share, 1)} of world ${side}${mark}`
   }
 
-  if (share !== null) return `${pct(share, 1)} of world ${side}`
+  if (share !== null) return `${pct(share, 1)} of world ${side}${mark}`
 
   return noun === 'importers' ? 'India Import Ranking not published' : 'India Export Ranking not published'
 }
 
+/*
+ * India's line beneath a ranking she is not in the top of.
+ *
+ * The rows are the full list from 2016, so India is normally in them: her
+ * own row is the one to pin, carrying its rank and its estimated mark. Only
+ * when the list is a top ten without her is a line built from her position.
+ */
 function indiaPinned(
-  rows: { code: string }[],
+  rows: RankRow[],
   rank: number | null,
   share: number | null,
   value: number | null,
-) {
-  if (rank === null || value === null || rows.some(row => row.code === '699')) return null
+  estimated = false,
+): RankRow | null {
+  const listed = rows.find(row => row.code === '699')
 
-  return { rank, code: '699', name: 'India', value, share, estimated: false }
+  if (listed) return listed
+
+  if (rank === null || value === null) return null
+
+  return { rank, code: '699', name: 'India', value, share, estimated }
 }
 
 /* ------------------------------------------------------- the drawer */
@@ -1447,8 +1466,14 @@ function KeyChanges({
     ['India trade balance', india(current.india.balance)],
   ]
 
-  if (suppliers?.rows[0]) {
-    rows.push(['Largest import source', `${suppliers.rows[0].name}, ${pct(suppliers.rows[0].share, 1)}`])
+  /* India's own imports name a foreign source. India herself (re-imports),
+   * "Areas, nes" (partner not stated), Antarctica, bunkers, free zones and
+   * special categories are Comtrade partner codes, not a source to lead with. */
+  const NOT_A_SOURCE = new Set(['0', '699', '899', '10', '837', '838', '839'])
+  const source = suppliers?.rows.find(row => !NOT_A_SOURCE.has(row.code))
+
+  if (source) {
+    rows.push(['Largest import source', `${source.name}, ${pct(source.share, 1)}`])
   }
 
   if (suppliers?.top3Share != null) {

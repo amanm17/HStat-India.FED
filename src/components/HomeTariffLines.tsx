@@ -61,8 +61,11 @@ export function HomeTariffLines({
        * this ranks on the latest month's share of the year instead - a line
        * running hot right now sits above its own annual average. Honest about
        * what it measures; see the label. */
+      /* Only lines that traded in the newest month: a line whose last
+       * non-zero month was a year ago is not running above anything now. */
       movers: withSize
         .filter(item => item.size >= FLOOR)
+        .filter(item => item.line.flows[flow]?.latest?.period === newest)
         .map(item => {
           const month = item.line.flows[flow]?.latest?.usdMillion ?? 0
           const average = item.size / 12

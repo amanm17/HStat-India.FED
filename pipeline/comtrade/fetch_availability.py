@@ -20,8 +20,22 @@ a small file, and the page reads it like every other number here.
 Until this has been run there is no public/data/availability.json, and the page
 says so rather than showing an empty frame. Nothing here is ever faked.
 
+HOW IT STAYS CURRENT
+
+.github/workflows/availability-refresh.yml runs this on the 1st of every month
+and again after every monthly data refresh, then commits the file if it
+changed. --last-pull is the date of the newest commit that actually pulled
+from Comtrade (light / deep / full, not reprocess): "has Comtrade released
+anything since we last pulled" is the question the banner answers, and a
+reprocess re-dates the snapshot without fetching anything new.
+
+--check refuses to write a file that is clearly a failed fetch (no annual
+periods, or a period that lost more than half its reporters since the file
+already committed), so a bad API day leaves the last good file in place.
+
 Run:  python3 pipeline/comtrade/fetch_availability.py
       python3 pipeline/comtrade/fetch_availability.py --offline
+      python3 pipeline/comtrade/fetch_availability.py --last-pull 2026-10-07T10:55:19Z --check
 """
 from __future__ import annotations
 
@@ -43,8 +57,11 @@ BASE = "https://comtradeapi.un.org/public/v1/getDA"
 # it runs far ahead - to 2026-06 at the time of writing, against an annual
 # series that stops at 2024 for many reporters - and a reader deserves to know
 # a fresher view exists even where we cannot yet publish one.
-ANNUAL_YEARS = [2021, 2022, 2023, 2024, 2025, 2026]
-MONTHLY_MONTHS = [f"{y}{m:02d}" for y in (2025, 2026) for m in range(1, 13)]
+#
+# Both windows follow the calendar, so the file does not go stale on 1 January.
+_NOW = datetime.now(timezone.utc)
+ANNUAL_YEARS = list(range(_NOW.year - 5, _NOW.year + 1))
+MONTHLY_MONTHS = [f"{y}{m:02d}" for y in (_NOW.year - 1, _NOW.year) for m in range(1, 13)]
 
 
 def fetch(freq: str, periods: list) -> list[dict]:
@@ -72,9 +89,53 @@ def by_period(rows):
     return seen, released, names
 
 
+def sanity_problems(payload: dict) -> list[str]:
+    """Reasons a fresh result should not replace the committed one."""
+    problems = []
+
+    if len(payload["annual"]) < 3:
+        problems.append(f"only {len(payload['annual'])} annual periods came back")
+
+    if not payload["monthly"]:
+        problems.append("no monthly periods came back")
+
+    if payload["productsTotal"] < 400:
+        problems.append(f"the snapshot has {payload['productsTotal']} products, expected 418")
+
+    if OUT.exists():
+        try:
+            held = json.loads(OUT.read_text())
+        except ValueError:
+            held = {}
+
+        before = {row["period"]: row["reporters"] for row in held.get("annual", [])}
+
+        for row in payload["annual"]:
+            previous = before.get(row["period"])
+
+            # Comtrade adds reporters to a period; it does not lose half of them.
+            if previous and row["reporters"] < previous * 0.5:
+                problems.append(
+                    f"{row['period']} fell from {previous} to {row['reporters']} reporters"
+                )
+
+    return problems
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--offline", action="store_true")
+    parser.add_argument(
+        "--last-pull",
+        help="ISO time of the newest commit that pulled from Comtrade "
+        "(the workflow reads it from git log). Defaults to the snapshot's "
+        "own refreshedAt.",
+    )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Refuse to write a result that looks like a failed fetch.",
+    )
     args = parser.parse_args()
 
     RAW.parent.mkdir(parents=True, exist_ok=True)
@@ -173,19 +234,32 @@ def main() -> int:
         if year in recent
     ]
 
+    manifest = json.loads((SNAPSHOT / "manifest.json").read_text())
+
     payload = {
         "source": "UN Comtrade data availability (public getDA endpoint)",
         "sourceUrl": "https://comtradeplus.un.org/Visualization/DADashboard",
         "fetchedAt": held["fetchedAt"],
         "builtAt": datetime.now(timezone.utc).isoformat(),
-        "snapshotRefreshedAt": json.loads(
-            (SNAPSHOT / "manifest.json").read_text()
-        ).get("refreshedAt"),
+        "snapshotRefreshedAt": manifest.get("refreshedAt"),
+        # When the data on the site was last fetched from Comtrade. The
+        # banner compares Comtrade's release dates against this.
+        "lastPullAt": args.last_pull or manifest.get("refreshedAt"),
+        "schedule": "Checked on the 1st of each month and after every monthly data refresh (5th-7th).",
         "annual": annual_periods,
         "monthly": monthly_periods,
         "holes": holes[:40],
         "productsTotal": len(products),
     }
+
+    if args.check:
+        problems = sanity_problems(payload)
+
+        if problems:
+            for problem in problems:
+                print(f"REFUSED: {problem}")
+            print(f"{OUT.relative_to(ROOT)} left as it was.")
+            return 2
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(payload, indent=1))

@@ -4,6 +4,8 @@ import { AlertTriangle, CheckCircle2, ExternalLink } from 'lucide-react'
 import {
   loadAvailability,
   monthLabel,
+  nextCheck,
+  nextRefresh,
   refreshDue,
   type Availability as Data,
 } from '../lib/availability'
@@ -70,7 +72,8 @@ export function Availability({
 
       presented: data
         ? [
-            { name: 'The banner', what: 'whether running a refresh would bring in anything new' },
+            { name: 'The banner', what: 'whether Comtrade has released anything since our last pull, and when it will be picked up' },
+            { name: 'The dates', what: 'when Comtrade was last checked (the 1st of each month, and after every data refresh)' },
             { name: 'Annual coverage', what: 'how many economies filed each year' },
             { name: 'Monthly coverage', what: 'fresher, but far thinner' },
             { name: 'Who is missing', what: 'each absence, and what it was worth last year' },
@@ -128,15 +131,25 @@ export function Availability({
           <h1>Reporter coverage</h1>
 
           <p className="avail-lede">
-            Which economies have submitted data for which period, against the{' '}
-            {data.productsTotal} products we track. Fetched{' '}
-            <span className="nobreak">{data.fetchedAt.slice(0, 10)}</span>;
-            snapshot built{' '}
-            <span className="nobreak">
-              {data.snapshotRefreshedAt?.slice(0, 10) ?? 'unknown'}
-            </span>
-            .
+            Which economies have submitted data for which period, as Comtrade&rsquo;s
+            own Data Availability dashboard records it, against the{' '}
+            {data.productsTotal} products we track.
           </p>
+
+          <dl className="avail-dates">
+            <div>
+              <dt>Checked with Comtrade</dt>
+              <dd>{data.fetchedAt.slice(0, 10)}</dd>
+            </div>
+            <div>
+              <dt>Our data last pulled</dt>
+              <dd>{due.pulled ?? 'unknown'}</dd>
+            </div>
+            <div>
+              <dt>Next automatic check</dt>
+              <dd>{nextCheck()}</dd>
+            </div>
+          </dl>
         </div>
 
         <a
@@ -159,8 +172,8 @@ export function Availability({
 
           <span>
             {due.due
-              ? `Comtrade released data as recently as ${due.since}, after this snapshot was built. The monthly refresh would pick it up.`
-              : 'Nothing published since this snapshot was built. These figures are as current as the source allows.'}
+              ? `Comtrade released data after our last pull on ${due.pulled}, most recently on ${due.since}. The scheduled refresh on ${nextRefresh()} picks it up automatically; nothing needs doing.`
+              : `Nothing released since our last pull on ${due.pulled ?? 'record'}. These figures are as current as the source allows.`}
           </span>
         </div>
       </div>
@@ -319,10 +332,11 @@ export function Availability({
       )}
 
       <p className="dgcis-foot">
-        Source: {data.source}. Built {data.builtAt.slice(0, 10)} by
-        pipeline/comtrade/fetch_availability.py, which uses Comtrade's public
-        endpoint and needs no subscription key. This page reports what the
-        source holds; estimates elsewhere on the site are not shown here.
+        Source: {data.source}, the data behind Comtrade&rsquo;s Data Availability
+        dashboard. Refreshed automatically on the 1st of each month and after
+        every monthly data refresh; built {data.builtAt.slice(0, 10)}. This page
+        reports what the source holds; estimates elsewhere on the site are not
+        shown here.
       </p>
     </div>
   )

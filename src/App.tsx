@@ -1560,6 +1560,7 @@ function App() {
             setBasket([])
           }}
           title={stackTitle}
+          snapshot={snapshot}
           onOpen={openCode}
           onClose={() => setStackOpen(false)}
         />

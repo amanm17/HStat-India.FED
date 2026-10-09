@@ -39,13 +39,18 @@ function Figure({
   name,
   alt,
   caption,
+  width,
 }: {
   name: string
   alt: string
   caption: string
+  /* The capture's own width in CSS pixels, for narrow captures (a rail, a
+   * table) that would otherwise be blown up to the column and read as a
+   * zoomed-in screen. */
+  width?: number
 }) {
   return (
-    <figure className="guide-figure">
+    <figure className="guide-figure" style={width ? { maxWidth: width } : undefined}>
       <img
         src={`/img/guide/${name}-light.png`}
         alt={alt}
@@ -204,7 +209,7 @@ export function Guide({
         <Figure
           name="front-page"
           alt="The HStat.India front page, with the search box and headline figures"
-          caption="The front page. Search takes a product word or a code; the panels below rank what is largest and where India&rsquo;s share is biggest."
+          caption="The front page. Search takes a product word or a code; the year and currency sit together under it, and the tiles below give the electronics total, India&rsquo;s exports and imports, and India&rsquo;s share of each."
         />
       </section>
 
@@ -375,7 +380,18 @@ export function Guide({
           caption="The top of a product page. World market on one side, India&rsquo;s position in it on the other; change the year and the two swap places."
         />
 
-        <h3>4.1 &nbsp;Global Trade</h3>
+        <h3>4.1 &nbsp;The detail line and the controls</h3>
+
+        <p>
+          Above the name, one line says what the page is: the level, the code,
+          its segment and its group. It is a description, not a set
+          of buttons. Below the name, the year and currency controls sit
+          together on the left and the actions (download, add to HStack, pin)
+          on the right; every control on the site is the same height, so a
+          row of them reads as one row.
+        </p>
+
+        <h3>4.2 &nbsp;Global Trade</h3>
 
         <p>
           Every reporting economy&rsquo;s imports from the world, added up, as
@@ -386,24 +402,31 @@ export function Guide({
           headline.
         </p>
 
-        <h3>4.2 &nbsp;India&rsquo;s position</h3>
+        <h3>4.3 &nbsp;India&rsquo;s position</h3>
 
         <p>
           India&rsquo;s own imports of the same product, its share of the world
           figure, and its rank among every reporting economy. The share is that
-          Indian figure divided by that world figure.
+          Indian figure divided by that world figure. In a year India has not
+          filed, the tile is blank and the rank beneath it is marked{' '}
+          <strong>(estimated)</strong>: it is where India&rsquo;s projected
+          value would sit, not a filing.
         </p>
 
-        <h3>4.3 &nbsp;Top importers and exporters</h3>
+        <h3>4.4 &nbsp;Top importers and exporters</h3>
 
         <p>
           The largest importing and exporting economies for the selected year,
           gross, with each economy&rsquo;s share of the product&rsquo;s Global
           Trade. Top 5 by default; <strong>+</strong> shows 10, and
-          &ldquo;View all&rdquo; opens the full ranking.
+          &ldquo;View all&rdquo; opens the full ranking. When India is not in
+          the rows shown, her own line is pinned underneath with her rank
+          (56th, say), so her place is always on screen. Full country lists
+          are published from 2016; before that the button says what it opens
+          (&ldquo;View top 25 of 155&rdquo;).
         </p>
 
-        <h3>4.4 &nbsp;Child lines and coverage</h3>
+        <h3>4.5 &nbsp;Child lines and coverage</h3>
 
         <p>
           On a chapter or heading page, what&rsquo;s inside breaks the total
@@ -413,13 +436,34 @@ export function Guide({
           than hidden.
         </p>
 
-        <h3>4.5 &nbsp;Tiles and the workspace rail</h3>
+        <h3>4.6 &nbsp;Tiles and the workspace rail</h3>
 
         <p>
           Every block on the page is a tile. The right-hand rail chooses which
           tiles show, what order they sit in, and builds a report from whatever
           is on screen. Hidden tiles stay hidden as you move between products.
+          The rail closes cleanly when you move to a page that has no
+          workspace, and leaves no gap behind.
         </p>
+
+        <h3>4.7 &nbsp;HStack: several codes as one</h3>
+
+        <p>
+          HStack adds codes together: their combined world trade, India&rsquo;s
+          imports and exports, India&rsquo;s share, and the largest economies
+          across all of them. A key segment from the front page opens as a
+          stack of its own, titled with the segment, its group and how many
+          lines it holds. A code already inside a broader code in the stack is
+          shown but never counted twice. From 2016 the economy tables add up
+          every economy in each product&rsquo;s full list, so a country
+          outside one product&rsquo;s top ten still counts.
+        </p>
+
+        <Figure
+          name="hstack-segment"
+          alt="HStack opened for a key segment, with the segment name, its group and the number of lines stacked"
+          caption="A key segment as one stack: what it is, how many lines, and the combined figures."
+        />
       </section>
 
       {/* ---------------------------------------------------------- 5 */}
@@ -438,25 +482,28 @@ export function Guide({
         <h3>5.1 &nbsp;The monthly series</h3>
 
         <p>
-          Every month DGCIS has filed for this line, in the direction and unit
-          selected at the top. Switching exports to imports changes every
-          figure on the page; switching dollars to rupees changes the unit and
-          nothing else.
+          Every month DGCIS has filed for this line, a year to a row, in the
+          unit selected at the top; exports and imports each have their own
+          table. Switching dollars to rupees changes the unit and nothing else.
         </p>
 
         <h3>5.2 &nbsp;Two kinds of year</h3>
 
         <p>
           India files financial years, April to March. Comtrade publishes
-          calendar years. Both are shown, separately and labelled, because they
-          are not interchangeable — and only the calendar year can be compared
-          with the heading above.
+          calendar years. The CY / FY switch rearranges the table: in calendar
+          years each row runs January to December and ends in a{' '}
+          <strong>Year total</strong>; in financial years it runs April to
+          March and ends in an <strong>FY total</strong>. The total is that
+          row added up, nothing else. A year not yet complete says how many
+          months it holds (&ldquo;7 mo&rdquo;). Only the calendar year can be
+          compared with the heading above.
         </p>
 
         <Figure
           name="tariff-years"
           alt="Financial-year and calendar-year totals shown separately"
-          caption="Financial years and calendar years, side by side and never merged. A part year is marked as one."
+          caption="Each row is a year, and the last column is that row&rsquo;s total. A part year is marked with the months it holds."
         />
 
         <h3>5.3 &nbsp;Other lines in the same heading</h3>
@@ -471,6 +518,23 @@ export function Guide({
           name="siblings"
           alt="A ranked table of the other tariff lines under the same heading"
           caption="One line is often almost all of a heading. The table shows which."
+        />
+
+        <h3>5.4 &nbsp;The workspace on a tariff line</h3>
+
+        <p>
+          Tariff lines have the same workspace rail as the product pages: pin
+          the line, find it again under recently viewed, and build a report of
+          it as PDF or image. The report holds the monthly exports and imports
+          from DGCIS by calendar year, and the line&rsquo;s place among its
+          heading&rsquo;s lines.
+        </p>
+
+        <Figure
+          name="tariff-workspace"
+          width={368}
+          alt="The workspace rail on a tariff line, with pinned codes, recently viewed and the report builder"
+          caption="Pin, revisit and report on an eight-digit line the way you would a product."
         />
       </section>
 
@@ -489,9 +553,19 @@ export function Guide({
           growth, falling back to ten, bounded at &plusmn;50% a year, and only
           within three years of its last filing). A filed value always replaces
           an estimate. A figure containing estimated values carries{' '}
-          <strong>*</strong>; hover or tap it for the estimated share. Tariff
-          lines and exchange rates are never estimated.
+          <strong>*</strong>; a value carried from a retired code carries{' '}
+          <strong>**</strong>. Hover, tap or tab to either mark and it says
+          what it means for that figure: which economy has not filed, or what
+          share of the total is estimated, or which retired code the value
+          came from. Tariff lines and exchange rates are never estimated.
         </p>
+
+        <Figure
+          name="mark-tip"
+          width={622}
+          alt="An explanation shown over an asterisk in the Top Importers table"
+          caption="Every * and ** explains itself. Here the largest importer has not filed this year, so its value is projected from its own history."
+        />
 
         <h3>6.2 &nbsp;A blank is not a zero</h3>
 
@@ -526,9 +600,12 @@ export function Guide({
         <h3>6.4 &nbsp;Checking against the source</h3>
 
         <p>
-          The availability page holds Comtrade&rsquo;s own record of which
-          economies filed which period, joined to these products. It answers one question
-          directly: would refreshing bring in anything new.
+          The availability page mirrors Comtrade&rsquo;s own Data Availability
+          dashboard: which economies have filed which period, joined to these
+          products. It refreshes itself on the 1st of every month and again
+          after every monthly data refresh, and it answers one question
+          directly: has Comtrade released anything since we last pulled, and
+          when will it be picked up.
           {onAvailability && (
             <>
               {' '}
@@ -541,8 +618,8 @@ export function Guide({
 
         <Figure
           name="availability"
-          alt="The availability banner saying whether a refresh would bring in new data"
-          caption="The banner is the answer; the tables below it are the working."
+          alt="The availability page header with the dates it was checked and pulled, and the banner"
+          caption="When Comtrade was last checked, when our data was last pulled, when the next check runs, and the answer."
         />
 
         <Figure
@@ -568,6 +645,21 @@ export function Guide({
           into the world product results.
         </p>
 
+        <p>
+          The keyboard does the rest. <kbd>&uarr;</kbd> and <kbd>&darr;</kbd>{' '}
+          move through the results, <kbd>Enter</kbd> opens the one
+          highlighted, and <kbd>.</kbd> or <kbd>Esc</kbd> closes search. A
+          dot inside a number (&ldquo;8517.13&rdquo;) is read as part of the
+          code, not as close.
+        </p>
+
+        <Figure
+          name="search-keys"
+          width={820}
+          alt="Search results with one result highlighted by the arrow keys"
+          caption="Arrow keys move the highlight; Enter opens it."
+        />
+
         <h3>7.2 &nbsp;Commands</h3>
 
         <p>
@@ -580,6 +672,7 @@ export function Guide({
 
         <Figure
           name="palette"
+          width={820}
           alt="The command palette, opened by typing a slash in the search box"
           caption="One slash and the search box becomes a command list."
         />

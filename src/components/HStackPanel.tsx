@@ -14,12 +14,15 @@ import { Download, Sigma, Trash2, X } from 'lucide-react'
 
 import type { HsNode } from '../types'
 import type { BasketEntry, BasketLine } from '../lib/hstack'
+import type { SnapshotName } from '../lib/data'
+import { loadDetail } from '../lib/scope'
 import {
   bestYear,
   combinedSeries,
   familyGaps,
   hs8Entries,
   summarise,
+  type StackDetails,
   toRows,
 } from '../lib/hstack'
 import {
@@ -48,8 +51,9 @@ import {
  * Two things are deliberately visible rather than hidden. Codes whose
  * figures are withheld for the chosen year are listed with the reason, so
  * a basket total is never quietly short. And the aggregated country tables
- * declare how much of basket trade they actually cover, because they are
- * built from each product's top economies rather than from every reporter.
+ * declare how much of basket trade they actually cover: from 2016 they add up
+ * every economy in each product's full list; before that, each product's top
+ * economies only.
  */
 
 export function HStackPanel({
@@ -63,6 +67,7 @@ export function HStackPanel({
   onClose,
   dark,
   title,
+  snapshot = 'current',
 }: {
   entries: BasketEntry[]
   nodes: HsNode[]
@@ -75,6 +80,8 @@ export function HStackPanel({
   dark: boolean
   /* Set when the stack is a key-segment category from the front page. */
   title?: { name: string; segment: string; lines: number } | null
+  /* Which snapshot the full economy lists are read from. */
+  snapshot?: SnapshotName
 }) {
   const colours = palette(dark)
 
@@ -106,9 +113,39 @@ export function HStackPanel({
     return [...all].sort((a, b) => b - a)
   }, [nodes])
 
+  /*
+   * Every economy behind each code, from 2016. Fetched once per code and
+   * cached by loadDetail; until they arrive the tables use each product's
+   * gross top ten and say how much of the total that covers.
+   */
+  const [details, setDetails] = useState<StackDetails | undefined>(undefined)
+
+  useEffect(() => {
+    if (!nodes.length) {
+      setDetails(undefined)
+      return
+    }
+
+    let live = true
+
+    Promise.all(
+      nodes.map(node =>
+        loadDetail(snapshot, node.code)
+          .catch(() => null)
+          .then(detail => [node.code, detail] as const),
+      ),
+    ).then(pairs => {
+      if (live) setDetails(new Map(pairs))
+    })
+
+    return () => {
+      live = false
+    }
+  }, [nodes, snapshot])
+
   const summary = useMemo(
-    () => (activeYear && nodes.length ? summarise(nodes, activeYear) : null),
-    [nodes, activeYear],
+    () => (activeYear && nodes.length ? summarise(nodes, activeYear, 10, details) : null),
+    [nodes, activeYear, details],
   )
 
   /*
@@ -760,10 +797,12 @@ export function HStackPanel({
                   note={
                     summary.economyCoverage === null
                       ? undefined
-                      : `Built from each product's top economies, covering ${pct(
-                          summary.economyCoverage,
-                          0,
-                        )} of the stack's trade.`
+                      : summary.economyCoverage >= 0.995
+                        ? "Every economy in each product's list, added up across the stack."
+                        : `Built from each product's top economies, covering ${pct(
+                            summary.economyCoverage,
+                            0,
+                          )} of the stack's trade.`
                   }
                 />
 

@@ -1,4 +1,5 @@
 import type { EconomyRow, HsNode, PeriodRecord } from '../types'
+import type { Detail } from './scope'
 
 
 /*
@@ -485,17 +486,47 @@ function aggregate(
   return { rows: ordered.slice(0, limit), all: ordered, covered }
 }
 
+/*
+ * The full economy and supplier lists behind a code, where they are loaded.
+ * From 2016 the snapshot publishes every economy (detail/<code>.json); a
+ * stack's "Top importers worldwide" is only right when it adds those up,
+ * because a country outside one product's top ten can still be first across
+ * the stack. Before they load, or before 2016, each product's own top ten
+ * on the same gross basis is used and the coverage line says how much of the
+ * total that accounts for.
+ */
+export type StackDetails = Map<string, Detail | null>
+
+function detailRows(
+  details: StackDetails | undefined,
+  code: string,
+  year: number,
+  table: 'importers' | 'indiaSuppliers',
+): { code: string; name: string; value: number }[] | null {
+  const detail = details?.get(code)
+  const rows = detail?.years[String(year)]?.[table]?.rows
+
+  if (!detail || !rows) return null
+
+  return rows.map(row => ({
+    code: String(row[0]),
+    name: detail.reporters[String(row[0])] ?? String(row[0]),
+    value: Number(row[1]),
+  }))
+}
+
 export function summarise(
   nodes: HsNode[],
   year: number,
   topN = 10,
+  details?: StackDetails,
 ): BasketSummary {
   const lines: BasketLine[] = []
 
   let globalTrade = 0
   let indiaImports = 0
   let indiaExports = 0
-  let indiaNetImports = 0
+  let indiaImportsInTrade = 0
 
   const economyRows: { code: string; name: string; value: number }[] = []
 
@@ -550,13 +581,21 @@ export function summarise(
       if (trade !== null) {
         globalTrade += trade
 
-        for (const economy of entry?.global.topEconomies ?? []) {
-          economyRows.push({
+        /* Gross, like the trade figure they are a share of: the full list
+         * where it is loaded, otherwise the product's own gross top ten. */
+        const economies =
+          detailRows(details, node.code, year, 'importers') ??
+          (entry?.global.importers ?? entry?.global.topEconomies ?? []).map(economy => ({
             code: economy.code,
             name: economy.name,
             value: economy.value,
-          })
-        }
+          }))
+
+        economyRows.push(...economies)
+
+        /* India's share of the stack's world trade counts only the lines
+         * whose world trade is in that total, on the same gross basis. */
+        if (imports !== null) indiaImportsInTrade += imports
       } else {
         withheld += 1
       }
@@ -564,14 +603,14 @@ export function summarise(
       if (imports !== null) indiaImports += imports
       if (exports !== null) indiaExports += exports
 
-      if (entry?.india.importsNetReImports != null) {
-        indiaNetImports += entry.india.importsNetReImports
-      }
+      const suppliersFor =
+        detailRows(details, node.code, year, 'indiaSuppliers') ?? entry?.india.suppliers?.rows ?? []
 
-      for (const supplier of entry?.india.suppliers?.rows ?? []) {
+      for (const supplier of suppliersFor) {
         supplierRows.push({
           code: supplier.code,
-          name: supplier.name,
+          /* India in her own partner list is goods coming back: say so. */
+          name: supplier.code === '699' ? 'India (re-imports)' : supplier.name,
           value: supplier.value,
         })
       }
@@ -597,8 +636,9 @@ export function summarise(
       indiaImports: imports,
       indiaExports: exports,
       indiaBalance: entry?.india.balance ?? null,
-      indiaShare: entry?.global.indiaShare ?? null,
-      indiaRank: entry?.global.indiaRank ?? null,
+      /* The gross standing the product page shows, not the older netted one. */
+      indiaShare: entry?.global.indiaImportPosition?.share ?? entry?.global.indiaShare ?? null,
+      indiaRank: entry?.global.indiaImportPosition?.rank ?? entry?.global.indiaRank ?? null,
       withheldReason: reason,
     })
   }
@@ -651,8 +691,8 @@ export function summarise(
     indiaExports,
     indiaBalance: indiaExports - indiaImports,
     indiaShareOfGlobal:
-      globalTrade > 0 && indiaNetImports > 0
-        ? indiaNetImports / globalTrade
+      globalTrade > 0 && indiaImportsInTrade > 0
+        ? indiaImportsInTrade / globalTrade
         : null,
 
     topEconomies: economies.rows,

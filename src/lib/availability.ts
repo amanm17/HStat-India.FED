@@ -30,6 +30,10 @@ export type Availability = {
   fetchedAt: string
   builtAt: string
   snapshotRefreshedAt: string | null
+  /* When the site's data was last fetched from Comtrade (a light, deep or
+   * full refresh; a reprocess fetches nothing). Older files lack it. */
+  lastPullAt?: string | null
+  schedule?: string
   annual: AvailabilityPeriod[]
   monthly: AvailabilityPeriod[]
   holes: AvailabilityHole[]
@@ -60,10 +64,17 @@ export function loadAvailability(): Promise<Availability | null> {
  * built. That is the whole signal, and it is the one question this page exists
  * to answer - "is what I am looking at as good as it can be right now".
  */
-export function refreshDue(data: Availability): { due: boolean; since: string | null } {
-  if (!data.snapshotRefreshedAt) return { due: false, since: null }
+export function refreshDue(data: Availability): {
+  due: boolean
+  since: string | null
+  pulled: string | null
+  releases: number
+} {
+  const pulledAt = data.lastPullAt ?? data.snapshotRefreshedAt
 
-  const built = data.snapshotRefreshedAt.slice(0, 10)
+  if (!pulledAt) return { due: false, since: null, pulled: null, releases: 0 }
+
+  const built = pulledAt.slice(0, 10)
 
   const releases = [...data.annual, ...data.monthly]
     .map(row => row.latestRelease)
@@ -71,7 +82,29 @@ export function refreshDue(data: Availability): { due: boolean; since: string | 
     .filter(value => value > built)
     .sort()
 
-  return { due: releases.length > 0, since: releases[releases.length - 1] ?? null }
+  return {
+    due: releases.length > 0,
+    since: releases[releases.length - 1] ?? null,
+    pulled: built,
+    releases: releases.length,
+  }
+}
+
+/* The next automatic check: the 1st of the month after `from`. */
+export function nextCheck(from: Date = new Date()): string {
+  const next = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth() + 1, 1))
+
+  return next.toISOString().slice(0, 10)
+}
+
+/* The next scheduled data refresh: the 5th, this month or next. */
+export function nextRefresh(from: Date = new Date()): string {
+  const year = from.getUTCFullYear()
+  const month = from.getUTCMonth()
+  const fifth = new Date(Date.UTC(year, month, 5))
+  const next = from.getUTCDate() < 5 ? fifth : new Date(Date.UTC(year, month + 1, 5))
+
+  return next.toISOString().slice(0, 10)
 }
 
 export function monthLabel(period: string): string {

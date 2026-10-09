@@ -9,9 +9,12 @@
  *
  *   npm run build
  *   node qa/suite/serve.mjs dist 4178 &
- *   node qa/guide-shots.mjs
+ *   node qa/guide-shots.mjs            (PW_CHROME=/path/to/chrome if needed)
  *
  * Output: public/img/guide/<name>-<theme>.png, which the build copies as-is.
+ * A shot whose selector is missing is reported and the script exits 1, so a
+ * redesign cannot leave the guide showing the old page without anyone being
+ * told - which is how the September captures went stale.
  *
  * NOT public/guide. A folder there would sit at /guide, which is a route, and
  * a static-asset host resolves the directory before it reaches the SPA
@@ -30,69 +33,187 @@ import { mkdirSync } from 'node:fs'
 const base = process.env.BASE || 'http://127.0.0.1:4178'
 const out = 'public/img/guide'
 
-/* Each shot is a selector on a page, cropped to the thing being explained.
- * Width is deliberately modest: these sit inside a column of prose, and a
- * 1440px capture shrunk into 640 is unreadable. */
+const clearStack = async page =>
+  page.evaluate(() => {
+    try {
+      localStorage.removeItem('hstat-basket')
+      localStorage.removeItem('hstat-stack-title')
+    } catch {}
+  })
+
+/*
+ * Each shot opens a page, optionally does something on it (`prep`), and is
+ * cropped to the union of its selectors, at most `clipH` tall. Width is
+ * deliberately modest: these sit inside a column of prose, and a 1440px
+ * capture shrunk into 640 is unreadable.
+ */
+const ONLY = process.env.ONLY ? process.env.ONLY.split(',') : null
+
 const SHOTS = [
-  { name: 'front-page',  path: '/',              sel: '.home-hero',        width: 900, clipH: 400 },
-  { name: 'product-top', path: '/hs/854231',     sel: '.tiledeck',         width: 1100, clipH: 560 },
-  { name: 'dgcis-panel', path: '/hs/854231',     sel: '.dgcis-table-wrap', width: 1100 },
-  { name: 'tariff-line', path: '/hs/85176290',   sel: '.hs8-head',         width: 900 },
-  { name: 'tariff-years',path: '/hs/85176290',   sel: '.hs8-years',        width: 1000 },
-  { name: 'siblings',    path: '/hs/85176290',   sel: '.hs8-siblings',     width: 1000, clipH: 420 },
-  { name: 'availability',path: '/availability',  sel: '.avail-verdict',    width: 900 },
-  { name: 'gaps',        path: '/availability',  sel: '.avail-holes',      width: 900, clipH: 340 },
-  { name: 'tariff-index',path: '/tariff-lines',  sel: '.lines-group',      width: 1000 },
-  { name: 'palette',     path: '/',              sel: '.search-hub',       width: 800, clipH: 420, type: '/' },
+  { name: 'front-page', path: '/', sels: ['.rf-home-hero', '.rf-tiles', '.rf-scope-note'], width: 1000 },
+  { name: 'product-top', path: '/hs/854231', sels: ['.rf-identity', '.rf-furniture', '.rf-headline .rf-tiles'], width: 1100 },
+  { name: 'dgcis-panel', path: '/hs/854231', sels: ['#section-dgcis'], width: 1100 },
+  { name: 'tariff-line', path: '/hs/85176290', sels: ['.hs8-head', '.rf-furniture', '.hs8-metrics'], width: 1000 },
+  { name: 'tariff-years', path: '/hs/85176290', sels: ['#tile-hs8-exports'], width: 1000 },
+  { name: 'siblings', path: '/hs/85176290', sels: ['#tile-hs8-siblings'], width: 1000, clipH: 420 },
+  { name: 'availability', path: '/availability', sels: ['.avail-head', '.avail-verdict'], width: 900 },
+  { name: 'gaps', path: '/availability', sels: ['.avail-holes'], width: 900, clipH: 340 },
+  { name: 'tariff-index', path: '/tariff-lines', sels: ['.lines-group'], width: 1000 },
+  {
+    name: 'palette',
+    path: '/',
+    sels: ['.search-hub', '.search-output'],
+    width: 900,
+    clipH: 460,
+    fixedScroll: true,
+    pad: 0,
+    prep: async page => {
+      await page.locator('.search-hub input').first().click()
+      await page.keyboard.type('/')
+      await page.waitForTimeout(500)
+    },
+  },
+  {
+    name: 'search-keys',
+    path: '/',
+    sels: ['.search-hub', '.search-output'],
+    width: 900,
+    clipH: 620,
+    fixedScroll: true,
+    pad: 0,
+    prep: async page => {
+      await page.locator('.search-hub input').first().click()
+      await page.keyboard.type('smartphone', { delay: 30 })
+      await page.waitForTimeout(900)
+      await page.keyboard.press('ArrowDown')
+      await page.keyboard.press('ArrowDown')
+      await page.waitForTimeout(300)
+    },
+  },
+  {
+    name: 'mark-tip',
+    path: '/hs/851713',
+    sels: ['#rank-importers', '.mark-tip'],
+    width: 1100,
+    prep: async page => {
+      const mark = page.locator('#rank-importers .estimated-mark').first()
+      await mark.scrollIntoViewIfNeeded()
+      await page.evaluate(() => window.scrollBy(0, -120))
+      await mark.hover()
+      await page.waitForTimeout(400)
+    },
+    fixedScroll: true,
+  },
+  {
+    name: 'hstack-segment',
+    path: '/',
+    sels: ['.hstack-panel'],
+    clipH: 640,
+    width: 1100,
+    viewportH: 1300,
+    fixedScroll: true,
+    prep: async page => {
+      await page.locator('.rf-segments .rf-cat').first().click()
+      await page.waitForTimeout(300)
+      await page.locator('.rf-stack-actions .rf-button').first().click()
+      await page.waitForTimeout(2500)
+    },
+    after: clearStack,
+  },
+  {
+    name: 'tariff-workspace',
+    path: '/hs/85176290',
+    sels: ['.rail'],
+    width: 1100,
+    fixedScroll: true,
+    clipH: 610,
+    prep: async page => {
+      await page.locator('.rail-handle').first().click()
+      await page.waitForTimeout(600)
+    },
+  },
 ]
 
 mkdirSync(out, { recursive: true })
 
-const browser = await chromium.launch()
+const browser = await chromium.launch(
+  process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : undefined,
+)
 let made = 0
+const missing = []
 
-for (const shot of SHOTS) {
+for (const shot of SHOTS.filter(s => !ONLY || ONLY.includes(s.name))) {
   for (const theme of ['light', 'dark']) {
     const page = await browser.newPage({
-      viewport: { width: shot.width + 340, height: 1100 },
+      viewport: { width: shot.width + 340, height: shot.viewportH ?? 1100 },
       deviceScaleFactor: 1.5,
     })
 
     await page.goto(base + shot.path, { waitUntil: 'networkidle' })
-    await page.evaluate(t => { document.documentElement.dataset.theme = t }, theme)
+    await clearStack(page)
 
-    /* The rail is chrome, not content, and it is explained in its own
+    /* The real theme switch, so charts and canvases follow it too. */
+    if (theme === 'dark') {
+      await page.locator('[aria-label="Switch to dark theme"]').first().click()
+    }
+
+    /* The left rail is chrome, not content, and it is explained in its own
      * section. Collapsing it keeps every capture to the page itself. */
     await page.evaluate(() => { document.documentElement.dataset.nav = 'icons' })
     await page.waitForTimeout(900)
 
-    if (shot.type) {
-      const input = await page.$('.search-hub input')
-      if (input) { await input.click(); await input.type(shot.type); await page.waitForTimeout(500) }
-    }
-
-    const el = await page.$(shot.sel)
-
-    if (!el) {
-      console.log('MISSING', shot.name, shot.sel)
+    try {
+      if (shot.prep) await shot.prep(page)
+    } catch (error) {
+      missing.push(`${shot.name}: ${String(error).split('\n')[0]}`)
       await page.close()
       continue
     }
 
-    /* page.screenshot({clip}) works in page coordinates and does not scroll,
-     * so anything below the fold has to be brought into view first. */
-    await el.scrollIntoViewIfNeeded()
-    await page.waitForTimeout(250)
+    const first = await page.$(shot.sels[0])
 
-    const box = await el.boundingBox()
-    const clip = shot.clipH && box
-      ? { x: box.x, y: box.y, width: box.width, height: Math.min(box.height, shot.clipH) }
-      : undefined
+    if (!first) {
+      missing.push(`${shot.name}: ${shot.sels[0]}`)
+      await page.close()
+      continue
+    }
 
-    const file = `${out}/${shot.name}-${theme}.png`
+    /* Bring the subject to the top of the viewport. Panels that are fixed
+     * (HStack, the rail, a hovered tooltip) are measured where they are. */
+    if (!shot.fixedScroll) {
+      /* Below the sticky header, which would otherwise sit over the top
+       * of every capture. */
+      await page.evaluate(el => {
+        const header = document.querySelector('.topbar')
+        const offset = header ? header.getBoundingClientRect().bottom : 0
+        window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - offset - 16)
+      }, first)
+      await page.waitForTimeout(300)
+    }
 
-    if (clip) await page.screenshot({ path: file, clip })
-    else await el.screenshot({ path: file })
+    const boxes = []
+
+    for (const sel of shot.sels) {
+      const handle = await page.$(sel)
+      const box = handle ? await handle.boundingBox() : null
+      if (box && box.width > 0 && box.height > 0) boxes.push(box)
+    }
+
+    const viewport = page.viewportSize()
+    const pad = shot.pad ?? 8
+    const x = Math.max(0, Math.min(...boxes.map(b => b.x)) - pad)
+    const headerBottom = shot.fixedScroll
+      ? 0
+      : await page.evaluate(() => document.querySelector('.topbar')?.getBoundingClientRect().bottom ?? 0)
+    const y = Math.max(headerBottom, Math.min(...boxes.map(b => b.y)) - pad)
+    const right = Math.min(viewport.width, Math.max(...boxes.map(b => b.x + b.width)) + pad)
+    const bottom = Math.min(viewport.height, Math.max(...boxes.map(b => b.y + b.height)) + 8)
+
+    const clip = { x, y, width: right - x, height: Math.min(bottom - y, shot.clipH ?? Infinity) }
+
+    await page.screenshot({ path: `${out}/${shot.name}-${theme}.png`, clip })
+
+    if (shot.after) await shot.after(page)
 
     made += 1
     await page.close()
@@ -101,3 +222,8 @@ for (const shot of SHOTS) {
 
 await browser.close()
 console.log(`${made} captures written to ${out}`)
+
+if (missing.length) {
+  console.log('MISSING:\n  ' + missing.join('\n  '))
+  process.exit(1)
+}

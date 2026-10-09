@@ -2,8 +2,10 @@
  "source": "UN Comtrade data availability (public getDA endpoint)",
  "sourceUrl": "https://comtradeplus.un.org/Visualization/DADashboard",
  "fetchedAt": "2026-09-18T09:10:35.440571+00:00",
- "builtAt": "2026-09-18T09:24:14.959077+00:00",
- "snapshotRefreshedAt": "2026-09-14T09:31:13.149508+00:00",
+ "builtAt": "2026-10-09T05:16:39.681951+00:00",
+ "snapshotRefreshedAt": "2026-10-08T06:43:59.626680+00:00",
+ "lastPullAt": "2026-10-07T10:55:19+00:00",
+ "schedule": "Checked on the 1st of each month and after every monthly data refresh (5th-7th).",
  "annual": [
   {
    "period": "2021",
@@ -135,27 +137,10 @@
  ],
  "holes": [
   {
-   "period": "2025",
-   "reporter": "China",
-   "products": 240,
-   "priorValue": 700640356072,
-   "sample": [
-    "320890",
-    "340391",
-    "350699",
-    "390390",
-    "390799",
-    "390890",
-    "391910",
-    "391990"
-   ],
-   "filedSince": false
-  },
-  {
    "period": "2024",
    "reporter": "Viet Nam",
-   "products": 91,
-   "priorValue": 108246562223,
+   "products": 89,
+   "priorValue": 108233463522,
    "sample": [
     "340391",
     "350699",
@@ -220,6 +205,23 @@
    "filedSince": false
   },
   {
+   "period": "2024",
+   "reporter": "Iran",
+   "products": 15,
+   "priorValue": 1075732469,
+   "sample": [
+    "844311",
+    "844317",
+    "845090",
+    "845130",
+    "847329",
+    "850690",
+    "851761",
+    "852412"
+   ],
+   "filedSince": false
+  },
+  {
    "period": "2025",
    "reporter": "Algeria",
    "products": 9,
@@ -255,7 +257,7 @@
    "period": "2024",
    "reporter": "Ghana",
    "products": 6,
-   "priorValue": 62124472,
+   "priorValue": 61744923,
    "sample": [
     "851770",
     "853950",
@@ -404,19 +406,6 @@
    "filedSince": true
   },
   {
-   "period": "2024",
-   "reporter": "Georgia",
-   "products": 4,
-   "priorValue": 14761024,
-   "sample": [
-    "851770",
-    "853950",
-    "854810",
-    "854890"
-   ],
-   "filedSince": true
-  },
-  {
    "period": "2025",
    "reporter": "Cayman Isds",
    "products": 4,
@@ -509,28 +498,6 @@
    "sample": [
     "845610",
     "854150"
-   ],
-   "filedSince": false
-  },
-  {
-   "period": "2025",
-   "reporter": "Oman",
-   "products": 2,
-   "priorValue": 45079852,
-   "sample": [
-    "850410",
-    "910191"
-   ],
-   "filedSince": true
-  },
-  {
-   "period": "2024",
-   "reporter": "Dem. Rep. of the Congo",
-   "products": 2,
-   "priorValue": 59046445,
-   "sample": [
-    "850740",
-    "854330"
    ],
    "filedSince": false
   },
@@ -639,12 +606,42 @@
    "filedSince": false
   },
   {
+   "period": "2024",
+   "reporter": "Dem. Rep. of the Congo",
+   "products": 1,
+   "priorValue": 30262,
+   "sample": [
+    "850740"
+   ],
+   "filedSince": false
+  },
+  {
    "period": "2025",
    "reporter": "Burkina Faso",
    "products": 1,
    "priorValue": 102215124,
    "sample": [
     "851310"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2024",
+   "reporter": "Mauritania",
+   "products": 1,
+   "priorValue": 12636069,
+   "sample": [
+    "851770"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Tunisia",
+   "products": 1,
+   "priorValue": 9992876,
+   "sample": [
+    "852321"
    ],
    "filedSince": false
   }

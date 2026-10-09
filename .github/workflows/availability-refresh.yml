@@ -1,0 +1,95 @@
+name: Comtrade availability refresh
+
+# Keeps the "UN Comtrade · Data availability" page current on its own.
+#
+# The page mirrors Comtrade's Data Availability dashboard (who has filed which
+# period) and joins it to our 418 products. Neither the browser nor a laptop
+# can fetch it reliably - Comtrade refuses cross-origin calls, and the office
+# network blocks the API - so GitHub fetches it here and commits one small
+# file, which Cloudflare Pages deploys like any other push.
+#
+# Two triggers, and this file is separate from monthly-refresh.yml on purpose:
+#   - the 1st of every month, so the page is never more than a month old;
+#   - right after every run of "Validated data refresh" (5th-7th), so the
+#     "missing economies" list is rejoined to the snapshot that run just
+#     published, and the banner measures from that pull.
+#
+# Public endpoint, no subscription key, no API budget spent. A result that
+# looks like a failed fetch is refused (fetch_availability.py --check) and the
+# last good file stays live.
+
+on:
+  schedule:
+    - cron: "23 4 1 * *"
+  workflow_run:
+    workflows: ["Validated data refresh"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Same group as the data refresh, so the two never push over each other.
+concurrency:
+  group: hstat-refresh
+  cancel-in-progress: false
+
+jobs:
+  availability:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      # Full history without file contents: enough for git log to find the
+      # last real pull, at a fraction of a full clone.
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          filter: blob:none
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # The newest commit that fetched from Comtrade. A reprocess re-dates
+      # the snapshot without fetching anything, so it does not count.
+      - name: When did we last pull from Comtrade?
+        id: pull
+        run: |
+          LAST=$(git log -1 --format=%cI -E --grep='^HStat data refresh \((light|deep|full),' || true)
+          echo "last=$LAST" >> "$GITHUB_OUTPUT"
+          echo "Last pull: ${LAST:-unknown (falls back to the snapshot date)}"
+
+      - name: Fetch Comtrade availability and join it to the snapshot
+        run: |
+          ARGS="--check"
+          if [ -n "${{ steps.pull.outputs.last }}" ]; then
+            ARGS="$ARGS --last-pull ${{ steps.pull.outputs.last }}"
+          fi
+          python pipeline/comtrade/fetch_availability.py $ARGS
+
+      - name: Commit if it changed
+        run: |
+          git config user.name "hstat-data-bot"
+          git config user.email "actions@users.noreply.github.com"
+
+          git add public/data/availability.json
+
+          if git diff --cached --quiet; then
+            echo "Availability unchanged."
+            exit 0
+          fi
+
+          git commit -m "Comtrade availability refresh ($(date -u +%Y-%m-%d))"
+
+          # Never force. If main moved while this ran, replay on top of it;
+          # the file is only ever written by this job, so it cannot conflict.
+          for attempt in 1 2 3; do
+            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            sleep 10
+          done
+
+          echo "::error::Could not push the availability file after three attempts."
+          exit 1

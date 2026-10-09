@@ -1713,8 +1713,14 @@
 
 /* Search result rows: the code column grows to fit an eight-digit code in
  * any typeface rather than letting it run under the product name. */
+/* The reason column takes what it needs, up to 22rem, so a line's size
+ * ("32,535 USD mn of exports, 12 months") is not cut to "32,535 USD ...". */
 .search-results-large .search-result-open {
-  grid-template-columns: 34px minmax(64px, max-content) minmax(0, 1fr) 92px;
+  grid-template-columns: 34px minmax(64px, max-content) minmax(0, 1fr) minmax(92px, max-content);
+}
+
+.search-results-large .search-result-open .result-reason {
+  max-width: 22rem;
 }
 
 @media (max-width: 760px) {
@@ -2137,6 +2143,14 @@
   border-radius: 6px;
 }
 
+/* A filled button keeps its fill when the keys land on it; a soft panel
+ * behind its light text made "Open" unreadable (1.06:1). The ring alone marks
+ * it, outside the button so it does not sit on the fill. */
+.search-hub .answer-open.kb-active {
+  background: var(--navy);
+  outline-offset: 2px;
+}
+
 .search-hints {
   display: flex;
   flex-wrap: wrap;
@@ -2310,4 +2324,46 @@
 :root[data-theme="dark"] .mark-tip {
   background: #2c3846;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* Availability: when Comtrade was checked, when we last pulled, next check. */
+.avail-dates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  margin: 12px 0 0;
+}
+
+.avail-dates div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.avail-dates dt {
+  color: var(--faint);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
+.avail-dates dd {
+  margin: 0;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Dark theme: these fill with --navy, which dark mode lightens to a pale
+ * blue-grey. White text on it fails contrast (the workspace PDF button, the
+ * HStack "add the missing codes" button); dark text on it passes. */
+:root[data-theme="dark"] :is(
+  .toggles button.active,
+  .search-open,
+  .history-range-controls button.active,
+  .stack-count,
+  .family-add,
+  .rail-generate button.primary
+) {
+  color: var(--bg);
 }

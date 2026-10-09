@@ -300,6 +300,10 @@ export type Headline = {
   indiaImportShare: number | null
   indiaExportRank: number | null
   indiaExportShare: number | null
+  /* India's position rests on an estimate: she has not filed this flow for
+   * this year, so the rank is where her projected value would sit. */
+  indiaImportEstimated: boolean
+  indiaExportEstimated: boolean
   /* Out of how many economies, where the snapshot says. */
   importersCount: number | null
   exportersCount: number | null
@@ -321,6 +325,8 @@ export function headlineFor(node: HsNode, year: number): Headline {
     indiaImportShare: null,
     indiaExportRank: null,
     indiaExportShare: null,
+    indiaImportEstimated: false,
+    indiaExportEstimated: false,
     importersCount: null,
     exportersCount: null,
     published: false,
@@ -358,6 +364,8 @@ export function headlineFor(node: HsNode, year: number): Headline {
       (record.india.exports !== null && observed.grossExports
         ? record.india.exports / observed.grossExports
         : null),
+    indiaImportEstimated: Boolean(importPosition?.estimated ?? record.india.importsEstimated),
+    indiaExportEstimated: Boolean(exportPosition?.estimated ?? record.india.exportsEstimated),
     importersCount: importPosition?.of ?? null,
     exportersCount: exportPosition?.of ?? null,
     published: true,

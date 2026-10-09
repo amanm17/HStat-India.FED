@@ -405,7 +405,11 @@ export function RankedTable({
 
           {canViewAll && (limit === 10 || !more) && (
             <button type="button" className="rf-viewall" onClick={onViewAll}>
-              View all{fullCount > rows.length || complete ? ` ${fullCount}` : ''}
+              {complete
+                ? `View all ${fullCount}`
+                : fullCount > rows.length
+                  ? `View top ${rows.length} of ${fullCount}`
+                  : 'View all'}
             </button>
           )}
 
