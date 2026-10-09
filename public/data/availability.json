@@ -1,138 +1,138 @@
 {
  "source": "UN Comtrade data availability (public getDA endpoint)",
  "sourceUrl": "https://comtradeplus.un.org/Visualization/DADashboard",
- "fetchedAt": "2026-09-18T09:10:35.440571+00:00",
- "builtAt": "2026-10-09T05:16:39.681951+00:00",
+ "fetchedAt": "2026-10-09T07:19:06.304866+00:00",
+ "builtAt": "2026-10-09T07:19:07.485763+00:00",
  "snapshotRefreshedAt": "2026-10-08T06:43:59.626680+00:00",
- "lastPullAt": "2026-10-07T10:55:19+00:00",
+ "lastPullAt": "2026-10-07T10:55:19Z",
  "schedule": "Checked on the 1st of each month and after every monthly data refresh (5th-7th).",
  "annual": [
   {
    "period": "2021",
    "reporters": 172,
-   "latestRelease": "2026-09-08"
+   "latestRelease": "2026-10-08"
   },
   {
    "period": "2022",
-   "reporters": 169,
-   "latestRelease": "2026-09-11"
+   "reporters": 170,
+   "latestRelease": "2026-10-05"
   },
   {
    "period": "2023",
-   "reporters": 167,
-   "latestRelease": "2026-09-10"
+   "reporters": 168,
+   "latestRelease": "2026-10-08"
   },
   {
    "period": "2024",
-   "reporters": 141,
-   "latestRelease": "2026-09-16"
+   "reporters": 146,
+   "latestRelease": "2026-10-09"
   },
   {
    "period": "2025",
-   "reporters": 100,
-   "latestRelease": "2026-09-16"
+   "reporters": 117,
+   "latestRelease": "2026-10-09"
   }
  ],
  "monthly": [
   {
    "period": "202501",
-   "reporters": 100,
-   "latestRelease": "2026-09-11"
+   "reporters": 101,
+   "latestRelease": "2026-10-07"
   },
   {
    "period": "202502",
-   "reporters": 97,
-   "latestRelease": "2026-09-11"
+   "reporters": 98,
+   "latestRelease": "2026-10-07"
   },
   {
    "period": "202503",
-   "reporters": 96,
-   "latestRelease": "2026-09-11"
+   "reporters": 97,
+   "latestRelease": "2026-10-07"
   },
   {
    "period": "202504",
-   "reporters": 97,
-   "latestRelease": "2026-09-11"
+   "reporters": 98,
+   "latestRelease": "2026-10-07"
   },
   {
    "period": "202505",
    "reporters": 96,
-   "latestRelease": "2026-09-11"
+   "latestRelease": "2026-10-03"
   },
   {
    "period": "202506",
    "reporters": 95,
-   "latestRelease": "2026-09-11"
+   "latestRelease": "2026-10-03"
   },
   {
    "period": "202507",
    "reporters": 94,
-   "latestRelease": "2026-09-11"
+   "latestRelease": "2026-10-03"
   },
   {
    "period": "202508",
    "reporters": 94,
-   "latestRelease": "2026-09-11"
+   "latestRelease": "2026-10-03"
   },
   {
    "period": "202509",
    "reporters": 94,
-   "latestRelease": "2026-09-11"
+   "latestRelease": "2026-10-03"
   },
   {
    "period": "202510",
    "reporters": 91,
-   "latestRelease": "2026-09-11"
+   "latestRelease": "2026-10-03"
   },
   {
    "period": "202511",
    "reporters": 92,
-   "latestRelease": "2026-09-11"
+   "latestRelease": "2026-10-03"
   },
   {
    "period": "202512",
    "reporters": 92,
-   "latestRelease": "2026-09-11"
+   "latestRelease": "2026-10-03"
   },
   {
    "period": "202601",
-   "reporters": 84,
-   "latestRelease": "2026-09-16"
+   "reporters": 85,
+   "latestRelease": "2026-10-08"
   },
   {
    "period": "202602",
-   "reporters": 83,
-   "latestRelease": "2026-09-16"
+   "reporters": 84,
+   "latestRelease": "2026-10-08"
   },
   {
    "period": "202603",
-   "reporters": 83,
-   "latestRelease": "2026-09-16"
+   "reporters": 84,
+   "latestRelease": "2026-10-08"
   },
   {
    "period": "202604",
-   "reporters": 76,
-   "latestRelease": "2026-09-17"
+   "reporters": 77,
+   "latestRelease": "2026-10-08"
   },
   {
    "period": "202605",
-   "reporters": 68,
-   "latestRelease": "2026-09-17"
+   "reporters": 70,
+   "latestRelease": "2026-10-08"
   },
   {
    "period": "202606",
-   "reporters": 53,
-   "latestRelease": "2026-09-17"
+   "reporters": 63,
+   "latestRelease": "2026-10-08"
   },
   {
    "period": "202607",
-   "reporters": 31,
-   "latestRelease": "2026-09-18"
+   "reporters": 47,
+   "latestRelease": "2026-10-08"
   },
   {
    "period": "202608",
-   "reporters": 1,
-   "latestRelease": "2026-09-15"
+   "reporters": 18,
+   "latestRelease": "2026-10-08"
   }
  ],
  "holes": [
@@ -613,7 +613,7 @@
    "sample": [
     "850740"
    ],
-   "filedSince": false
+   "filedSince": true
   },
   {
    "period": "2025",
@@ -633,7 +633,7 @@
    "sample": [
     "851770"
    ],
-   "filedSince": false
+   "filedSince": true
   },
   {
    "period": "2025",
