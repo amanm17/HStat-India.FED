@@ -40,7 +40,7 @@ import type {
 } from '../types'
 import { loadHsNodes } from '../lib/data'
 import { TILES, type Workspace } from '../lib/workspace'
-import { delta, monthLabel, nameOf, ordinal, pct, plural, usd } from '../lib/format'
+import { delta, monthLabel, nameOf, ordinal, pct, plural, shareText, usd } from '../lib/format'
 import { money, rateNote } from '../lib/currency'
 import { palette } from '../lib/palette'
 import { usePageHelp } from '../lib/pagehelp'
@@ -80,6 +80,7 @@ import {
   PullData,
 } from './ProductView'
 import {
+  DecimalsControl,
   FigureTile,
   jumpTo,
   Markers,
@@ -440,6 +441,8 @@ export function ProductPage(props: Props) {
             ]}
           />
         </div>
+
+        <DecimalsControl />
 
         </div>
 
@@ -1305,8 +1308,8 @@ function TariffBox({
               <small> {unit}, 12 months</small>
             </span>
             <span className="rf-tariff-meta">
-              {tile.share !== null ? `${(tile.share * 100).toFixed(1)}% of heading` : 'share —'}
-              {tile.change !== null ? ` · ${tile.change >= 0 ? '▲' : '▼'} ${Math.abs(tile.change * 100).toFixed(1)}% on prior 12` : ''}
+              {tile.share !== null ? `${shareText(tile.share)} of heading` : 'share —'}
+              {tile.change !== null ? ` · ${tile.change >= 0 ? '▲' : '▼'} ${pct(Math.abs(tile.change))} on prior 12` : ''}
             </span>
           </button>
         ))}

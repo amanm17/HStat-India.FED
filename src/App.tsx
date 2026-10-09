@@ -81,6 +81,7 @@ import {
 import { saveReport as saveReportFile } from './lib/report'
 import { useLook } from './lib/look'
 import { LookSwitch } from './components/LookSwitch'
+import { useDecimals } from './components/ui'
 import { MarkTip } from './components/MarkTip'
 import { AmanMark } from './components/AmanMark'
 import { hs8Document, productDocument, type ReportEntry } from './lib/reportdata'
@@ -204,6 +205,12 @@ function App() {
 
   const [recent, setRecent] = useState<string[]>([])
   const [dark, setDark] = useState(false)
+
+  /* The Decimals setting lives in lib/format and is read while rendering.
+   * Subscribing here re-renders the whole page when it changes, so every
+   * figure moves at once - and it outlives navigation, because it is not
+   * any one page's state. */
+  useDecimals()
 
   /*
    * What the page currently on screen says about itself, for the help card.

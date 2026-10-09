@@ -9,7 +9,7 @@ import {
   refreshDue,
   type Availability as Data,
 } from '../lib/availability'
-import { plural, usd } from '../lib/format'
+import { pct, plural, usd } from '../lib/format'
 import { usePageHelp } from '../lib/pagehelp'
 import { usePhone } from '../lib/viewport'
 import { Rows } from './Rows'
@@ -206,7 +206,7 @@ export function Availability({
                 },
                 {
                   label: 'Share of the best year',
-                  value: `${Math.round((row.reporters / peak) * 100)}%`,
+                  value: pct(row.reporters / peak, 0),
                   numeric: true,
                 },
               ],

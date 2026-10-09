@@ -1,3 +1,5 @@
+import { decimalPlaces, fixed, grouped } from './format'
+
 /*
  * India's own tariff-line detail, from DGCIS.
  *
@@ -534,6 +536,18 @@ export function formatValue(value: number | null): string {
   if (value === null || value === undefined) return '—'
 
   if (value === 0) return '0'
+
+  /* The reader's decimal places, when they chose some: the same rule of
+   * never printing a traded month as nothing, at that precision. */
+  const chosen = decimalPlaces()
+
+  if (chosen !== null) {
+    const text = fixed(value, chosen)
+
+    if (Number(text) === 0) return `<${chosen === 0 ? '1' : `0.${'0'.repeat(chosen - 1)}1`}`
+
+    return grouped(value, chosen)
+  }
 
   if (Math.abs(value) < 0.01) return '<0.01'
 

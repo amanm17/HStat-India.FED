@@ -1,5 +1,5 @@
 import type { CurrencyBlock, CurrencyMode, RateEntry } from '../types'
-import { inr, usd } from './format'
+import { fixed, inr, places, usd } from './format'
 
 /*
  * Converting a displayed figure to rupees.
@@ -251,10 +251,10 @@ export function rateNote(
   }
 
   if (entry.substitute) {
-    return `Converted at ₹${entry.rate.toFixed(2)}/$ (${entry.substitute} average; no ${periodLabel(period, basis)} rate)`
+    return `Converted at ₹${fixed(entry.rate, places(2))}/$ (${entry.substitute} average; no ${periodLabel(period, basis)} rate)`
   }
 
-  return `Converted at ₹${entry.rate.toFixed(2)}/$ (${periodLabel(period, basis)} average)`
+  return `Converted at ₹${fixed(entry.rate, places(2))}/$ (${periodLabel(period, basis)} average)`
 }
 
 export function periodLabel(period: string, basis?: Basis): string {

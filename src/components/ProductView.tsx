@@ -38,6 +38,8 @@ import {
   plural,
   usd,
   nameOf,
+  fixed,
+  places,
 } from '../lib/format'
 import { comtradeQueryUrl, datasetsFor } from '../lib/comtrade'
 import { standing, sideCaption } from '../lib/standing'
@@ -1115,7 +1117,7 @@ export function buildDependency(node: HsNode, year: number): string[] {
 
   if (suppliers.hhi != null) {
     rows.push(
-      `Supplier HHI is ${suppliers.hhi.toFixed(3)} (${concentrationLabel(
+      `Supplier HHI is ${fixed(suppliers.hhi, places(3))} (${concentrationLabel(
         suppliers.hhi,
       ).toLowerCase()} concentration).`,
     )

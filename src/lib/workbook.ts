@@ -25,7 +25,9 @@ import type { CatalogueEntry, CurrencyMode, HsNode, Manifest } from '../types'
 import { writeXlsx, type Cell, type CellStyle, type SheetSpec } from './xlsx'
 import { headlineFor, loadDetail, rankingFor, type RankKind, type ScopeSummary } from './scope'
 import { flowWord, flowsOf, formatPeriod, monthGrid, seriesFor, type DgcisFlow, type DgcisNode } from './dgcis'
-import { monthLabel, nameOf, ordinal, pct, usd } from './format'
+/* Files keep the designed precision: the on-screen Decimals choice is for
+ * reading, and never changes what a download says. */
+import { monthLabel, nameOf, ordinal, pctFixed as pct, usdFixed as usd } from './format'
 
 export type PageContext = {
   manifest: Manifest

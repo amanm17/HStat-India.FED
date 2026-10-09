@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 
-import { pct, usd } from '../lib/format'
+import { pct, shareText, usd } from '../lib/format'
 import { downloadCsv, downloadJson, downloadXlsx } from '../lib/export'
 
 export function Metric({
@@ -365,7 +365,7 @@ export function Estimated({
 }) {
   if (share === null || share === undefined || share <= 0) return null
 
-  const pct = share < 0.001 ? '<0.1%' : `${(share * 100).toFixed(1)}%`
+  const pct = shareText(share)
 
   const detail =
     reporters && reporters > 0
@@ -401,9 +401,7 @@ export function estimateTip(
   const pct =
     share === null || share === undefined
       ? null
-      : share < 0.001
-        ? 'under 0.1%'
-        : `${(share * 100).toFixed(1)}%`
+      : shareText(share).replace(/^</, 'under ')
 
   if (kind === 'country') {
     if (share !== null && share !== undefined && share >= 0.999) {

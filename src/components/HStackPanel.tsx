@@ -30,7 +30,7 @@ import {
   loadDgcisIndex,
   type DgcisIndexEntry,
 } from '../lib/dgcis'
-import { concentrationLabel, pct, usd } from '../lib/format'
+import { concentrationLabel, fixed, pct, places, usd } from '../lib/format'
 import { palette } from '../lib/palette'
 import { downloadCsv, downloadXlsx } from '../lib/export'
 import {
@@ -715,7 +715,7 @@ export function HStackPanel({
                       code: row.code,
                       label: row.name,
                       value: usd(row.value),
-                      share: `${row.sharePct.toFixed(1)}%`,
+                      share: `${fixed(row.sharePct, places(1))}%`,
                     }))}
                   />
                 ) : (
@@ -756,7 +756,7 @@ export function HStackPanel({
                         <Tooltip
                           formatter={(value: unknown, _name, item) =>
                             [
-                              `${Number(value).toFixed(1)}%`,
+                              `${fixed(Number(value), places(1))}%`,
                               usd(
                                 (item?.payload as { value?: number })?.value ??
                                   null,
@@ -825,7 +825,7 @@ export function HStackPanel({
                           summary.supplierCoverage,
                           0,
                         )} of India's imports in the stack. HHI ${
-                          summary.supplierHhi?.toFixed(3) ?? '—'
+                          (summary.supplierHhi === null ? '—' : fixed(summary.supplierHhi, places(3)))
                         } (${concentrationLabel(
                           summary.supplierHhi,
                         ).toLowerCase()} concentration).`

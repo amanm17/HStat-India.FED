@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ArrowUpRight } from 'lucide-react'
+import { fixed, places } from '../lib/format'
 
 import {
   formatPeriod,
@@ -145,7 +146,7 @@ export function HomeTariffLines({
                 <button onClick={() => onOpenHs8?.(line.hs8)}>
                   <span className="home-hs8-code">{line.hs8}</span>
                   <span className="home-hs8-name">{line.title || line.headingName}</span>
-                  <span className="home-hs8-value up">{lift.toFixed(1)}×</span>
+                  <span className="home-hs8-value up">{fixed(lift, places(1))}×</span>
                 </button>
               </li>
             ))}

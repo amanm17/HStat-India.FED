@@ -385,8 +385,8 @@ export function Guide({
         <p>
           Above the name, one line says what the page is: the level, the code,
           its segment and its group. It is a description, not a set
-          of buttons. Below the name, the year and currency controls sit
-          together on the left and the actions (download, add to HStack, pin)
+          of buttons. Below the name, the year, currency and decimals controls
+          sit together on the left and the actions (download, add to HStack, pin)
           on the right; every control on the site is the same height, so a
           row of them reads as one row.
         </p>
@@ -760,6 +760,18 @@ export function Guide({
           <strong>the two are never converted between each other</strong>:
           both are as published, and neither can be used to derive an exchange
           rate from the other.
+        </p>
+
+        <p>
+          <strong>Decimals</strong>, beside Year and Currency, sets how many
+          decimal places every figure on screen shows. Its two buttons are the
+          spreadsheet ones: <kbd>.0 ←</kbd> removes a place and{' '}
+          <kbd>.00 →</kbd> adds one, from 0 to 6, moving every figure at once.
+          Between them it shows <em>Auto</em> or the number of places; press
+          the number to return to Auto, where each figure keeps its usual
+          precision. Rounding is to the nearest, halves away from zero, exactly
+          as a calculator would. The choice stays as you move between pages.
+          Downloads always carry the full values.
         </p>
 
         <h3>9.2 &nbsp;Time</h3>

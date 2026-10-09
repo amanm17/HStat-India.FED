@@ -2368,103 +2368,215 @@
   color: var(--bg);
 }
 
-/* ===================================================== phone: tidy layout
+/* ===================================================== page controls
  *
- * Phones (9 October 2026). On a narrow screen the desktop row of
- * label-beside-control wrapped into a ragged, centred stack: YEAR beside
- * one box, CURRENCY beside a narrower one, the button floating under both.
- * Here every control sits in a two-column grid with its label above it, all
- * the same height and full width, and the actions line up beneath in the
- * same grid.
+ * Year, Currency and Decimals (and Year basis on a tariff line), compact
+ * (9 October 2026). Each control says what it is by what it shows - 2025,
+ * USD | INR, .0 Auto .00 - so the separate uppercase labels are kept for
+ * screen readers only, and the row takes its natural width instead of
+ * stretching. Desktop controls are 36px; touch keeps 44px targets.
  */
+.rf-home-hero .rf-controls .rf-control > span:first-child,
+.rf-furniture-controls .rf-control > span:first-child {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.rf-home-hero .rf-controls,
+.rf-furniture-controls {
+  gap: 8px;
+}
+
+.rf-furniture {
+  gap: 10px 16px;
+}
+
+@media (min-width: 641px) and (pointer: fine) {
+  .rf-home-hero,
+  .rf-furniture {
+    --ctl-h: 36px;
+  }
+
+  .rf-home-hero .rf-control select,
+  .rf-furniture .rf-control select {
+    min-width: 0;
+    font-size: 15px;
+  }
+}
+
+.rf-home-hero .rf-control select,
+.rf-furniture-controls .rf-control select {
+  padding-left: 12px;
+  padding-right: 30px;
+  background-position: right 10px center;
+}
+
+/* Decimals: .0 ← | Auto | .00 → in one track. The spreadsheet glyphs are
+ * digits over an arrow; the middle is the state, and resets when it shows
+ * a number. */
+.rf-stepper .rf-dp {
+  min-width: var(--ctl-h);
+  padding: 0 8px;
+  flex-direction: column;
+  gap: 0;
+  line-height: 1;
+}
+
+.rf-dp-digits {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.rf-dp-arrow {
+  flex: none;
+  margin-top: 1px;
+}
+
+.rf-stepper .rf-dp:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
+.rf-stepper .rf-decimals-state {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  padding: 0 6px;
+  border-left: 1px solid var(--border-strong);
+  border-right: 1px solid var(--border-strong);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.rf-stepper .rf-decimals-reset {
+  display: inline-flex;
+  align-items: stretch;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: var(--navy);
+  cursor: pointer;
+}
+
+.rf-stepper .rf-decimals-reset .rf-decimals-state {
+  min-width: 36px;
+  border-color: var(--navy);
+  color: var(--panel);
+  font-size: 13px;
+}
+
+.rf-stepper .rf-decimals-reset:hover {
+  opacity: 0.9;
+}
+
+:root[data-theme="dark"] .rf-stepper .rf-decimals-reset .rf-decimals-state {
+  color: var(--bg);
+}
+
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  .rf-stepper .rf-decimals-reset .rf-decimals-state {
+    min-width: 44px;
+  }
+}
+
+/* ============================================================ phones */
 @media (max-width: 640px) {
-  .rf-home-hero .rf-controls,
+  /* Product and tariff-line pages: the controls in one row at their own
+   * width, wrapping only if a screen is too narrow for them. */
   .rf-furniture-controls {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 12px;
-    width: 100%;
-    justify-content: stretch;
-  }
-
-  .rf-home-hero .rf-controls .rf-control,
-  .rf-furniture-controls .rf-control {
     display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 6px;
-    min-width: 0;
+    flex-wrap: wrap;
+    width: 100%;
   }
 
-  .rf-home-hero .rf-controls .rf-control > span,
-  .rf-furniture-controls .rf-control > span {
-    font-size: 12px;
-    line-height: 1.2;
+  .rf-furniture-controls .rf-segmented button,
+  .rf-home-hero .rf-controls .rf-segmented button {
+    padding: 0 10px;
   }
 
-  .rf-home-hero .rf-controls .rf-control select,
+  .rf-stepper .rf-dp {
+    padding: 0 6px;
+  }
+
+  .rf-stepper > .rf-decimals-state {
+    min-width: 38px;
+    padding: 0 4px;
+  }
+
+  .rf-home-hero .rf-control select,
   .rf-furniture-controls .rf-control select {
-    width: 100%;
+    width: auto;
     min-width: 0;
   }
 
-  .rf-home-hero .rf-controls .rf-segmented,
-  .rf-furniture-controls .rf-segmented {
+  /* The front page: the search box with Download beside it, then the
+   * toggles on one line under it, at their own widths. */
+  .rf-home-hero {
     display: flex;
-    width: 100%;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 8px;
   }
 
-  .rf-home-hero .rf-controls .rf-segmented button,
-  .rf-furniture-controls .rf-segmented button {
-    flex: 1 1 0;
+  .rf-home-hero .rf-home-search {
+    order: 0;
+    flex: 1 1 calc(100% - 64px);
     min-width: 0;
-    padding: 0 8px;
   }
 
-  /* The front page: Year, Currency and Download on one line. Download has
-   * no label of its own, so it sits on the controls' baseline, and drops
-   * the word "data" (its menu says what is downloaded). */
   .rf-home-hero .rf-controls {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) auto;
-    gap: 8px;
-    align-items: end;
+    display: contents;
   }
 
-  .rf-home-hero .rf-controls .rf-control select {
-    padding-right: 28px;
-    padding-left: 10px;
-    background-position: right 9px center;
+  .rf-home-hero .rf-controls .rf-download {
+    order: 1;
+    flex: 0 0 auto;
   }
 
-  .rf-home-hero .rf-controls .rf-download > .rf-button {
-    padding: 0 12px;
-    gap: 6px;
-    font-size: 14px;
+  .rf-home-hero .rf-controls > .rf-control {
+    order: 2;
+    flex: 0 0 auto;
   }
 
-  .rf-home-hero .rf-controls .rf-download-rest {
+  .rf-home-hero .rf-controls .download-master {
+    width: 52px;
+    height: 52px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  /* Icon only; the button keeps its name in aria-label. */
+  .rf-home-hero .rf-controls .download-master > span {
     display: none;
   }
 
-  /* One height for the row. The segmented track's border makes it 46px on
-   * touch (each option keeps a full 44px target), so the select and the
-   * button match it and the two labels sit on one line. */
-  .rf-home-hero .rf-controls .rf-control select,
-  .rf-home-hero .rf-controls .download-master,
-  .rf-furniture-controls .rf-control select {
-    height: 46px;
-    min-height: 46px;
+  .rf-home-hero .rf-controls .download-master svg {
+    width: 20px;
+    height: 20px;
   }
 
-  .rf-furniture {
-    gap: 12px;
+  .rf-home-search .search-primary {
+    min-height: 52px;
   }
 
-  /* Actions: the same two columns; an odd one out takes the full row. */
+  /* Actions: two equal columns; an odd one out takes the full row. */
   .rf-furniture-actions {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 10px;
+    gap: 8px;
     width: 100%;
     margin-left: 0;
   }
@@ -2482,11 +2594,26 @@
   }
 
   .rf-furniture-actions .rf-button,
-  .rf-furniture-actions .stack-add {
+  .rf-furniture-actions .stack-add,
+  .rf-furniture-actions .pulldata > .stack-add {
     justify-content: center;
     padding-left: 10px;
     padding-right: 10px;
     font-size: 14px;
+    font-weight: 700;
+  }
+}
+
+/* The narrowest phones (320px): action labels tighten to fit beside their
+ * icons. */
+@media (max-width: 360px) {
+    .rf-furniture-actions .rf-button,
+  .rf-furniture-actions .stack-add,
+  .rf-furniture-actions .pulldata > .stack-add {
+    gap: 5px;
+    padding-left: 6px;
+    padding-right: 6px;
+    font-size: 13px;
   }
 }
 
@@ -2559,16 +2686,3 @@
   }
 }
 
-/* The narrowest phones (320px): Download becomes its icon alone, so Year
- * keeps room for "2025". The button keeps its name for screen readers. */
-@media (max-width: 360px) {
-  .rf-home-hero .rf-controls .download-master > span {
-    display: none;
-  }
-
-  .rf-home-hero .rf-controls .download-master {
-    width: 46px;
-    padding: 0;
-    justify-content: center;
-  }
-}

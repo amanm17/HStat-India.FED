@@ -12,8 +12,8 @@
  * drawn in the Global Trade colour, India's import partners in the India
  * Imports colour, and so on, so a hue means the same thing on every page.
  */
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { ChevronDown, ChevronRight, Plus, Minus } from 'lucide-react'
+import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react'
+import { ArrowLeft, ArrowRight, ChevronDown, ChevronRight, Plus, Minus } from 'lucide-react'
 import {
   Bar,
   BarChart,
@@ -25,7 +25,16 @@ import {
 } from 'recharts'
 
 import { Estimated, Mark, Tabs, estimateTip, type ChartView } from './primitives'
-import { ordinal, pct } from '../lib/format'
+import {
+  MAX_PLACES,
+  MIN_PLACES,
+  decimalPlaces,
+  ordinal,
+  pct,
+  setDecimalPlaces,
+  shareText,
+  subscribeDecimals,
+} from '../lib/format'
 import type { RankRow } from '../lib/scope'
 import { palette } from '../lib/palette'
 
@@ -453,7 +462,7 @@ function RankLine({
         {formatValue(row.value)}
         {row.estimated && <Mark tip={estimateTip(row.estimatedShare, row.name, nameLabel === 'Product' ? 'line' : 'country')} />}
       </td>
-      <td className="num rf-share-col">{row.share === null ? '—' : pct(row.share, 1)}</td>
+      <td className="num rf-share-col">{shareText(row.share)}</td>
       {extraColumns.map(column => (
         <td key={column.key} className={column.numeric ? 'num' : undefined}>
           {column.render(row)}
@@ -490,6 +499,75 @@ export function Segmented<T extends string>({
           {option.label}
         </button>
       ))}
+    </div>
+  )
+}
+
+/* The reader's decimal places, live: re-renders when they change. */
+export function useDecimals(): number | null {
+  return useSyncExternalStore(subscribeDecimals, decimalPlaces, decimalPlaces)
+}
+
+/*
+ * Decimals: a compact switch beside Year and Currency.
+ *
+ * The outer buttons are the spreadsheet ones - "decrease decimal" (.0 with
+ * an arrow left) and "increase decimal" (.00 with an arrow right) - and move
+ * every figure on screen one place in either direction, from 0 to
+ * MAX_PLACES, rounded half away from zero on the decimal itself (lib/format
+ * fixed). The middle says where it stands: Auto, or the number of places,
+ * which returns to Auto when pressed. One setting for the whole site, kept
+ * between visits. Downloads are not affected.
+ */
+export function DecimalsControl() {
+  const value = useDecimals()
+
+  /* From Auto, the first step is relative to money's two places. */
+  const step = (direction: 1 | -1) =>
+    setDecimalPlaces(value === null ? 2 + direction : value + direction)
+
+  return (
+    <div className="rf-control rf-decimals">
+      <span>Decimals</span>
+      <div className="rf-segmented rf-stepper" role="group" aria-label="Decimal places">
+        <button
+          type="button"
+          className="rf-dp"
+          aria-label="Decrease decimal places"
+          title="Decrease decimal places"
+          disabled={value === MIN_PLACES}
+          onClick={() => step(-1)}
+        >
+          <span className="rf-dp-digits">.0</span>
+          <ArrowLeft className="rf-dp-arrow" size={10} strokeWidth={2.8} aria-hidden />
+        </button>
+        {value === null ? (
+          <span className="rf-decimals-state" title="Each figure at its own precision">
+            Auto
+          </span>
+        ) : (
+          <button
+            type="button"
+            className="rf-decimals-reset"
+            title="Back to Auto"
+            aria-label={`${value} decimal ${value === 1 ? 'place' : 'places'}. Press to return to automatic`}
+            onClick={() => setDecimalPlaces(null)}
+          >
+            <span className="rf-decimals-state">{value}</span>
+          </button>
+        )}
+        <button
+          type="button"
+          className="rf-dp"
+          aria-label="Increase decimal places"
+          title="Increase decimal places"
+          disabled={value === MAX_PLACES}
+          onClick={() => step(1)}
+        >
+          <span className="rf-dp-digits">.00</span>
+          <ArrowRight className="rf-dp-arrow" size={10} strokeWidth={2.8} aria-hidden />
+        </button>
+      </div>
     </div>
   )
 }

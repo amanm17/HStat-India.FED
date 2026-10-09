@@ -17,7 +17,7 @@ import type { SavedReport } from '../lib/workspace'
 import { SearchHub, type Command } from './SearchHub'
 import { DownloadMenu } from './DownloadMenu'
 import { HomeTariffLines } from './HomeTariffLines'
-import { FigureTile, Markers, RankedTable, Segmented } from './ui'
+import { DecimalsControl, FigureTile, Markers, RankedTable, Segmented } from './ui'
 import { latestScopeYear, loadScope, type RankRow, type ScopeSummary } from '../lib/scope'
 import { money } from '../lib/currency'
 import { nameOf, pct, usd } from '../lib/format'
@@ -292,6 +292,8 @@ export function HomePage({
               ]}
             />
           </div>
+
+          <DecimalsControl />
 
           {scope && record && year !== null && (
             <DownloadMenu

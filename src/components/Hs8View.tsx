@@ -13,9 +13,9 @@ import { DownloadMenu } from './DownloadMenu'
 
 import type { CatalogueEntry, Manifest } from '../types'
 import { palette } from '../lib/palette'
-import { ordinal, pct, plural, usd } from '../lib/format'
+import { delta, ordinal, pct, plural, shareText, usd } from '../lib/format'
 import { Tabs, type ChartView } from './primitives'
-import { FigureTile, Segmented } from './ui'
+import { DecimalsControl, FigureTile, Segmented } from './ui'
 import { usePageHelp } from '../lib/pagehelp'
 import { usePhone } from '../lib/viewport'
 import { Rows } from './Rows'
@@ -229,7 +229,7 @@ export function Hs8View({
               note:
                 helpChange === null
                   ? undefined
-                  : `${helpChange >= 0 ? '+' : ''}${(helpChange * 100).toFixed(1)}% on the 12 before`,
+                  : `${delta(helpChange)} on the 12 before`,
             }
           : null,
         mine && mine.share !== null
@@ -410,6 +410,8 @@ export function Hs8View({
           />
         </div>
 
+        <DecimalsControl />
+
         </div>
 
         <div className="rf-furniture-actions">
@@ -568,7 +570,7 @@ export function Hs8View({
                       { label: `${unit} (12\u00a0months)`, value: formatValue(item.twelve), lead: true, numeric: true },
                       {
                         label: 'Share of heading',
-                        value: item.share === null ? '—' : item.share >= 0.001 ? `${(item.share * 100).toFixed(1)}%` : '<0.1%',
+                        value: shareText(item.share),
                         numeric: true,
                       },
                     ],
@@ -603,7 +605,7 @@ export function Hs8View({
                         </td>
                         <td className="num">{formatValue(item.twelve)}</td>
                         <td className="num">
-                          {item.share === null ? '—' : item.share >= 0.001 ? `${(item.share * 100).toFixed(1)}%` : '<0.1%'}
+                          {shareText(item.share)}
                         </td>
                       </tr>
                     ))}

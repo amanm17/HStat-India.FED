@@ -177,6 +177,7 @@ node qa/suite/overlap.mjs          # 3,068 — 15 pages × 7 shapes × 2 themes,
                                    # at rest and with everything opened
 LOOK=aman node qa/suite/overlap.mjs
 node qa/suite/easteregg.mjs        # 36 — the ~AM1708 switch, end to end
+node qa/suite/decimals.mjs         # 21 — the Decimals switch: exact rounding, every page, persists
 LOOK=aman node --import ./qa/suite/look-env.mjs qa/suite/mobile.mjs   # any suite, secret look
 ```
 
