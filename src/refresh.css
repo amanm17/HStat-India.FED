@@ -3132,3 +3132,26 @@
 .avail-table .avail-bar {
   min-width: 160px;
 }
+
+/* ------------------------------------------------- fixed title strip */
+
+/* The title strip runs the full width, and the left rail starts below its
+ * Indigo line. The page body still steps right by the rail's width; the
+ * strip steps back left by exactly the same amount, on the same timing, so
+ * opening or closing the rail never moves the logo or the title. */
+@media (min-width: 901px) {
+  .topbar {
+    margin-left: calc(-1 * var(--nav-width));
+    transition: margin-left 0.16s ease;
+  }
+
+  .navrail {
+    top: 72px;
+  }
+
+  /* The old gap above Home made room for a header beside the rail; with
+   * the rail below the strip it is just empty space. */
+  .nav-top {
+    padding-top: 6px;
+  }
+}
