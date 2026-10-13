@@ -11,7 +11,7 @@ import {
 } from '../lib/dgcis'
 
 /*
- * DGCIS Reporting: India's own tariff lines, on the front page.
+ * DGCIS reporting: India's own tariff lines, on the front page.
  *
  * Collapsed by default to one line - the world view above is what the page
  * is for, and this is India's customs data, a different source. Opened, it
@@ -74,7 +74,7 @@ export function HomeTariffLines({
         aria-controls="dgcis-body"
         onClick={() => setOpen(value => !value)}
       >
-        <h2 id="dgcis-reporting" className="rf-h2">DGCIS Reporting</h2>
+        <h2 id="dgcis-reporting" className="rf-h2">DGCIS reporting</h2>
         <span className="rf-dgcis-meta">
           India&rsquo;s {lines.length} tariff lines{latest ? `, to ${formatPeriod(latest)}` : ''}
         </span>
@@ -130,7 +130,7 @@ export function HomeTariffLines({
                         <td>{line.title || line.headingName}</td>
                         {/* Dollars with their unit, as every other table: the
                           * index carries USD only, so INR mode shows USD here
-                          * too, as the Global Trade tile does. */}
+                          * too, as the Global trade tile does. */}
                         <td className="num money">{usd(size * 1e6)}</td>
                       </tr>
                     ))}

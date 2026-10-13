@@ -216,7 +216,7 @@ const audit = () => {
 
     for (const row of table.querySelectorAll('tr')) {
       ;columnsOf(row).forEach(([cell, i]) => {
-        if (!cell.classList.contains('num') || !visible(cell)) return
+        if (!cell.classList.contains('num') || !visible(cell) || cell.closest('.sr-only-head')) return
 
         const right = cell.getBoundingClientRect().right
         const seen = byIndex.get(i) ?? []
@@ -263,7 +263,7 @@ const audit = () => {
 
     for (const row of table.querySelectorAll('tr')) {
       ;columnsOf(row).forEach(([cell, i]) => {
-        if (!cell.classList.contains('money') || !visible(cell)) return
+        if (!cell.classList.contains('money') || !visible(cell) || cell.closest('.sr-only-head')) return
         const left = textLeft(cell)
         if (left === null) return
         const seen = byIndex.get(i) ?? []

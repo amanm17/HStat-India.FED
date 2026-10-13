@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { PageHeader } from './ui'
 import { ArrowUpRight } from 'lucide-react'
 
 import { loadAvailability, type Availability } from '../lib/availability'
@@ -144,17 +145,10 @@ export function Guide({
 
   return (
     <div className="guide-page">
-      <header className="guide-head">
-        <div className="eyebrow">HOW TO READ THIS DASHBOARD</div>
-
-        <h1>The guide</h1>
-
-        <p className="guide-lede">
-          Two different measurements sit side by side here, and most of what is
-          worth knowing is which one you are looking at. Ten chapters, in the
-          order the questions usually arrive.
-        </p>
-      </header>
+      <PageHeader
+        title="Guide"
+        sub="How to read the dashboard, in ten short chapters."
+      />
 
       <nav className="guide-toc" aria-label="Contents">
         <div className="guide-toc-label">Contents</div>
@@ -385,13 +379,15 @@ export function Guide({
         <p>
           Above the name, one line says what the page is: the level, the code,
           its segment and its group. It is a description, not a set
-          of buttons. Below the name, the year, currency and decimals controls
+          of buttons. The name is a short one; click it to see the full
+          official HS description for a few seconds. Below the name, the year,
+          currency and decimals controls
           sit together on the left and the actions (download, add to HStack, pin)
           on the right; every control on the site is the same height, so a
           row of them reads as one row.
         </p>
 
-        <h3>4.2 &nbsp;Global Trade</h3>
+        <h3>4.2 &nbsp;Global trade</h3>
 
         <p>
           Every reporting economy&rsquo;s imports from the world, added up, as
@@ -563,7 +559,7 @@ export function Guide({
         <Figure
           name="mark-tip"
           width={622}
-          alt="An explanation shown over an asterisk in the Top Importers table"
+          alt="An explanation shown over an asterisk in the Top importers table"
           caption="Every * and ** explains itself. Here the largest importer has not filed this year, so its value is projected from its own history."
         />
 
@@ -681,7 +677,7 @@ export function Guide({
 
         <ul className="guide-list">
           <li>
-            <strong>The left rail is places.</strong> Home, all tariff lines,
+            <strong>The left rail is places.</strong> Home, Indian trade lines (every tariff line),
             availability, the query builder, this guide, and whatever you have
             pinned or visited.
           </li>

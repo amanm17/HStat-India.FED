@@ -806,7 +806,7 @@
   margin-top: 18px;
   background: var(--panel);
   border: 1px solid var(--border);
-  border-left: 4px solid var(--accent);
+  border-top: 3px solid var(--navy);
   border-radius: var(--radius);
   scroll-margin-top: 140px;
 }
@@ -2847,4 +2847,288 @@
   .rf-dgcis-grid .rf-table th.money {
     white-space: normal;
   }
+}
+
+/* ------------------------------------------------- page title + official */
+
+/* The title is a quiet button: it looks like the title, lifts a shade on
+ * hover, and on click becomes the official HS wording for a
+ * few seconds (components/ui PageTitle). */
+.rf-title-swap {
+  display: inline-block;
+  max-width: 100%;
+  padding: 0;
+  white-space: normal;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* The only hover sign: the title's Indigo lifts a shade, enough to say
+ * "this responds" without decorating it. */
+.rf-title-swap {
+  transition: color 0.15s ease;
+}
+
+.rf-title-swap:hover {
+  color: #2f6aa3;
+}
+
+:root[data-theme="dark"] .rf-title-swap:hover {
+  color: #e7edf4;
+}
+
+.rf-title-swap:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+/* The official wording is long and legal: smaller, regular weight, in the
+ * title's own place and colour. */
+.rf-title-official {
+  display: block;
+  max-width: 72ch;
+  white-space: normal;
+  overflow-wrap: break-word;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.rf-title-name,
+.rf-title-official {
+  animation: rf-title-in 0.18s ease;
+}
+
+@keyframes rf-title-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rf-title-name,
+  .rf-title-official {
+    animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .rf-title-official {
+    font-size: 16px;
+  }
+}
+
+
+/* ------------------------------------------------- FED square corners */
+
+/* FED's cards and controls are square (0-2px). One block, so the rule is
+ * visible in one place: every card, control and code block here takes the
+ * 2px radius. The front-page search tile and its box keep their floating
+ * shape (a deliberate exception), circles and pills keep theirs, and the
+ * secret look keeps its own. */
+:root:not([data-look="aman"]) :is(
+  .lines-group, .tabstrip, .tabstrip button, .rf-cat, .rf-button, .rf-more,
+  .avail-hole, .avail-verdict, .guide-body img, .guide-chapter-n, .guide-toc,
+  .stack-toggle, .helpbutton, .nav-collapse, .rail-handle, .nav-item,
+  .stack-add, .basis-switch, .basis-switch button, .rf-segmented,
+  .rf-segmented button, .rf-stepper, kbd, select, input, textarea, pre, code,
+  .qb-out, .disclosure, .rf-provisional, .rf-tariff-tile, .hs8-parent-card,
+  .rf-download-menu, .mark-tip, .search-body, .search-output,
+  .search-focus-panel, .search-hub .kb-active, .rf-figure, .rf-ranked,
+  .rf-panel, .rf-section, .lines-filter, .rf-filter, .rf-title-tip
+) {
+  border-radius: var(--radius) !important;
+}
+
+:root:not([data-look="aman"]) :is(.rf-home-search .search-primary, .rf-home-search .search-primary input) {
+  border-radius: 10px !important;
+}
+
+/* FED cards: white, a hairline border and a 3px Indigo rule on top. The
+ * figure tiles keep their own top rule, in the series colour it explains. */
+:root:not([data-look="aman"]) .rf-ranked {
+  border-top: 3px solid var(--navy);
+}
+
+/* ------------------------------------------------- page header */
+
+.rf-pagehead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px 20px;
+  margin: 8px 0 20px;
+  padding-bottom: 14px;
+  border-bottom: 2px solid var(--navy);
+}
+
+.rf-pagehead .rf-pagehead-text > h1 {
+  margin: 0;
+  color: var(--navy);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.rf-pagehead-sub {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.rf-pagehead-aside {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+@media (max-width: 640px) {
+  .rf-pagehead .rf-pagehead-text > h1 {
+    font-size: 24px;
+  }
+
+  .rf-pagehead-sub {
+    font-size: 15px;
+  }
+}
+
+/* ------------------------------------------------- tariff lines index */
+
+.lines-page .lines-filter {
+  margin: 0 0 18px;
+  font-size: 16px;
+}
+
+.lines-group {
+  padding: 14px 18px 8px;
+  border-top: 3px solid var(--navy);
+}
+
+.lines-group-head {
+  align-items: center;
+  margin-bottom: 4px;
+  padding-bottom: 8px;
+}
+
+.lines-group-head strong,
+.lines-group-head span,
+.lines-total {
+  font-size: 16px;
+}
+
+.lines-group-head strong {
+  margin-right: 10px;
+}
+
+.lines-group-head span {
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.lines-group-head em {
+  font-size: 13px;
+  font-style: normal;
+}
+
+.lines-total {
+  font-weight: 700;
+}
+
+.lines-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-height: 44px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Every group's table shares the same columns, so codes, names, figures
+ * and months line up from one group to the next. */
+.lines-table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.lines-col-code { width: 116px; }
+.lines-col-value { width: 168px; }
+.lines-col-month { width: 128px; }
+
+.lines-table td {
+  vertical-align: middle;
+}
+
+.lines-unnamed,
+.lines-more {
+  font-size: 14px;
+}
+
+.lines-more {
+  color: var(--muted);
+}
+
+.lines-table th {
+  white-space: nowrap;
+}
+
+.sr-only-head th {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ------------------------------------------------- data availability */
+
+.avail-page .avail-dates {
+  margin: 0 0 14px;
+}
+
+.avail-page .avail-dates dt {
+  font-size: 13px;
+}
+
+.avail-page .avail-dates dd {
+  font-size: 16px;
+}
+
+/* One plain status line: no icon, no alarm colour - nothing needs doing. */
+.avail-status {
+  margin: 0 0 26px;
+  padding: 10px 14px;
+  border-left: 3px solid var(--navy);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 15px;
+}
+
+.avail-page .avail-block .rf-h2 {
+  margin-bottom: 6px;
+  font-size: 20px;
+}
+
+.avail-page .avail-note {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.avail-page .avail-hole p {
+  font-size: 14px;
+}
+
+.avail-table .avail-bar {
+  min-width: 160px;
 }

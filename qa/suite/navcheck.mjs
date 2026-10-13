@@ -32,7 +32,7 @@ for (const [path, label] of [['/', 'home'], ['/hs/851762', 'product'], ['/hs/851
 }
 { // rail navigation actually navigates
   const { page } = await open('/')
-  await page.locator('.nav-action', { hasText: 'Tariff lines' }).click(); await page.waitForTimeout(900)
+  await page.locator('.nav-action', { hasText: 'Indian trade lines' }).click(); await page.waitForTimeout(900)
   ok('rail opens the tariff-line index', page.url().endsWith('/tariff-lines'), page.url().replace(BASE,''))
   await page.locator('.nav-action', { hasText: 'Guide' }).click(); await page.waitForTimeout(700)
   ok('rail opens the guide', page.url().endsWith('/guide'))
@@ -86,7 +86,7 @@ console.log('\n=== tariff-line index ===')
   await page.locator('.lines-filter').fill('8517'); await page.waitForTimeout(600)
   const after = await page.locator('.lines-group').count()
   ok('filter narrows the list', after > 0 && after < 60, `${after} groups`)
-  await page.locator('.lines-group .dgcis-code button').first().click(); await page.waitForTimeout(900)
+  await page.locator('.lines-group tbody .rf-link').first().click(); await page.waitForTimeout(900)
   ok('clicking a code opens the line', /\/hs\/\d{8}$/.test(page.url()), page.url().replace(BASE,''))
   ok('no errors', errs.length === 0, errs[0] ?? '')
   await page.close()
@@ -149,8 +149,9 @@ console.log('\n=== naming: a name when the schedule has one, the code when it do
   const h1 = await page.locator('h1').first().innerText()
   ok('a named line leads with its name', h1.trim().toLowerCase() === 'electrical machines, other kinds', h1)
   const sub = await page.locator('.hs8-sub').innerText()
-  ok('the code is beside it, not replaced by it', /85437099/.test(sub), sub.slice(0,60))
-  ok('heading is context, labelled as the heading', /one of 29 tariff lines under/i.test(sub) && /HS 854370/.test(sub), sub.slice(0,90))
+  const idline = await page.locator('.rf-idline').innerText()
+  ok('the code is beside it, not replaced by it', /85437099/.test(idline + ' ' + sub), idline.slice(0,60))
+  ok('heading is context, labelled as the heading', /1 of 29 lines under/i.test(sub) && /HS 854370/.test(sub), sub.slice(0,90))
   ok('a named line carries no borrowed-name caveat', !/belongs to the heading, not to this line/i.test(await page.innerText('body')))
   await page.close()
 }
@@ -161,7 +162,7 @@ console.log('\n=== naming: a name when the schedule has one, the code when it do
   const { page } = await open('/hs/85079020')
   const h1 = await page.locator('h1').first().innerText()
   ok('H1 is the code when the schedule has no name', h1.trim() === '85079020', h1)
-  ok('caveat explains why', /belongs to the heading, not to this line/i.test(await page.innerText('body')))
+  ok('caveat explains why', /name shown is its heading/i.test(await page.innerText('body')))
   await page.close()
 }
 await b.close()

@@ -373,19 +373,19 @@ export async function buildProductDownload(request: DownloadRequest, context: Pa
   tables.push({
     key: 'trend',
     sheet: 'Trend',
-    title: 'Global Trade and India Trade over Time',
+    title: 'Global and India trade over time',
     provenance: provenance(`Calendar years ${years[years.length - 1]}–${years[0]}`),
-    note: 'Global Trade is gross: world imports as filed, plus estimates for economies that have not filed. Net of re-imports is shown for reference.',
+    note: 'Global trade is gross: world imports as filed, plus estimates for economies that have not filed. Net of re-imports is shown for reference.',
     columns: [
       { label: 'Year', kind: 'year', width: 8 },
       { label: 'HS code', kind: 'text', width: 10 },
       { label: 'Carried from', kind: 'text', width: 14 },
-      { label: 'Global Trade (USD)', kind: 'int', width: 20 },
+      { label: 'Global trade (USD)', kind: 'int', width: 20 },
       { label: 'Estimated', kind: 'flag', width: 11 },
       { label: 'Estimated share', kind: 'pct', width: 12 },
       { label: 'Net of re-imports (USD)', kind: 'int', width: 20 },
-      { label: 'India Imports (USD)', kind: 'int', width: 18 },
-      { label: 'India Exports (USD)', kind: 'int', width: 18 },
+      { label: 'India imports (USD)', kind: 'int', width: 18 },
+      { label: 'India exports (USD)', kind: 'int', width: 18 },
       { label: 'Coverage verdict', kind: 'text', width: 14 },
       { label: 'Series note', kind: 'text', width: 60 },
     ],
@@ -424,7 +424,7 @@ export async function buildProductDownload(request: DownloadRequest, context: Pa
   tables.push({
     key: 'world-rankings',
     sheet: 'World Rankings',
-    title: 'Top Importers and Exporters, every year',
+    title: 'Top importers and exporters, every year',
     provenance: provenance('All years', 'Imports and exports'),
     note: worldPartial
       ? `Full country lists from ${detail?.fullListsFrom ?? 2016}; earlier years carry the largest ${detail ? 25 : 10}. Shares are of the world total for that flow and year.`
@@ -528,12 +528,12 @@ export async function buildProductDownload(request: DownloadRequest, context: Pa
         { label: 'Year', kind: 'year', width: 8 },
         { label: 'HS code', kind: 'text', width: 10 },
         { label: 'Name', kind: 'text', width: 40 },
-        { label: 'Global Trade (USD)', kind: 'int', width: 20 },
+        { label: 'Global trade (USD)', kind: 'int', width: 20 },
         { label: 'Estimated', kind: 'flag', width: 11 },
         { label: 'Estimated share', kind: 'pct', width: 12 },
         { label: `Share of ${label}`, kind: 'pct', width: 13 },
-        { label: 'India Imports (USD)', kind: 'int', width: 18 },
-        { label: 'India Exports (USD)', kind: 'int', width: 18 },
+        { label: 'India imports (USD)', kind: 'int', width: 18 },
+        { label: 'India exports (USD)', kind: 'int', width: 18 },
       ],
       rows: insideRows,
     })
@@ -544,13 +544,13 @@ export async function buildProductDownload(request: DownloadRequest, context: Pa
     tables.push({
       key: 'india-monthly',
       sheet: 'India Monthly',
-      title: 'India Imports and Exports, monthly',
+      title: 'India imports and Exports, monthly',
       provenance: provenance(`${monthLabel(node.months[0])} – ${monthLabel(node.months[node.months.length - 1])}`),
       note: 'India reporting to UN Comtrade, monthly. Recent months may be incomplete.',
       columns: [
         { label: 'Month', kind: 'text', width: 11 },
-        { label: 'India Imports (USD)', kind: 'int', width: 18 },
-        { label: 'India Exports (USD)', kind: 'int', width: 18 },
+        { label: 'India imports (USD)', kind: 'int', width: 18 },
+        { label: 'India exports (USD)', kind: 'int', width: 18 },
         { label: 'Estimated', kind: 'flag', width: 11 },
         { label: 'Estimated share', kind: 'pct', width: 12 },
       ],
@@ -592,11 +592,11 @@ export async function buildProductDownload(request: DownloadRequest, context: Pa
       headline: {
         heading: `Headline · CY ${year}`,
         rows: [
-          ['Global Trade (USD)', headline.global ?? 'Not published'],
-          ['Estimated share of Global Trade', headline.global === null ? '—' : pct(headline.globalEstimatedShare ?? 0, 1), 'label'],
+          ['Global trade (USD)', headline.global ?? 'Not published'],
+          ['Estimated share of Global trade', headline.global === null ? '—' : pct(headline.globalEstimatedShare ?? 0, 1), 'label'],
           ['Net of re-imports (USD)', headline.net ?? '—'],
-          ['India Exports (USD)', headline.indiaExports ?? '—'],
-          ['India Imports (USD)', headline.indiaImports ?? '—'],
+          ['India exports (USD)', headline.indiaExports ?? '—'],
+          ['India imports (USD)', headline.indiaImports ?? '—'],
           ['India: Export Ranking', headline.indiaExportRank ? `${ordinal(headline.indiaExportRank)} · ${pct(headline.indiaExportShare, 1)} of world exports` : '—', 'label'],
           ['India: Import Ranking', headline.indiaImportRank ? `${ordinal(headline.indiaImportRank)} · ${pct(headline.indiaImportShare, 1)} of world imports` : '—', 'label'],
           ['Coverage verdict', String((record?.global.coverage as { gateStatus?: string })?.gateStatus ?? record?.global.coverage?.status ?? '—'), 'label'],
@@ -611,7 +611,7 @@ export async function buildProductDownload(request: DownloadRequest, context: Pa
           : []),
       ],
       notes: [
-        'Global Trade is gross: every reporting economy’s imports from the world as filed, plus estimates where an economy has not filed, projected from its own history of this code. Filed values are never changed.',
+        'Global trade is gross: every reporting economy’s imports from the world as filed, plus estimates where an economy has not filed, projected from its own history of this code. Filed values are never changed.',
         'Import totals are valued CIF and export totals FOB, so the two sides are not comparable line for line.',
         'Comtrade figures are calendar years. The DGCIS sheet is India reporting its own trade, monthly; partner “World” there means India with everywhere, not world trade.',
       ],
@@ -765,8 +765,8 @@ export function buildHs8Download(request: Hs8DownloadRequest, context: PageConte
       headline: {
         heading: `Last 12 months to ${formatPeriod(last)}`,
         rows: [
-          ['India Exports (USD million)', exportsTwelve ?? '—', 'dec1'],
-          ['India Imports (USD million)', importsTwelve ?? '—', 'dec1'],
+          ['India exports (USD million)', exportsTwelve ?? '—', 'dec1'],
+          ['India imports (USD million)', importsTwelve ?? '—', 'dec1'],
         ],
       },
       markers: [],
@@ -897,10 +897,10 @@ export function buildHomeDownload(
         heading: `Headline · CY ${year}`,
         rows: record
           ? [
-              ['Global Trade (USD)', record.worldImports],
-              ['Estimated share of Global Trade', pct(record.worldImports ? record.estimatedImports / record.worldImports : 0, 1), 'label'],
-              ['India Exports (USD)', record.indiaExports],
-              ['India Imports (USD)', record.indiaImports],
+              ['Global trade (USD)', record.worldImports],
+              ['Estimated share of Global trade', pct(record.worldImports ? record.estimatedImports / record.worldImports : 0, 1), 'label'],
+              ['India exports (USD)', record.indiaExports],
+              ['India imports (USD)', record.indiaImports],
               ['Lines with a published figure', record.lines],
             ]
           : [],
@@ -908,14 +908,14 @@ export function buildHomeDownload(
       markers: ['Estimated = Yes: the value contains estimates for economies that have not filed; Estimated share is the estimated part of it.'],
       notes: [
         'Every figure is the sum of the published HS-6 lines for that year, from the same reporter tables the product pages rank.',
-        `Global Trade ${usd(record?.worldImports ?? null)} is world imports, gross, for CY ${year}.`,
+        `Global trade ${usd(record?.worldImports ?? null)} is world imports, gross, for CY ${year}.`,
       ],
     },
     tables: [
       {
         key: 'countries',
         sheet: 'Countries',
-        title: 'Top Importers and Exporters across the scope, every year',
+        title: 'Top importers and exporters across the scope, every year',
         provenance: provenance('All years', 'Imports and exports'),
         note: 'Shares are of the scope total for that flow and year.',
         columns: [
@@ -934,7 +934,7 @@ export function buildHomeDownload(
       {
         key: 'products',
         sheet: 'Products',
-        title: 'Top Traded Products, every year',
+        title: 'Top traded products, every year',
         provenance: provenance('All years', 'World imports'),
         note: 'Ranked at HS-6 only; mixing levels would double-count.',
         columns: [
@@ -948,8 +948,8 @@ export function buildHomeDownload(
           { label: 'Share of electronics', kind: 'pct', width: 12 },
           { label: 'Estimated', kind: 'flag', width: 11 },
           { label: 'Estimated share', kind: 'pct', width: 12 },
-          { label: 'India Imports (USD)', kind: 'int', width: 18 },
-          { label: 'India Exports (USD)', kind: 'int', width: 18 },
+          { label: 'India imports (USD)', kind: 'int', width: 18 },
+          { label: 'India exports (USD)', kind: 'int', width: 18 },
         ],
         rows: products,
       },

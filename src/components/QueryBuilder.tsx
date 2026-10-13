@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Check, Copy, ExternalLink } from 'lucide-react'
 
 import type { CatalogueEntry } from '../types'
+import { PageHeader } from './ui'
 import { comtradeQueryUrl, INDIA_REPORTER, type ComtradeFlow } from '../lib/comtrade'
 
 /*
@@ -142,17 +143,10 @@ export function QueryBuilder({
 
   return (
     <div className="qb-page">
-      <div className="eyebrow">BUILD A COMTRADE QUERY</div>
-
-      <h1>Build a Comtrade query</h1>
-
-      <p className="qb-lede">
-        Pick a product by name rather than by code, and this writes the query
-        three ways: a link that opens Comtrade's own results page, a keyless API
-        URL good for 500 rows, and a Python snippet for your own key. Nothing is
-        sent anywhere from here, and no key is asked for — see the note at the
-        foot.
-      </p>
+      <PageHeader
+        title="Comtrade query"
+        sub="Pick a product; get a Comtrade link, an API URL or a Python snippet."
+      />
 
       <div className="qb-form">
         <label className="qb-field qb-wide">
@@ -229,44 +223,26 @@ export function QueryBuilder({
 
           <pre>{pageUrl}</pre>
 
-          <p className="qb-note">
-            Everything selected already. Free Comtrade accounts hit a captcha on
-            each search unless registered; registration is free and removes it.
-          </p>
+          <p className="qb-note">Opens with everything selected. A free Comtrade login avoids the captcha.</p>
         </div>
 
         <Copyable
           label="Keyless API URL"
           value={previewUrl}
-          note="Comtrade's public preview tier: no key, capped at 500 records, JSON only. Paste into a browser or curl."
+          note="No key needed; up to 500 records, as JSON."
         />
 
         <Copyable
           label="Python, with your own key"
           value={snippet}
-          note="Needs comtradeapicall (pip install comtradeapicall) and a key from comtradedeveloper.un.org. Up to 250,000 records."
+          note="Needs comtradeapicall and a free key from comtradedeveloper.un.org. Up to 250,000 records."
         />
       </div>
 
-      <section className="qb-why">
-        <h2>Why there is no key field</h2>
-
-        <p>
-          HStat is static files — there is no server here to run a query on, and
-          the browser cannot call Comtrade directly because Comtrade refuses
-          cross-origin requests. Accepting a key would mean building a backend
-          and passing your credential through it, which brings real decisions
-          with it: the key would transit that server on every query, the
-          endpoint would be public and usable by anyone as a Comtrade proxy, and
-          it would need rate limiting to avoid being abused.
-        </p>
-
-        <p>
-          That is a decision for whoever runs this dashboard, not a default to
-          inherit. So this page composes the query — the part that is genuinely
-          fiddly — and you run it where your key already lives.
-        </p>
-      </section>
+      <p className="qb-why-note">
+        This site has no server, so it never asks for your Comtrade key: run the
+        query where your key already is.
+      </p>
 
       <button className="linkish qb-home" onClick={onHome}>
         Back to the front page

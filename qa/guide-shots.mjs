@@ -56,7 +56,7 @@ const SHOTS = [
   { name: 'tariff-line', path: '/hs/85176290', sels: ['.hs8-head', '.rf-furniture', '.hs8-metrics'], width: 1000 },
   { name: 'tariff-years', path: '/hs/85176290', sels: ['#tile-hs8-exports'], width: 1000 },
   { name: 'siblings', path: '/hs/85176290', sels: ['#tile-hs8-siblings'], width: 1000, clipH: 420 },
-  { name: 'availability', path: '/availability', sels: ['.avail-head', '.avail-verdict'], width: 900 },
+  { name: 'availability', path: '/availability', sels: ['.avail-page .rf-pagehead', '.avail-status'], width: 900 },
   { name: 'gaps', path: '/availability', sels: ['.avail-holes'], width: 900, clipH: 340 },
   { name: 'tariff-index', path: '/tariff-lines', sels: ['.lines-group'], width: 1000 },
   {

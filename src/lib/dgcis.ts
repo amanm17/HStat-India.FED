@@ -658,9 +658,7 @@ export function nameCaveat(line: { nameSource?: string }): string | null {
   if (!line.nameSource || line.nameSource === 'schedule') return null
 
   return (
-    'India’s eight-digit schedule has no name for this code, so the line is ' +
-    'shown by its code. The name beside it belongs to the heading, not to ' +
-    'this line.'
+    'No name in India’s schedule for this code; the name shown is its heading’s.'
   )
 }
 

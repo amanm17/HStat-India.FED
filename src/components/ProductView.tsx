@@ -1072,61 +1072,21 @@ export function buildDependency(node: HsNode, year: number): string[] {
 export function buildCoverage(node: HsNode, year: number): string[] {
   const share = node.definitionShare
 
-  if (!share) return []
+  if (!share || !share.officialLines) return []
 
   const entry = share.years?.[String(year)]
+  const unit = node.level === 2 ? 'chapter' : 'heading'
+  const tracked = `Tracks ${share.definedLines} of the ${share.officialLines} six-digit codes in this ${unit}`
 
-  const rows: string[] = []
+  /* One line. A subset cannot exceed its set: above 100% the tracked codes
+   * carry estimates the published total does not, and the line says that
+   * rather than print an impossible share. */
+  if (entry?.globalShare == null) return [`${tracked}.`]
 
-  if (share.officialLines) {
-    rows.push(
-      `The classification puts ${share.officialLines} six-digit lines in ` +
-        `HS-${node.level} ${node.code}. The FED definition tracks ` +
-        `${share.definedLines} of them` +
-        (share.lineShare !== null
-          ? `, ${pct(share.lineShare, 0)} by count.`
-          : '.'),
-    )
+  if (entry.globalShare > 1.02) {
+    return [`${tracked}; with estimates they total more than the ${unit}\u2019s published ${year} figure.`]
   }
 
-  if (entry?.globalShare != null) {
-    rows.push(
-      `Those lines come to ${usd(entry.definedGlobalTrade)} of the heading's ` +
-        `${usd(entry.headingGlobalTrade)} in global trade for ${year} — ` +
-        `${pct(entry.globalShare)} of it.` +
-        (entry.membersWithTrade < entry.members
-          ? ` ${entry.members - entry.membersWithTrade} of ${entry.members} ` +
-            'tracked lines had no published figure that year, so read this ' +
-            'as a lower bound.'
-          : ''),
-    )
-
-    /* A subset cannot exceed the set. Saying so is more useful than
-     * printing an impossible percentage without comment. */
-    if (entry.globalShare > 1.02) {
-      rows.push(
-        'That share is above 100%, which cannot be right — the tracked lines ' +
-          'are inside this heading. It means the heading and its members were ' +
-          'built from different data, and the snapshot carries a QA warning ' +
-          'saying so.',
-      )
-    }
-  }
-
-  if (entry?.indiaImportShare != null) {
-    rows.push(
-      `On India's own imports they are ${usd(entry.definedIndiaImports)} of ` +
-        `${usd(entry.headingIndiaImports)}, or ${pct(entry.indiaImportShare)}.`,
-    )
-  }
-
-  if (!rows.length && entry) {
-    rows.push(
-      `No published heading figure for ${year}, so the tracked share cannot ` +
-        'be computed for that year.',
-    )
-  }
-
-  return rows
+  return [`${tracked}, ${pct(entry.globalShare, 0)} of its trade in ${year}.`]
 }
 

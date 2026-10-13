@@ -4,11 +4,14 @@ import { ArrowUpRight } from 'lucide-react'
 import { plural } from '../lib/format'
 import { usePhone } from '../lib/viewport'
 import { Rows } from './Rows'
+import { Tabs } from './primitives'
+import { PageHeader } from './ui'
 import { usePageHelp } from '../lib/pagehelp'
 
 import {
   formatPeriod,
   formatValue,
+  money,
   loadDgcisIndex,
   type DgcisFlow,
   type DgcisIndexEntry,
@@ -126,75 +129,69 @@ export function TariffLines({
 
   if (!lines) return <div className="lines-page loading">Loading tariff lines…</div>
 
-  const shown = groups.reduce((n, g) => n + g.items.length, 0)
+  /* Lines with no trade in the last twelve months are hidden unless the
+   * reader is filtering for them: a row of zeros answers nothing. */
+  const live = (line: DgcisIndexEntry) => (line.flows[flow]?.last12UsdMillion ?? 0) > 0
+  const filtering = query.trim().length > 0
+  const visible = groups
+    .map(group => ({ ...group, items: filtering ? group.items : group.items.filter(live) }))
+    .filter(group => group.items.length > 0)
+  const hidden = filtering ? 0 : groups.reduce((n, g) => n + g.items.filter(line => !live(line)).length, 0)
+  const limit = phone ? 20 : 60
+
+  /* A DGCIS commodity group, which customs files in capitals, read as a
+   * label: "TELECOM INSTRUMENTS" -> "Telecom instruments". */
+  const groupLabel = (text: string | null | undefined) =>
+    text ? text.charAt(0).toUpperCase() + text.slice(1).toLowerCase() : '—'
 
   return (
     <div className="lines-page">
-      <header className="lines-head">
-        <div>
-          <div className="eyebrow">INDIA TARIFF LINES · DGCIS · ITC(HS) 8-DIGIT</div>
-
-          <h1>India&rsquo;s tariff lines</h1>
-
-          <p className="lines-lede">
-            India&rsquo;s own trade at eight digits. Not world trade, and not
-            comparable with the Comtrade figures on a product page.{' '}
-            {shown} of {lines.length} lines, largest first.
-          </p>
-        </div>
-
-        <div className="dgcis-switches">
-          <div className="basis-switch" role="group" aria-label="Flow">
-            {(['exports', 'imports'] as const).map(option => (
-              <button
-                key={option}
-                className={flow === option ? 'active' : ''}
-                aria-pressed={flow === option}
-                onClick={() => setFlow(option)}
-              >
-                {option === 'exports' ? 'Exports' : 'Imports'}
-              </button>
-            ))}
-          </div>
-        </div>
-      </header>
+      <PageHeader
+        title="Indian trade lines"
+        sub={`${lines.length} eight-digit lines from DGCIS, largest first.`}
+        aside={
+          <Tabs
+            label="Flow"
+            active={flow}
+            onChange={next => setFlow(next as 'exports' | 'imports')}
+            tabs={[
+              { id: 'exports', label: 'Exports' },
+              { id: 'imports', label: 'Imports' },
+            ]}
+          />
+        }
+      />
 
       <input
         className="lines-filter"
         value={query}
         onChange={event => setQuery(event.target.value)}
-        placeholder={phone ? "Filter lines" : "Filter by code or heading — 8517, smartphone, telecom…"}
+        placeholder={phone ? 'Filter lines' : 'Filter by code or name, e.g. 8517 or smartphone'}
         aria-label="Filter tariff lines"
       />
 
-      {groups.length === 0 && (
-        <p className="home-empty">Nothing matched “{query.trim()}”.</p>
+      {visible.length === 0 && (
+        <p className="rf-empty">Nothing matches &ldquo;{query.trim()}&rdquo;.</p>
       )}
 
       <div className="lines-groups">
-        {groups.slice(0, phone ? 20 : 60).map(group => (
+        {visible.slice(0, limit).map((group, index) => (
           <section className="lines-group" key={group.hs6}>
             <div className="lines-group-head">
-              <div>
+              <div className="lines-group-name">
                 {/* Printed once, on the group. A heading name on every row
                   * would read as lines sharing a name instead of a parent. */}
                 <strong>HS {group.hs6}</strong>
-                <span>{group.heading || 'heading'}</span>
-                {!group.isProduct && <em>lineage predecessor</em>}
+                <span>{group.heading || 'Heading'}</span>
+                {!group.isProduct && <em>retired code</em>}
               </div>
 
               <div className="lines-group-right">
-                <span className="lines-total">
-                  {formatValue(group.total)} <small>USD mn (12 months)</small>
-                </span>
+                <span className="lines-total">{money(group.total, 'usd')}</span>
 
                 {group.isProduct && onOpen && (
-                  <button
-                    className="linkish"
-                    onClick={() => onOpen(group.hs6, 6)}
-                    title="Open the heading and its world figures"
-                  >
-                    heading <ArrowUpRight size={12} />
+                  <button type="button" className="linkish lines-open" onClick={() => onOpen(group.hs6, 6)}>
+                    Product page <ArrowUpRight size={14} aria-hidden />
                   </button>
                 )}
               </div>
@@ -208,81 +205,78 @@ export function TariffLines({
 
                   return {
                     id: line.hs8,
-                    title:
-                      line.title || (
-                        <span className="lines-unnamed">{line.principalCommodity}</span>
-                      ),
+                    title: line.title || <span className="lines-unnamed">{groupLabel(line.principalCommodity)}</span>,
                     subtitle: line.hs8,
                     onOpen: () => onOpenHs8(line.hs8),
                     openLabel: `Open ${line.hs8}`,
                     fields: [
                       {
-                        /* A non-breaking space keeps "(12 months)" whole, so a narrow card
-                         * breaks the label after the unit rather than mid-parenthesis. */
-                        label: 'USD mn (12\u00a0months)',
-                        value: formatValue(block?.last12UsdMillion ?? null),
+                        label: 'Last 12 months',
+                        value: money(block?.last12UsdMillion ?? null, 'usd'),
                         lead: true,
                         numeric: true,
                       },
                       {
                         label: 'Latest month',
-                        value: block?.latest ? formatPeriod(block.latest.period) : '—',
-                        numeric: true,
-                      },
-                      {
-                        label: 'Latest month value',
                         value: block?.latest
-                          ? `${formatValue(block.latest.usdMillion)} USD mn`
+                          ? `${money(block.latest.usdMillion, 'usd')}, ${formatPeriod(block.latest.period)}`
                           : '—',
                         numeric: true,
-                      },
-                      {
-                        label: 'DGCIS group',
-                        value: line.principalCommodity || '—',
                       },
                     ],
                   }
                 })}
               />
             ) : (
-            <table className="dgcis-table compact">
-              <tbody>
-                {group.items.map(line => {
-                  const block = line.flows[flow]
+              <table className="rf-table lines-table">
+                <colgroup>
+                  <col className="lines-col-code" />
+                  <col />
+                  <col className="lines-col-value" />
+                  <col className="lines-col-month" />
+                </colgroup>
+                {/* Column names once, on the first group; the rest share its
+                  * columns exactly, and keep the names for screen readers. */}
+                <thead className={index === 0 ? undefined : 'sr-only-head'}>
+                  <tr>
+                    <th scope="col">HS-8</th>
+                    <th scope="col">Line</th>
+                    <th scope="col" className="num money">Last 12 months</th>
+                    <th scope="col" className="num">Latest month</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {group.items.map(line => {
+                    const block = line.flows[flow]
 
-                  return (
-                    <tr key={line.hs8}>
-                      <td className="dgcis-code">
-                        <button className="linkish" onClick={() => onOpenHs8(line.hs8)}>
-                          {line.hs8}
-                        </button>
-                      </td>
-
-                      <td>
-                        {line.title || <span className="lines-unnamed">{line.principalCommodity}</span>}
-                      </td>
-
-                      <td className="num">{formatValue(block?.last12UsdMillion ?? null)}</td>
-
-                      <td className="num dgcis-month">
-                        {block?.latest ? formatPeriod(block.latest.period) : '—'}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+                    return (
+                      <tr key={line.hs8}>
+                        <td>
+                          <button type="button" className="rf-link" onClick={() => onOpenHs8(line.hs8)}>
+                            {line.hs8}
+                          </button>
+                        </td>
+                        <td>
+                          {line.title || <span className="lines-unnamed">{groupLabel(line.principalCommodity)}</span>}
+                        </td>
+                        <td className="num money">{money(block?.last12UsdMillion ?? null, 'usd')}</td>
+                        <td className="num">{block?.latest ? formatPeriod(block.latest.period) : '—'}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
             )}
           </section>
         ))}
       </div>
 
-      {groups.length > (phone ? 20 : 60) && (
+      {(visible.length > limit || hidden > 0) && (
         <p className="lines-more">
-          {/* 543 lines as cards is 17,000px of scrolling. Twenty headings is
-            * about four screens, which is browsable; the filter is how you
-            * reach the rest, and it is directly above. */}
-          The {phone ? 20 : 60} largest headings. Filter above for the rest.
+          {/* 543 lines as cards is 17,000px of scrolling; the filter is how
+            * you reach the rest, and it is directly above. */}
+          {visible.length > limit && `Showing the ${limit} largest headings; filter to find the rest. `}
+          {hidden > 0 && `${plural(hidden, 'line')} with no trade in the last 12 months ${hidden === 1 ? 'is' : 'are'} hidden.`}
         </p>
       )}
     </div>

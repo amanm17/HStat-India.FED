@@ -20,7 +20,7 @@ import { HomeTariffLines } from './HomeTariffLines'
 import { DecimalsControl, FigureTile, Markers, RankedTable, Segmented } from './ui'
 import { latestScopeYear, loadScope, type RankRow, type ScopeSummary } from '../lib/scope'
 import { money } from '../lib/currency'
-import { nameOf, pct, usd } from '../lib/format'
+import { dayLabel, nameOf, pct, usd } from '../lib/format'
 import { palette } from '../lib/palette'
 import { usePageHelp } from '../lib/pagehelp'
 
@@ -219,13 +219,13 @@ export function HomePage({
       title: 'HStat.India · front page',
       lines: [
         'The FED electronics scope: 418 six-digit product lines, summed for the year you choose.',
-        'Global Trade is world imports as filed, plus estimates for economies that have not yet filed; a figure carrying * contains estimated values.',
+        'Global trade is world imports as filed, plus estimates for economies that have not yet filed; a figure carrying * contains estimated values.',
       ],
       facts: record && year !== null
         ? [
-            { label: 'Global Trade', value: usd(record.worldImports), note: `CY ${year} · ${record.lines} lines` },
-            { label: 'India Exports', value: india(record.indiaExports), note: `CY ${year}` },
-            { label: 'India Imports', value: india(record.indiaImports), note: `CY ${year}` },
+            { label: 'Global trade', value: usd(record.worldImports), note: `CY ${year} · ${record.lines} lines` },
+            { label: 'India exports', value: india(record.indiaExports), note: `CY ${year}` },
+            { label: 'India imports', value: india(record.indiaImports), note: `CY ${year}` },
           ]
         : [],
       presented: [
@@ -322,14 +322,14 @@ export function HomePage({
           <section className="rf-tiles" aria-label={`Electronics scope, ${year}`}>
             <FigureTile
               series="global"
-              label="Global Trade"
+              label="Global trade"
               value={usd(record.worldImports)}
               estimatedShare={record.worldImports ? record.estimatedImports / record.worldImports : null}
               caption={currency === 'INR' ? 'World imports · US dollars' : 'World imports'}
             />
             <FigureTile
               series="exports"
-              label="India Exports"
+              label="India exports"
               value={india(record.indiaExports)}
               caption={
                 /* The tile's own figure over the world total beside it. India's
@@ -342,7 +342,7 @@ export function HomePage({
             />
             <FigureTile
               series="imports"
-              label="India Imports"
+              label="India imports"
               value={india(record.indiaImports)}
               caption={
                 record.indiaImports && record.worldImports
@@ -352,16 +352,18 @@ export function HomePage({
             />
           </section>
 
-          <p className="rf-scope-note">
-            Electronics scope · {record.lines} HS-6 lines · CY {year}
-          </p>
+          {/* The year and the scope, once. The line count is left to Key
+            * segments below, which counts every tracked product; the
+            * snapshot's own count is of lines with data that year, and the
+            * two side by side read as a contradiction. */}
+          <p className="rf-scope-note">All figures: electronics, calendar year {year}.</p>
 
           <Markers estimated={record.estimatedImports > 0} />
 
           <div className="rf-grid">
             <RankedTable
               id="home-importers"
-              title="Top Importers"
+              title="Top importers"
               rows={importers}
               count={importers.length}
               complete
@@ -376,7 +378,7 @@ export function HomePage({
             />
             <RankedTable
               id="home-exporters"
-              title="Top Exporters"
+              title="Top exporters"
               rows={exporters}
               count={exporters.length}
               complete
@@ -391,7 +393,7 @@ export function HomePage({
             />
             <RankedTable
               id="home-finished"
-              title="Top Traded Products · Finished Goods"
+              title="Top finished goods"
               rows={finished}
               count={finished.length}
               complete
@@ -406,7 +408,7 @@ export function HomePage({
             />
             <RankedTable
               id="home-components"
-              title="Top Traded Products · Components & Inputs"
+              title="Top components and inputs"
               rows={components}
               count={components.length}
               complete
@@ -424,7 +426,7 @@ export function HomePage({
       )}
 
       <section className="rf-panel rf-segments" aria-labelledby="key-segments">
-        <h2 id="key-segments" className="rf-h2">Key Segments</h2>
+        <h2 id="key-segments" className="rf-h2">Key segments</h2>
 
         {segments.map(side => (
           <div key={side.key} className="rf-segment" data-segment={side.key}>
@@ -479,7 +481,7 @@ export function HomePage({
 
       {reports && reports.length > 0 && (
         <section className="rf-panel home-reports">
-          <h2 className="rf-h2">Saved Reports</h2>
+          <h2 className="rf-h2">Saved reports</h2>
 
           <div className="home-reports-list">
             {reports.slice(0, 6).map(report => (
@@ -489,7 +491,7 @@ export function HomePage({
                   <strong>{report.name}</strong>
                   <small>{report.subject}</small>
                 </span>
-                <span className="home-report-when">{new Date(report.lastRunAt).toLocaleDateString()}</span>
+                <span className="home-report-when">{dayLabel(report.lastRunAt)}</span>
               </button>
             ))}
           </div>
@@ -567,13 +569,13 @@ function CategoryStack({
 
       <div className="rf-stack-totals">
         <span>
-          <b>Global Trade</b> {usd(world)}
+          <b>Global trade</b> {usd(world)}
         </span>
         <span>
-          <b>India Exports</b> {india(exports)}
+          <b>India exports</b> {india(exports)}
         </span>
         <span>
-          <b>India Imports</b> {india(imports)}
+          <b>India imports</b> {india(imports)}
         </span>
         <span>
           <b>Lines</b> {lines.length}
@@ -586,10 +588,10 @@ function CategoryStack({
             <tr>
               <th scope="col">HS-6</th>
               <th scope="col">Product</th>
-              <th scope="col" className="num money">Global Trade</th>
+              <th scope="col" className="num money">Global trade</th>
               <th scope="col" className="num">Share of category</th>
-              <th scope="col" className="num money">India Exports</th>
-              <th scope="col" className="num money">India Imports</th>
+              <th scope="col" className="num money">India exports</th>
+              <th scope="col" className="num money">India imports</th>
             </tr>
           </thead>
           <tbody>

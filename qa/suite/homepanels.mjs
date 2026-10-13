@@ -6,11 +6,13 @@
  *
  * The search tile carries no visible heading and keeps its controls; the
  * product rankings have no Segment column and say "Share of electronics";
- * DGCIS Reporting is one collapsed line that opens to a standard table whose
+ * DGCIS reporting is one collapsed line that opens to a standard table whose
  * figures read like every other money figure ($33bn, not 32,535), and whose
  * Exports/Imports tabs switch it. Light and dark, desktop and phone.
  */
 import { chromium } from 'playwright'
+import { readFileSync } from 'node:fs'
+import { render } from '../../scripts/build_hs_names.mjs'
 
 const BASE = process.env.BASE || 'http://127.0.0.1:4178'
 const b = await chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : undefined)
@@ -20,6 +22,10 @@ const ok = (name, cond, detail = '') => {
   if (cond) pass += 1
   else { fail += 1; console.log(`FAIL  ${name}${detail ? `  (${detail})` : ''}`) }
 }
+
+/* The curated HS-2/HS-4 names are compiled into the bundle; the module must
+ * match config/hs_short_names.csv and config/hs_titles.json. */
+ok('HS names module matches config (node scripts/build_hs_names.mjs)', render() === readFileSync('src/lib/hsnames.generated.ts', 'utf8'))
 
 for (const [shape, width, theme] of [['desk', 1440, 'light'], ['desk', 1440, 'dark'], ['phone', 390, 'light']]) {
   const tag = `[${shape} ${theme}]`
@@ -49,12 +55,12 @@ for (const [shape, width, theme] of [['desk', 1440, 'light'], ['desk', 1440, 'da
   const anyScope = await page.evaluate(() => /share of scope/i.test(document.body.innerText))
   ok(`${tag} "Share of scope" is gone`, !anyScope)
 
-  /* DGCIS Reporting. */
+  /* DGCIS reporting. */
   const panel = page.locator('.rf-dgcis')
   ok(`${tag} DGCIS panel present`, await panel.count() === 1)
   const toggle = panel.locator('.rf-dgcis-toggle')
   ok(`${tag} collapsed by default`, (await toggle.getAttribute('aria-expanded')) === 'false' && await panel.locator('table').count() === 0)
-  ok(`${tag} titled DGCIS Reporting`, /DGCIS Reporting/.test(await toggle.innerText()))
+  ok(`${tag} titled DGCIS reporting`, /DGCIS reporting/.test(await toggle.innerText()))
   const head = await panel.locator('.rf-h2').boundingBox()
   const show = await panel.locator('.rf-dgcis-show').boundingBox()
   ok(`${tag} heading and Show on one line`, Math.abs((head.y + head.height / 2) - (show.y + show.height / 2)) < 16, `${head.y}/${show.y}`)

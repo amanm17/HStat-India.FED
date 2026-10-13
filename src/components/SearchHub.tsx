@@ -7,6 +7,15 @@ import { Plus, Search } from 'lucide-react'
 import type { SearchIndex, SearchOutcome } from '../lib/search'
 import { search, suggestedTerms } from '../lib/search'
 import type { SearchItem } from '../types'
+import { nameOf } from '../lib/format'
+
+/* A result's name: a product's own label; a chapter's or heading's curated
+ * short name, as on its page. */
+function shownName(item: SearchItem): string {
+  if (item.level === 2 || item.level === 4) return nameOf({ code: item.code })
+
+  return item.label || item.product || item.description || ''
+}
 
 /*
  * A command the search box can run.
@@ -95,7 +104,7 @@ function AnswerCard({
         {isCode ? (
           <>
             {levelLabel(item.level)} {item.code} covers{' '}
-            <strong>{item.label || item.product || item.description}</strong>
+            <strong>{shownName(item)}</strong>
           </>
         ) : (
           <>
@@ -134,7 +143,7 @@ function AnswerCard({
                 className="answer-open"
                 onClick={() => onOpen(target)}
               >
-                Open {target.code} · {target.label || target.product}
+                Open {target.code} · {shownName(target)}
               </button>
             ))
           ) : (
@@ -173,7 +182,7 @@ function AnswerCard({
           {outcome.alsoIn.map(other => (
             <button key={other.code} onClick={() => onOpen(other)}>
               {other.code}
-              <em>{other.label || other.product || other.description.slice(0, 40)}</em>
+              <em>{shownName(other).slice(0, 48)}</em>
             </button>
           ))}
         </div>
@@ -774,7 +783,7 @@ export function SearchHub({
                       <strong>{item.code}</strong>
 
                       <span className="result-product">
-                        {item.label || item.product || item.description}
+                        {shownName(item)}
                       </span>
 
                       <span className="result-reason">

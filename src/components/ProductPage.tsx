@@ -3,8 +3,8 @@
  *
  *   identity       the code, its name, its tagging
  *   furniture      year, currency, source, download, stacking, pin
- *   headline       Global Trade (gross), India Exports, India Imports - one row
- *   drawer         how the Global Trade figure is made (§2.6)
+ *   headline       Global trade (gross), India exports, India imports - one row
+ *   drawer         how the Global trade figure is made (§2.6)
  *   sections       trend, world rankings, India's partners, tariff lines,
  *                  what is inside, classification history, key changes
  *
@@ -40,7 +40,7 @@ import type {
 } from '../types'
 import { loadHsNodes } from '../lib/data'
 import { TILES, type Workspace } from '../lib/workspace'
-import { delta, monthLabel, nameOf, ordinal, pct, plural, shareText, usd } from '../lib/format'
+import { dayLabel, delta, monthLabel, nameOf, officialName, ordinal, pct, plural, shareText, usd } from '../lib/format'
 import { money, rateNote } from '../lib/currency'
 import { palette } from '../lib/palette'
 import { usePageHelp } from '../lib/pagehelp'
@@ -87,6 +87,7 @@ import {
   Markers,
   RankedTable,
   Section,
+  PageTitle,
   SectionTabs,
   Segmented,
 } from './ui'
@@ -127,12 +128,12 @@ type Props = {
 
 const SECTION_LABELS: Record<string, string> = {
   trend: 'Trend',
-  world: 'Importers & Exporters',
-  partners: "India's Partners",
-  dgcis: 'Tariff Lines',
+  world: 'Importers & exporters',
+  partners: "India's partners",
+  dgcis: 'Tariff lines',
   inside: 'Inside',
   lineage: 'Classification',
-  signals: 'Key Changes',
+  signals: 'Key changes',
 }
 
 export function ProductPage(props: Props) {
@@ -323,8 +324,8 @@ export function ProductPage(props: Props) {
     () => ({
       title: `HS ${node.code} — ${nameOf(node)}`,
       lines: [
-        'Global Trade is every reporting economy’s imports of this product from the world, as filed, plus estimates for economies that have not filed the year.',
-        'India Exports and India Imports are India’s own filings. India’s tariff lines, below, are DGCIS data: a different source, never added to these figures.',
+        'Global trade is every reporting economy’s imports of this product from the world, as filed, plus estimates for economies that have not filed the year.',
+        'India exports and India imports are India’s own filings. India’s tariff lines, below, are DGCIS data: a different source, never added to these figures.',
       ],
       code: {
         value: `HS-${node.level} ${node.code}`,
@@ -334,9 +335,9 @@ export function ProductPage(props: Props) {
           : node.classification,
       },
       facts: [
-        { label: 'Global Trade', value: usd(headline.global), note: `CY ${year}` },
-        { label: 'India Exports', value: india(headline.indiaExports), note: `CY ${year}` },
-        { label: 'India Imports', value: india(headline.indiaImports), note: `CY ${year}` },
+        { label: 'Global trade', value: usd(headline.global), note: `CY ${year}` },
+        { label: 'India exports', value: india(headline.indiaExports), note: `CY ${year}` },
+        { label: 'India imports', value: india(headline.indiaImports), note: `CY ${year}` },
       ],
       presented: available.map(id => ({
         name: SECTION_LABELS[id] ?? id,
@@ -401,16 +402,14 @@ export function ProductPage(props: Props) {
               {segmentTitle(node.segment)}
             </span>
           )}
-          {node.category && <span className="rf-id-item">{node.category}</span>}
+          {/* A chapter or heading spans several categories; its stored one is
+            * only its first member's, so it is not shown. */}
+          {node.level === 6 && node.category && <span className="rf-id-item">{node.category}</span>}
           {!node.inFedDefinition && <span className="rf-id-item">Reference only</span>}
           {retired && <span className="rf-id-item">Retired in HS {retired.revision}</span>}
         </p>
 
-        <h1>{nameOf(node)}</h1>
-
-        {nameOf(node) !== node.description && (
-          <p className="rf-official">{node.description}</p>
-        )}
+        <PageTitle name={nameOf(node)} official={officialName(node)} />
       </section>
 
       <div className="rf-furniture" role="toolbar" aria-label="Page controls">
@@ -521,7 +520,7 @@ export function ProductPage(props: Props) {
         <div className="rf-tiles">
           <FigureTile
             series="global"
-            label={`Global Trade · ${year}`}
+            label={`Global trade · ${year}`}
             value={headline.published ? usd(headline.global) : '—'}
             estimatedShare={headline.globalEstimatedShare}
             estimatedReporters={headline.globalEstimatedReporters}
@@ -539,13 +538,13 @@ export function ProductPage(props: Props) {
           />
           <FigureTile
             series="exports"
-            label="India Exports"
+            label="India exports"
             value={india(headline.indiaExports)}
             caption={standingCaption(headline.indiaExportRank, headline.indiaExportShare, 'exporters', 'exports', headline.indiaExportEstimated)}
           />
           <FigureTile
             series="imports"
-            label="India Imports"
+            label="India imports"
             value={india(headline.indiaImports)}
             caption={standingCaption(headline.indiaImportRank, headline.indiaImportShare, 'importers', 'imports', headline.indiaImportEstimated)}
           />
@@ -553,14 +552,14 @@ export function ProductPage(props: Props) {
 
         {headline.published && headline.grossNetGap !== null && headline.grossNetGap > 0.1 && (
           <p className="rf-gap-alert" role="note">
-            <strong>Re-imports are large for this product.</strong> Net of re-imports, Global Trade
+            <strong>Re-imports are large for this product.</strong> Net of re-imports, Global trade
             for {year} is {usd(headline.net)}, {pct(headline.grossNetGap, 0)} below the gross figure.
           </p>
         )}
 
         {record.global.provisional && record.global.provisional.length > 0 && (
           <p className="rf-provisional">
-            <strong>{year} is still filling in.</strong> {record.global.provisional[0]}
+            <strong>{year} is incomplete.</strong> {provisionalText(record.global.provisional[0])}
           </p>
         )}
 
@@ -577,7 +576,7 @@ export function ProductPage(props: Props) {
       {available.map(id => {
         if (id === 'trend') {
           return (
-            <Section key={id} {...sectionProps(id)} title="Global Trade and India Trade over Time">
+            <Section key={id} {...sectionProps(id)} title="Global and India trade over time">
               <TrendSection node={node} year={year} dark={dark} currency={currency} currencyBlock={currencyBlock} />
             </Section>
           )
@@ -588,12 +587,12 @@ export function ProductPage(props: Props) {
           const exporters = rankingFor('exporters', node, year, detail)
 
           return (
-            <Section key={id} {...sectionProps(id)} title={`Top Importers and Exporters · ${year}`}>
+            <Section key={id} {...sectionProps(id)} title={`Top importers and exporters · ${year}`}>
               {headline.published ? (
                 <div className="rf-grid">
                   <RankedTable
                     id="importers"
-                    title="Top Importers"
+                    title="Top importers"
                     rows={importers.rows}
                     count={importers.count}
                     complete={importers.complete}
@@ -609,7 +608,7 @@ export function ProductPage(props: Props) {
                   />
                   <RankedTable
                     id="exporters"
-                    title="Top Exporters"
+                    title="Top exporters"
                     rows={exporters.rows}
                     count={exporters.count}
                     complete={exporters.complete}
@@ -636,11 +635,11 @@ export function ProductPage(props: Props) {
           const destinations = rankingFor('indiaDestinations', node, year, detail)
 
           return (
-            <Section key={id} {...sectionProps(id)} title={`India's Partners · ${year}`}>
+            <Section key={id} {...sectionProps(id)} title={`India's partners · ${year}`}>
               <div className="rf-grid">
                 <RankedTable
                   id="india-suppliers"
-                  title="India Import Partners"
+                  title="India import partners"
                   rows={suppliers.rows}
                   count={suppliers.count}
                   complete={suppliers.complete}
@@ -654,7 +653,7 @@ export function ProductPage(props: Props) {
                 />
                 <RankedTable
                   id="india-destinations"
-                  title="India Export Partners"
+                  title="India export partners"
                   rows={destinations.rows}
                   count={destinations.count}
                   complete={destinations.complete}
@@ -673,7 +672,7 @@ export function ProductPage(props: Props) {
 
         if (id === 'dgcis' && dgcis) {
           return (
-            <Section key={id} {...sectionProps(id)} title="India Tariff Lines · HS-8">
+            <Section key={id} {...sectionProps(id)} title="India tariff lines · HS-8">
               <Safely label="TariffBox">
                 <TariffBox data={dgcis} node={node} currency={currency} onOpenHs8={onOpenHs8} />
               </Safely>
@@ -695,7 +694,7 @@ export function ProductPage(props: Props) {
 
         if (id === 'lineage') {
           return (
-            <Section key={id} {...sectionProps(id)} title="Classification History">
+            <Section key={id} {...sectionProps(id)} title="Classification history">
               <LineageNote node={node} onOpen={onOpen} carriedInTrend />
             </Section>
           )
@@ -703,7 +702,7 @@ export function ProductPage(props: Props) {
 
         if (id === 'signals') {
           return (
-            <Section key={id} {...sectionProps(id)} title={`Key Changes · ${year}`}>
+            <Section key={id} {...sectionProps(id)} title={`Key changes · ${year}`}>
               <KeyChanges node={node} year={year} india={india} />
             </Section>
           )
@@ -713,12 +712,9 @@ export function ProductPage(props: Props) {
       })}
 
       <footer className="rf-source">
-        Source: UN Comtrade (HS {node.level === 6 ? '2022, six-digit' : `${node.level}-digit`}),
-        calendar years
-        {dgcis ? '; India tariff lines: DGCIS, monthly' : ''}. Snapshot{' '}
-        {new Date(manifest.refreshedAt).toLocaleDateString('en-GB')}.
+        Source: UN Comtrade{dgcis ? ' · DGCIS' : ''}. Updated {dayLabel(manifest.refreshedAt)}.
         {node.level === 6 && dgcis === null && (
-          <span className="tariff-absent"> No India tariff-line (HS-8) extract is held for this heading.</span>
+          <span className="tariff-absent"> No India tariff-line data for this product.</span>
         )}
       </footer>
     </div>
@@ -798,7 +794,7 @@ function CalculationDrawer({
 
   const rows: { term: string; value: string; note?: string }[] = [
     {
-      term: 'Global Trade, gross',
+      term: 'Global trade, gross',
       value: usd(gross),
       note: 'Every reporting economy’s imports from the world, as filed, plus estimates for economies that have not filed.',
     },
@@ -842,7 +838,7 @@ function CalculationDrawer({
     {
       term: 'Source',
       value: 'UN Comtrade',
-      note: `Snapshot built ${new Date(manifest.refreshedAt).toLocaleDateString('en-GB')}. Calendar year ${year}.`,
+      note: `Snapshot built ${dayLabel(manifest.refreshedAt)}. Calendar year ${year}.`,
     },
   ]
 
@@ -1049,8 +1045,8 @@ function TrendSection({
             value={series}
             onChange={setSeries}
             options={[
-              { id: 'world', label: 'Global Trade' },
-              { id: 'india', label: 'India Trade' },
+              { id: 'world', label: 'Global trade' },
+              { id: 'india', label: 'India trade' },
             ]}
           />
         )}
@@ -1063,8 +1059,8 @@ function TrendSection({
               <thead>
                 <tr>
                   <th scope="col">Month</th>
-                  <th scope="col" className="num money">India Imports</th>
-                  <th scope="col" className="num money">India Exports</th>
+                  <th scope="col" className="num money">India imports</th>
+                  <th scope="col" className="num money">India exports</th>
                 </tr>
               </thead>
               <tbody>
@@ -1082,8 +1078,8 @@ function TrendSection({
           <TrendChart
             data={monthlyData}
             lines={[
-              { key: 'imports', name: 'India Imports', colour: colours.imports },
-              { key: 'exports', name: 'India Exports', colour: colours.exports },
+              { key: 'imports', name: 'India imports', colour: colours.imports },
+              { key: 'exports', name: 'India exports', colour: colours.exports },
             ]}
             scale={monthScale}
             colours={colours}
@@ -1096,9 +1092,9 @@ function TrendSection({
               <thead>
                 <tr>
                   <th scope="col">Year</th>
-                  <th scope="col" className="num money">Global Trade</th>
-                  <th scope="col" className="num money">India Imports</th>
-                  <th scope="col" className="num money">India Exports</th>
+                  <th scope="col" className="num money">Global trade</th>
+                  <th scope="col" className="num money">India imports</th>
+                  <th scope="col" className="num money">India exports</th>
                 </tr>
               </thead>
               <tbody>
@@ -1139,15 +1135,13 @@ function TrendSection({
             </button>
           )}
 
-          <Markers
-            estimated={visible.some(row => (row.estimated ?? 0) > 0)}
-            carried={anyCarried}
-          />
+          {/* The * legend is under the figures above; this one only adds **. */}
+          <Markers carried={anyCarried} />
         </>
       ) : series === 'world' ? (
         <TrendChart
           data={chartData.map(row => ({ label: String(row.year), global: row.global }))}
-          lines={[{ key: 'global', name: 'Global Trade', colour: colours.global }]}
+          lines={[{ key: 'global', name: 'Global trade', colour: colours.global }]}
           scale={worldScale}
           colours={colours}
         />
@@ -1155,8 +1149,8 @@ function TrendSection({
         <TrendChart
           data={chartData.map(row => ({ label: String(row.year), imports: row.imports, exports: row.exports }))}
           lines={[
-            { key: 'imports', name: 'India Imports', colour: colours.imports },
-            { key: 'exports', name: 'India Exports', colour: colours.exports },
+            { key: 'imports', name: 'India imports', colour: colours.imports },
+            { key: 'exports', name: 'India exports', colour: colours.exports },
           ]}
           scale={indiaScale}
           colours={colours}
@@ -1277,8 +1271,8 @@ function TariffBox({
     <div className="rf-tariff dgcis" data-flow={flow}>
       <div className="rf-tariff-head">
         <p className="rf-tariff-lede">
-          India&rsquo;s {flowWord(flow).toLowerCase()}, by tariff line · {plural(tiles.length, 'line')} · last 12
-          months to {formatPeriod(data.periods[data.periods.length - 1] ?? null)}
+          India {flowWord(flow).toLowerCase()} by tariff line, last 12 months to{' '}
+          {formatPeriod(data.periods[data.periods.length - 1] ?? null)}
         </p>
 
         {flows.length > 1 && (
@@ -1309,17 +1303,16 @@ function TariffBox({
               <small> 12 months</small>
             </span>
             <span className="rf-tariff-meta">
-              {tile.share !== null ? `${shareText(tile.share)} of heading` : 'share —'}
-              {tile.change !== null ? ` · ${tile.change >= 0 ? '▲' : '▼'} ${pct(Math.abs(tile.change))} on prior 12` : ''}
+              {tile.share !== null ? `${shareText(tile.share)} of this product` : ''}
+              {tile.change !== null ? `${tile.share !== null ? ' · ' : ''}${delta(tile.change)} on the year before` : ''}
             </span>
           </button>
         ))}
       </div>
 
-      <p className="rf-source-line">
-        Source: DGCIS, India reporting its own trade, partner World, {flowWord(flow).toLowerCase()}. Not
-        world trade; never added to the Comtrade figures above.{node.lineage?.retired ? ' This code is retired; its lines remain as India history.' : ''}
-      </p>
+      {node.lineage?.retired && (
+        <p className="rf-source-line">This code is retired; its tariff lines remain as India history.</p>
+      )}
     </div>
   )
 }
@@ -1383,10 +1376,10 @@ function InsideSection({
             <tr>
               <th scope="col">Code</th>
               <th scope="col">Name</th>
-              <th scope="col" className="num money">Global Trade</th>
+              <th scope="col" className="num money">Global trade</th>
               <th scope="col" className="num">Share of HS-{node.level} {node.code}</th>
-              <th scope="col" className="num money">India Exports</th>
-              <th scope="col" className="num money">India Imports</th>
+              <th scope="col" className="num money">India exports</th>
+              <th scope="col" className="num money">India imports</th>
             </tr>
           </thead>
           <tbody>
@@ -1464,9 +1457,9 @@ function KeyChanges({
   const suppliers = current.india.suppliers
 
   const rows: [string, string][] = [
-    [`Global Trade, ${year - 1} to ${year}`, change(grossOf(current), grossOf(prior))],
-    [`India Exports, ${year - 1} to ${year}`, change(current.india.exports, prior?.india.exports)],
-    [`India Imports, ${year - 1} to ${year}`, change(current.india.imports, prior?.india.imports)],
+    [`Global trade, ${year - 1} to ${year}`, change(grossOf(current), grossOf(prior))],
+    [`India exports, ${year - 1} to ${year}`, change(current.india.exports, prior?.india.exports)],
+    [`India imports, ${year - 1} to ${year}`, change(current.india.imports, prior?.india.imports)],
     ['India trade balance', india(current.india.balance)],
   ]
 
@@ -1494,4 +1487,19 @@ function KeyChanges({
       ))}
     </dl>
   )
+}
+
+/*
+ * The pipeline's provisional note, said shortly: "Only 82% of last year's
+ * reporting economies have filed for this year." -> "82% of economies have
+ * filed so far." Anything it does not recognise is shown as written.
+ */
+function provisionalText(note: string): string {
+  const share = note.match(/Only (\d+(?:\.\d+)?)% of last year.s reporting economies have filed/)
+  if (share) return `${share[1]}% of economies have filed so far.`
+
+  const missing = note.match(/(\d+) of last year.s ten largest importers ha(?:s|ve) not filed yet: (.+?)\.?$/)
+  if (missing) return `Not yet filed: ${missing[2]}, among last year\u2019s top 10 importers.`
+
+  return note
 }

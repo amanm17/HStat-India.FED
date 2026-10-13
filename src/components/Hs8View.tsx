@@ -364,20 +364,17 @@ export function Hs8View({
             <i className="rf-id-mark" aria-hidden="true" />
             HS-8 <b>{hs8}</b>
           </span>
-          <span className="rf-id-item">India tariff line · DGCIS</span>
+          <span className="rf-id-item">India tariff line</span>
           {line.principalCommodity && <span className="rf-id-item">{sentence(line.principalCommodity)}</span>}
         </p>
 
         <h1 className={line.title ? undefined : 'hs8-code-title'}>{line.title || hs8}</h1>
 
         <p className="rf-official hs8-sub">
-          {line.title && <><strong>{hs8}</strong> · </>}
-          {siblings.length > 1
-            ? <>one of {siblings.length} tariff lines under</>
-            : <>the only tariff line under</>}{' '}
+          {siblings.length > 1 ? `1 of ${siblings.length} lines under` : 'Only line under'}{' '}
           <strong>HS {hs6}</strong>
-          {line.headingName && <> · {line.headingName}</>}
-          {!data.isProduct && <> · heading carried as a lineage predecessor, with no product page</>}
+          {entry ? <> · {entry.displayName || entry.product}</> : line.headingName ? <> · {line.headingName}</> : null}
+          {!data.isProduct && <> · retired code, no product page</>}
         </p>
 
         {nameCaveat(line) && <p className="hs8-namecaveat">{nameCaveat(line)}</p>}
@@ -483,7 +480,7 @@ export function Hs8View({
           {available.includes('exports') && (
             <FigureTile
               series="exports"
-              label="India Exports"
+              label="India exports"
               value={money(flowTotal('exports'), basis)}
               caption={`Last 12 months, to ${formatPeriod(data.flows.exports?.latestPeriod ?? null)}`}
             />
@@ -491,7 +488,7 @@ export function Hs8View({
           {available.includes('imports') && (
             <FigureTile
               series="imports"
-              label="India Imports"
+              label="India imports"
               value={money(flowTotal('imports'), basis)}
               caption={`Last 12 months, to ${formatPeriod(data.flows.imports?.latestPeriod ?? null)}`}
             />
@@ -502,7 +499,9 @@ export function Hs8View({
             value={share === null ? '—' : pct(share)}
             caption={
               rank > 0
-                ? `${ordinal(rank)} of ${siblings.length} lines · ${flowWord(flow).toLowerCase()}, 12 months to ${formatPeriod(data.periods[data.periods.length - 1] ?? null)}`
+                ? siblings.length > 1
+                  ? `${ordinal(rank)} of ${siblings.length} lines, by ${flowWord(flow).toLowerCase()}`
+                  : 'The only line'
                 : undefined
             }
           />
@@ -512,7 +511,7 @@ export function Hs8View({
       {entry && (
         <section className="hs8-parent-card rf-parent" id="tile-hs8-heading">
           <div>
-            <span className="rf-eyebrow">Heading · UN Comtrade</span>
+            <span className="rf-eyebrow">Product, world trade</span>
             <h2>
               HS {hs6} — {entry.displayName || entry.product}
             </h2>
@@ -520,12 +519,12 @@ export function Hs8View({
 
           <div className="rf-parent-figures">
             <span>
-              <b>Global Trade {entry.globalTradeYear ?? ''}</b>{' '}
+              <b>Global trade {entry.globalTradeYear ?? ''}</b>{' '}
               {usd(entry.globalTradeGross ?? entry.globalTrade)}
             </span>
             {onOpen && (
               <button type="button" className="rf-button quiet hs8-parent-open" onClick={() => onOpen(hs6, 6)}>
-                Open the heading <ArrowUpRight size={15} aria-hidden />
+                Product page <ArrowUpRight size={15} aria-hidden />
               </button>
             )}
           </div>
@@ -617,9 +616,8 @@ export function Hs8View({
       )}
 
       <footer className="rf-source dgcis-foot">
-        Source: DGCIS / Trade Intelligence &amp; Analytics · India-reported, partner World (India
-        with everywhere, not world trade) · {unit}, as published · not estimated · never combined
-        with Comtrade figures.
+        Source: DGCIS. India&rsquo;s own trade with all partners, as published; not world trade.
+        Data to {formatPeriod(data.periods[data.periods.length - 1] ?? null)}.
       </footer>
     </div>
   )
@@ -672,7 +670,7 @@ function MonthTable({
     <section className="rf-section hs8-chart" id={`tile-hs8-${flow}`} data-flow={flow}>
       <header className="rf-section-head">
         <h2 className="rf-section-title rf-static-title">
-          India {flowWord(flow)}, Month by Month · {unit}
+          India {flowWord(flow).toLowerCase()} by month · {unit}
         </h2>
 
         <Tabs

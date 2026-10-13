@@ -73,14 +73,13 @@ console.log('\n=== availability page ===')
 {
   const { page, errs } = await open(BASE, '/availability')
   const t = await page.innerText('body')
-  ok('with data it renders', /Reporter coverage/i.test(t))
-  ok('refresh verdict shown', /refresh would bring in new data|Nothing new since/i.test(t))
+  ok('with data it renders', /Data availability/.test(t))
+  ok('refresh status shown', /Comtrade has new data since|Nothing new since/.test(t))
   /* The join is rebuilt every month, so no particular economy is expected. */
-  ok('gaps joined to our products', /Missing from \d+ of the 418 products/.test(t))
-  ok('says when Comtrade was checked and when we last pulled', /Checked with Comtrade/.test(t) && /Our data last pulled/.test(t) && /Next automatic check/.test(t))
+  ok('gaps joined to our products', /\d+ of 418 products/.test(t))
+  ok('says when Comtrade was checked and when we last pulled', /Checked with Comtrade/.test(t) && /Our data pulled/.test(t) && /Next check/.test(t))
+  ok('dates read as 8 Oct 2026', /\b\d{1,2} [A-Z][a-z]{2} \d{4}\b/.test(t) && !/\b20\d\d-\d\d-\d\d\b/.test(t))
   ok('"has since filed" marked', await page.locator('.avail-filed').count() > 0)
-  await page.locator('.avail-sample button').first().click(); await page.waitForTimeout(900)
-  ok('gap sample opens a product', /\/hs\/\d{6}$/.test(page.url()), page.url().replace(BASE,''))
   ok('no errors', errs.length === 0, errs[0] ?? '')
   await page.close()
 }
@@ -89,9 +88,9 @@ console.log('\n=== query builder ===')
 {
   const { page, errs } = await open(BASE, '/query')
   const t = await page.innerText('body')
-  ok('renders', /Build a Comtrade query/i.test(t))
+  ok('renders', /Comtrade query/.test(t))
   ok('offers three outputs', await page.locator('.qb-out').count() === 3)
-  ok('explains why it takes no key', /why there is no key field/i.test(t))
+  ok('explains why it takes no key', /never asks for your Comtrade key/i.test(t))
   const pre = await page.locator('.qb-out pre').first().innerText()
   ok('composes a real Comtrade URL', pre.includes('comtradeplus.un.org') && pre.includes('851713'), pre.slice(0, 70))
   await page.locator('.qb-field select').nth(1).selectOption('X'); await page.waitForTimeout(400)
@@ -147,8 +146,8 @@ console.log('\n=== the rank says which side it measures ===')
    * bug an outside reviewer read as broken data. */
   /* Since the Phase 2 refresh the rank sits under its own headline tile,
    * so the side it measures is the tile it is printed under. */
-  ok('names the import ranking', /India Imports[\s\S]{0,120}of all importers/.test(text))
-  ok('names the export ranking', /India Exports[\s\S]{0,120}(of all exporters|of world exports)/.test(text))
+  ok('names the import ranking', /India imports[\s\S]{0,120}of all importers/.test(text))
+  ok('names the export ranking', /India exports[\s\S]{0,120}(of all exporters|of world exports)/.test(text))
   ok('import rank says what it is out of', /of all importers/i.test(text))
   ok('export standing is published too', /of all exporters|outside the top ten/i.test(text))
   ok('no unlabelled "India share" is left', !/India share · \d{4}/.test(text))
@@ -244,7 +243,7 @@ console.log('\n=== HStack reaches eight digits ===')
 console.log('\n=== rail reaches everything ===')
 {
   const { page } = await open(BASE, '/')
-  for (const [label, path] of [['Availability','/availability'], ['Query builder','/query'], ['Tariff lines','/tariff-lines'], ['Guide','/guide']]) {
+  for (const [label, path] of [['Availability','/availability'], ['Query builder','/query'], ['Indian trade lines','/tariff-lines'], ['Guide','/guide']]) {
     await page.locator('.nav-action', { hasText: label }).click(); await page.waitForTimeout(700)
     ok(`rail → ${label}`, page.url().endsWith(path), page.url().replace(BASE,''))
   }

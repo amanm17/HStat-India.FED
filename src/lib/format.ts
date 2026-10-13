@@ -1,3 +1,5 @@
+import { HS_PARENT_NAMES } from './hsnames.generated'
+
 const MONTHS = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
@@ -307,6 +309,22 @@ export function ordinal(value: number | null | undefined): string {
   }
 }
 
+/*
+ * A calendar day, one way everywhere: "8 Oct 2026". Takes an ISO date or
+ * timestamp and reads its date part as written, so a UTC timestamp is not
+ * shifted to the day before west of Greenwich.
+ */
+export function dayLabel(value: string | Date | null | undefined): string {
+  if (!value) return '—'
+
+  const iso = value instanceof Date ? value.toISOString() : String(value)
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})/)
+
+  if (!m) return iso
+
+  return `${Number(m[3])} ${MONTHS[Number(m[2]) - 1] ?? m[2]} ${m[1]}`
+}
+
 /* "202406" -> "Jun 2024" */
 export function monthLabel(period: string): string {
   if (!/^\d{6}$/.test(period)) return period
@@ -340,14 +358,15 @@ export function concentrationLabel(hhi: number | null): string {
  * The name to put in front of a reader.
  *
  * `displayName` is authored per HS-6 against the official text and is unique
- * across the catalogue. `product` is the family it sits in and is deliberately
- * coarser - eight codes under 8544 are all "Cables", which is right for the
- * heading and useless for any code inside it - so it is only a fallback, and
- * the official description is the last resort. Parents have no display name
- * and fall through to their heading title.
+ * across the catalogue. HS-2 chapters and HS-4 headings take their curated
+ * short name (config/hs_short_names.csv) - the snapshot's `product` field for
+ * a parent is a list of its first few members, never a name for it. `product`
+ * is otherwise the family a code sits in and deliberately coarser, so it is
+ * only a fallback, and the official description is the last resort.
  */
 export function nameOf(
   item: {
+    code?: string | null
     displayName?: string | null
     product?: string | null
     description?: string | null
@@ -356,7 +375,27 @@ export function nameOf(
 ): string {
   if (!item) return ''
 
+  const parent = item.code && (item.code.length === 2 || item.code.length === 4)
+    ? HS_PARENT_NAMES[item.code]
+    : undefined
+
+  if (parent && !item.displayName) return parent[0]
+
   return item.displayName || item.product || item.description || ''
+}
+
+/* The full official HS text for a code: a chapter's or heading's from the
+ * HS titles table, a product's from its own description. Shown on hover. */
+export function officialName(
+  item: { code?: string | null; description?: string | null } | null | undefined,
+): string {
+  if (!item) return ''
+
+  if (item.code && (item.code.length === 2 || item.code.length === 4)) {
+    return HS_PARENT_NAMES[item.code]?.[1] ?? ''
+  }
+
+  return item.description ?? ''
 }
 
 /*

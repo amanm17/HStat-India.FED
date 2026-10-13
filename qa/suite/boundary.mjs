@@ -33,7 +33,7 @@ const text = await page.innerText('body')
 ok('page survives a throw inside the panel', text.includes('851762') && text.length > 1500, `${text.length} chars`)
 ok('the broken panel is gone', (await page.locator('#section-dgcis .dgcis').count()) === 0)
 ok('nothing escaped to the window', thrown.length === 0, thrown[0] ?? '')
-ok('the rest of the product page is intact', /Global Trade/.test(text) &&
+ok('the rest of the product page is intact', /Global trade/.test(text) &&
    (await page.locator('.rf-section').count()) >= 3)
 
 // and the tariff-line page for the same poisoned heading

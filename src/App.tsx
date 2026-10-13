@@ -38,7 +38,7 @@ import {
 
 import { useFallbackRates } from './lib/currency'
 import { loadDgcisIndex } from './lib/dgcis'
-import { nameOf } from './lib/format'
+import { dayLabel, nameOf } from './lib/format'
 import { SearchHub, type Command } from './components/SearchHub'
 import { ProductPage } from './components/ProductPage'
 import { ViewAll, VIEW_ALL_SLUGS, type ViewAllTarget } from './components/ViewAll'
@@ -1124,7 +1124,7 @@ function App() {
             </button>
 
             <div className="refresh">
-              Updated {new Date(manifest.refreshedAt).toLocaleDateString('en-GB')}
+              Updated {dayLabel(manifest.refreshedAt)}
               {snapshot === 'previous' && ' · last validated snapshot'}
             </div>
           </div>

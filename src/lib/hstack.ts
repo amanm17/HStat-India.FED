@@ -19,7 +19,7 @@ import type { Detail } from './scope'
 
 
 /*
- * Global Trade on the gross basis the rest of the site leads with since the
+ * Global trade on the gross basis the rest of the site leads with since the
  * Phase 2 refresh. A year that is not publishable stays null; a snapshot
  * that predates the gross field falls back to the published figure.
  */

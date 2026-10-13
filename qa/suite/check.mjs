@@ -41,7 +41,7 @@ async function open(path) {
   ok('panel says exports, not imports',
      /export/i.test(panelText) && !/India’s imports|India's imports/i.test(panelText),
      panelText.split('\n')[1] ?? '')
-  ok('panel shows each line\'s share', /% of heading/.test(panelText))
+  ok('panel shows each line\'s share', /% of this product/.test(panelText))
   const codes = await page.locator('#section-dgcis .rf-tariff-tile').count()
   ok('tariff lines are links', codes >= 2, `${codes} links`)
   await page.close()
@@ -101,7 +101,7 @@ async function open(path) {
   const text = await page.innerText('body')
   ok('standalone HS-8 renders', text.includes('85171211') && /Last 12 months/i.test(text))
   ok('standalone HS-8 says it has no product page',
-     /lineage predecessor/i.test(text), '')
+     /no product page/i.test(text), '')
   ok('standalone HS-8 shows no Comtrade card it cannot fill',
      (await page.locator('.hs8-parent-card').count()) === 0)
   ok('standalone HS-8 throws nothing', errors.length === 0, errors.slice(0, 2).join(' | '))

@@ -9,7 +9,7 @@
  *                 bar chart on request, top 5 -> "+" -> top 10 -> view all
  *
  * Colour is passed in, never chosen here: a ranking of world importers is
- * drawn in the Global Trade colour, India's import partners in the India
+ * drawn in the Global trade colour, India's import partners in the India
  * Imports colour, and so on, so a hue means the same thing on every page.
  */
 import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react'
@@ -591,15 +591,94 @@ export function Markers({ estimated, carried }: { estimated?: boolean; carried?:
     <p className="rf-markers marker-legend">
       {estimated && (
         <span>
-          <b className="estimated-mark">*</b> contains estimated values; hover or tap the mark
-          for the estimated share
+          <b className="estimated-mark">*</b> includes estimates; tap the mark for how much
         </span>
       )}
       {carried && (
         <span>
-          <b className="carried-mark">**</b> carried from a retired predecessor code
+          <b className="carried-mark">**</b> figures of the code this one replaced
         </span>
       )}
     </p>
+  )
+}
+
+/*
+ * A page title that turns into its full official HS text when clicked.
+ *
+ * The short name is what the page is called; the official text is long and
+ * legal, so it is never printed by default and never pops over the page.
+ * A click (or Enter) swaps the title in place for the official wording, in
+ * a smaller size, and after a few seconds it settles back to the short name;
+ * a second click returns at once. On hover the only sign is a quiet dotted
+ * underline. A screen reader gets the official text as the title's
+ * description, so nothing is hidden from it.
+ */
+const OFFICIAL_MS = 6000
+
+export function PageTitle({ name, official }: { name: string; official?: string | null }) {
+  const extra = official && official.trim() && official.trim() !== name.trim() ? official.trim() : null
+  const [showing, setShowing] = useState(false)
+
+  useEffect(() => {
+    if (!showing) return
+    const timer = window.setTimeout(() => setShowing(false), OFFICIAL_MS)
+    return () => window.clearTimeout(timer)
+  }, [showing])
+
+  /* A new page starts on its short name. */
+  useEffect(() => setShowing(false), [name])
+
+  if (!extra) {
+    return (
+      <h1 className="rf-title">
+        <span className="rf-title-name">{name}</span>
+      </h1>
+    )
+  }
+
+  return (
+    <h1 className={showing ? 'rf-title showing-official' : 'rf-title'}>
+      <button
+        type="button"
+        className="rf-title-swap"
+        aria-pressed={showing}
+        aria-label={showing ? `${extra}. Show the short name` : `${name}. Show the official HS description`}
+        onClick={() => setShowing(value => !value)}
+      >
+        {showing ? (
+          <span key="official" className="rf-title-official">{extra}</span>
+        ) : (
+          <span key="name" className="rf-title-name">{name}</span>
+        )}
+      </button>
+    </h1>
+  )
+}
+
+/*
+ * Every page opens the same way: a title, one line on what the page holds,
+ * any page-wide controls on the right, and an Indigo rule beneath (FED's
+ * heading rule, in Indigo because Ming already means India exports). No
+ * eyebrow labels stacked above the title: the breadcrumb or the left rail
+ * already says where you are.
+ */
+export function PageHeader({
+  title,
+  sub,
+  aside,
+}: {
+  title: ReactNode
+  sub?: ReactNode
+  aside?: ReactNode
+}) {
+  return (
+    <header className="rf-pagehead">
+      <div className="rf-pagehead-text">
+        <h1>{title}</h1>
+        {sub && <p className="rf-pagehead-sub">{sub}</p>}
+      </div>
+      {aside && <div className="rf-pagehead-aside">{aside}</div>}
+    </header>
   )
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { AlertTriangle, CheckCircle2, ExternalLink } from 'lucide-react'
+import { ExternalLink } from 'lucide-react'
 
 import {
   loadAvailability,
@@ -9,10 +9,11 @@ import {
   refreshDue,
   type Availability as Data,
 } from '../lib/availability'
-import { pct, plural, usd } from '../lib/format'
+import { dayLabel, plural, usd } from '../lib/format'
 import { usePageHelp } from '../lib/pagehelp'
 import { usePhone } from '../lib/viewport'
 import { Rows } from './Rows'
+import { PageHeader } from './ui'
 
 /*
  * What Comtrade holds, and what it costs us.
@@ -124,62 +125,41 @@ export function Availability({
 
   return (
     <div className="avail-page">
-      <header className="avail-head">
+      <PageHeader
+        title="Data availability"
+        sub="Which economies have filed with UN Comtrade, by year and month."
+        aside={
+          <a className="linkish avail-source" href={data.sourceUrl} target="_blank" rel="noreferrer">
+            Comtrade&rsquo;s page <ExternalLink size={14} aria-hidden />
+          </a>
+        }
+      />
+
+      <dl className="avail-dates">
         <div>
-          <div className="eyebrow">UN COMTRADE · DATA AVAILABILITY</div>
-
-          <h1>Reporter coverage</h1>
-
-          <p className="avail-lede">
-            Which economies have submitted data for which period, as Comtrade&rsquo;s
-            own Data Availability dashboard records it, against the{' '}
-            {data.productsTotal} products we track.
-          </p>
-
-          <dl className="avail-dates">
-            <div>
-              <dt>Checked with Comtrade</dt>
-              <dd>{data.fetchedAt.slice(0, 10)}</dd>
-            </div>
-            <div>
-              <dt>Our data last pulled</dt>
-              <dd>{due.pulled ?? 'unknown'}</dd>
-            </div>
-            <div>
-              <dt>Next automatic check</dt>
-              <dd>{nextCheck()}</dd>
-            </div>
-          </dl>
+          <dt>Checked with Comtrade</dt>
+          <dd>{dayLabel(data.fetchedAt)}</dd>
         </div>
-
-        <a
-          className="avail-source"
-          href={data.sourceUrl}
-          target="_blank"
-          rel="noreferrer"
-        >
-          Comtrade's own page <ExternalLink size={12} />
-        </a>
-      </header>
-
-      <div className={due.due ? 'avail-verdict due' : 'avail-verdict fine'}>
-        {due.due ? <AlertTriangle size={18} /> : <CheckCircle2 size={18} />}
-
         <div>
-          <strong>
-            {due.due ? 'A refresh would bring in new data' : 'Nothing new since our last refresh'}
-          </strong>
-
-          <span>
-            {due.due
-              ? `Comtrade released data after our last pull on ${due.pulled}, most recently on ${due.since}. The scheduled refresh on ${nextRefresh()} picks it up automatically; nothing needs doing.`
-              : `Nothing released since our last pull on ${due.pulled ?? 'record'}. These figures are as current as the source allows.`}
-          </span>
+          <dt>Our data pulled</dt>
+          <dd>{dayLabel(due.pulled)}</dd>
         </div>
-      </div>
+        <div>
+          <dt>Next check</dt>
+          <dd>{dayLabel(nextCheck())}</dd>
+        </div>
+      </dl>
+
+      {/* A status, not a warning: new source data is picked up on schedule
+        * and needs nothing from the reader. */}
+      <p className="avail-status">
+        {due.due
+          ? `Comtrade has new data since ${dayLabel(due.pulled)}. The ${dayLabel(nextRefresh())} refresh adds it.`
+          : `Nothing new since ${dayLabel(due.pulled)}. The figures are as current as the source.`}
+      </p>
 
       <section className="avail-block">
-        <h2>Annual coverage</h2>
+        <h2 className="rf-h2">Annual</h2>
 
         {phone ? (
           <Rows
@@ -193,63 +173,45 @@ export function Availability({
                 </span>
               ),
               fields: [
-                {
-                  label: 'Filed',
-                  value: row.reporters,
-                  lead: true,
-                  numeric: true,
-                },
-                {
-                  label: 'Latest release',
-                  value: row.latestRelease ?? '—',
-                  numeric: true,
-                },
-                {
-                  label: 'Share of the best year',
-                  value: pct(row.reporters / peak, 0),
-                  numeric: true,
-                },
+                { label: 'Economies filed', value: row.reporters, lead: true, numeric: true },
+                { label: 'Latest release', value: dayLabel(row.latestRelease), numeric: true },
               ],
             }))}
           />
         ) : (
-        <table className="dgcis-table">
-          <thead>
-            <tr>
-              <th>Year</th>
-              <th className="num">Economies filed</th>
-              <th>Coverage</th>
-              <th className="num">Latest release</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {annual.map(row => (
-              <tr key={row.period}>
-                <td><strong>{row.period}</strong></td>
-                <td className="num">{row.reporters}</td>
-                <td>
-                  <span className="avail-bar">
-                    <span style={{ width: `${(row.reporters / peak) * 100}%` }} />
-                  </span>
-                </td>
-                <td className="num dgcis-month">{row.latestRelease ?? '—'}</td>
+          <table className="rf-table avail-table">
+            <thead>
+              <tr>
+                <th scope="col">Year</th>
+                <th scope="col" className="num">Economies filed</th>
+                <th scope="col">Coverage</th>
+                <th scope="col" className="num">Latest release</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody>
+              {annual.map(row => (
+                <tr key={row.period}>
+                  <td><strong>{row.period}</strong></td>
+                  <td className="num">{row.reporters}</td>
+                  <td>
+                    <span className="avail-bar">
+                      <span style={{ width: `${(row.reporters / peak) * 100}%` }} />
+                    </span>
+                  </td>
+                  <td className="num">{dayLabel(row.latestRelease)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </section>
 
       {monthly.length > 0 && (
         <section className="avail-block">
-          <h2>Monthly coverage</h2>
+          <h2 className="rf-h2">Monthly</h2>
 
-          <p className="avail-note">
-            Months ahead of annual, but far fewer economies file it — including
-            most of the largest electronics traders. Shown because it exists, not
-            because a world total can be built from it.
-          </p>
+          <p className="avail-note">Fewer economies file monthly, so world totals use annual data.</p>
 
           {phone ? (
             <Rows
@@ -258,47 +220,40 @@ export function Availability({
                 id: row.period,
                 title: monthLabel(row.period),
                 fields: [
-                  { label: 'Filed', value: row.reporters, lead: true, numeric: true },
-                  {
-                    label: 'Latest release',
-                    value: row.latestRelease ?? '—',
-                    numeric: true,
-                  },
+                  { label: 'Economies filed', value: row.reporters, lead: true, numeric: true },
+                  { label: 'Latest release', value: dayLabel(row.latestRelease), numeric: true },
                 ],
               }))}
             />
           ) : (
-          <table className="dgcis-table compact">
-            <thead>
-              <tr>
-                <th>Month</th>
-                <th className="num">Economies filed</th>
-                <th className="num">Latest release</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {monthly.map(row => (
-                <tr key={row.period}>
-                  <td>{monthLabel(row.period)}</td>
-                  <td className="num">{row.reporters}</td>
-                  <td className="num dgcis-month">{row.latestRelease ?? '—'}</td>
+            <table className="rf-table avail-table">
+              <thead>
+                <tr>
+                  <th scope="col">Month</th>
+                  <th scope="col" className="num">Economies filed</th>
+                  <th scope="col" className="num">Latest release</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+
+              <tbody>
+                {monthly.map(row => (
+                  <tr key={row.period}>
+                    <td>{monthLabel(row.period)}</td>
+                    <td className="num">{row.reporters}</td>
+                    <td className="num">{dayLabel(row.latestRelease)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
         </section>
       )}
 
       {data.holes.length > 0 && (
         <section className="avail-block">
-          <h2>Economies not reporting</h2>
+          <h2 className="rf-h2">Not yet filed</h2>
 
-          <p className="avail-note">
-            A missing economy understates a page rather than blanking it. Each
-            absence is valued at what that economy filed the year before.
-          </p>
+          <p className="avail-note">Each gap is sized by what the economy filed the year before.</p>
 
           <div className="avail-holes">
             {data.holes.slice(0, 14).map(hole => (
@@ -306,38 +261,21 @@ export function Availability({
                 <div className="avail-hole-head">
                   <strong>{hole.reporter}</strong>
                   <span className="avail-hole-year">{hole.period}</span>
-                  {hole.filedSince && (
-                    <span className="avail-filed">has since filed</span>
-                  )}
+                  {hole.filedSince && <span className="avail-filed">now filed</span>}
                 </div>
 
                 <p>
-                  Missing from <strong>{hole.products}</strong> of the 418 products,
-                  worth <strong>{usd(hole.priorValue, 1)}</strong> the year before.
+                  {hole.products} of {data.productsTotal} products, {usd(hole.priorValue)} the year before.
                 </p>
-
-                {onOpen && (
-                  <div className="avail-sample">
-                    {hole.sample.slice(0, 6).map(code => (
-                      <button key={code} className="linkish" onClick={() => onOpen(code, 6)}>
-                        {code}
-                      </button>
-                    ))}
-                  </div>
-                )}
               </article>
             ))}
           </div>
         </section>
       )}
 
-      <p className="dgcis-foot">
-        Source: {data.source}, the data behind Comtrade&rsquo;s Data Availability
-        dashboard. Refreshed automatically on the 1st of each month and after
-        every monthly data refresh; built {data.builtAt.slice(0, 10)}. This page
-        reports what the source holds; estimates elsewhere on the site are not
-        shown here.
-      </p>
+      <footer className="rf-source">
+        Source: UN Comtrade data availability. Checked on the 1st of each month. Updated {dayLabel(data.builtAt)}.
+      </footer>
     </div>
   )
 }

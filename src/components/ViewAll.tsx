@@ -7,6 +7,7 @@
  * the ten there. Where the snapshot holds only the top of a list (years
  * before full lists begin) the page says so instead of padding it.
  */
+import { PageHeader } from './ui'
 import { Mark, estimateTip } from './primitives'
 import { useEffect, useMemo, useState } from 'react'
 import { ArrowLeft, Download } from 'lucide-react'
@@ -39,12 +40,12 @@ export const VIEW_ALL_SLUGS: Record<RankKind, string> = {
 }
 
 const TITLES: Record<string, string> = {
-  importers: 'Top Importers',
-  exporters: 'Top Exporters',
-  indiaSuppliers: 'India Import Partners',
-  indiaDestinations: 'India Export Partners',
-  finished: 'Top Traded Products · Finished Goods',
-  components: 'Top Traded Products · Components & Inputs',
+  importers: 'Top importers',
+  exporters: 'Top exporters',
+  indiaSuppliers: 'India import partners',
+  indiaDestinations: 'India export partners',
+  finished: 'Top finished goods',
+  components: 'Top components and inputs',
 }
 
 export function ViewAll({
@@ -216,29 +217,28 @@ export function ViewAll({
         <ArrowLeft size={16} aria-hidden /> Back
       </button>
 
-      <div className="rf-viewall-head">
-        <div>
-          <span className="rf-eyebrow">{subject}{year !== null ? ` · CY ${year}` : ''}</span>
-          <h1>{title}</h1>
-        </div>
-
-        <div className="rf-viewall-actions">
-          <input
-            className="rf-filter"
-            type="search"
-            placeholder={product ? 'Filter products' : 'Filter countries'}
-            value={filter}
-            onChange={event => setFilter(event.target.value)}
-            aria-label="Filter the list"
-          />
-          <button type="button" className="rf-button" onClick={() => downloadCsv(name, exportRows(), meta)}>
-            <Download size={16} aria-hidden /> CSV
-          </button>
-          <button type="button" className="rf-button" onClick={() => downloadXlsx(name, { [title.slice(0, 28)]: exportRows() }, meta)}>
-            <Download size={16} aria-hidden /> Excel
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title={title}
+        sub={`${target.scope === 'product' ? subject : 'Electronics'}${year !== null ? `, ${year}` : ''}. Every ${product ? 'product' : 'economy'}, largest first.`}
+        aside={
+          <>
+            <input
+              className="rf-filter"
+              type="search"
+              placeholder={product ? 'Filter products' : 'Filter countries'}
+              value={filter}
+              onChange={event => setFilter(event.target.value)}
+              aria-label="Filter the list"
+            />
+            <button type="button" className="rf-button" onClick={() => downloadCsv(name, exportRows(), meta)}>
+              <Download size={16} aria-hidden /> CSV
+            </button>
+            <button type="button" className="rf-button" onClick={() => downloadXlsx(name, { [title.slice(0, 28)]: exportRows() }, meta)}>
+              <Download size={16} aria-hidden /> Excel
+            </button>
+          </>
+        }
+      />
 
       {note && <p className="rf-note">{note}</p>}
 

@@ -65,7 +65,7 @@
   --accent-ink: #FFFFFF;
 
   --shadow: none;
-  --radius: 4px;
+  --radius: 2px;
 }
 
 :root[data-theme="dark"] {
@@ -105,12 +105,10 @@
 }
 
 /* The depth accent: page chrome only. */
-:root[data-level="4"] { --accent: #009F75; --accent-ink: #06261C; }
-:root[data-level="6"] { --accent: #7DE2D1; --accent-ink: #0B2A26; }
-:root[data-level="8"] { --accent: #FEB95F; --accent-ink: #2E1D03; }
-:root[data-theme="dark"][data-level="4"] { --accent: #5fc2a2; --accent-ink: #0b211a; }
-:root[data-theme="dark"][data-level="6"] { --accent: #6fcfbf; --accent-ink: #0b2a26; }
-:root[data-theme="dark"][data-level="8"] { --accent: #e9ac5c; --accent-ink: #2e1d03; }
+/* Every level shares the Indigo accent. Ming, Light Sky Blue and Yellow
+ * Orange each already mean something (India exports, finished goods,
+ * components), so a level coloured in them gave those hues a second
+ * meaning. The code on the page ("HS-4 8517") says the level. */
 
 body {
   font-family: Arial, Helvetica, sans-serif;

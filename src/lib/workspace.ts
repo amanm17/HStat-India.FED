@@ -46,13 +46,13 @@ export type TileSpec = {
 
 export const TILES: TileSpec[] = [
   { id: 'identity', label: 'Product', note: 'Code, name and tagging', always: true },
-  { id: 'headline', label: 'Headline', note: 'Global Trade, India Exports and India Imports, with the calculation drawer', always: true },
-  { id: 'trend', label: 'Trend', note: 'Global Trade and India trade over time, as a table or a chart' },
-  { id: 'world', label: 'Importers & Exporters', note: 'The largest importing and exporting countries' },
-  { id: 'partners', label: "India's Partners", note: "India's import and export partners" },
-  { id: 'dgcis', label: 'Tariff Lines', note: "India's own eight-digit lines, monthly, from DGCIS" },
+  { id: 'headline', label: 'Headline', note: 'Global trade, India exports and India imports, with the calculation drawer', always: true },
+  { id: 'trend', label: 'Trend', note: 'Global trade and India trade over time, as a table or a chart' },
+  { id: 'world', label: 'Importers & exporters', note: 'The largest importing and exporting countries' },
+  { id: 'partners', label: "India's partners", note: "India's import and export partners" },
+  { id: 'dgcis', label: 'Tariff lines', note: "India's own eight-digit lines, monthly, from DGCIS" },
   { id: 'inside', label: 'Inside', note: 'The headings or lines inside this code, with their shares' },
-  { id: 'signals', label: 'Key Changes', note: 'Year-on-year changes and import concentration' },
+  { id: 'signals', label: 'Key changes', note: 'Year-on-year changes and import concentration' },
   { id: 'lineage', label: 'Classification', note: 'What this code was before HS 2022' },
 ]
 

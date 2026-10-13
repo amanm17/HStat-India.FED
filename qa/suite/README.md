@@ -178,7 +178,7 @@ node qa/suite/overlap.mjs          # 3,068 — 15 pages × 7 shapes × 2 themes,
 LOOK=aman node qa/suite/overlap.mjs
 node qa/suite/easteregg.mjs        # 36 — the ~AM1708 switch, end to end
 node qa/suite/decimals.mjs         # 34 — the Decimals switch: 0 / Auto / 1..6, exact rounding, every page, persists
-node qa/suite/homepanels.mjs       # 63 — search tile, product rankings, DGCIS Reporting (collapsed, money figures)
+node qa/suite/homepanels.mjs       # 64 — search tile, product rankings, DGCIS Reporting (collapsed, money figures), HS names module current
 LOOK=aman node --import ./qa/suite/look-env.mjs qa/suite/mobile.mjs   # any suite, secret look
 ```
 

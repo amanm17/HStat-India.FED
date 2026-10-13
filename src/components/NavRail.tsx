@@ -105,7 +105,7 @@ export function NavRail({
           title="India's eight-digit tariff lines"
         >
           <Layers size={16} />
-          <span>Tariff lines</span>
+          <span>Indian trade lines</span>
         </button>
 
         <button

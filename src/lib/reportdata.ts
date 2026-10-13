@@ -34,11 +34,11 @@ export type ReportEntry = {
 export const REPORT_SECTIONS = [
   { id: 'headline', label: 'Headline and calculation' },
   { id: 'trend', label: 'Trend' },
-  { id: 'world', label: 'Importers & Exporters' },
-  { id: 'partners', label: "India's Partners" },
-  { id: 'dgcis', label: 'Tariff Lines' },
+  { id: 'world', label: 'Importers & exporters' },
+  { id: 'partners', label: "India's partners" },
+  { id: 'dgcis', label: 'Tariff lines' },
   { id: 'inside', label: 'Inside' },
-  { id: 'signals', label: 'Key Changes' },
+  { id: 'signals', label: 'Key changes' },
   { id: 'lineage', label: 'Classification' },
 ]
 
@@ -115,14 +115,14 @@ export function productDocument(
           title: `Calendar year ${year}`,
           items: [
             {
-              label: 'Global Trade',
+              label: 'Global trade',
               value: headline.published ? usd(headline.global) : 'Not published',
               caption: 'World imports',
               series: 'global',
               estimated: (headline.globalEstimatedShare ?? 0) > 0,
             },
             {
-              label: 'India Exports',
+              label: 'India exports',
               value: usd(headline.indiaExports),
               caption:
                 headline.indiaExportRank !== null
@@ -133,7 +133,7 @@ export function productDocument(
               series: 'exports',
             },
             {
-              label: 'India Imports',
+              label: 'India imports',
               value: usd(headline.indiaImports),
               caption:
                 headline.indiaImportRank !== null
@@ -155,9 +155,9 @@ export function productDocument(
 
         blocks.push({
           kind: 'pairs',
-          title: `How Global Trade is calculated · ${latest}`,
+          title: `How Global trade is calculated · ${latest}`,
           rows: [
-            ['Global Trade, gross', `${usd(gross)}${estimatedOf(node, latest) ? '*' : ''}`],
+            ['Global trade, gross', `${usd(gross)}${estimatedOf(node, latest) ? '*' : ''}`],
             ['Net of re-imports', `${usd(net)} (re-import coverage ${pct(record.global.observed.adjustmentCoverage, 0)})`],
             ['Gross–net gap', gap === null ? '—' : `${pct(gap, 1)}${gap > 0.1 ? ' — above 10%, gross overstates' : ''}`],
             ['Coverage verdict', String((record.global.coverage as { gateStatus?: string })?.gateStatus ?? record.global.coverage?.status ?? '—')],
@@ -186,24 +186,24 @@ export function productDocument(
       const tableYears = [...allYears].reverse().slice(0, Math.max(10, sorted.length))
 
       out.push({
-        title: `${prefix}Global Trade and India Trade over Time`,
+        title: `${prefix}Global and India trade over time`,
         blocks: [
           {
             kind: 'line',
-            title: 'Global Trade',
+            title: 'Global trade',
             unit: 'US dollars',
             labels: allYears.map(String),
-            series: [{ name: 'Global Trade', colour: INK.indigo, values: allYears.map(year => grossOf(node, year)) }],
+            series: [{ name: 'Global trade', colour: INK.indigo, values: allYears.map(year => grossOf(node, year)) }],
             format: value => usd(value, 0),
           },
           {
             kind: 'line',
-            title: 'India Trade',
+            title: 'India trade',
             unit: 'US dollars',
             labels: allYears.map(String),
             series: [
-              { name: 'India Imports', colour: INK.red, values: allYears.map(year => node.annual[String(year)]?.india.imports ?? null) },
-              { name: 'India Exports', colour: INK.ming, values: allYears.map(year => node.annual[String(year)]?.india.exports ?? null) },
+              { name: 'India imports', colour: INK.red, values: allYears.map(year => node.annual[String(year)]?.india.imports ?? null) },
+              { name: 'India exports', colour: INK.ming, values: allYears.map(year => node.annual[String(year)]?.india.exports ?? null) },
             ],
             format: value => usd(value, 0),
           },
@@ -212,9 +212,9 @@ export function productDocument(
             title: 'By year',
             columns: [
               { label: 'Year', width: 0.8 },
-              { label: 'Global Trade', width: 1.6, align: 'right' },
-              { label: 'India Imports', width: 1.6, align: 'right' },
-              { label: 'India Exports', width: 1.6, align: 'right' },
+              { label: 'Global trade', width: 1.6, align: 'right' },
+              { label: 'India imports', width: 1.6, align: 'right' },
+              { label: 'India exports', width: 1.6, align: 'right' },
             ],
             rows: tableYears.map(year => [
               String(year),
@@ -234,11 +234,11 @@ export function productDocument(
       for (const year of sorted) {
         if (grossOf(node, year) === null) continue
 
-        blocks.push(rankingTable(`Top Importers · ${year}`, rankingFor('importers', node, year, detail), 'Imports', 'Share of product trade'))
-        blocks.push(rankingTable(`Top Exporters · ${year}`, rankingFor('exporters', node, year, detail), 'Exports', 'Share of product trade'))
+        blocks.push(rankingTable(`Top importers · ${year}`, rankingFor('importers', node, year, detail), 'Imports', 'Share of product trade'))
+        blocks.push(rankingTable(`Top exporters · ${year}`, rankingFor('exporters', node, year, detail), 'Exports', 'Share of product trade'))
       }
 
-      if (blocks.length) out.push({ title: `${prefix}Top Importers and Exporters`, blocks })
+      if (blocks.length) out.push({ title: `${prefix}Top importers and exporters`, blocks })
     }
 
     if (sections.includes('partners')) {
@@ -249,15 +249,15 @@ export function productDocument(
         const destinations = rankingFor('indiaDestinations', node, year, detail)
 
         if (suppliers.rows.length) {
-          blocks.push(rankingTable(`India Import Partners · ${year}`, suppliers, 'India imports', "Share of India's imports"))
+          blocks.push(rankingTable(`India import partners · ${year}`, suppliers, 'India imports', "Share of India's imports"))
         }
 
         if (destinations.rows.length) {
-          blocks.push(rankingTable(`India Export Partners · ${year}`, destinations, 'India exports', "Share of India's exports"))
+          blocks.push(rankingTable(`India export partners · ${year}`, destinations, 'India exports', "Share of India's exports"))
         }
       }
 
-      if (blocks.length) out.push({ title: `${prefix}India's Partners`, blocks })
+      if (blocks.length) out.push({ title: `${prefix}India's partners`, blocks })
     }
 
     if (sections.includes('dgcis') && entry.dgcis) {
@@ -296,7 +296,7 @@ export function productDocument(
         })
       }
 
-      if (blocks.length) out.push({ title: `${prefix}India Tariff Lines`, blocks })
+      if (blocks.length) out.push({ title: `${prefix}India tariff lines`, blocks })
     }
 
     if (sections.includes('inside') && entry.children?.length) {
@@ -314,10 +314,10 @@ export function productDocument(
           columns: [
             { label: 'Code', width: 0.9 },
             { label: 'Name', width: 3 },
-            { label: 'Global Trade', width: 1.4, align: 'right' },
+            { label: 'Global trade', width: 1.4, align: 'right' },
             { label: `Share of ${node.code}`, width: 1.1, align: 'right' },
-            { label: 'India Imports', width: 1.3, align: 'right' },
-            { label: 'India Exports', width: 1.3, align: 'right' },
+            { label: 'India imports', width: 1.3, align: 'right' },
+            { label: 'India exports', width: 1.3, align: 'right' },
           ],
           rows: rows.map(({ child, gross, estimated }) => [
             child.code,
@@ -341,14 +341,14 @@ export function productDocument(
 
       if (current) {
         out.push({
-          title: `${prefix}Key Changes · ${latest}`,
+          title: `${prefix}Key changes · ${latest}`,
           blocks: [
             {
               kind: 'pairs',
               rows: [
-                [`Global Trade, ${latest - 1}–${latest}`, change(grossOf(node, latest), grossOf(node, latest - 1))],
-                [`India Exports, ${latest - 1}–${latest}`, change(current.india.exports, prior?.india.exports)],
-                [`India Imports, ${latest - 1}–${latest}`, change(current.india.imports, prior?.india.imports)],
+                [`Global trade, ${latest - 1}–${latest}`, change(grossOf(node, latest), grossOf(node, latest - 1))],
+                [`India exports, ${latest - 1}–${latest}`, change(current.india.exports, prior?.india.exports)],
+                [`India imports, ${latest - 1}–${latest}`, change(current.india.imports, prior?.india.imports)],
                 ['India trade balance', usd(current.india.balance)],
                 ...(current.india.suppliers?.rows[0]
                   ? ([['Largest import source', `${current.india.suppliers.rows[0].name}, ${pct(current.india.suppliers.rows[0].share, 1)}`]] as [string, string][])
@@ -368,7 +368,7 @@ export function productDocument(
         rows.unshift([`Retired in HS ${lineage.retired.revision}`, lineage.retired.note || `Last valid ${lineage.retired.validTo}`])
       }
 
-      out.push({ title: `${prefix}Classification History`, blocks: [{ kind: 'pairs', rows }] })
+      out.push({ title: `${prefix}Classification history`, blocks: [{ kind: 'pairs', rows }] })
     }
 
     void name
@@ -387,7 +387,7 @@ export function productDocument(
       : first?.description ?? '',
     meta: [
       `Calendar year${sorted.length > 1 ? 's' : ''} ${sorted.join(', ')} · values in US dollars`,
-      'Global Trade is world imports, gross: as filed, plus estimates for economies that have not filed (marked *).',
+      'Global trade is world imports, gross: as filed, plus estimates for economies that have not filed (marked *).',
       `Source: UN Comtrade${entries.some(entry => entry.dgcis) ? '; India tariff lines: DGCIS' : ''} · snapshot ${snapshotDate(manifest)} · HStat.India, Foundation for Economic Development`,
     ],
     sections: out,
@@ -426,7 +426,7 @@ export function hs8Document(
     const grid = monthGrid(series, data.periods, 'CY')
 
     sections.push({
-      title: `India ${flowWord(flow)}, Month by Month`,
+      title: `India ${flowWord(flow)} by month`,
       blocks: [
         {
           kind: 'line',
@@ -527,7 +527,7 @@ export function homeDocument(
     title: `Electronics scope · CY ${year}`,
     subtitle: `${scope.linesInScope} HS-6 lines in the FED electronics definition`,
     meta: [
-      'Global Trade is world imports, gross: as filed, plus estimates for economies that have not filed (marked *).',
+      'Global trade is world imports, gross: as filed, plus estimates for economies that have not filed (marked *).',
       `Source: UN Comtrade · snapshot ${snapshotDate(manifest)} · HStat.India, Foundation for Economic Development`,
     ],
     sections: [
@@ -537,22 +537,22 @@ export function homeDocument(
           {
             kind: 'figures',
             items: [
-              { label: 'Global Trade', value: usd(record.worldImports), caption: 'World imports', series: 'global', estimated: record.estimatedImports > 0 },
-              { label: 'India Exports', value: usd(record.indiaExports), series: 'exports' },
-              { label: 'India Imports', value: usd(record.indiaImports), series: 'imports' },
+              { label: 'Global trade', value: usd(record.worldImports), caption: 'World imports', series: 'global', estimated: record.estimatedImports > 0 },
+              { label: 'India exports', value: usd(record.indiaExports), series: 'exports' },
+              { label: 'India imports', value: usd(record.indiaImports), series: 'imports' },
             ],
           },
         ],
       },
       {
-        title: 'Top Importers and Exporters',
+        title: 'Top importers and exporters',
         blocks: [
-          countryTable('Top Importers', record.importers, record.worldImports),
-          countryTable('Top Exporters', record.exporters, record.worldExports),
+          countryTable('Top importers', record.importers, record.worldImports),
+          countryTable('Top exporters', record.exporters, record.worldExports),
         ],
       },
       {
-        title: 'Top Traded Products',
+        title: 'Top traded products',
         blocks: [
           productTable('Finished Goods', 'finished'),
           productTable('Components & Inputs', 'components'),

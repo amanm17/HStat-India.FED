@@ -75,10 +75,10 @@ console.log('\n=== J. both flows — HS-8 85171300 ===')
 {
   const { page, errors } = await open('/hs/85171300')
   const t = await page.innerText('body')
-  ok('export table present', /India Exports, month by month/i.test(t))
-  ok('import table present', /India Imports, month by month/i.test(t))
-  const ex12 = t.match(/India Exports\s*\n([\d,]+)/)?.[1]
-  const im12 = t.match(/India Imports\s*\n([\d,]+)/)?.[1]
+  ok('export table present', /India exports, month by month/i.test(t))
+  ok('import table present', /India imports, month by month/i.test(t))
+  const ex12 = t.match(/India exports\s*\n([\d,]+)/)?.[1]
+  const im12 = t.match(/India imports\s*\n([\d,]+)/)?.[1]
   ok('export headline metric present', !!ex12, `12m = ${ex12}`)
   ok('import headline metric present', !!im12, `12m = ${im12}`)
   ok('the two flows differ', !!ex12 && !!im12 && ex12 !== im12, `${ex12} vs ${im12}`)
@@ -149,7 +149,7 @@ console.log('\n=== L. retired and predecessor routes ===')
   ok('predecessor HS-8 renders', /85171211/.test(t))
   ok('predecessor wording present', /lineage predecessor/i.test(t))
   ok('no Comtrade card it cannot fill', await page.locator('.hs8-parent-card').count() === 0)
-  ok('two flows available on a predecessor line', /India Exports, month by month/i.test(t) && /India Imports, month by month/i.test(t))
+  ok('two flows available on a predecessor line', /India exports, month by month/i.test(t) && /India imports, month by month/i.test(t))
   ok('breadcrumb does not offer a product page that does not exist',
      !/HS 851712 · undefined/i.test(t))
   ok('predecessor route throws nothing', errors.length === 0, errors[0] ?? '')

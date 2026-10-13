@@ -4,9 +4,9 @@ import { currentLook } from './look'
  * Chart colours - the FED palette, one meaning per hue (execution prompt
  * §2.1), identical on every page so charts stay comparable across pages:
  *
- *   global   Indigo Dye    Global Trade
- *   exports  Ming          India Exports
- *   imports  English Red   India Imports
+ *   global   Indigo Dye    Global trade
+ *   exports  Ming          India exports
+ *   imports  English Red   India imports
  *
  * Dark mode lightens the same three hues rather than choosing new ones, far
  * enough to clear 3:1 against the dark surface for marks and 4.5:1 for any
@@ -59,7 +59,7 @@ const DARK: Palette = {
 
 /*
  * The secret look (lib/look) keeps the original dashboard's blue and green
- * (brightened) for the two India series and a violet for Global Trade, so the three
+ * (brightened) for the two India series and a violet for Global trade, so the three
  * still read apart. Same rule: one meaning per hue on every page.
  */
 const AMAN_LIGHT: Palette = {
