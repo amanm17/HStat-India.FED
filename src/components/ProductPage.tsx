@@ -1062,16 +1062,16 @@ function TrendSection({
               <thead>
                 <tr>
                   <th scope="col">Month</th>
-                  <th scope="col" className="num">India Imports</th>
-                  <th scope="col" className="num">India Exports</th>
+                  <th scope="col" className="num money">India Imports</th>
+                  <th scope="col" className="num money">India Exports</th>
                 </tr>
               </thead>
               <tbody>
                 {months.map(period => (
                   <tr key={period}>
                     <td>{monthLabel(period)}</td>
-                    <td className="num">{india(node.monthly[period]?.india.imports ?? null, period, 'MONTH')}</td>
-                    <td className="num">{india(node.monthly[period]?.india.exports ?? null, period, 'MONTH')}</td>
+                    <td className="num money">{india(node.monthly[period]?.india.imports ?? null, period, 'MONTH')}</td>
+                    <td className="num money">{india(node.monthly[period]?.india.exports ?? null, period, 'MONTH')}</td>
                   </tr>
                 ))}
               </tbody>
@@ -1095,9 +1095,9 @@ function TrendSection({
               <thead>
                 <tr>
                   <th scope="col">Year</th>
-                  <th scope="col" className="num">Global Trade</th>
-                  <th scope="col" className="num">India Imports</th>
-                  <th scope="col" className="num">India Exports</th>
+                  <th scope="col" className="num money">Global Trade</th>
+                  <th scope="col" className="num money">India Imports</th>
+                  <th scope="col" className="num money">India Exports</th>
                 </tr>
               </thead>
               <tbody>
@@ -1110,7 +1110,7 @@ function TrendSection({
                       {row.year}
                       {row.carried && <span className="rf-carried-code"> · HS {row.carried}</span>}
                     </td>
-                    <td className="num">
+                    <td className="num money">
                       {usd(row.global)}
                       {row.carried ? (
                         <Carried code={row.carried} />
@@ -1118,11 +1118,11 @@ function TrendSection({
                         <Estimated share={row.estimated} reporters={row.reporters ?? undefined} />
                       )}
                     </td>
-                    <td className="num">
+                    <td className="num money">
                       {india(row.imports, String(row.year), 'CY')}
                       {row.carried && row.imports !== null && <Carried code={row.carried} />}
                     </td>
-                    <td className="num">
+                    <td className="num money">
                       {india(row.exports, String(row.year), 'CY')}
                       {row.carried && row.exports !== null && <Carried code={row.carried} />}
                     </td>
@@ -1382,10 +1382,10 @@ function InsideSection({
             <tr>
               <th scope="col">Code</th>
               <th scope="col">Name</th>
-              <th scope="col" className="num">Global Trade</th>
+              <th scope="col" className="num money">Global Trade</th>
               <th scope="col" className="num">Share of HS-{node.level} {node.code}</th>
-              <th scope="col" className="num">India Exports</th>
-              <th scope="col" className="num">India Imports</th>
+              <th scope="col" className="num money">India Exports</th>
+              <th scope="col" className="num money">India Imports</th>
             </tr>
           </thead>
           <tbody>
@@ -1397,13 +1397,13 @@ function InsideSection({
                     {row.name}
                   </button>
                 </td>
-                <td className="num">
+                <td className="num money">
                   {usd(row.world)}
                   <Estimated share={row.estimated} />
                 </td>
                 <td className="num">{row.world !== null && headingGross ? pct(row.world / headingGross, 1) : '—'}</td>
-                <td className="num">{india(row.exports)}</td>
-                <td className="num">{india(row.imports)}</td>
+                <td className="num money">{india(row.exports)}</td>
+                <td className="num money">{india(row.imports)}</td>
               </tr>
             ))}
           </tbody>
@@ -1412,10 +1412,10 @@ function InsideSection({
               <th scope="row" colSpan={2}>
                 HS-{node.level} {node.code} total
               </th>
-              <td className="num">{usd(headingGross)}</td>
+              <td className="num money">{usd(headingGross)}</td>
               <td className="num">100%</td>
-              <td className="num">{india(heading?.india.exports)}</td>
-              <td className="num">{india(heading?.india.imports)}</td>
+              <td className="num money">{india(heading?.india.exports)}</td>
+              <td className="num money">{india(heading?.india.imports)}</td>
             </tr>
           </tfoot>
         </table>

@@ -253,7 +253,7 @@ export function ViewAll({
               <tr>
                 <th scope="col" className="rf-rank">Rank</th>
                 <th scope="col">{product ? 'Product' : 'Country'}</th>
-                <th scope="col" className="num">{product ? 'World imports' : 'Value'}</th>
+                <th scope="col" className="num money">{product ? 'World imports' : 'Value'}</th>
                 <th scope="col" className="num">{shareLabel}</th>
               </tr>
             </thead>
@@ -270,7 +270,7 @@ export function ViewAll({
                       row.name
                     )}
                   </td>
-                  <td className="num">
+                  <td className="num money">
                     {format(row.value)}
                     {row.estimated && <Mark tip={estimateTip(row.estimatedShare, row.name, product ? 'line' : 'country')} />}
                   </td>

@@ -969,9 +969,9 @@ export function LineageNote({
                 <thead>
                   <tr>
                     <th>Year</th>
-                    <th className="num">World trade</th>
-                    <th className="num">India imports</th>
-                    <th className="num">India exports</th>
+                    <th className="num money">World trade</th>
+                    <th className="num money">India imports</th>
+                    <th className="num money">India exports</th>
                   </tr>
                 </thead>
 
@@ -979,9 +979,9 @@ export function LineageNote({
                   {shown.map(item => (
                     <tr key={item}>
                       <td>{item}</td>
-                      <td className="num">{usd(rows[item].globalTrade)}</td>
-                      <td className="num">{usd(rows[item].indiaImports)}</td>
-                      <td className="num">{usd(rows[item].indiaExports)}</td>
+                      <td className="num money">{usd(rows[item].globalTrade)}</td>
+                      <td className="num money">{usd(rows[item].indiaImports)}</td>
+                      <td className="num money">{usd(rows[item].indiaExports)}</td>
                     </tr>
                   ))}
                 </tbody>

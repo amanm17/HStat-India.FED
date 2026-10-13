@@ -312,7 +312,7 @@ export function RankedTable({
               <tr>
                 <th scope="col" className="rf-rank">Rank</th>
                 <th scope="col">{nameLabel}</th>
-                <th scope="col" className="num">{valueLabel}</th>
+                <th scope="col" className="num money">{valueLabel}</th>
                 <th scope="col" className="num rf-share-col">{shareLabel}</th>
                 {extraColumns.map(column => (
                   <th key={column.key} scope="col" className={column.numeric ? 'num' : undefined}>
@@ -458,7 +458,7 @@ function RankLine({
           row.name
         )}
       </td>
-      <td className="num">
+      <td className="num money">
         {formatValue(row.value)}
         {row.estimated && <Mark tip={estimateTip(row.estimatedShare, row.name, nameLabel === 'Product' ? 'line' : 'country')} />}
       </td>
@@ -512,19 +512,26 @@ export function useDecimals(): number | null {
  * Decimals: a compact switch beside Year and Currency.
  *
  * The outer buttons are the spreadsheet ones - "decrease decimal" (.0 with
- * an arrow left) and "increase decimal" (.00 with an arrow right) - and move
- * every figure on screen one place in either direction, from 0 to
- * MAX_PLACES, rounded half away from zero on the decimal itself (lib/format
- * fixed). The middle says where it stands: Auto, or the number of places,
- * which returns to Auto when pressed. One setting for the whole site, kept
- * between visits. Downloads are not affected.
+ * an arrow left) and "increase decimal" (.00 with an arrow right). The scale
+ * runs 0, Auto, 1 ... MAX_PLACES. Auto is the default, the clean view: whole
+ * numbers, with one place kept where a whole number would mislead (under 10
+ * in its unit) and on percentages (lib/format valuePlaces, pctPlaces). 0
+ * makes every figure whole, percentages included; 1 and up set every figure
+ * on screen to exactly that many places, rounded half away from zero on the
+ * decimal itself (lib/format fixed). Pressing the number returns to Auto.
+ * One setting for the whole site, kept between visits. Downloads are not
+ * affected.
  */
 export function DecimalsControl() {
   const value = useDecimals()
 
-  /* From Auto, the first step is relative to money's two places. */
-  const step = (direction: 1 | -1) =>
-    setDecimalPlaces(value === null ? 2 + direction : value + direction)
+  /* Auto sits between 0 and 1: down from Auto is 0, up is 1, and either
+   * neighbour steps back to Auto. */
+  const step = (direction: 1 | -1) => {
+    if (value === null) setDecimalPlaces(direction > 0 ? 1 : MIN_PLACES)
+    else if ((value === MIN_PLACES && direction > 0) || (value === 1 && direction < 0)) setDecimalPlaces(null)
+    else setDecimalPlaces(value + direction)
+  }
 
   return (
     <div className="rf-control rf-decimals">
@@ -542,7 +549,11 @@ export function DecimalsControl() {
           <ArrowLeft className="rf-dp-arrow" size={10} strokeWidth={2.8} aria-hidden />
         </button>
         {value === null ? (
-          <span className="rf-decimals-state" title="Each figure at its own precision">
+          <span
+            className="rf-decimals-state"
+            title="Auto: whole numbers; figures under 10 and percentages keep one decimal place"
+            aria-label="Automatic: whole numbers, one place under 10 and on percentages"
+          >
             Auto
           </span>
         ) : (

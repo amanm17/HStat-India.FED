@@ -764,13 +764,17 @@ export function Guide({
 
         <p>
           <strong>Decimals</strong>, beside Year and Currency, sets how many
-          decimal places every figure on screen shows. Its two buttons are the
-          spreadsheet ones: <kbd>.0 ←</kbd> removes a place and{' '}
-          <kbd>.00 →</kbd> adds one, from 0 to 6, moving every figure at once.
-          Between them it shows <em>Auto</em> or the number of places; press
-          the number to return to Auto, where each figure keeps its usual
-          precision. Rounding is to the nearest, halves away from zero, exactly
-          as a calculator would. The choice stays as you move between pages.
+          decimal places every figure on screen shows. By default it reads{' '}
+          <em>Auto</em>: values are whole numbers ($61bn, $651mn), except a
+          figure under 10 in its unit, which keeps one place so it is not
+          misleading ($5.5tn, not $6tn), and percentages, which keep one place
+          (1.1%). Its two buttons are the spreadsheet ones:{' '}
+          <kbd>.0 ←</kbd> goes to <em>0</em>, every figure whole, percentages
+          included, and <kbd>.00 →</kbd> adds places, from 1 up to 6, setting
+          every figure at once. Press
+          the number to return to Auto. Rounding is to the
+          nearest, halves away from zero, exactly as a calculator would. The
+          choice stays as you move between pages.
           Downloads always carry the full values.
         </p>
 

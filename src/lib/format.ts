@@ -6,12 +6,15 @@ const MONTHS = [
 /* =========================================================== decimals
  *
  * How many decimal places the reader wants (the Decimals control beside
- * Year and Currency). Null is "Auto": every figure keeps the precision it
- * was designed with - $61.48bn, 2.2%, 2,139 USD mn. A number replaces all
- * of those with that many places, everywhere on screen at once, and stays
- * as the reader moves between pages. Files (Excel, CSV, JSON) are never
- * affected: they carry full values, and their labels use the *Fixed
- * formatters below.
+ * Year and Currency). Null is Auto, the default and the clean view: money
+ * and quantities print as whole numbers ($61bn, $651mn, 2,139), except a
+ * figure under 10 in its own unit, which keeps one place so it does not
+ * mislead ($5.5tn, not $6tn); percentages keep one place (1.1%, 0.2%). A
+ * number from MIN_PLACES (0: every figure whole, percentages too) to
+ * MAX_PLACES replaces all of that with exactly that many places, everywhere
+ * on screen at once, and stays as the reader moves between pages. Files
+ * (Excel, CSV, JSON) are never affected: they carry full values, and their
+ * labels use the *Fixed formatters below.
  */
 export const MIN_PLACES = 0
 export const MAX_PLACES = 6
@@ -63,9 +66,55 @@ export function subscribeDecimals(listener: () => void): () => void {
   }
 }
 
-/* The places a figure prints at: the reader's choice, else its own. */
+/* The places a figure prints at: the reader's choice, else its own.
+ * For figures that are neither money nor a percentage - an index, an
+ * exchange rate, a multiple - whose own precision is part of their meaning. */
 export function places(own: number): number {
-  return chosenPlaces ?? own
+  /* 0 is for values ("every figure whole"); an HHI of 0.214 printed as 0
+   * would be wrong, not clean, so these keep their own precision there. */
+  if (chosenPlaces === null || chosenPlaces === 0) return own
+  return chosenPlaces
+}
+
+/*
+ * Auto keeps a decimal only where it says something. `limit` is the size,
+ * in the unit printed, below which one place is worth showing (10 for money,
+ * no limit for percentages). The place is dropped when it would read .0
+ * ($6.0tn is $6tn, 98.0% is 98%), and kept when the figure is non-zero but
+ * rounds to 0.0, so the floor reads "<0.1" rather than "<1".
+ */
+function smartPlaces(size: number, shift: number, limit: number): number {
+  const magnitude = Math.abs(size)
+
+  if (magnitude === 0 || !Number.isFinite(magnitude)) return 0
+
+  const one = fixed(magnitude, 1, shift)
+
+  if (Number(one) === 0) return 1
+  if (Number(one) >= limit) return 0
+
+  return one.endsWith('.0') ? 0 : 1
+}
+
+/* Percentages: the reader's choice, else Auto - one place where it is not
+ * .0. `shift` is 2 for a share (0.214 -> 21.4%), 0 for a figure already in
+ * percent. */
+export function pctPlaces(value: number, shift = 2): number {
+  if (chosenPlaces !== null) return chosenPlaces
+
+  return smartPlaces(value, shift, Infinity)
+}
+
+/*
+ * Money and quantities: the reader's choice, else Auto - whole numbers, with
+ * one place while the figure, in the unit it prints in, is under 10 and the
+ * place is not .0. `shift` is the power of ten that unit takes (-9 for bn);
+ * the test is made on the rounded figure, so 9.96bn prints "$10bn".
+ */
+export function valuePlaces(size: number, shift = 0): number {
+  if (chosenPlaces !== null) return chosenPlaces
+
+  return smartPlaces(size, shift, 10)
 }
 
 /*
@@ -103,9 +152,9 @@ function western(text: string): string {
   return `${negative ? '-' : ''}${grouped}${fraction !== undefined ? `.${fraction}` : ''}`
 }
 
-/* A plain number at the chosen places, grouped: tables of USD mn, crore. */
-export function grouped(value: number, own: number): string {
-  return western(fixed(value, places(own)))
+/* A plain number at the given places, grouped: tables of USD mn, crore. */
+export function grouped(value: number, digits: number): string {
+  return western(fixed(value, digits))
 }
 
 /* "<0.1" style floor, for a non-zero figure that would round to nothing. */
@@ -120,14 +169,18 @@ function floorText(digits: number): string {
 export function shareText(share: number | null | undefined, own = 1): string {
   if (share === null || share === undefined || !Number.isFinite(share)) return '—'
 
-  const d = places(own)
+  /* `own` is kept for callers; on screen a share follows pctPlaces. */
+  void own
+  const d = pctPlaces(share)
 
   if (share > 0 && Number(fixed(share, d, 2)) === 0) return `<${floorText(d)}%`
 
   return `${fixed(share, d, 2)}%`
 }
 
-function usdAt(value: number | null | undefined, d: number, small: number): string {
+type Pick = (size: number, shift: number) => number
+
+function usdAt(value: number | null | undefined, pick: Pick): string {
   if (value === null || value === undefined || !Number.isFinite(value)) {
     return '—'
   }
@@ -137,21 +190,24 @@ function usdAt(value: number | null | undefined, d: number, small: number): stri
   /* Sign outside the symbol: -$1.88bn, not $-1.88bn. */
   const sign = value < 0 ? '-' : ''
 
-  if (size >= 1e12) return `${sign}$${fixed(size, d, -12)}tn`
-  if (size >= 1e9) return `${sign}$${fixed(size, d, -9)}bn`
-  if (size >= 1e6) return `${sign}$${fixed(size, d, -6)}mn`
-  if (size >= 1e3) return `${sign}$${fixed(size, d, -3)}k`
+  if (size >= 1e12) return `${sign}$${fixed(size, pick(size, -12), -12)}tn`
+  if (size >= 1e9) return `${sign}$${fixed(size, pick(size, -9), -9)}bn`
+  if (size >= 1e6) return `${sign}$${fixed(size, pick(size, -6), -6)}mn`
+  if (size >= 1e3) return `${sign}$${fixed(size, pick(size, -3), -3)}k`
 
-  return `${sign}$${fixed(size, small)}`
+  return `${sign}$${fixed(size, pick(size, 0))}`
 }
 
+/* `digits` is the designed precision, used by files; the screen follows
+ * valuePlaces. */
 export function usd(value: number | null | undefined, digits = 2): string {
-  return usdAt(value, places(digits), places(0))
+  void digits
+  return usdAt(value, valuePlaces)
 }
 
 /* For files: always the designed precision, whatever the screen shows. */
 export function usdFixed(value: number | null | undefined, digits = 2): string {
-  return usdAt(value, digits, 0)
+  return usdAt(value, (_size, shift) => (shift === 0 ? 0 : digits))
 }
 
 const CRORE = 1e7
@@ -188,22 +244,21 @@ export function inr(value: number | null | undefined, digits = 2): string {
   const size = Math.abs(value)
   const sign = value < 0 ? '-' : ''
 
-  const d = places(digits)
-  const whole = places(0)
+  void digits
 
   if (size >= LAKH_CRORE) {
-    return `${sign}₹${fixed(size, d, -12)} lakh cr`
+    return `${sign}₹${fixed(size, valuePlaces(size, -12), -12)} lakh cr`
   }
 
   if (size >= CRORE) {
-    return `${sign}₹${indianGroups(size / CRORE, whole)} cr`
+    return `${sign}₹${indianGroups(size / CRORE, valuePlaces(size, -7))} cr`
   }
 
   if (size >= 1e5) {
-    return `${sign}₹${fixed(size, d, -5)} lakh`
+    return `${sign}₹${fixed(size, valuePlaces(size, -5), -5)} lakh`
   }
 
-  return `${sign}₹${indianGroups(size, whole)}`
+  return `${sign}₹${indianGroups(size, valuePlaces(size))}`
 }
 
 export function pct(value: number | null | undefined, digits = 1): string {
@@ -211,7 +266,8 @@ export function pct(value: number | null | undefined, digits = 1): string {
     return '—'
   }
 
-  return `${fixed(value, places(digits), 2)}%`
+  void digits
+  return `${fixed(value, pctPlaces(value), 2)}%`
 }
 
 export function pctFixed(value: number | null | undefined, digits = 1): string {
@@ -228,7 +284,8 @@ export function delta(value: number | null | undefined, digits = 1): string {
     return '—'
   }
 
-  const text = fixed(value, places(digits), 2)
+  void digits
+  const text = fixed(value, pctPlaces(value), 2)
 
   return `${value >= 0 && !text.startsWith('-') ? '+' : ''}${text}%`
 }

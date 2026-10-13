@@ -13,6 +13,8 @@
  *   edges     siblings in the same stack share a left edge and a width
  *   rhythm    repeated rows in a list are the same distance apart
  *   columns   cells marked .num share a right edge within their table
+ *   money     in a money column ($, ₹) every figure, and its header, starts
+ *             on one line - a * or ** mark trails it and moves nothing
  *
  * Tolerance is 1px, which is a rounding difference, not a decision. Anything
  * larger was decided by someone, or by nobody, and either way is worth
@@ -26,6 +28,9 @@ const TOL = 1.01
 const PAGES = [
   ['front page', '/'],
   ['product', '/hs/854231'],
+  ['product with estimates', '/hs/851713'],
+  ['heading', '/hs/8517'],
+  ['full ranking', '/top/importers'],
   ['tariff line', '/hs/85176290'],
   ['tariff index', '/tariff-lines'],
   ['guide', '/guide'],
@@ -194,12 +199,23 @@ const audit = () => {
     }
   }
 
+  /* Each cell with the column it sits in, counting colspan: a footer whose
+   * label spans two columns must not shift every figure after it by one. */
+  const columnsOf = row => {
+    let at = 0
+    return [...row.children].map(cell => {
+      const pair = [cell, at]
+      at += cell.colSpan || 1
+      return pair
+    })
+  }
+
   /* COLUMNS — .num cells in one table share a right edge, column by column. */
   for (const table of document.querySelectorAll('table')) {
     const byIndex = new Map()
 
     for (const row of table.querySelectorAll('tr')) {
-      ;[...row.children].forEach((cell, i) => {
+      ;columnsOf(row).forEach(([cell, i]) => {
         if (!cell.classList.contains('num') || !visible(cell)) return
 
         const right = cell.getBoundingClientRect().right
@@ -225,7 +241,54 @@ const audit = () => {
     }
   }
 
-  return { edges, rhythm, rows, columns, offcentre }
+  /* MONEY — where the text of each money cell starts: the first glyph of
+   * its first non-empty text, so a trailing mark cannot hide a shift. */
+  const money = []
+  const textLeft = cell => {
+    const walker = document.createTreeWalker(cell, NodeFilter.SHOW_TEXT)
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const at = node.textContent.search(/\S/)
+      if (at < 0) continue
+      const range = document.createRange()
+      range.setStart(node, at)
+      range.setEnd(node, at + 1)
+      const box = range.getBoundingClientRect()
+      if (box.width > 0) return box.left
+    }
+    return null
+  }
+
+  for (const table of document.querySelectorAll('table')) {
+    const byIndex = new Map()
+
+    for (const row of table.querySelectorAll('tr')) {
+      ;columnsOf(row).forEach(([cell, i]) => {
+        if (!cell.classList.contains('money') || !visible(cell)) return
+        const left = textLeft(cell)
+        if (left === null) return
+        const seen = byIndex.get(i) ?? []
+        seen.push({ left: round(left), text: cell.innerText.trim().slice(0, 16) })
+        byIndex.set(i, seen)
+      })
+    }
+
+    for (const [i, cells] of byIndex) {
+      if (cells.length < 2) continue
+      const lefts = cells.map(c => c.left)
+      const spread = round(Math.max(...lefts) - Math.min(...lefts))
+      if (spread > 1.01) {
+        const first = Math.min(...lefts)
+        money.push({
+          table: table.className.split(' ')[0] || 'table',
+          column: i,
+          spread,
+          off: cells.filter(c => c.left !== first).slice(0, 2),
+        })
+      }
+    }
+  }
+
+  return { edges, rhythm, rows, columns, offcentre, money }
 }
 
 const b = await chromium.launch()
@@ -267,6 +330,12 @@ for (const [label, path] of PAGES) {
       `${label} @${width} — number columns share a right edge`,
       found.columns.length === 0,
       found.columns.length ? JSON.stringify(found.columns[0]) : '',
+    )
+
+    ok(
+      `${label} @${width} — money figures start on one line`,
+      found.money.length === 0,
+      found.money.length ? JSON.stringify(found.money[0]) : '',
     )
 
     await page.close()

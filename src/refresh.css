@@ -213,6 +213,22 @@
   white-space: nowrap;
 }
 
+/*
+ * Money columns ($ and ₹ figures) read from the left: every currency symbol
+ * starts on one line, header included, and a * or ** mark trails the figure
+ * instead of pushing it out of line. Tabular figures keep digits the same
+ * width. Bare-number grids (USD mn, counts) and percentages stay right-aligned,
+ * where place value is what lines up. :root lifts this above every table's
+ * own `.num` rule, whichever stylesheet loads last.
+ */
+:root table th.num.money,
+:root table td.num.money {
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+  /* Room from a right-aligned share column ending just before it. */
+  padding-left: 24px;
+}
+
 .rf-table tfoot th,
 .rf-table tfoot td {
   border-top: 2px solid var(--border-strong);

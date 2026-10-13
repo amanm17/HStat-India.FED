@@ -30,7 +30,7 @@ import {
   loadDgcisIndex,
   type DgcisIndexEntry,
 } from '../lib/dgcis'
-import { concentrationLabel, fixed, pct, places, usd } from '../lib/format'
+import { concentrationLabel, fixed, pct, pctPlaces, places, usd } from '../lib/format'
 import { palette } from '../lib/palette'
 import { downloadCsv, downloadXlsx } from '../lib/export'
 import {
@@ -590,9 +590,9 @@ export function HStackPanel({
                       caption="The stack's combined trade by year"
                       columns={[
                         { key: 'year', label: 'Year' },
-                        { key: 'globalTrade', label: 'Global trade', numeric: true },
-                        { key: 'indiaImports', label: 'India imports', numeric: true },
-                        { key: 'indiaExports', label: 'India exports', numeric: true },
+                        { key: 'globalTrade', label: 'Global trade', numeric: true, money: true },
+                        { key: 'indiaImports', label: 'India imports', numeric: true, money: true },
+                        { key: 'indiaExports', label: 'India exports', numeric: true, money: true },
                         { key: 'reportedUnder', label: 'Reported under' },
                       ]}
                       rows={[...longSeries].reverse().map(point => ({
@@ -708,14 +708,14 @@ export function HStackPanel({
                     columns={[
                       { key: 'code', label: 'Code' },
                       { key: 'label', label: 'Name' },
-                      { key: 'value', label: 'Value', numeric: true },
+                      { key: 'value', label: 'Value', numeric: true, money: true },
                       { key: 'share', label: 'Share of stack', numeric: true },
                     ]}
                     rows={composition.map(row => ({
                       code: row.code,
                       label: row.name,
                       value: usd(row.value),
-                      share: `${fixed(row.sharePct, places(1))}%`,
+                      share: `${fixed(row.sharePct, pctPlaces(row.sharePct, 0))}%`,
                     }))}
                   />
                 ) : (
@@ -756,7 +756,7 @@ export function HStackPanel({
                         <Tooltip
                           formatter={(value: unknown, _name, item) =>
                             [
-                              `${fixed(Number(value), places(1))}%`,
+                              `${fixed(Number(value), pctPlaces(Number(value), 0))}%`,
                               usd(
                                 (item?.payload as { value?: number })?.value ??
                                   null,
@@ -859,9 +859,9 @@ export function HStackPanel({
                     <thead>
                       <tr>
                         <th scope="col">Code</th>
-                        <th scope="col" className="num">Global trade</th>
-                        <th scope="col" className="num">India imports</th>
-                        <th scope="col" className="num">India exports</th>
+                        <th scope="col" className="num money">Global trade</th>
+                        <th scope="col" className="num money">India imports</th>
+                        <th scope="col" className="num money">India exports</th>
                         <th scope="col"><span className="sr-only">Remove</span></th>
                       </tr>
                     </thead>
@@ -892,14 +892,14 @@ export function HStackPanel({
                             )}
                           </th>
 
-                          <td className="num">
+                          <td className="num money">
                             <span className="cell-value">{usd(line.globalTrade)}</span>
                             <span className="cell-share">
                               {line.shareOfBasket === null ? '—' : pct(line.shareOfBasket)}
                             </span>
                           </td>
 
-                          <td className="num">
+                          <td className="num money">
                             <span className="cell-value">{usd(line.indiaImports)}</span>
                             <span className="cell-share">
                               {line.shareOfIndiaImports === null
@@ -908,7 +908,7 @@ export function HStackPanel({
                             </span>
                           </td>
 
-                          <td className="num">
+                          <td className="num money">
                             <span className="cell-value">{usd(line.indiaExports)}</span>
                             <span className="cell-share">
                               {line.shareOfIndiaExports === null
@@ -933,9 +933,9 @@ export function HStackPanel({
                     <tfoot>
                       <tr>
                         <th scope="row">Combined</th>
-                        <td className="num"><span className="cell-value">{usd(summary.globalTrade)}</span></td>
-                        <td className="num"><span className="cell-value">{usd(summary.indiaImports)}</span></td>
-                        <td className="num"><span className="cell-value">{usd(summary.indiaExports)}</span></td>
+                        <td className="num money"><span className="cell-value">{usd(summary.globalTrade)}</span></td>
+                        <td className="num money"><span className="cell-value">{usd(summary.indiaImports)}</span></td>
+                        <td className="num money"><span className="cell-value">{usd(summary.indiaExports)}</span></td>
                         <td></td>
                       </tr>
                     </tfoot>

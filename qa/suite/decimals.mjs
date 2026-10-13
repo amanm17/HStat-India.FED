@@ -4,10 +4,12 @@
  *   node qa/suite/decimals.mjs            # against 4178
  *
  * Checks that the control is on the front page, a product page and a tariff
- * line; that minus and plus move every figure; that the result is the exact
- * half-away-from-zero rounding of the published number (not binary
- * toFixed); that the choice survives navigation and a reload; that the
- * number in the label returns to Auto; and that Auto is the site as it was.
+ * line; that the default (Auto) is the clean view (whole numbers, one place under
+ * 10 in the unit, one place on percentages); that plus and minus move every
+ * figure, down to a strict 0 and up to 6; that the result is the exact half-away-from-zero rounding of the
+ * published number (not binary toFixed); that the choice survives
+ * navigation and a reload; that the number in the label returns to the
+ * default; and that saved settings are read back.
  */
 import { chromium } from 'playwright'
 import { readFileSync } from 'node:fs'
@@ -57,18 +59,49 @@ await page.reload({ waitUntil: 'networkidle' })
 await page.waitForTimeout(500)
 
 ok('control on the front page', await page.locator('.rf-decimals').count() === 1)
-ok('starts at Auto', (await page.locator('.rf-decimals-state').innerText()).trim() === 'Auto')
-const autoExports = await tile('India Exports')
-ok('Auto keeps the designed precision', autoExports === `$${ref(exportsValue, 2, -9)}bn`, autoExports)
+ok('starts at Auto, the default', (await page.locator('.rf-decimals-state').innerText()).trim() === 'Auto')
+
+/* The clean default: whole numbers, one place while under 10 in the unit. */
+/* Auto: one place only under 10 and only when it is not .0; a non-zero
+ * figure that rounds to 0.0 keeps it, so its floor reads <0.1. */
+const autoPlaces = (value, shift, limit) => {
+  const one = ref(value, 1, shift)
+  if (value === 0) return 0
+  if (Number(one) === 0) return 1
+  if (Number(one) >= limit) return 0
+  return one.endsWith('.0') ? 0 : 1
+}
+const clean = (value, shift) => ref(value, autoPlaces(value, shift, 10), shift)
+ok('default exports are whole', (await tile('India Exports')) === `$${clean(exportsValue, -9)}bn`, await tile('India Exports'))
+ok('default world keeps one place under 10', (await tile('Global Trade')) === `$${clean(worldValue, -12)}tn`, await tile('Global Trade'))
+const shareDefault = await page.evaluate(() => [...document.querySelectorAll('.rf-tiles .rf-figure')].find(f => f.innerText.includes('India Exports'))?.querySelector('.rf-figure-caption')?.innerText)
+ok('default share keeps a place only where it counts', /^(\d+|\d+\.[1-9]|<0\.1)% of world exports/.test(shareDefault ?? ''), shareDefault)
+const allText = await page.evaluate(() => document.querySelector('main')?.innerText ?? document.body.innerText)
+ok('Auto never prints a bare .0', !/\d\.0(%|tn|bn|mn|k)\b|\d\.0%/.test(allText), (allText.match(/.{12}\d\.0(%|tn|bn|mn|k).{4}/) ?? [''])[0])
+const rankDefault = await page.locator('#rank-home-importers tbody tr').first().innerText()
+ok('default ranking money is whole', /\$\d{2,}(bn|mn)/.test(rankDefault) && !/\$\d+\.\d+(bn|mn)/.test(rankDefault), rankDefault)
 
 const minus = page.locator('[aria-label="Decrease decimal places"]').first()
 const plus = page.locator('[aria-label="Increase decimal places"]').first()
 
+const state = async () => (await page.locator('.rf-decimals-state').innerText()).trim()
+
+/* Down from Auto: 0, every figure whole, percentages too. */
+ok('minus is on at Auto', !(await minus.isDisabled()))
 await minus.click(); await page.waitForTimeout(150)
-ok('minus from Auto is one place', (await tile('India Exports')) === `$${ref(exportsValue, 1, -9)}bn`, await tile('India Exports'))
+ok('minus from Auto is 0', (await state()) === '0')
+ok('0 places, exports', (await tile('India Exports')) === `$${ref(exportsValue, 0, -9)}bn`, await tile('India Exports'))
+ok('0 places, world is whole too', (await tile('Global Trade')) === `$${ref(worldValue, 0, -12)}tn`, await tile('Global Trade'))
+const shareZero = await page.evaluate(() => [...document.querySelectorAll('.rf-tiles .rf-figure')].find(f => f.innerText.includes('India Exports'))?.querySelector('.rf-figure-caption')?.innerText)
+ok('0 places, shares are whole', /(^|\s)(\d+|<1)% of world exports/.test(shareZero ?? '') && !/\d\.\d+%/.test(shareZero ?? ''), shareZero)
+ok('minus stops at 0', await minus.isDisabled())
+await plus.click(); await page.waitForTimeout(150)
+ok('plus from 0 is Auto', (await state()) === 'Auto' && (await tile('India Exports')) === `$${clean(exportsValue, -9)}bn`)
+
+await plus.click(); await page.waitForTimeout(150)
+ok('plus from Auto is one place', (await tile('India Exports')) === `$${ref(exportsValue, 1, -9)}bn`, await tile('India Exports'))
 await minus.click(); await page.waitForTimeout(150)
-ok('zero places', (await tile('India Exports')) === `$${ref(exportsValue, 0, -9)}bn`, await tile('India Exports'))
-ok('minus stops at zero', await minus.isDisabled())
+ok('minus from one returns to Auto', (await state()) === 'Auto' && (await tile('India Exports')) === `$${clean(exportsValue, -9)}bn`)
 
 for (let i = 0; i < 6; i += 1) await plus.click()
 await page.waitForTimeout(150)
@@ -98,8 +131,15 @@ ok('survives a reload', (await page.locator('.rf-decimals-state').innerText()).t
 
 await page.locator('.rf-decimals-reset').click(); await page.waitForTimeout(150)
 ok('the number returns to Auto', (await page.locator('.rf-decimals-state').innerText()).trim() === 'Auto')
-const hs8Auto = await page.locator('#tile-hs8-exports tbody tr').first().innerText()
-ok('Auto restores tariff-line precision', !/\d\.\d{6}/.test(hs8Auto))
+const hs8Default = await page.locator('#tile-hs8-exports tbody tr').first().innerText()
+ok('default restores tariff-line precision', !/\d\.\d{6}/.test(hs8Default))
+
+/* Saved settings: 'auto' (any version) is Auto; '0' is the strict 0. */
+for (const [saved, shown] of [['auto', 'Auto'], ['0', '0'], ['3', '3']]) {
+  await page.evaluate(v => { try { localStorage.setItem('hstat-decimals', v) } catch {} }, saved)
+  await page.reload({ waitUntil: 'networkidle' }); await page.waitForTimeout(300)
+  ok(`saved '${saved}' reads as ${shown}`, (await page.locator('.rf-decimals-state').innerText()).trim() === shown)
+}
 
 ok('page errors', errors.length === 0, errors[0] ?? '')
 

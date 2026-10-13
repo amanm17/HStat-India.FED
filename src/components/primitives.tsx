@@ -451,7 +451,7 @@ export function SeriesTable({
   rows,
   caption,
 }: {
-  columns: { key: string; label: string; numeric?: boolean }[]
+  columns: { key: string; label: string; numeric?: boolean; money?: boolean }[]
   /* A cell may be a node rather than a string: a figure containing estimated
    * values carries its marker, and the marker is an element. */
   rows: Record<string, ReactNode>[]
@@ -471,7 +471,7 @@ export function SeriesTable({
               <th
                 key={column.key}
                 scope="col"
-                className={column.numeric ? 'num' : undefined}
+                className={column.money ? 'num money' : column.numeric ? 'num' : undefined}
               >
                 {column.label}
               </th>
@@ -485,7 +485,7 @@ export function SeriesTable({
               {columns.map(column => (
                 <td
                   key={column.key}
-                  className={column.numeric ? 'num' : undefined}
+                  className={column.money ? 'num money' : column.numeric ? 'num' : undefined}
                 >
                   {row[column.key] === null || row[column.key] === undefined
                     ? '—'

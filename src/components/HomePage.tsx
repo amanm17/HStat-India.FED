@@ -588,10 +588,10 @@ function CategoryStack({
             <tr>
               <th scope="col">HS-6</th>
               <th scope="col">Product</th>
-              <th scope="col" className="num">Global Trade</th>
+              <th scope="col" className="num money">Global Trade</th>
               <th scope="col" className="num">Share of category</th>
-              <th scope="col" className="num">India Exports</th>
-              <th scope="col" className="num">India Imports</th>
+              <th scope="col" className="num money">India Exports</th>
+              <th scope="col" className="num money">India Imports</th>
             </tr>
           </thead>
           <tbody>
@@ -603,13 +603,13 @@ function CategoryStack({
                     {line.name}
                   </button>
                 </td>
-                <td className="num">
+                <td className="num money">
                   {usd(line.world)}
                   {line.estimated && <Mark tip={estimateTip(line.estimatedShare, line.name, 'line')} />}
                 </td>
                 <td className="num">{line.world && world ? pct(line.world / world, 1) : '—'}</td>
-                <td className="num">{india(line.exports)}</td>
-                <td className="num">{india(line.imports)}</td>
+                <td className="num money">{india(line.exports)}</td>
+                <td className="num money">{india(line.imports)}</td>
               </tr>
             ))}
           </tbody>
