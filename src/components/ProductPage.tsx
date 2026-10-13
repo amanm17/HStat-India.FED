@@ -57,6 +57,7 @@ import {
   seriesFor,
   shareOfParent,
   totalSeries,
+  money as dgcisMoney,
   unitLabel,
   type DgcisFlow,
   type DgcisNode,
@@ -1277,7 +1278,7 @@ function TariffBox({
       <div className="rf-tariff-head">
         <p className="rf-tariff-lede">
           India&rsquo;s {flowWord(flow).toLowerCase()}, by tariff line · {plural(tiles.length, 'line')} · last 12
-          months to {formatPeriod(data.periods[data.periods.length - 1] ?? null)} · {unit}
+          months to {formatPeriod(data.periods[data.periods.length - 1] ?? null)}
         </p>
 
         {flows.length > 1 && (
@@ -1304,8 +1305,8 @@ function TariffBox({
               {tile.line.title || tile.line.principalCommodity || `Tariff line ${tile.line.hs8}`}
             </span>
             <span className="rf-tariff-value">
-              {formatValue(tile.twelve)}
-              <small> {unit}, 12 months</small>
+              {dgcisMoney(tile.twelve, basis)}
+              <small> 12 months</small>
             </span>
             <span className="rf-tariff-meta">
               {tile.share !== null ? `${shareText(tile.share)} of heading` : 'share —'}

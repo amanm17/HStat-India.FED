@@ -185,7 +185,7 @@ export function ViewAll({
 
   const shareLabel =
     target.scope === 'home'
-      ? 'Share of scope'
+      ? 'Share of electronics'
       : target.kind === 'indiaSuppliers'
         ? "Share of India's imports"
         : target.kind === 'indiaDestinations'

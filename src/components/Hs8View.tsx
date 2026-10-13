@@ -27,6 +27,7 @@ import {
   flowsOf,
   formatPeriod,
   formatValue,
+  money,
   last12,
   nameCaveat,
   latestOf,
@@ -218,14 +219,14 @@ export function Hs8View({
         helpLatest
           ? {
               label: 'Latest month',
-              value: `${formatValue(helpLatest.value)} ${unitLabel(basis)}`,
+              value: money(helpLatest.value, basis),
               note: `${formatPeriod(helpLatest.period)} · ${flowWord(flow ?? 'exports').toLowerCase()}`,
             }
           : null,
         series && last12(series) !== null
           ? {
               label: 'Last 12 months',
-              value: `${formatValue(last12(series))} ${unitLabel(basis)}`,
+              value: money(last12(series), basis),
               note:
                 helpChange === null
                   ? undefined
@@ -483,8 +484,7 @@ export function Hs8View({
             <FigureTile
               series="exports"
               label="India Exports"
-              value={formatValue(flowTotal('exports'))}
-              unit={unit}
+              value={money(flowTotal('exports'), basis)}
               caption={`Last 12 months, to ${formatPeriod(data.flows.exports?.latestPeriod ?? null)}`}
             />
           )}
@@ -492,8 +492,7 @@ export function Hs8View({
             <FigureTile
               series="imports"
               label="India Imports"
-              value={formatValue(flowTotal('imports'))}
-              unit={unit}
+              value={money(flowTotal('imports'), basis)}
               caption={`Last 12 months, to ${formatPeriod(data.flows.imports?.latestPeriod ?? null)}`}
             />
           )}

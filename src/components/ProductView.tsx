@@ -850,190 +850,116 @@ export function LineageNote({
     item => item !== node.code && !(item in series),
   )
 
+  /* A code as a link when it can be opened here, plain otherwise. */
+  const code = (item: string, label = `HS ${item}`) =>
+    onOpen ? (
+      <button
+        key={item}
+        type="button"
+        className="rf-link lineage-link"
+        onClick={() => onOpen(item, item.length === 2 ? 2 : item.length === 4 ? 4 : 6)}
+      >
+        {label}
+      </button>
+    ) : (
+      <span key={item}>{label}</span>
+    )
+
+  const list = (codes: string[]) =>
+    codes.map((item, i) => (
+      <span key={item}>
+        {i > 0 && (i === codes.length - 1 ? ' and ' : ', ')}
+        {code(item)}
+      </span>
+    ))
+
+  const carried = Object.keys(series).filter(item => Object.keys(series[item] ?? {}).length > 0)
+  /*
+   * One or two plain lines: what happened to the code, where the earlier
+   * years are, and where the unbroken series is. The long notes in the
+   * lineage table stay in the methodology; the page says only what a reader
+   * needs to read the numbers above.
+   */
   return (
     <div className="lineage-note">
-      <div className="lineage-head">
-        <span className="eyebrow">CLASSIFICATION HISTORY</span>
-
-        {lineage.seriesStartsAt && (
-          <span className="lineage-start">
-            Six-digit series starts {lineage.seriesStartsAt}
-          </span>
-        )}
-      </div>
-
-      {retired && (
-        <div className="lineage-retired">
-          <div className="lineage-retired-head">
-            <span className="lineage-retired-badge">
-              RETIRED IN HS {retired.revision}
-            </span>
-
-            {retired.validTo !== null && (
-              <span className="lineage-start">
-                Last valid year {retired.validTo}
-              </span>
-            )}
-          </div>
-
-          <p className="lineage-line">{retired.note}</p>
-
-          {retired.lastPublished && (
-            <p className="lineage-line">
-              The series ends at {retired.lastPublished.year}, when world trade
-              under this code was {usd(retired.lastPublished.value)}. Later
-              years carry residual filings only and are withheld.
-            </p>
-          )}
-
+      {retired ? (
+        <p className="lineage-line">
+          Retired in HS {retired.revision}
+          {(retired.lastPublished?.year ?? retired.validTo) !== null &&
+            `; figures end ${retired.lastPublished?.year ?? retired.validTo}`}
+          .
           {retired.successors.length > 0 && (
-            <div className="lineage-family">
-              <span className="lineage-family-label">
-                {retired.successors.length === 1
-                  ? 'Replaced by'
-                  : 'Replaced by'}
-              </span>
+            <>
+              {' '}Replaced by {list(retired.successors.map(item => item.code))}.
+              {retired.successors.some(item => !item.published)
+                ? ' Not all are covered here.'
+                : retired.comparable
+                  ? ' Together they cover the same goods.'
+                  : retired.continuity === 'partial'
+                    ? ' They also cover other goods, so totals do not compare.'
+                    : ''}
+            </>
+          )}
+        </p>
+      ) : withCode.length > 0 ? (
+        <p className="lineage-line">
+          New in HS 2022. Before that, it was part of{' '}
+          {list(withCode.map(item => item.code))}.
+          {carriedInTrend && carried.length > 0 && (
+            <> Earlier years marked <b className="carried-mark">**</b> show that code&rsquo;s figures.</>
+          )}
+        </p>
+      ) : (
+        <p className="lineage-line">
+          New in HS 2022. Before that, this trade was reported under other codes.
+        </p>
+      )}
 
-              <div className="lineage-actions">
-                {retired.successors.map(item =>
-                  item.published && onOpen ? (
-                    <button
-                      key={item.code}
-                      type="button"
-                      onClick={() => onOpen(item.code, 6)}
-                    >
-                      HS {item.code}
-                    </button>
-                  ) : (
-                    <span key={item.code} className="lineage-code-flat">
-                      HS {item.code}
-                    </span>
-                  ),
-                )}
+      {!carriedInTrend &&
+        carried.map(item => {
+          const rows = series[item]
+          const years = Object.keys(rows).sort()
+          const shown = years.slice(-6)
+
+          return (
+            <div key={item} className="lineage-series">
+              <div className="lineage-series-head">
+                <strong>HS {item}</strong>, its own figures
               </div>
 
-              <p className="lineage-caveat">
-                {retired.successors.every(item => item.published)
-                  ? retired.comparable
-                    ? 'These successors together cover exactly what this code covered, so their combined total is comparable with the series above. They are still never added to it: the two sit on opposite sides of the revision and are shown apart.'
-                    : retired.continuity === 'partial'
-                      ? 'These successors also take in trade that was reported elsewhere before the revision, so their total is broader than this code was and the two series are not comparable.'
-                      : 'The WCO correlation tables do not state an exact mapping for this code, so nothing is claimed about how the successors compare with the series above.'
-                  : 'This dashboard does not currently cover ' +
-                    retired.successors
-                      .filter(item => !item.published)
-                      .map(item => `HS ${item.code}`)
-                      .join(', ') +
-                    ', so the successor series is not available here. The HS-4 heading below still runs across the revision.'}
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {lineage.predecessors.map(item => (
-        <p key={item.code || item.relation} className="lineage-line">
-          {item.code && (
-            <span className="lineage-code">HS {item.code}</span>
-          )}
-          {item.note}
-        </p>
-      ))}
-
-      {Object.entries(series).map(([code, rows]) => {
-        const years = Object.keys(rows).sort()
-
-        if (!years.length) return null
-
-        const shown = years.slice(-6)
-
-        if (carriedInTrend) {
-          return (
-            <p key={code} className="lineage-caveat">
-              HS {code}&rsquo;s own filings for {years[0]}&ndash;{years[years.length - 1]} are in
-              the trend table above, marked <b className="carried-mark">**</b>: the old code&rsquo;s
-              whole value, never apportioned and never added to this one.
-            </p>
-          )
-        }
-
-        return (
-          <div key={code} className="lineage-series">
-            <div className="lineage-series-head">
-              <strong>HS {code}</strong> as it was reported, {years[0]}&ndash;
-              {years[years.length - 1]}
-            </div>
-
-            <div className="lineage-table-wrap">
-              <table className="lineage-table">
-                <thead>
-                  <tr>
-                    <th>Year</th>
-                    <th className="num money">World trade</th>
-                    <th className="num money">India imports</th>
-                    <th className="num money">India exports</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {shown.map(item => (
-                    <tr key={item}>
-                      <td>{item}</td>
-                      <td className="num money">{usd(rows[item].globalTrade)}</td>
-                      <td className="num money">{usd(rows[item].indiaImports)}</td>
-                      <td className="num money">{usd(rows[item].indiaExports)}</td>
+              <div className="lineage-table-wrap">
+                <table className="lineage-table">
+                  <thead>
+                    <tr>
+                      <th>Year</th>
+                      <th className="num money">World trade</th>
+                      <th className="num money">India imports</th>
+                      <th className="num money">India exports</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+
+                  <tbody>
+                    {shown.map(year => (
+                      <tr key={year}>
+                        <td>{year}</td>
+                        <td className="num money">{usd(rows[year].globalTrade)}</td>
+                        <td className="num money">{usd(rows[year].indiaImports)}</td>
+                        <td className="num money">{usd(rows[year].indiaExports)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
+          )
+        })}
 
-            <p className="lineage-caveat">
-              These are the old code&rsquo;s own filings. They are shown beside
-              this series and never added to it, because a split cannot be
-              divided between its successors without inventing a share.
-              {years.length > shown.length &&
-                ` ${years.length} years in total are in the workbook export.`}
-            </p>
-          </div>
-        )
-      })}
-
-      {siblings.length > 0 && onOpen && (
-        <div className="lineage-family">
-          <span className="lineage-family-label">
-            Also came out of this split
-          </span>
-
-          <div className="lineage-actions">
-            {siblings.map(item => (
-              <button
-                key={item}
-                onClick={() =>
-                  onOpen(item, item.length === 2 ? 2 : item.length === 4 ? 4 : 6)
-                }
-              >
-                HS {item}
-              </button>
-            ))}
-          </div>
-
-          {lineage.familyNote && (
-            <p className="lineage-caveat">{lineage.familyNote}</p>
-          )}
-        </div>
-      )}
-
-      {(lineage.continuousAt || withCode.length > 0) && (
-        <div className="lineage-actions">
-          {lineage.continuousAt && onOpen && (
-            <button
-              onClick={() => onOpen(lineage.continuousAt as string, 4)}
-            >
-              Open HS-4 {lineage.continuousAt} for the continuous series
-            </button>
-          )}
-        </div>
+      {(lineage.continuousAt || siblings.length > 0) && (
+        <p className="lineage-line lineage-links">
+          {lineage.continuousAt && <>Full series: {code(lineage.continuousAt, `HS-4 ${lineage.continuousAt}`)}</>}
+          {lineage.continuousAt && siblings.length > 0 && ' · '}
+          {siblings.length > 0 && <>Related codes: {list(siblings)}</>}
+        </p>
       )}
     </div>
   )

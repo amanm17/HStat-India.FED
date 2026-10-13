@@ -1,4 +1,4 @@
-import { fixed, grouped, valuePlaces } from './format'
+import { fixed, grouped, inr, usd, valuePlaces } from './format'
 
 /*
  * India's own tariff-line detail, from DGCIS.
@@ -627,6 +627,19 @@ export const EXPORT_NOTES = [
  */
 export function lineRef(line: { hs8: string; title?: string }): string {
   return line.title ? `${line.hs8} — ${line.title}` : line.hs8
+}
+
+/*
+ * A headline figure as the rest of the dashboard prints money: "$33bn",
+ * "$990mn", "₹2.9 lakh cr", "₹845 cr". DGCIS files both units, so each is
+ * shown as published - USD million scaled to dollars, INR crore to rupees -
+ * never converted one into the other. Dense month grids keep the plain
+ * figures and name the unit in their title (formatValue, unitLabel).
+ */
+export function money(value: number | null | undefined, basis: DgcisBasis): string {
+  if (value === null || value === undefined || !Number.isFinite(value)) return '—'
+
+  return basis === 'usd' ? usd(value * 1e6) : inr(value * 1e7)
 }
 
 export function unitLabel(basis: DgcisBasis): string {

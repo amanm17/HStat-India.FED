@@ -39,9 +39,16 @@ for (const [w, h, shape] of [[1440, 900, 'desk'], [390, 844, 'phone']]) {
   await box.type('08', { delay: 40 })
   await page.waitForTimeout(1000)
   ok(`[${shape}] the code opens the portal`, (await page.locator('.look-switch').count()) === 1)
-  await page.waitForTimeout(1700)
-  const title = await page.locator('.look-title').innerText().catch(() => '')
-  const byline = await page.locator('.look-byline').innerText().catch(() => '')
+  /* The byline unscrambles letter by letter; wait for it to settle (up to
+   * 6s on a slow machine) rather than reading at a fixed moment. The check
+   * below still needs the exact final words. */
+  let title = '', byline = ''
+  for (let t = 0; t < 30; t += 1) {
+    await page.waitForTimeout(200)
+    title = await page.locator('.look-title').innerText().catch(() => '')
+    byline = await page.locator('.look-byline').innerText().catch(() => '')
+    if (/HStat\.India/.test(title) && /by aman/i.test(byline)) break
+  }
   ok(`[${shape}] the portal names HStat.India by Aman`, /HStat\.India/.test(title) && /by aman/i.test(byline), `${title} / ${byline}`)
   await page.waitForTimeout(1800)
   ok(`[${shape}] the portal has closed`, (await page.locator('.look-switch').count()) === 0)

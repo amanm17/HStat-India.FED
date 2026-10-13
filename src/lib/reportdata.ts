@@ -489,7 +489,7 @@ export function homeDocument(
         { label: 'Rank', width: 0.6 },
         { label: 'Country', width: 3 },
         { label: 'Value', width: 1.6, align: 'right' },
-        { label: 'Share of scope', width: 1.4, align: 'right' },
+        { label: 'Share of electronics', width: 1.4, align: 'right' },
       ],
       rows: top.map(([code, value, estimated], index) => [
         String(index + 1),
@@ -509,7 +509,7 @@ export function homeDocument(
       { label: 'Product', width: 3 },
       { label: 'HS-6', width: 0.9 },
       { label: 'World imports', width: 1.5, align: 'right' },
-      { label: 'Share of scope', width: 1.3, align: 'right' },
+      { label: 'Share of electronics', width: 1.3, align: 'right' },
     ],
     rows: record.products
       .filter(([code]) => segmentKey(byCode.get(code)?.segment) === segment)

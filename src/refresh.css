@@ -2056,29 +2056,35 @@
 
 .rf-home-hero {
   position: relative;
-  margin: 8px 0 22px;
-  padding: 34px 32px 26px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background:
-    radial-gradient(120% 140% at 0% 0%, rgba(19, 62, 104, 0.07), transparent 55%),
-    radial-gradient(120% 140% at 100% 100%, rgba(19, 62, 104, 0.04), transparent 55%),
-    var(--panel);
+  margin: 8px 0 26px;
+  padding: 28px 32px 22px;
+  /* Translucent FED Indigo, floating: the same hue as the strip above it,
+   * barely tinted, lifted off the page by a soft shadow. */
+  border: 1px solid rgba(19, 62, 104, 0.12);
+  border-radius: 10px;
+  background: rgba(19, 62, 104, 0.035);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow:
+    0 1px 2px rgba(19, 62, 104, 0.08),
+    0 12px 32px -10px rgba(19, 62, 104, 0.18);
   overflow: visible;
 }
 
-/* A thin Indigo rule across the top. Indigo only: Ming and English Red
- * mean India Exports and India Imports everywhere, and a decorative stripe
- * in them would give those hues a second meaning. */
+/* FED's brand bar in one hue, 4px along the top: Indigo for 73% of the
+ * width, a 2px break, then a light Indigo. Indigo only: Ming and English
+ * Red mean India Exports and India Imports everywhere, Light Sky Blue and
+ * Yellow Orange the two segments, so any of them here as decoration would
+ * give a colour a second meaning. */
 .rf-home-hero::before {
   content: "";
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 3px;
-  border-radius: 8px 8px 0 0;
-  background: var(--fed-indigo);
+  left: -1px;
+  right: -1px;
+  top: -1px;
+  height: 4px;
+  border-radius: 10px 10px 0 0;
+  background: linear-gradient(90deg, var(--fed-indigo) 0 73%, transparent 73% calc(73% + 2px), #93b2d8 calc(73% + 2px) 100%);
 }
 
 .rf-home-hero .rf-home-search {
@@ -2090,7 +2096,7 @@
 }
 
 .rf-home-search .search-primary {
-  min-height: 60px;
+  min-height: 56px;
   padding: 0 18px;
   border: 1px solid var(--border-strong);
   border-radius: 10px;
@@ -2141,10 +2147,16 @@
   padding: 10px 10px 8px;
 }
 
-:root[data-theme="dark"] .rf-home-hero {
-  background:
-    radial-gradient(120% 140% at 0% 0%, rgba(147, 178, 216, 0.08), transparent 55%),
-    var(--panel);
+:root[data-theme="dark"]:not([data-look="aman"]) .rf-home-hero {
+  border-color: rgba(147, 178, 216, 0.18);
+  background: rgba(147, 178, 216, 0.05);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 14px 34px -8px rgba(0, 0, 0, 0.55);
+}
+
+:root[data-theme="dark"]:not([data-look="aman"]) .rf-home-hero::before {
+  background: linear-gradient(90deg, #93b2d8 0 73%, transparent 73% calc(73% + 2px), #4a6f97 calc(73% + 2px) 100%);
 }
 
 :root[data-theme="dark"] .rf-home-search .search-primary:focus-within {
@@ -2198,7 +2210,7 @@
 @media (max-width: 640px) {
   .rf-home-hero {
     margin: 4px 0 16px;
-    padding: 20px 14px 16px;
+    padding: 22px 14px 16px;
   }
 }
 
@@ -2702,3 +2714,137 @@
   }
 }
 
+
+/* ------------------------------------------------- DGCIS Reporting panel */
+
+/* Collapsed, the whole heading row is one button: name, what it holds,
+ * Show. Open, a standard panel of two ranking cards. */
+.rf-dgcis-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 14px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rf-dgcis-toggle .rf-h2 {
+  margin: 0;
+}
+
+.rf-dgcis-meta {
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.rf-dgcis-show {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  margin-left: auto;
+  color: var(--navy);
+  font-size: 15px;
+  font-weight: 700;
+  align-self: center;
+}
+
+.rf-dgcis-chev {
+  transition: transform 0.16s ease;
+}
+
+.rf-dgcis-chev.open {
+  transform: rotate(180deg);
+}
+
+.rf-dgcis-toggle:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.rf-dgcis-body {
+  margin-top: 16px;
+}
+
+.rf-dgcis-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.rf-dgcis-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.rf-dgcis-grid {
+  margin-top: 14px;
+}
+
+.rf-table .rf-dgcis-code {
+  width: 96px;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .rf-dgcis-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .rf-dgcis-meta {
+    font-size: 14px;
+  }
+}
+
+/* Code, name and figure on one line: the code's button is a 44px target,
+ * so the row centres rather than top-aligns. */
+.rf-dgcis-grid .rf-table td {
+  vertical-align: middle;
+}
+
+@media (max-width: 640px) {
+  /* Heading and Show stay on one line; what the panel holds drops below. */
+  .rf-dgcis-meta {
+    order: 3;
+    width: 100%;
+  }
+
+  .rf-dgcis-grid .rf-ranked {
+    padding: 14px 12px;
+  }
+}
+
+/* One table across the panel: the value column keeps a fixed width so the
+ * figures sit at the right, as in the ranking cards, not mid-row. */
+.rf-dgcis-grid .rf-table .money {
+  width: 160px;
+}
+
+.rf-dgcis-grid .rf-table th.money {
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .rf-dgcis-grid .rf-table .money {
+    width: auto;
+  }
+
+  .rf-dgcis-grid .rf-table th.money {
+    white-space: normal;
+  }
+}

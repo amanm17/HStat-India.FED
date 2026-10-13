@@ -366,7 +366,7 @@ export function HomePage({
               count={importers.length}
               complete
               valueLabel="Imports"
-              shareLabel="Share of scope"
+              shareLabel="Share of electronics"
               formatValue={value => usd(value)}
               colour={colours.global}
               highlight="699"
@@ -381,7 +381,7 @@ export function HomePage({
               count={exporters.length}
               complete
               valueLabel="Exports"
-              shareLabel="Share of scope"
+              shareLabel="Share of electronics"
               formatValue={value => usd(value)}
               colour={colours.global}
               highlight="699"
@@ -397,10 +397,9 @@ export function HomePage({
               complete
               nameLabel="Product"
               valueLabel="World imports"
-              shareLabel="Share of scope"
+              shareLabel="Share of electronics"
               formatValue={value => usd(value)}
               colour={colours.finished}
-              extraColumns={[{ key: 'segment', label: 'Segment', render: () => 'Finished goods' }]}
               onRowOpen={row => onOpen(row.code, 6)}
               onViewAll={() => onViewAll('finished', year)}
               dark={dark}
@@ -413,10 +412,9 @@ export function HomePage({
               complete
               nameLabel="Product"
               valueLabel="World imports"
-              shareLabel="Share of scope"
+              shareLabel="Share of electronics"
               formatValue={value => usd(value)}
               colour={colours.components}
-              extraColumns={[{ key: 'segment', label: 'Segment', render: () => 'Components & inputs' }]}
               onRowOpen={row => onOpen(row.code, 6)}
               onViewAll={() => onViewAll('components', year)}
               dark={dark}

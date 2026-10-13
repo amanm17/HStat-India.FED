@@ -1,33 +1,30 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowUpRight } from 'lucide-react'
-import { fixed, places } from '../lib/format'
+import { ArrowUpRight, ChevronDown } from 'lucide-react'
+import { usd } from '../lib/format'
+import { Tabs } from './primitives'
 
 import {
   formatPeriod,
-  formatValue,
   loadDgcisIndex,
   type DgcisFlow,
   type DgcisIndexEntry,
 } from '../lib/dgcis'
 
 /*
- * India's tariff lines, on the front page.
+ * DGCIS Reporting: India's own tariff lines, on the front page.
  *
- * Two lists rather than one, because "biggest" and "moving" answer different
- * questions and a single ranking always buries one of them. Smartphones are
- * always the biggest export line; what a reader wants to know on a Tuesday is
- * what changed.
+ * Collapsed by default to one line - the world view above is what the page
+ * is for, and this is India's customs data, a different source. Opened, it
+ * is a standard panel: the same heading, tab strip and tables as Top
+ * Importers, so it reads as part of the dashboard rather than a widget.
  *
- * Movement is a twelve-month total against the twelve before it, not the
- * latest month against the one before — a single customs month is one
- * shipment landing or not landing, and ranking by that produces a list of
- * accidents. Lines under $1mn a year are excluded from the movers: a line
- * going from $2,000 to $40,000 is a 1,900% rise and tells nobody anything.
+ * One table: the largest lines over the last twelve months. The whole set,
+ * with every month, is a click away on the tariff-lines page.
  *
  * Renders nothing at all when there is no DGCIS data, like every other
  * surface in this layer.
  */
-const FLOOR = 1
+const SHOWN = 6
 
 export function HomeTariffLines({
   onOpenHs8,
@@ -38,121 +35,112 @@ export function HomeTariffLines({
 }) {
   const [lines, setLines] = useState<DgcisIndexEntry[] | null>(null)
   const [flow, setFlow] = useState<DgcisFlow>('exports')
+  const [open, setOpen] = useState(false)
 
   useEffect(() => {
     loadDgcisIndex().then(index => setLines(index?.lines ?? []))
   }, [])
 
-  const { biggest, movers, latest } = useMemo(() => {
-    if (!lines?.length) return { biggest: [], movers: [], latest: null }
+  const latest = useMemo(
+    () =>
+      (lines ?? [])
+        .flatMap(line => [line.flows.exports?.latest?.period, line.flows.imports?.latest?.period])
+        .filter((p): p is string => !!p)
+        .sort()
+        .pop() ?? null,
+    [lines],
+  )
 
-    const withSize = lines
-      .map(line => ({ line, size: line.flows[flow]?.last12UsdMillion ?? 0 }))
-      .filter(item => item.size > 0)
-
-    const newest = lines
-      .map(line => line.flows[flow]?.latest?.period)
-      .filter((p): p is string => !!p)
-      .sort()
-      .pop() ?? null
-
-    return {
-      biggest: [...withSize].sort((a, b) => b.size - a.size).slice(0, 6),
-      /* Movement needs the prior window, which the index does not carry, so
-       * this ranks on the latest month's share of the year instead - a line
-       * running hot right now sits above its own annual average. Honest about
-       * what it measures; see the label. */
-      /* Only lines that traded in the newest month: a line whose last
-       * non-zero month was a year ago is not running above anything now. */
-      movers: withSize
-        .filter(item => item.size >= FLOOR)
-        .filter(item => item.line.flows[flow]?.latest?.period === newest)
-        .map(item => {
-          const month = item.line.flows[flow]?.latest?.usdMillion ?? 0
-          const average = item.size / 12
-
-          return { ...item, month, lift: average > 0 ? month / average : 0 }
-        })
-        .filter(item => item.month > 0 && item.lift > 1)
-        .sort((a, b) => b.lift - a.lift)
-        .slice(0, 6),
-      latest: newest,
-    }
-  }, [lines, flow])
+  const biggest = useMemo(
+    () =>
+      (lines ?? [])
+        .map(line => ({ line, size: line.flows[flow]?.last12UsdMillion ?? 0 }))
+        .filter(item => item.size > 0)
+        .sort((a, b) => b.size - a.size)
+        .slice(0, SHOWN),
+    [lines, flow],
+  )
 
   if (!lines?.length) return null
 
+  const noun = flow === 'exports' ? 'exports' : 'imports'
+
   return (
-    <section className="home-hs8">
-      <div className="home-panel-head">
-        <span className="eyebrow">INDIA&rsquo;S OWN TARIFF LINES · DGCIS</span>
-
-        <span className="home-panel-note">
-          India reporting India at eight digits — not world trade.{' '}
-          {latest && <>To {formatPeriod(latest)}.</>}
+    <section className="rf-panel rf-dgcis" aria-labelledby="dgcis-reporting">
+      <button
+        type="button"
+        className="rf-dgcis-toggle"
+        aria-expanded={open}
+        aria-controls="dgcis-body"
+        onClick={() => setOpen(value => !value)}
+      >
+        <h2 id="dgcis-reporting" className="rf-h2">DGCIS Reporting</h2>
+        <span className="rf-dgcis-meta">
+          India&rsquo;s {lines.length} tariff lines{latest ? `, to ${formatPeriod(latest)}` : ''}
         </span>
-      </div>
+        <span className="rf-dgcis-show">
+          {open ? 'Hide' : 'Show'}
+          <ChevronDown size={18} aria-hidden className={open ? 'rf-dgcis-chev open' : 'rf-dgcis-chev'} />
+        </span>
+      </button>
 
-      <div className="home-hs8-controls">
-        <div className="basis-switch" role="group" aria-label="Flow">
-          {(['exports', 'imports'] as const).map(option => (
-            <button
-              key={option}
-              className={flow === option ? 'active' : ''}
-              aria-pressed={flow === option}
-              onClick={() => setFlow(option)}
-            >
-              {option === 'exports' ? 'Exports' : 'Imports'}
-            </button>
-          ))}
+      {open && (
+        <div id="dgcis-body" className="rf-dgcis-body">
+          <div className="rf-dgcis-bar">
+            <Tabs
+              label="Flow"
+              active={flow}
+              onChange={next => setFlow(next as DgcisFlow)}
+              tabs={[
+                { id: 'exports', label: 'Exports' },
+                { id: 'imports', label: 'Imports' },
+              ]}
+            />
+
+            {onLines && (
+              <button type="button" className="linkish rf-dgcis-all" onClick={onLines}>
+                All {lines.length} lines <ArrowUpRight size={14} aria-hidden />
+              </button>
+            )}
+          </div>
+
+          <div className="rf-dgcis-grid">
+            <article className="rf-ranked">
+              <div className="rf-ranked-head">
+                <h3>Largest {noun}</h3>
+              </div>
+
+              <div className="rf-tablewrap">
+                <table className="rf-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">HS-8</th>
+                      <th scope="col">Line</th>
+                      <th scope="col" className="num money">Last 12 months</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {biggest.map(({ line, size }) => (
+                      <tr key={line.hs8}>
+                        <td className="rf-dgcis-code">
+                          <button type="button" className="rf-link" onClick={() => onOpenHs8?.(line.hs8)}>
+                            {line.hs8}
+                          </button>
+                        </td>
+                        <td>{line.title || line.headingName}</td>
+                        {/* Dollars with their unit, as every other table: the
+                          * index carries USD only, so INR mode shows USD here
+                          * too, as the Global Trade tile does. */}
+                        <td className="num money">{usd(size * 1e6)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </article>
+          </div>
         </div>
-
-        {onLines && (
-          <button className="linkish" onClick={onLines}>
-            All {lines.length} lines <ArrowUpRight size={12} />
-          </button>
-        )}
-      </div>
-
-      <div className="home-hs8-cols">
-        <div>
-          <h3>Largest lines</h3>
-          <p className="home-hs8-note">twelve months, USD mn</p>
-
-          <ul>
-            {biggest.map(({ line, size }) => (
-              <li key={line.hs8}>
-                <button onClick={() => onOpenHs8?.(line.hs8)}>
-                  <span className="home-hs8-code">{line.hs8}</span>
-                  <span className="home-hs8-name">{line.title || line.headingName}</span>
-                  <span className="home-hs8-value">{formatValue(size)}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div>
-          <h3>Running above their monthly average</h3>
-          <p className="home-hs8-note">
-            latest month against one twelfth of the year
-          </p>
-
-          <ul>
-            {movers.length === 0 && <li className="home-empty">Nothing stands out this month.</li>}
-
-            {movers.map(({ line, lift }) => (
-              <li key={line.hs8}>
-                <button onClick={() => onOpenHs8?.(line.hs8)}>
-                  <span className="home-hs8-code">{line.hs8}</span>
-                  <span className="home-hs8-name">{line.title || line.headingName}</span>
-                  <span className="home-hs8-value up">{fixed(lift, places(1))}×</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
+      )}
     </section>
   )
 }
