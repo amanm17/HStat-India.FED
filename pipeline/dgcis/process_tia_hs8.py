@@ -44,7 +44,7 @@ INCOMING = ROOT / "data" / "dgcis" / "incoming"
 PROCESSED = ROOT / "data" / "dgcis" / "processed"
 RAW = ROOT / "data" / "dgcis" / "raw"
 
-FED = ROOT / "config" / "fed_sector_definition.csv"
+FED = ROOT / "hs_index" / "codes.csv"
 HS6_UNIVERSE = ROOT / "config" / "hs6_universe.txt"
 
 FLOWS = ("imports", "exports")
@@ -87,7 +87,7 @@ def load_hstat_scope():
     Build the currently represented HStat HS2 / HS4 / HS6 universe.
 
     Prefer hs6_universe.txt because it is the generated universe actually
-    shipped by HStat. Fall back to fed_sector_definition.csv only if needed.
+    shipped by HStat. Fall back to hs_index/codes.csv only if needed.
     """
     hs6_codes = set()
 

@@ -49,7 +49,7 @@ from common import (
     with_retry,
     write_json,
 )
-from definition import load_scope, pull_universe
+from definition import load_scope, pull_groups, pull_universe
 
 # Comtrade's limits differ by subscription and the published figures do not
 # agree with each other, so they live in config/scope.json under "api" and
@@ -322,7 +322,14 @@ def build_jobs(args, scope_config, volatile: set[str]) -> list[Job]:
                 target_rows,
             )
 
-            code_chunks = chunked(codes, chunk_size)
+            # One batch's codes never share a chunk with another's, so adding
+            # a batch leaves every earlier chunk (and its stored download)
+            # exactly as it was. Chunk numbers run on across batches.
+            code_chunks = [
+                chunk
+                for _, group_codes in pull_groups()
+                for chunk in chunked(group_codes, chunk_size)
+            ]
 
             for scope, flows in SCOPE_FLOWS.items():
                 # Monthly global data is the single largest recurring cost

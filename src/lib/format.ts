@@ -359,7 +359,7 @@ export function concentrationLabel(hhi: number | null): string {
  *
  * `displayName` is authored per HS-6 against the official text and is unique
  * across the catalogue. HS-2 chapters and HS-4 headings take their curated
- * short name (config/hs_short_names.csv) - the snapshot's `product` field for
+ * short name (hs_index/parents.csv) - the snapshot's `product` field for
  * a parent is a list of its first few members, never a name for it. `product`
  * is otherwise the family a code sits in and deliberately coarser, so it is
  * only a fallback, and the official description is the last resort.

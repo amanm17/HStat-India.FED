@@ -13,21 +13,35 @@ name: Validated data refresh
 # not. That turns "budget ran out, re-run it by hand tomorrow" into something
 # that finishes on its own.
 
+# All runs are late at night in India (cron is UTC; IST is UTC+5:30), when
+# nobody is reading the dashboard and the commit that follows a refresh
+# redeploys it quietly.
+#
+# Nightly backfill. When the HS intake has merged new codes (hs_index/
+# batches.json, pull "pending"), a nightly run pulls just what is missing for
+# them - every earlier download stays valid (pipeline/definition.py
+# pull_groups) - within the same 200-call budget, and promotes once the store
+# is complete and the snapshot validates. With nothing pending it stops in
+# seconds. It stands aside on the 5th-7th, when the monthly runs cover the
+# whole universe, new codes included.
+
 on:
   schedule:
     # Comtrade publishes revisions through the month, so the 5th gives the
-    # previous month's filings time to land.
-    - cron: "17 3 5 * *"
-    # Finish anything the 5th could not.
-    - cron: "17 3 6 * *"
-    - cron: "17 3 7 * *"
+    # previous month's filings time to land. 17:47 UTC = 23:17 IST.
+    - cron: "47 17 5 * *"
+    # Finish anything the 5th could not, the next two nights.
+    - cron: "47 17 6 * *"
+    - cron: "47 17 7 * *"
+    # Nightly backfill for newly added codes. 19:37 UTC = 01:07 IST.
+    - cron: "37 19 * * *"
 
   workflow_dispatch:
     inputs:
       depth:
-        description: "reprocess = rebuild the snapshot from the stored raw data, no API calls. probe = 3 calls, measure the key's real limits and stop. light / deep / full as below."
+        description: "backfill = pull only what newly added codes are missing. reprocess = rebuild the snapshot from the stored raw data, no API calls. probe = 3 calls, measure the key's real limits and stop. light / deep / full as below."
         type: choice
-        options: [auto, reprocess, probe, light, deep, full]
+        options: [auto, backfill, reprocess, probe, light, deep, full]
         default: auto
       max_calls:
         description: "Ceiling for this run. 200 leaves 300 calls of headroom for retries; a cold build finishes in 3 days at that rate."
@@ -78,6 +92,11 @@ jobs:
           DEPTH="${{ inputs.depth || 'auto' }}"
           DAY=$(date -u +%d)
 
+          # The nightly schedule is the backfill.
+          if [ "${{ github.event.schedule }}" = "37 19 * * *" ]; then
+            DEPTH=backfill
+          fi
+
           if [ "$DEPTH" = "auto" ]; then
             MONTH=$(date -u +%m)
             case "$MONTH" in
@@ -92,6 +111,9 @@ jobs:
             # A processing change - a wider validation window, a new
             # exchange-rate table - costs nothing to apply.
             reprocess) echo "args=--skip-pull" >> "$GITHUB_OUTPUT" ;;
+            # Nothing re-pulled for being recent: only chunks that do not
+            # exist yet, which after an intake are the new codes' chunks.
+            backfill) echo "args=--refresh-years 0 --refresh-months 0" >> "$GITHUB_OUTPUT" ;;
             light) echo "args=--refresh-years 1 --refresh-months 3" >> "$GITHUB_OUTPUT" ;;
             deep)  echo "args=--refresh-years 3 --refresh-months 6" >> "$GITHUB_OUTPUT" ;;
             full)  echo "args=--mode full" >> "$GITHUB_OUTPUT" ;;
@@ -136,6 +158,7 @@ jobs:
           steps.depth.outputs.day != '05'
           && steps.depth.outputs.depth != 'probe'
           && steps.depth.outputs.depth != 'reprocess'
+          && steps.depth.outputs.depth != 'backfill'
         env:
           COMTRADE_API_KEY: ${{ secrets.COMTRADE_API_KEY }}
         run: |
@@ -154,10 +177,30 @@ jobs:
             exit "$CODE"
           fi
 
+      # The backfill's question is whether the intake has queued anything.
+      - name: Any newly added codes waiting?
+        id: pending
+        if: steps.depth.outputs.depth == 'backfill'
+        run: |
+          COUNT=$(python -c "import sys; sys.path.insert(0, 'pipeline'); from definition import pending_codes; print(len(pending_codes()))")
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          echo "Codes waiting for their first pull: $COUNT"
+
       - name: Should this run do anything?
         id: gate
         run: |
-          if [ "${{ steps.depth.outputs.depth }}" = "probe" ]; then
+          if [ "${{ steps.depth.outputs.depth }}" = "backfill" ]; then
+            DAY="${{ steps.depth.outputs.day }}"
+            if [ "${{ github.event_name }}" = "schedule" ] && { [ "$DAY" = "05" ] || [ "$DAY" = "06" ] || [ "$DAY" = "07" ]; }; then
+              echo "run=false" >> "$GITHUB_OUTPUT"
+              echo "Monthly refresh nights: the monthly run covers new codes."
+            elif [ "${{ steps.pending.outputs.count }}" = "0" ]; then
+              echo "run=false" >> "$GITHUB_OUTPUT"
+              echo "Nothing waiting; no backfill tonight."
+            else
+              echo "run=true" >> "$GITHUB_OUTPUT"
+            fi
+          elif [ "${{ steps.depth.outputs.depth }}" = "probe" ]; then
             echo "run=false" >> "$GITHUB_OUTPUT"
             echo "Probe only; no pull."
           elif [ "${{ steps.depth.outputs.depth }}" = "reprocess" ]; then
@@ -204,6 +247,12 @@ jobs:
 
           exit "$CODE"
 
+      # Close every intake batch whose codes are now live, before the sanity
+      # check, so from here on they are required like every other code.
+      - name: Close fully pulled intake batches
+        if: steps.gate.outputs.run == 'true' && steps.refresh.outputs.incomplete != 'true'
+        run: python pipeline/hs_intake.py --mark-pulled
+
       - name: Sanity-check the promoted snapshot
         if: steps.gate.outputs.run == 'true' && steps.refresh.outputs.incomplete != 'true'
         run: python pipeline/launch_sanity.py
@@ -232,7 +281,7 @@ jobs:
 
           git add public/data/snapshots public/data/hs-library.json \
                   config/hs6_universe.txt config/parent_universe.json \
-                  config/hs_titles.json
+                  config/hs_titles.json hs_index/batches.json
 
           if git diff --cached --quiet; then
             echo "No data changes this run."

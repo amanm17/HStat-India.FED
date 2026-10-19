@@ -76,7 +76,7 @@ def round_or_none(value, places: int):
 
 def heading_names() -> dict[str, str]:
     """hs6 -> the short name we authored for it, from the sector definition."""
-    path = CONFIG / "fed_sector_definition.csv"
+    path = CONFIG.parent / "hs_index" / "codes.csv"
 
     if not path.exists():
         return {}

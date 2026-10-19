@@ -2508,7 +2508,7 @@ def main():
                 ),
             },
             "definition": {
-                "source": "config/fed_sector_definition.csv",
+                "source": "hs_index/codes.csv",
                 "products": len(products),
                 "inFedDefinition": sum(
                     1 for item in products.values() if item.in_fed_definition

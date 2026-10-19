@@ -419,9 +419,11 @@ def main():
                     ),
                     "answerNote": answers[0].note if answers else "",
                     "members": [item.hs6 for item in members],
-                    "worldExportsUsdBn": sum(
+                    # Rounded: Python 3.12's compensated float sum and
+                    # older versions disagree in the last digit.
+                    "worldExportsUsdBn": round(sum(
                         item.world_exports_usd_bn or 0 for item in members
-                    ),
+                    ), 6),
                 }
             )
 

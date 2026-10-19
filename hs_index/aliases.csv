@@ -17,7 +17,7 @@ code,terms,primary,note
 # get the category; when they ask about a product they get the product.
 #
 # A hand-written row here always wins over the automatic rule that promotes
-# a unique product label from fed_sector_definition.csv to an answer term.
+# a unique product label from hs_index/codes.csv to an answer term.
 #
 # Lines starting with # are ignored. Edit freely, then re-run
 # `python pipeline/build_hs_library.py`.
@@ -144,9 +144,9 @@ code,terms,primary,note
 850980,other domestic appliance;electric domestic appliance,yes,Electro-mechanical domestic appliances not covered elsewhere in 8509.
 8510,shavers;grooming appliances,yes,"Shavers, hair clippers and hair-removing appliances."
 851010,electric shaver;razor;electric razor,yes,Shavers with a self-contained electric motor.
-851030,epilator;hair removal device;trimmer,yes,Hair-removing appliances with a self-contained electric motor.
+851030,epilator;hair removal device,yes,Hair-removing appliances with a self-contained electric motor.
 8511,ignition equipment;automotive electrical,no,
-8512,vehicle lighting;automotive lighting;signalling equipment,yes,Electrical lighting and signalling equipment for vehicles.
+8512,vehicle lighting;automotive lighting,yes,Electrical lighting and signalling equipment for vehicles.
 851220,headlight;headlamp;vehicle headlight;car light;tail light,yes,Electrical lighting and visual signalling equipment for vehicles.
 851290,vehicle lighting parts;horn parts;wiper motor parts,yes,Parts of vehicle lighting and signalling equipment.
 8513,torches;portable lamps,yes,Portable electric lamps with their own power source.
@@ -156,7 +156,7 @@ code,terms,primary,note
 851650,microwave;microwave oven,yes,Domestic microwave ovens.
 851660,oven;electric oven;cooktop;induction cooktop;griller;roaster;cooker,yes,"Ovens, cookers, cooking plates, grillers and roasters for domestic use."
 851671,coffee maker;tea maker;kettle;electric kettle,yes,Domestic coffee and tea makers.
-851679,water heater;geyser;immersion heater;electric water heater,yes,Electro-thermic domestic appliances not covered elsewhere in 8516.
+851679,electro-thermic appliance;electric heating appliance,yes,Electro-thermic domestic appliances not covered elsewhere in 8516.
 851680,heating element;heating resistor;heater coil,yes,Electric heating resistors.
 851690,heater parts;appliance heating parts,yes,Parts of electro-thermic appliances.
 8517,telecom;telecommunications;networking;network equipment;phones;telephony,yes,"Telephone sets and apparatus for transmitting voice, images and data over networks."
@@ -180,7 +180,7 @@ code,terms,primary,note
 851850,amplifier set;pa system;public address system,yes,Electric sound amplifier sets.
 8519,sound recording;audio players,yes,Sound recording and reproducing apparatus.
 851981,music player;mp3 player;audio recorder;digital audio player,yes,"Sound recording and reproducing apparatus using magnetic, optical or semiconductor media."
-851989,turntable;record player;other sound apparatus,yes,Sound recording and reproducing apparatus not covered elsewhere in 8519.
+851989,other sound apparatus,yes,Sound recording and reproducing apparatus not covered elsewhere in 8519.
 8521,video recording;video players,yes,Video recording and reproducing apparatus.
 852110,vcr;magnetic tape video recorder,yes,Magnetic tape-type video recording apparatus.
 852190,dvd player;blu ray player;digital video recorder;nvr,yes,Video recording and reproducing apparatus other than magnetic tape.
@@ -291,7 +291,6 @@ code,terms,primary,note
 # "led bulb" finds nothing at all.
 853950,led bulb;led lamp;led light;led tube;led bulbs,yes,Light-emitting diode lamps.
 853951,led module;led lamp module,yes,Light-emitting diode modules.
-853952,led bulb;led lamp;led light;led tube,yes,Light-emitting diode lamps.
 8540,vacuum tubes;cathode ray tubes,yes,"Thermionic, cold cathode and photo-cathode valves and tubes."
 854011,colour crt;colour picture tube,no,
 854012,monochrome crt;black and white picture tube,no,
@@ -325,7 +324,7 @@ code,terms,primary,note
 854310,particle accelerator,yes,Particle accelerators.
 854320,signal generator;function generator,yes,Electrical signal generators.
 854330,electroplating machine;electrolysis equipment,yes,"Machines for electroplating, electrolysis or electrophoresis."
-854370,electronic machine;e-cigarette;electric fence energiser;electronic apparatus,yes,Electrical machines with individual functions not covered elsewhere - a broad residual line.
+854370,electronic machine;electric fence energiser;electronic apparatus,yes,Electrical machines with individual functions not covered elsewhere - a broad residual line.
 854390,electrical machine parts,yes,Parts of the electrical machines of 8543.
 8544,cable;cables;wire;wires;insulated conductors,yes,Insulated electric conductors and optical fibre cables.
 854411,winding wire;copper winding wire;magnet wire;enamelled copper wire,yes,Copper winding wire.
@@ -338,7 +337,7 @@ code,terms,primary,note
 854470,optical fibre cable;fiber optic cable;fibre cable;ofc;optical fibre;optical fiber;fiber cable;fibre optic cable,yes,Optical fibre cables.
 8545,carbon electrodes;graphite electrodes,yes,"Carbon electrodes, brushes and other graphite articles."
 854511,furnace electrode;graphite electrode;eaf electrode,yes,Carbon electrodes for furnaces.
-854519,carbon electrode;carbon brush;motor brush,yes,Carbon electrodes for uses other than furnaces.
+854519,carbon electrode,yes,Carbon electrodes for uses other than furnaces.
 8546,insulators,yes,Electrical insulators.
 854610,glass insulator,yes,Electrical insulators of glass.
 854620,ceramic insulator;porcelain insulator,yes,Electrical insulators of ceramics.
@@ -385,11 +384,11 @@ code,terms,primary,note
 903082,wafer prober;ic tester;semiconductor test equipment;ate,yes,Instruments for measuring or checking semiconductor wafers and devices.
 903084,other recording instrument,no,
 903089,other electrical test instrument,no,
-903090,oscilloscope;test equipment parts;measurement instrument parts,yes,"Instruments for measuring electrical quantities not elsewhere specified, and their parts."
+903090,test equipment parts;measurement instrument parts,yes,"Instruments for measuring electrical quantities not elsewhere specified, and their parts."
 9032,automatic controls;regulators;controllers,yes,Automatic regulating and controlling instruments.
 903220,manostat;pressure regulator,yes,Automatic manostats.
 903281,hydraulic controller;pneumatic controller,yes,Automatic hydraulic and pneumatic regulating instruments.
-903289,controller;plc;thermostat;automatic regulator;process controller,yes,Automatic regulating and controlling instruments not covered elsewhere in 9032.8.
+903289,controller;plc;automatic regulator;process controller,yes,Automatic regulating and controlling instruments not covered elsewhere in 9032.8.
 
 # ===========================================================================
 # CHAPTER 91 - clocks and watches
@@ -403,7 +402,7 @@ code,terms,primary,note
 910310,alarm clock small;travel clock,no,
 9105,clocks;clock,yes,Clocks other than those with watch movements.
 910511,alarm clock;digital alarm clock,yes,Electrically operated alarm clocks.
-910591,wall clock;desk clock;electric clock,yes,Electrically operated clocks other than alarm or wall clocks.
+910591,desk clock;electric clock,yes,Electrically operated clocks other than alarm or wall clocks.
 9106,time recorder;attendance machine,yes,Time recording apparatus.
 910610,time register;punch clock;attendance recorder,yes,Time registers and time recorders.
 910690,other time recording apparatus,no,
@@ -532,3 +531,11 @@ code,terms,primary,note
 910910,clock movement complete,yes,"Complete assembled clock movements, electrically operated."
 831120,welding wire;cored wire;mig wire,yes,Cored wire of base metal for electric arc welding.
 340391,textile lubricant;treatment lubricant,yes,Lubricating preparations for treating textiles and leather.
+851020,trimmer,yes,Hair clippers and trimmers with a self-contained electric motor.
+851610,water heater;geyser;immersion heater;electric water heater,yes,Electric instantaneous or storage water heaters and immersion heaters.
+851930,turntable;record player,yes,Turntables (record-decks).
+854340,e-cigarette,yes,Electronic cigarettes and similar personal vaporising devices (new in HS 2022).
+854520,carbon brush;motor brush,yes,Carbon brushes for motors and generators.
+903020,oscilloscope,yes,Oscilloscopes and oscillographs.
+903210,thermostat,yes,Thermostats.
+910521,wall clock,yes,Electrically operated wall clocks.

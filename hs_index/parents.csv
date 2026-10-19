@@ -1,0 +1,133 @@
+# HS-2 chapters and HS-4 headings HStat publishes, with their curated short
+# names. Page titles, breadcrumbs and lists use short_name; the full official
+# HS text (config/hs_titles.json, from Comtrade's reference) shows when the
+# reader clicks the title. Short names stay inside the official wording -
+# shortened, never widened - and are unique. Sentence case.
+# batch: the intake batch that added the code (hs_index/batches.json).
+code,level,short_name,batch
+32,2,"Dyes, pigments, paints and inks",baseline
+3208,4,Paints and varnishes (non-aqueous),baseline
+34,2,"Soaps, lubricants and waxes",baseline
+3403,4,Lubricating preparations,baseline
+35,2,"Glues, starches and enzymes",baseline
+3506,4,Prepared glues and adhesives,baseline
+39,2,Plastics and articles,baseline
+3903,4,Polystyrene and styrene polymers,baseline
+3907,4,"Polyesters, polycarbonates and epoxy resins",baseline
+3908,4,Polyamides,baseline
+3919,4,Self-adhesive plastic film and tape,baseline
+3920,4,"Plastic sheets, film and foil",baseline
+3923,4,Plastic packing and closures,baseline
+3926,4,Other articles of plastics,baseline
+40,2,Rubber and articles,baseline
+4016,4,Articles of vulcanised rubber,baseline
+42,2,Leather goods and travel bags,baseline
+4202,4,"Cases, bags and travel goods",baseline
+48,2,Paper and paperboard,baseline
+4819,4,"Paper cartons, boxes and bags",baseline
+4821,4,Paper labels,baseline
+4823,4,Other paper articles,baseline
+49,2,Printed matter,baseline
+4901,4,Printed books and leaflets,baseline
+4911,4,Other printed matter,baseline
+59,2,Technical textiles,baseline
+5911,4,Textile articles for technical uses,baseline
+73,2,Iron and steel articles,baseline
+7318,4,"Screws, bolts and nuts",baseline
+7326,4,Other iron and steel articles,baseline
+74,2,Copper and articles,baseline
+7410,4,Copper foil,baseline
+75,2,Nickel and articles,baseline
+7508,4,Other nickel articles,baseline
+76,2,Aluminium and articles,baseline
+7616,4,Other aluminium articles,baseline
+83,2,Miscellaneous base-metal articles,baseline
+8311,4,Soldering and welding wire and rods,baseline
+84,2,Machinery and mechanical appliances,baseline
+8414,4,"Pumps, compressors and fans",baseline
+8415,4,Air conditioners,baseline
+8418,4,Refrigerators and freezers,baseline
+8419,4,Industrial heating and drying machinery,baseline
+8422,4,Dishwashers and packing machinery,baseline
+8423,4,Weighing machines,baseline
+8443,4,"Printers, copiers and printing machinery",baseline
+8450,4,Household washing machines,baseline
+8451,4,Textile cleaning and finishing machinery,baseline
+8452,4,Sewing machines,baseline
+8456,4,Laser and other machine-tools,baseline
+8470,4,Calculators and accounting machines,baseline
+8471,4,Computers and data processing units,baseline
+8472,4,Other office machines,baseline
+8473,4,Computer and office machine parts,baseline
+8476,4,Vending machines,baseline
+85,2,Electrical machinery and electronics,baseline
+8501,4,Electric motors and generators,baseline
+8504,4,"Transformers, converters and inductors",baseline
+8505,4,Magnets and electromagnetic devices,baseline
+8506,4,Primary cells and batteries,baseline
+8507,4,Rechargeable batteries,baseline
+8508,4,Vacuum cleaners,baseline
+8509,4,Domestic electric appliances,baseline
+8510,4,Shavers and hair clippers,baseline
+8511,4,Engine ignition and starting equipment,baseline
+8512,4,Vehicle lighting and signalling equipment,baseline
+8513,4,Portable electric lamps,baseline
+8516,4,Electric heaters and domestic heating appliances,baseline
+8517,4,Telephones and network equipment,baseline
+8518,4,"Microphones, speakers and headphones",baseline
+8519,4,Sound recording and playback apparatus,baseline
+8521,4,Video recording and playback apparatus,baseline
+8522,4,Audio and video equipment parts,baseline
+8523,4,Storage media and smart cards,baseline
+8524,4,Flat panel display modules,baseline
+8525,4,Broadcast transmitters and cameras,baseline
+8526,4,Radar and radio navigation apparatus,baseline
+8527,4,Radio receivers,baseline
+8528,4,"Monitors, projectors and televisions",baseline
+8529,4,Parts for broadcast and display equipment,baseline
+8530,4,Traffic control and signalling equipment,baseline
+8531,4,Electric alarms and signalling apparatus,baseline
+8532,4,Capacitors,baseline
+8533,4,Resistors,baseline
+8534,4,Printed circuits,baseline
+8535,4,Switching apparatus above 1000 V,baseline
+8536,4,Switching apparatus up to 1000 V,baseline
+8537,4,Control and distribution panels,baseline
+8538,4,Parts for switching apparatus,baseline
+8539,4,Electric lamps and LED lamps,baseline
+8540,4,Valves and tubes,baseline
+8541,4,Semiconductor devices,baseline
+8542,4,Integrated circuits,baseline
+8543,4,Other electrical machines and apparatus,baseline
+8544,4,"Insulated wire, cable and optical fibre",baseline
+8545,4,Carbon electrodes and brushes,baseline
+8546,4,Electrical insulators,baseline
+8547,4,Insulating fittings,baseline
+8548,4,Other electrical parts,baseline
+90,2,"Optical, measuring and medical instruments",baseline
+9012,4,Electron microscopes and diffraction apparatus,baseline
+9013,4,Lasers and other optical appliances,baseline
+9014,4,Navigational instruments,baseline
+9015,4,Surveying and geophysical instruments,baseline
+9016,4,Precision balances,baseline
+9017,4,Drawing and length-measuring instruments,baseline
+9018,4,Medical and surgical instruments,baseline
+9021,4,Orthopaedic appliances and hearing aids,baseline
+9022,4,X-ray and radiation apparatus,baseline
+9025,4,"Thermometers, barometers and hygrometers",baseline
+9027,4,Instruments for physical or chemical analysis,baseline
+9030,4,Electrical measuring instruments,baseline
+9032,4,Automatic regulating and control instruments,baseline
+91,2,Clocks and watches,baseline
+9101,4,Watches with precious-metal cases,baseline
+9102,4,Other watches,baseline
+9103,4,Clocks with watch movements,baseline
+9105,4,Other clocks,baseline
+9106,4,Time recorders and timers,baseline
+9108,4,Watch movements,baseline
+9109,4,Clock movements,baseline
+95,2,"Toys, games and sports goods",baseline
+9504,4,Video game consoles and table games,baseline
+96,2,Miscellaneous manufactured articles,baseline
+9612,4,Typewriter ribbons and ink pads,baseline
+9613,4,Lighters,baseline

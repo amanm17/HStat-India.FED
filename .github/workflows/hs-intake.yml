@@ -1,0 +1,96 @@
+name: HS intake
+
+# A file pushed into hs_index/incoming/ is checked, tagged and - when every
+# check passes - merged into the HS index, with its first data pull queued for
+# the nightly backfill. A file that cannot pass moves to incoming/rejected/
+# with a report saying why. See hs_index/README.md.
+#
+# This job only edits the index. It spends no Comtrade API calls and does not
+# change the live snapshot: the backfill pulls, validates and promotes.
+
+on:
+  push:
+    paths:
+      - "hs_index/incoming/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hstat-index
+  cancel-in-progress: false
+
+jobs:
+  intake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - run: pip install -r requirements.txt
+
+      # The HS 2022 table says which codes are current; the HS 2017 table
+      # tells codes created in 2022 apart, and what they were split from.
+      # Fetched once and committed; later runs reuse them.
+      - name: HS reference tables
+        run: python scripts/fetch_hs_references.py
+
+      # Saved on their own, so a first fetch is kept even if a later step
+      # stops the run (for example, the stricter HS 2022 table exposing an
+      # old code in the index).
+      - name: Commit the reference tables
+        run: |
+          git config user.name "hstat-data-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add config/reference/comtrade_hs_reference_h6.json config/reference/comtrade_hs_reference_h5.json
+          if git diff --cached --quiet; then
+            echo "Reference tables unchanged."
+          else
+            git commit -m "HS reference tables: HS 2022 and HS 2017 from Comtrade"
+            git push
+          fi
+
+      - name: Check, tag and merge
+        id: intake
+        run: |
+          set +e
+          python pipeline/hs_intake.py --apply | tee intake.log
+          CODE=${PIPESTATUS[0]}
+          set -e
+          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+
+      - name: Whole-index check
+        run: python pipeline/hs_index_check.py
+
+      - name: Commit the index
+        run: |
+          git config user.name "hstat-data-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A hs_index config/reference config/hs6_universe.txt \
+                  config/parent_universe.json config/hs_titles.json \
+                  config/hs_official_children.json src/lib/hsnames.generated.ts
+          if git diff --cached --quiet; then
+            echo "Nothing to commit."
+          else
+            git commit -m "HS intake: $(head -c 200 intake.log | tr '\n' ' ')"
+            git push
+          fi
+
+      - name: Report
+        if: always()
+        run: |
+          cat intake.log || true
+          if [ "${{ steps.intake.outputs.code }}" != "0" ]; then
+            echo "::warning::An upload needs attention; its report is in hs_index/incoming/rejected/."
+          fi

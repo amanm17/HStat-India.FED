@@ -23,7 +23,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 sys.path.insert(0, str(ROOT / "pipeline"))
 
-from definition import hs6_universe, parent_universe  # noqa: E402
+from definition import hs6_universe, parent_universe, pending_codes  # noqa: E402
 
 APP_TSX = ROOT / "src" / "App.tsx"
 
@@ -187,11 +187,18 @@ def main():
 
     # --- the definition and the shipped data must agree -------------------
 
-    expected = set(hs6_universe())
-
     shipped = {
         entry["code"] for entry in catalogue if entry.get("level") == 6
     }
+
+    # Codes the intake merged and the backfill has not finished pulling are
+    # not expected yet; once their batch is marked pulled they are.
+    waiting = (set(hs6_universe()) & set(pending_codes())) - shipped
+
+    if waiting:
+        check.note(f"{len(waiting)} newly added codes are waiting for their first pull")
+
+    expected = set(hs6_universe()) - waiting
 
     missing = expected - shipped
 
@@ -221,6 +228,7 @@ def main():
             code
             for code in codes
             if not (snapshot / "parents" / level / f"{code}.json").exists()
+            and code not in pending_codes()
         ]
 
         check.require(
@@ -458,7 +466,7 @@ def main():
 
     message = (
         f"{len(undeclared)} active products have no global trade figure and "
-        f"are not declared retired in config/hs_lineage.csv: "
+        f"are not declared retired in hs_index/lineage.csv: "
         f"{', '.join(undeclared[:10])}"
     )
 

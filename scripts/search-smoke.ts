@@ -8,7 +8,7 @@
  *   generic / plural term  -> answers at HS-4 or HS-2
  *   specific product term  -> answers at HS-6
  *
- * Run after any edit to config/hs_aliases.csv or the sector definition:
+ * Run after any edit to hs_index/aliases.csv or the sector definition:
  *
  *   python pipeline/build_hs_library.py && npx tsx scripts/search-smoke.ts
  */
@@ -56,6 +56,17 @@ const CASES: [string, string][] = [
   ['heat sink', '761699'],
   ['gasket', '401693'],
   ['screw', '731815'],
+  // Terms that once answered with a residual code although their own code
+  // is in scope (HS index tagging pass, Oct 2026).
+  ['geyser', '851610'],
+  ['wall clock', '910521'],
+  ['thermostat', '903210'],
+  ['oscilloscope', '903020'],
+  ['turntable', '851930'],
+  ['e-cigarette', '854340'],
+  ['carbon brush', '854520'],
+  ['hair straightener', '851632'],
+  ['steam iron', '851640'],
 ]
 
 const library = JSON.parse(

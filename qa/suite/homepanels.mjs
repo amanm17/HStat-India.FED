@@ -24,7 +24,7 @@ const ok = (name, cond, detail = '') => {
 }
 
 /* The curated HS-2/HS-4 names are compiled into the bundle; the module must
- * match config/hs_short_names.csv and config/hs_titles.json. */
+ * match hs_index/parents.csv and config/hs_titles.json. */
 ok('HS names module matches config (node scripts/build_hs_names.mjs)', render() === readFileSync('src/lib/hsnames.generated.ts', 'utf8'))
 
 for (const [shape, width, theme] of [['desk', 1440, 'light'], ['desk', 1440, 'dark'], ['phone', 390, 'light']]) {

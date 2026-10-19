@@ -1,0 +1,142 @@
+# Reviewer verdicts for display names that use words outside the official HS text.
+# One row per code; the verdict holds only for the exact display_name. See hs_index/README.md.
+code,display_name,verdict,note
+350699,"Prepared adhesives, small packs",ok,"'small, packs' paraphrase the official text; covers the whole code"
+391910,"Self-adhesive film, narrow rolls",ok,'narrow' paraphrase the official text; covers the whole code
+392099,"Plastic film, other polymers",ok,'polymers' paraphrase the official text; covers the whole code
+392390,Plastic packaging articles,ok,'packaging' paraphrase the official text; covers the whole code
+841459,"Fans and blowers, other",ok,"renamed 2026-10-19 from 'Industrial fans and blowers', which named only part of the code; 'blowers' paraphrase the official text"
+841583,Air handling units,ok,'handling' paraphrase the official text; covers the whole code
+841810,Combined fridge-freezers,ok,'fridge-freezers' paraphrase the official text; covers the whole code
+842211,Household dishwashers,ok,'dishwashers' paraphrase the official text; covers the whole code
+842219,Non-household dishwashers,ok,"renamed 2026-10-19 from 'Commercial dishwashers', which named only part of the code; 'dishwashers' paraphrase the official text"
+842310,Personal and kitchen scales,ok,'kitchen' paraphrase the official text; covers the whole code
+842330,Bagging and hopper scales,ok,'bagging' paraphrase the official text; covers the whole code
+844311,Web offset presses,ok,"'web, presses' paraphrase the official text; covers the whole code"
+844312,Office offset presses,ok,'presses' paraphrase the official text; covers the whole code
+844313,"Offset presses, other",ok,'presses' paraphrase the official text; covers the whole code
+844316,Flexographic presses,ok,'presses' paraphrase the official text; covers the whole code
+844317,Gravure presses,ok,'presses' paraphrase the official text; covers the whole code
+844319,"Printing presses, other",ok,'presses' paraphrase the official text; covers the whole code
+844331,Multifunction printers,ok,'multifunction' paraphrase the official text; covers the whole code
+844339,Standalone printers and copiers,ok,"'standalone, copiers' paraphrase the official text; covers the whole code"
+844391,Printing press parts,ok,'press' paraphrase the official text; covers the whole code
+844399,Printer parts and cartridges,ok,'cartridges' paraphrase the official text; covers the whole code
+845012,Semi-automatic washing machines,ok,'semi-automatic' paraphrase the official text; covers the whole code
+845019,Manual washing machines,ok,'manual' paraphrase the official text; covers the whole code
+847030,Mechanical calculators,ok,'mechanical' paraphrase the official text; covers the whole code
+847130,Laptops and notebooks,ok,"'laptops, notebooks' paraphrase the official text; covers the whole code"
+847141,All-in-one computers,ok,"'all-in-one, computers' paraphrase the official text; covers the whole code"
+847149,Computer systems,ok,'computer' paraphrase the official text; covers the whole code
+847150,Computer processing units,ok,"renamed 2026-10-19 from 'Server processing units', which named only part of the code; 'computer' paraphrase the official text"
+847160,Computer input/output units,ok,'computer' paraphrase the official text; covers the whole code
+847170,Computer storage drives,ok,"'computer, drives' paraphrase the official text; covers the whole code"
+847180,"Computer units, other",ok,"renamed 2026-10-19 from 'Computer expansion cards', which named only part of the code; 'computer' paraphrase the official text"
+847329,"Cash register, calculator parts",ok,"renamed 2026-10-19 from 'Cash register parts', which named only part of the code; 'cash, register, calculator' paraphrase the official text"
+847330,Computer boards and parts,ok,"'computer, boards' paraphrase the official text; covers the whole code"
+847340,Office machine parts,ok,'office' paraphrase the official text; covers the whole code
+847350,Shared office machine parts,ok,"'shared, office' paraphrase the official text; covers the whole code"
+847621,Temperature-controlled beverage vending,ok,"renamed 2026-10-19 from 'Hot beverage vending machines', which named only part of the code; 'temperature-controlled' paraphrase the official text"
+847681,Temperature-controlled goods vending,ok,"renamed 2026-10-19 from 'Refrigerated vending machines', which named only part of the code; 'temperature-controlled' paraphrase the official text"
+850110,"Micro motors, under 37.5W",ok,'micro' paraphrase the official text; covers the whole code
+850422,"Liquid transformers, to 10MVA",ok,'mva' paraphrase the official text; covers the whole code
+850423,"Liquid transformers, above 10MVA",ok,'mva' paraphrase the official text; covers the whole code
+850431,"Dry transformers, to 1kVA",ok,'dry' paraphrase the official text; covers the whole code
+850432,"Dry transformers, to 16kVA",ok,'dry' paraphrase the official text; covers the whole code
+850433,"Dry transformers, to 500kVA",ok,'dry' paraphrase the official text; covers the whole code
+850434,"Dry transformers, above 500kVA",ok,'dry' paraphrase the official text; covers the whole code
+850440,Static converters and chargers,ok,'chargers' paraphrase the official text; covers the whole code
+850450,Inductors and chokes,ok,'chokes' paraphrase the official text; covers the whole code
+850490,Transformer and charger parts,ok,'charger' paraphrase the official text; covers the whole code
+850519,Ferrite permanent magnets,ok,'ferrite' paraphrase the official text; covers the whole code
+850710,Lead-acid starter batteries,ok,'batteries' paraphrase the official text; covers the whole code
+850720,"Lead-acid batteries, other",ok,"renamed 2026-10-19 from 'Lead-acid stationary batteries', which named only part of the code; 'batteries' paraphrase the official text"
+850730,Nickel-cadmium batteries,ok,'batteries' paraphrase the official text; covers the whole code
+850750,Nickel-metal hydride batteries,ok,'batteries' paraphrase the official text; covers the whole code
+850760,Lithium-ion batteries,ok,'batteries' paraphrase the official text; covers the whole code
+850780,"Accumulators, other chemistries",ok,'chemistries' paraphrase the official text; covers the whole code
+850819,"Vacuum cleaners, larger",ok,"renamed 2026-10-19 from 'Wet and dry vacuums', which named only part of the code; 'larger' paraphrase the official text"
+850860,"Vacuum cleaners, external motor",ok,'external' paraphrase the official text; covers the whole code
+851310,Torches and portable lamps,ok,'torches' paraphrase the official text; covers the whole code
+851629,Room and space heaters,ok,'room' paraphrase the official text; covers the whole code
+851632,Hair styling appliances,ok,'styling' paraphrase the official text; covers the whole code
+851660,"Ovens, cookers and hotplates",ok,'hotplates' paraphrase the official text; covers the whole code
+851714,Feature phones,ok,"'feature, phones' paraphrase the official text; covers the whole code"
+851718,Corded telephone sets,ok,'corded' paraphrase the official text; covers the whole code
+851761,Mobile network base stations,ok,'mobile' paraphrase the official text; covers the whole code
+851771,Antennas and aerial parts,ok,'antennas' paraphrase the official text; covers the whole code
+851779,"Telecom parts, excluding antennas",ok,"'telecom, antennas' paraphrase the official text; covers the whole code"
+851829,Unmounted loudspeaker drivers,ok,"'unmounted, drivers' paraphrase the official text; covers the whole code"
+851850,Public address amplifier sets,ok,"'public, address' paraphrase the official text; covers the whole code"
+851920,Coin-operated audio apparatus,ok,'audio' paraphrase the official text; covers the whole code
+851981,Audio players and recorders,ok,"renamed 2026-10-19 from 'Digital audio players', which named only part of the code; 'audio, players' paraphrase the official text"
+852190,"Non-tape video players, recorders",ok,"renamed 2026-10-19 from 'Digital video recorders', which named only part of the code; 'players' paraphrase the official text"
+852210,Pick-up cartridges and styli,ok,'styli' paraphrase the official text; covers the whole code
+852290,Audio-video recorder parts,ok,'audio-video' paraphrase the official text; covers the whole code
+852341,Blank optical discs,ok,'blank' paraphrase the official text; covers the whole code
+852351,Flash memory and drives,ok,"'flash, memory, drives' paraphrase the official text; covers the whole code"
+852411,Bare LCD display modules,ok,"'bare, lcd' paraphrase the official text; covers the whole code"
+852412,Bare OLED display modules,ok,'bare' paraphrase the official text; covers the whole code
+852419,"Bare display modules, other",ok,'bare' paraphrase the official text; covers the whole code
+852491,Driven LCD display modules,ok,'lcd' paraphrase the official text; covers the whole code
+852560,Two-way radio transceivers,ok,'two-way' paraphrase the official text; covers the whole code
+852713,Portable radio recorders,ok,'portable' paraphrase the official text; covers the whole code
+852719,Portable radio receivers,ok,'portable' paraphrase the official text; covers the whole code
+852721,Car radios with recorder,ok,'car' paraphrase the official text; covers the whole code
+852729,Car radio receivers,ok,'car' paraphrase the official text; covers the whole code
+852791,Home audio systems,ok,"'home, audio, systems' paraphrase the official text; covers the whole code"
+852799,Radio receivers and tuners,ok,'tuners' paraphrase the official text; covers the whole code
+852842,CRT computer monitors,ok,"'crt, computer' paraphrase the official text; covers the whole code"
+852849,"CRT monitors, other",ok,'crt' paraphrase the official text; covers the whole code
+852852,Computer monitors,ok,'computer' paraphrase the official text; covers the whole code
+852862,Computer projectors,ok,'computer' paraphrase the official text; covers the whole code
+852871,Television tuner boxes,ok,"'tuner, boxes' paraphrase the official text; covers the whole code"
+852910,Antennas and aerial reflectors,ok,'antennas' paraphrase the official text; covers the whole code
+852990,Broadcast and display parts,ok,"'broadcast, display' paraphrase the official text; covers the whole code"
+853210,Power factor capacitors,ok,'factor' paraphrase the official text; covers the whole code
+853225,Film and paper capacitors,ok,'film' paraphrase the official text; covers the whole code
+853400,Printed circuit boards,ok,'boards' paraphrase the official text; covers the whole code
+853510,High-voltage fuses,ok,'high-voltage' paraphrase the official text; covers the whole code
+853530,High-voltage isolating switches,ok,'high-voltage' paraphrase the official text; covers the whole code
+853590,"High-voltage switchgear, other",ok,'high-voltage' paraphrase the official text; covers the whole code
+853610,Low-voltage fuses,ok,'low-voltage' paraphrase the official text; covers the whole code
+853620,Low-voltage circuit breakers,ok,'low-voltage' paraphrase the official text; covers the whole code
+853630,Circuit protection devices,ok,'devices' paraphrase the official text; covers the whole code
+853690,Terminal blocks and connectors,ok,"'terminal, blocks' paraphrase the official text; covers the whole code"
+853710,Low-voltage control panels,ok,'low-voltage' paraphrase the official text; covers the whole code
+853720,High-voltage control panels,ok,'high-voltage' paraphrase the official text; covers the whole code
+853810,Unequipped panel enclosures,ok,"'unequipped, enclosures' paraphrase the official text; covers the whole code"
+853890,Switchgear and panel parts,ok,"'switchgear, panel' paraphrase the official text; covers the whole code"
+854110,Diodes and rectifiers,ok,'rectifiers' paraphrase the official text; covers the whole code
+854142,Unassembled photovoltaic cells,ok,'unassembled' paraphrase the official text; covers the whole code
+854143,Solar modules and panels,ok,'solar' paraphrase the official text; covers the whole code
+854149,Photodiodes and optocouplers,ok,'optocouplers' paraphrase the official text; covers the whole code
+854231,Processor and controller chips,ok,'chips' paraphrase the official text; covers the whole code
+854232,Memory chips,ok,'chips' paraphrase the official text; covers the whole code
+854233,Amplifier chips,ok,'chips' paraphrase the official text; covers the whole code
+854419,"Winding wire, other metals",ok,'metals' paraphrase the official text; covers the whole code
+854420,Coaxial cable,ok,'coaxial' paraphrase the official text; covers the whole code
+854430,Vehicle wiring harnesses,ok,'harnesses' paraphrase the official text; covers the whole code
+854460,High-voltage power cable,ok,"'high-voltage, power' paraphrase the official text; covers the whole code"
+901210,Electron microscopes,ok,'electron' paraphrase the official text; covers the whole code
+901290,Electron microscope parts,ok,'electron' paraphrase the official text; covers the whole code
+901320,Laser sources,ok,'sources' paraphrase the official text; covers the whole code
+901390,Optical device parts,ok,'device' paraphrase the official text; covers the whole code
+901600,Precision balances,ok,'precision' paraphrase the official text; covers the whole code
+901813,MRI scanners,ok,"'mri, scanners' paraphrase the official text; covers the whole code"
+901814,Scintigraphic imaging apparatus,ok,'imaging' paraphrase the official text; covers the whole code
+901820,Ultraviolet and infrared therapy,ok,'therapy' paraphrase the official text; covers the whole code
+902150,Cardiac pacemakers,ok,'cardiac' paraphrase the official text; covers the whole code
+903039,Recording power analysers,ok,'analysers' paraphrase the official text; covers the whole code
+903040,Telecom test instruments,ok,'test' paraphrase the official text; covers the whole code
+903082,Semiconductor test equipment,ok,"'test, equipment' paraphrase the official text; covers the whole code"
+903084,Recording test instruments,ok,'test' paraphrase the official text; covers the whole code
+903089,Electrical test instruments,ok,'test' paraphrase the official text; covers the whole code
+903090,Test instrument parts,ok,'test' paraphrase the official text; covers the whole code
+903220,Pressure regulators,ok,'pressure' paraphrase the official text; covers the whole code
+910211,Analogue wristwatches,ok,'analogue' paraphrase the official text; covers the whole code
+910212,Digital and smart watches,ok,"'digital, smart' paraphrase the official text; covers the whole code"
+910591,Desk and other clocks,ok,'desk' paraphrase the official text; covers the whole code
+910610,Attendance time recorders,ok,'attendance' paraphrase the official text; covers the whole code
+910812,"Solar watch movements, digital",ok,'digital' paraphrase the official text; covers the whole code
+961210,Printer and typewriter ribbons,ok,'printer' paraphrase the official text; covers the whole code

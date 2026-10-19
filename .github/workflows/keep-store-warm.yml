@@ -11,7 +11,8 @@ name: Keep the raw store warm
 
 on:
   schedule:
-    - cron: "40 4 * * 1"
+    # Monday 17:10 UTC = 22:40 IST, late night like every scheduled job.
+    - cron: "10 17 * * 1"
   workflow_dispatch:
 
 permissions:

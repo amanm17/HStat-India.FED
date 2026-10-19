@@ -1,0 +1,29 @@
+{
+ "_note": "The only values a code may carry in these columns. Adding a value is a deliberate change: add it here, and the index check accepts it everywhere.",
+ "category": [
+  "Computer Hardware",
+  "Consumables",
+  "Consumer Durables",
+  "Electrical Equipment",
+  "Medical Electronics",
+  "Mobile & Telephone",
+  "Other Electronics",
+  "Semiconductor",
+  "Telecom Apparatus",
+  "White Goods"
+ ],
+ "segment": [
+  "Components",
+  "Final Goods"
+ ],
+ "dgcis_segment": [
+  "Accumulators and batteries",
+  "Computer hardware, peripherals",
+  "Consumer electronics",
+  "Electrodes",
+  "Electronics components",
+  "Electronics instruments",
+  "Not Included",
+  "Telecom instruments"
+ ]
+}

@@ -44,6 +44,11 @@ jobs:
       - name: Launch sanity
         run: python pipeline/launch_sanity.py
 
+      # Does the HS index (hs_index/) follow its rules? Unique, whole-code
+      # names; no overlapping search terms; real HS 2022 codes.
+      - name: HS index check
+        run: python pipeline/hs_index_check.py
+
       # Exactly what Cloudflare will run.
       - name: Build
         run: npm run build

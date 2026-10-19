@@ -1,15 +1,19 @@
 """
-The FED sector definition is the single source of truth for HStat.
+The HS index (hs_index/) is the single source of truth for HStat.
 
 Everything downstream — which HS codes are pulled from Comtrade, how they
 are grouped, what the search index knows, what HStack can add to a basket —
-is derived from two hand-editable CSV files:
+is derived from the files in hs_index/:
 
-    config/fed_sector_definition.csv   the HS-6 master list and its metadata
-    config/hs_aliases.csv              everyday vocabulary for search
+    hs_index/codes.csv      the HS-6 master list and its tags
+    hs_index/parents.csv    HS-2 chapters and HS-4 headings, short names
+    hs_index/aliases.csv    everyday vocabulary for search
+    hs_index/lineage.csv    HS revision history: splits, merges, retirements
+    hs_index/batches.json   every intake, in the order codes were added
 
-No part of the pipeline discovers HS codes from an API. Change the CSV,
-re-run the refresh, and the whole dashboard follows.
+New codes come in through hs_index/incoming/ and pipeline/hs_intake.py, which
+checks and tags them before they are merged. No part of the pipeline
+discovers HS codes from an API.
 """
 
 from __future__ import annotations
@@ -25,11 +29,17 @@ ROOT = Path(__file__).resolve().parents[1]
 
 CONFIG = ROOT / "config"
 
-DEFINITION_CSV = CONFIG / "fed_sector_definition.csv"
+HS_INDEX = ROOT / "hs_index"
 
-ALIASES_CSV = CONFIG / "hs_aliases.csv"
+DEFINITION_CSV = HS_INDEX / "codes.csv"
 
-LINEAGE_CSV = CONFIG / "hs_lineage.csv"
+PARENTS_CSV = HS_INDEX / "parents.csv"
+
+ALIASES_CSV = HS_INDEX / "aliases.csv"
+
+LINEAGE_CSV = HS_INDEX / "lineage.csv"
+
+BATCHES_JSON = HS_INDEX / "batches.json"
 
 SCOPE_JSON = CONFIG / "scope.json"
 
@@ -309,7 +319,7 @@ CONTINUITY_VALUES = {"exhaustive", "partial", "unconfirmed"}
 @lru_cache(maxsize=1)
 def load_retirements() -> tuple[RetiredCode, ...]:
     """
-    Rows in hs_lineage.csv whose relation is `retired`.
+    Rows in hs_index/lineage.csv whose relation is `retired`.
 
     Each one names a code HStat still publishes that the nomenclature has
     dropped, the revision that dropped it, the last year it was live, and what
@@ -520,13 +530,8 @@ def parent_universe() -> dict[str, list[str]]:
     return universe
 
 
-def pull_universe() -> list[str]:
-    """
-    Every code the Comtrade pull must request.
-
-    Retired predecessors are included even though they get no product page:
-    without them the HS-4 and HS-2 aggregates lose their pre-revision years.
-    """
+def _pull_codes() -> set[str]:
+    """Every code the Comtrade pull must request, unordered."""
     codes = set(hs6_universe())
 
     codes.update(
@@ -536,7 +541,78 @@ def pull_universe() -> list[str]:
     for group in parent_universe().values():
         codes.update(group)
 
-    return sorted(codes)
+    return codes
+
+
+@lru_cache(maxsize=1)
+def load_batches() -> tuple[dict, ...]:
+    """hs_index/batches.json: every intake, oldest first."""
+    if not BATCHES_JSON.exists():
+        return ()
+
+    data = json.loads(BATCHES_JSON.read_text(encoding="utf-8"))
+
+    return tuple(data.get("batches", []))
+
+
+def pending_codes() -> frozenset[str]:
+    """
+    Codes merged by the intake whose first pull has not finished.
+
+    The launch check does not yet expect these in the live snapshot: the
+    nightly backfill is still fetching them. hs_intake.py --mark-pulled
+    closes a batch once its codes are live, and from then on they are
+    required like every other code.
+    """
+    return frozenset(
+        code
+        for batch in load_batches()
+        if (batch.get("pull") or {}).get("status") == "pending"
+        for code in batch.get("codes", [])
+    )
+
+
+def pull_groups() -> list[tuple[str, list[str]]]:
+    """
+    The pull universe as ordered groups, one per intake batch.
+
+    The raw store keys each download by its position in the code list and a
+    hash of the codes in it. A single sorted list means one added code shifts
+    every chunk after it, and the next run re-downloads nearly everything.
+    Grouping by batch keeps every earlier batch's chunks exactly as they were:
+    a new batch only ever adds chunks of its own. Codes no batch claims (a
+    hand edit, say) are pulled as one last group so nothing is missed.
+    """
+    wanted = _pull_codes()
+    groups: list[tuple[str, list[str]]] = []
+    claimed: set[str] = set()
+
+    for batch in load_batches():
+        codes = sorted(
+            code for code in batch.get("codes", [])
+            if code in wanted and code not in claimed
+        )
+
+        if codes:
+            groups.append((batch["id"], codes))
+            claimed.update(codes)
+
+    rest = sorted(wanted - claimed)
+
+    if rest:
+        groups.append(("unbatched", rest))
+
+    return groups
+
+
+def pull_universe() -> list[str]:
+    """
+    Every code the Comtrade pull must request, in pull order.
+
+    Retired predecessors are included even though they get no product page:
+    without them the HS-4 and HS-2 aggregates lose their pre-revision years.
+    """
+    return [code for _, codes in pull_groups() for code in codes]
 
 
 def by_code() -> dict[str, Product]:

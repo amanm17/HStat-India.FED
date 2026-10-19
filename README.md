@@ -26,40 +26,33 @@ Snapshot schema **2.0.0**.
 
 ---
 
-## The sector definition is the source of truth
+## The HS index is the source of truth
 
 Everything downstream — what gets pulled, what search knows, what HStack can
-add — comes from two CSV files. No part of the pipeline discovers HS codes
-from an API.
+add — comes from the files in `hs_index/` (see `hs_index/README.md`). No part
+of the pipeline discovers HS codes from an API, and there is no Excel step.
 
 ```text
-config/fed_sector_definition.csv    423 HS-6 codes and their metadata
-config/hs_aliases.csv               the everyday words people actually type
+hs_index/codes.csv        every HS-6 code in scope and its tags
+hs_index/parents.csv      HS-2 chapters and HS-4 headings, short names
+hs_index/aliases.csv      the everyday words people actually type
+hs_index/lineage.csv      where a current code's history sat before
+hs_index/batches.json     every intake, in order; drives the pull order
+config/fx_inr_usd.csv     rupees per dollar, one rate per period
 ```
 
-Two more hand-maintained files sit alongside them and follow the same rule —
-edit the file, re-run the refresh:
+`codes.csv` carries, per code: the official description, the display name,
+the FED product family, Category, Segment, DGCIS segment, the
+`in_fed_definition` flag and the study-inclusion flags.
 
-```text
-config/hs_lineage.csv               where a current code's history sat before
-config/fx_inr_usd.csv               rupees per dollar, one rate per period
-```
+To widen the scope, drop a file of HS codes in `hs_index/incoming/` and push
+it (or run `python pipeline/hs_intake.py --apply`). The intake checks every
+code, drafts the tags, works out HS 2022 lineage, and merges only what passes;
+the nightly backfill pulls the new codes without invalidating anything already
+downloaded. `python pipeline/hs_index_check.py` checks the whole index and
+runs in CI.
 
-`fed_sector_definition.csv` carries, per code: the official description, the
-FED product name, Category, Segment, DGCIS segment, the
-`in_fed_definition` flag (312 yes / 111 reference-only) and the study-inclusion
-flags. Edit it, re-run the refresh, and the whole dashboard follows.
-
-To fold in a new edition of the workbook:
-
-```bash
-python scripts/build_definition_csv.py \
-  --workbook "FED Electronics Sector Definition.xlsx"
-```
-
-Hand-written `search_terms` already in the CSV are preserved.
-
-`hs_aliases.csv` maps everyday vocabulary to codes. A row marked
+`hs_index/aliases.csv` maps everyday vocabulary to codes. A row marked
 `primary=yes` produces the confident answer card; `primary=no` only nudges
 ranking.
 
@@ -110,7 +103,7 @@ The workbook mixes HS vintages. 851712 (all cellular phones) was split into
 subdivided. Left as-is, those retired codes would appear as products with
 almost no trade sitting next to their own successors.
 
-`config/hs_lineage.csv` fixes that. A code listed there as a `predecessor`
+`hs_index/lineage.csv` fixes that. A code listed there as a `predecessor`
 gets **no product page** — HS 2022 is the base — but is still pulled, and is
 still findable.
 
@@ -575,10 +568,14 @@ Restore real data with a normal refresh, or `git checkout public/data/snapshots`
 ## Layout
 
 ```text
+hs_index/
+  codes.csv                   the HS master list — grows through the intake
+  parents.csv                 chapter and heading short names
+  aliases.csv                 search vocabulary — edit this
+  lineage.csv                 classification history — edit this
+  batches.json                intake batches and their pull state
+  incoming/                   drop new codes here
 config/
-  fed_sector_definition.csv   the HS master list — edit this
-  hs_aliases.csv              search vocabulary — edit this
-  hs_lineage.csv              classification history — edit this
   fx_inr_usd.csv              rupee/dollar rates by period — edit this
   datasets/                   one manifest per registered dataset
   concordances/               how one key space maps to another
