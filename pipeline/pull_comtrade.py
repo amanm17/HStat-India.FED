@@ -461,7 +461,7 @@ def request(
     )
 
 
-def fetch(job: Job, key: str, limits: dict):
+def fetch(job: Job, key: str, limits: dict, stats: dict):
     reporter, partner = SCOPES[job.scope]
 
     def call():
@@ -517,7 +517,7 @@ def suspect_empties(stats: dict) -> list[tuple[str, list[str]]]:
 
 
 def run_job(job: Job, key: str, index: dict, stats: dict, limits: dict) -> None:
-    frame = fetch(job, key, limits)
+    frame = fetch(job, key, limits, stats)
 
     if frame is None or len(frame) == 0:
         # A genuinely empty response is normal: not every reporter files RM,

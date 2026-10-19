@@ -140,7 +140,7 @@ if (loose) {
   const { page, errors } = await open(`/hs/${loose.hs8}`)
   const text = await page.innerText('body')
   ok('standalone line renders', text.includes(loose.hs8) && text.length > 400)
-  ok('standalone line says its heading is not in HStat', /heading not in HStat/.test(text))
+  ok('standalone line says its heading has no product page', /no HStat product page for this heading yet/.test(text))
   ok('standalone line has no Comtrade card', (await page.locator('.hs8-parent-card').count()) === 0)
   const crumbs = await page.locator('.hs8-breadcrumb button').allInnerTexts()
   ok('standalone line links no missing HS-6 page', !crumbs.some(c => c.includes(loose.hs6)), crumbs.join(' / '))
@@ -153,6 +153,15 @@ if (loose) {
   const titles = hs8Index.lines.map(l => (l.title || '').trim().toLowerCase())
   ok('every tariff line is named', titles.every(Boolean), `${titles.filter(t => !t).length} unnamed`)
   ok('no two tariff lines share a name', new Set(titles).size === titles.length)
+
+  // Names and headings are written out in full: no cut-off text, no stray
+  // spacing, no DGCIS abbreviations (pipeline/dgcis/check_line_names.py
+  // checks every word; this catches the commonest by eye).
+  const cut = hs8Index.lines.filter(l => /\u2026| ,/.test(`${l.title} ${l.headingName || ''}`))
+  ok('no tariff name or heading is cut off', cut.length === 0, cut.slice(0, 3).map(l => l.hs8).join(', '))
+  const ABBR = /\b(othr|papr|paprbord|mchns|mchnry|smlr|wth|fr|eqpmnt|artcls|prts|shts|pltes|apprts|nt)\b/i
+  const short = hs8Index.lines.filter(l => l.nameSource !== 'schedule' && ABBR.test(l.title))
+  ok('no tariff name keeps a DGCIS abbreviation', short.length === 0, short.slice(0, 3).map(l => `${l.hs8} ${l.title}`).join(' | '))
 }
 
 // 11 - a line filed on one flow only opens on that flow, not on "no data"

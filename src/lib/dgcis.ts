@@ -52,7 +52,7 @@ export function relationOf(item: { relation?: string; isProduct?: boolean }): Dg
 /* A short label for a line with no product page; null when it has one. */
 export function relationLabel(relation: DgcisRelation): string | null {
   if (relation === 'predecessor') return 'retired code, no product page'
-  if (relation === 'standalone') return 'tariff line only, heading not in HStat'
+  if (relation === 'standalone') return 'no HStat product page for this heading yet'
   return null
 }
 
@@ -69,7 +69,7 @@ export type DgcisLine = {
    * called "Electrical machines, other" cannot be told apart, which is the
    * whole job of a name. The code can, so the code leads. */
   title: string
-  nameSource: 'schedule' | 'dgcis' | 'derived' | 'none'
+  nameSource: 'schedule' | 'tariff' | 'dgcis' | 'heading' | 'derived' | 'none'
   headingName: string
   description?: string
   principalCommodity: string
@@ -692,19 +692,19 @@ export function unitLabel(basis: DgcisBasis): string {
  * the caveat disappears on its own.
  */
 export function nameCaveat(line: { nameSource?: string }): string | null {
-  if (!line.nameSource || line.nameSource === 'schedule') return null
+  return NAME_SOURCE_NOTE[line.nameSource ?? ''] ?? null
+}
 
-  if (line.nameSource === 'dgcis') {
-    return 'Name as DGCIS files this line, abbreviated as in the source.'
-  }
-
-  if (line.nameSource === 'derived') {
-    return 'DGCIS files this line only as \u201cOthers\u201d or in words other lines share, so its name adds the heading it sits under.'
-  }
-
-  return (
-    'No name in India’s schedule for this code; the name shown is its heading’s.'
-  )
+/* Where a tariff line's name comes from, in one line. Every name is official
+ * wording, spelled out in full; none is invented (pipeline/dgcis/line_names.py). */
+export const NAME_SOURCE_NOTE: Record<string, string> = {
+  tariff: 'Name from India\u2019s tariff schedule.',
+  dgcis: 'Name from DGCIS\u2019s description of this line, with its abbreviations written out in full.',
+  heading:
+    'The only tariff line under its heading, so it carries the heading\u2019s official name.',
+  derived:
+    'No source names this line on its own (DGCIS files it as \u201cOthers\u201d or similar), so its name is its heading\u2019s official name and what sets the line apart.',
+  none: 'No name in India\u2019s schedule for this code; the name shown is its heading\u2019s.',
 }
 
 /* Said the same way everywhere, because this is the word that was wrong. */

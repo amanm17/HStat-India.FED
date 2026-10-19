@@ -266,7 +266,9 @@ jobs:
       # being standalone pages. Labels only; DGCIS figures are untouched.
       - name: Relabel the published tariff lines
         if: steps.gate.outputs.run == 'true' && steps.refresh.outputs.incomplete != 'true'
-        run: python pipeline/dgcis/relabel_published.py
+        run: |
+          python pipeline/dgcis/relabel_published.py
+          python pipeline/dgcis/check_line_names.py
 
       # Search lists only codes with a page; a batch closed above gains its
       # entries here, the same day its pages go live.

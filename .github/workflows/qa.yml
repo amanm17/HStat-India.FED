@@ -49,6 +49,11 @@ jobs:
       - name: HS index check
         run: python pipeline/hs_index_check.py
 
+      # Is every tariff-line name and heading written out in full? No DGCIS
+      # abbreviations, no cut-off text (pipeline/dgcis/line_names.py).
+      - name: Tariff-line name check
+        run: python pipeline/dgcis/check_line_names.py
+
       # Exactly what Cloudflare will run.
       - name: Build
         run: npm run build

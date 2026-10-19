@@ -385,6 +385,11 @@ def main() -> int:
     # the published files holding one new flow and one old one.
     run("Building the frontend files", [str(HERE / "build_frontend_hs8.py")])
 
+    # Every line name and heading written out in full. A new DGCIS line whose
+    # description uses an abbreviation the dictionary does not know is named
+    # from official text instead, so this only fails if the rules slip.
+    run("Checking the tariff-line names", [str(HERE / "check_line_names.py")])
+
     if not args.no_diff:
         report_diff(before)
 

@@ -54,6 +54,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import hs8_scope  # noqa: E402
+import line_names  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 PROCESSED = ROOT / "data" / "dgcis" / "processed"
@@ -98,30 +99,11 @@ def heading_names() -> dict[str, str]:
 def official_heading(hs6: str) -> str:
     """
     For a standalone line, whose HS-6 HStat does not carry: the HS-6's own
-    official wording, shortened, so the page can still say what heading the
-    line sits under. Labelled as the heading, never as the line's name.
+    official WCO wording, in full (line_names.hs6_text), so the page can
+    say what heading the line sits under. Labelled as the heading, never as
+    the line's name. Never cut with an ellipsis.
     """
-    path = CONFIG / "reference" / "comtrade_hs_reference.json"
-
-    if not hasattr(official_heading, "_texts"):
-        texts = {}
-        if path.exists():
-            for row in json.loads(path.read_text(encoding="utf-8")):
-                code = str(row.get("code") or "")
-                text = str(row.get("description") or "")
-                if text.startswith(f"{code} - "):
-                    text = text[len(code) + 3:]
-                texts[code] = text.strip()
-        official_heading._texts = texts
-
-    text = official_heading._texts.get(hs6, "")
-    text = re.sub(r"\(.*?\)", "", text)
-    text = re.sub(r"\s+", " ", text).strip(" ;,")
-
-    if len(text) > 80:
-        text = text[:80].rsplit(" ", 1)[0].rstrip(" ,;") + "…"
-
-    return text
+    return line_names.hs6_text(hs6)
 
 
 def tariff_names() -> dict[str, dict]:
@@ -159,145 +141,18 @@ def tariff_names() -> dict[str, dict]:
 
 # ---------------------------------------------------------------- line names
 #
-# Every tariff line gets a name, unique across the site (assign_titles).
-#
-# A tariff line's code is how customs files it, and the page always leads
-# with it. Until 2026-10 a line without a real name showed only its code. Now
-# a name is always given, from the source's own words, and its nameSource
-# says how it was made: a curated schedule name, DGCIS's own description
-# (the 2026-10 portal layout carries one per line: abbreviated, in capitals,
-# re-cased here and never reworded), or - where DGCIS says only "Others" or
-# uses words other lines share - the description joined to its heading.
-
-GENERIC = {"", "other", "others", "parts", "part", "other parts", "others parts", "nes", "n.e.s."}
-
-ACRONYMS = {
-    "ABS", "AC", "ADP", "AM", "ATM", "CD", "CFL", "CNC", "CNG", "CRT", "DC", "DVD",
-    "ECG", "EPS", "FM", "GPS", "HDPE", "HF", "IC", "IR", "LCD", "LDPE", "LED",
-    "LPG", "MOSFET", "MRI", "NC", "OLED", "PCB", "PE", "PET", "PP", "PVC", "RAM",
-    "ROM", "TV", "UHF", "UPS", "USB", "UV", "VHF", "LLDPE", "EVA", "SBR", "NBR",
-    "EPDM", "PTFE", "PU", "PMMA", "PC", "PA", "HIPS", "SIM", "RF", "GSM", "CDMA",
-    "LAN", "WAN", "DSL", "ISDN", "SMD", "MLCC", "IGBT", "SCR", "LI-ION", "NI-CD",
-}
-
-def recase(text: str) -> str:
-    """DGCIS capitals to sentence case, keeping acronyms. Words unchanged."""
-    text = re.sub(r"\s+", " ", text.replace("*", " ")).strip(" ,;:-")
-    words = []
-    for index, word in enumerate(text.split(" ")):
-        core = re.sub(r"[^A-Za-z\-]", "", word).upper()
-        if core in ACRONYMS:
-            words.append(word.upper())
-        else:
-            lowered = word.lower()
-            words.append(lowered[:1].upper() + lowered[1:] if index == 0 else lowered)
-    return " ".join(words)
-
-
-def _generic(text: str) -> bool:
-    key = re.sub(r"[^a-z.]", " ", text.lower().replace("0", "o"))
-    return re.sub(r"\s+", " ", key).strip() in GENERIC
-
-
-def short_heading(hs6: str, headings: dict[str, str]) -> str:
-    """
-    The heading's name for use inside a line's title: HStat's own when the
-    HS index carries the code, else the shortest official HS-6 wording that
-    fits (hs_rules' four-word drafts), else its official text, cut cleanly.
-    """
-    if headings.get(hs6):
-        return headings[hs6]
-    try:
-        sys.path.insert(0, str(ROOT / "pipeline"))
-        import hs_rules
-        if not hs_rules.official_text(hs6):
-            # Not an HS 2022 code (India still files lines under some HS 2017
-            # codes): the all-editions list has its wording.
-            raise LookupError(hs6)
-        drafted = hs_rules.draft_name(hs6, set())
-        if drafted:
-            return drafted
-        # "Heading; first part of the subheading", e.g. "Engines, parts".
-        head, tail = hs_rules._official_clauses(hs6)
-        first = hs_rules._fragments(tail)[0] if hs_rules._fragments(tail) else ""
-        text = f"{head}, {first}" if first else head
-        if text:
-            return hs_rules._shorten(text, 60)
-    except Exception:  # noqa: BLE001 - a missing reference must not stop the build
-        pass
-    text = official_heading(hs6).rstrip("…").strip()
-    if text:
-        text = re.sub(r"^[^;]*;\s*", lambda m: m.group(0).replace(";", ","), text, count=1)
-        return text[:60].rsplit(" ", 1)[0].rstrip(" ,;") if len(text) > 60 else text
-    return f"HS {hs6}"
+# Every tariff line gets a correct, readable name, unique across the site.
+# The rules live in line_names.py: DGCIS's description with every
+# abbreviation spelled out from the reviewed dictionary
+# (config/dgcis_abbreviations.csv), the tariff schedule's own row, or the
+# HS-6's WCO wording; nameSource says which.
 
 
 def assign_titles(
     lines: dict[str, dict], itc: dict, headings: dict[str, str]
 ) -> dict[str, tuple[str, str]]:
-    """
-    hs8 -> (title, nameSource) for every line, so that every tariff line has
-    a name and no two share one.
-
-      schedule  a curated name in config/itc_hs8_names.csv
-      dgcis     DGCIS's own description, re-cased, when it names that line
-                and no other
-      derived   DGCIS gives no name of its own ("Others", "Parts", blank) or
-                one that other lines share. The name is built from the
-                source's words only: "<heading>, other", or "<description>
-                (<heading>)", and when even that repeats, the line's own
-                code is added. Nothing is invented; the caveat says so.
-
-    `lines` is hs8 -> {"hs6": ..., "description": DGCIS's raw text}.
-    """
-    out: dict[str, tuple[str, str]] = {}
-    taken: set[str] = set()
-
-    for hs8 in sorted(lines):
-        known = itc.get(hs8) or {}
-        name = known.get("displayName") or known.get("description")
-        if name:
-            # Two curated rows with one name: the later code says its heading.
-            if name.lower() in taken:
-                name = f"{name} ({short_heading(lines[hs8]['hs6'], headings)})"
-            out[hs8] = (name, "schedule")
-            taken.add(name.lower())
-
-    cleaned = {
-        hs8: recase(meta.get("description") or "")
-        for hs8, meta in lines.items() if hs8 not in out
-    }
-    counts: dict[str, int] = defaultdict(int)
-    for name in cleaned.values():
-        counts[name.lower()] += 1
-
-    for hs8, name in cleaned.items():
-        key = name.lower()
-        if _generic(name) or counts[key] > 1 or key in taken or len(name) < 3:
-            continue
-        out[hs8] = (name, "dgcis")
-        taken.add(key)
-
-    # Derived, in code order so the result is stable.
-    for hs8 in sorted(h for h in lines if h not in out):
-        hs6 = lines[hs8]["hs6"]
-        heading = short_heading(hs6, headings)
-        name = cleaned.get(hs8, "")
-        lowered = name.lower().replace("0", "o")
-
-        if _generic(name):
-            tail = "parts" if "part" in lowered else "other"
-            candidate = f"{heading}, {tail}"
-        else:
-            candidate = f"{name} ({heading})"
-
-        if candidate.lower() in taken:
-            candidate = f"{candidate}, {hs8[:4]}.{hs8[4:6]}.{hs8[6:]}"
-
-        out[hs8] = (candidate, "derived")
-        taken.add(candidate.lower())
-
-    return out
+    """hs8 -> (title, nameSource). See line_names.assign."""
+    return line_names.assign(lines, itc, headings)
 
 
 def remembered_groups() -> dict[str, tuple[str, str]]:

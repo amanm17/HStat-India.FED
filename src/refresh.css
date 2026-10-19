@@ -1342,6 +1342,19 @@
   letter-spacing: 0;
 }
 
+/* An official name can run to a whole WCO heading. It is shown in full, a
+   size down, never cut. */
+.rf-hs8 .hs8-head h1.hs8-long-title {
+  font-size: 26px;
+  line-height: 1.25;
+}
+
+@media (max-width: 640px) {
+  .rf-hs8 .hs8-head h1.hs8-long-title {
+    font-size: 22px;
+  }
+}
+
 .rf-hs8 .hs8-sub {
   font-size: 17px;
   color: var(--muted);

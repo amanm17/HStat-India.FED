@@ -30,6 +30,7 @@ import {
   formatValue,
   money,
   last12,
+  NAME_SOURCE_NOTE,
   nameCaveat,
   latestOf,
   loadDgcis,
@@ -232,11 +233,7 @@ export function Hs8View({
           ? `${line?.title} — one of ${plural(siblings.length, 'line')} India files under HS ${hs6}${headingText}.`
           : `No name of its own in India\u2019s schedule or DGCIS\u2019s filing (only \u201cOthers\u201d or none), so the code stands as the identity. It sits under HS ${hs6}${headingText}.`,
         note: named
-          ? line?.nameSource === 'dgcis'
-            ? 'Name as DGCIS files this line, abbreviated as in the source, not from Comtrade.'
-            : line?.nameSource === 'derived'
-              ? 'DGCIS names this line only \u201cOthers\u201d or in shared words; the name adds its heading.'
-              : 'Name from India\u2019s own eight-digit schedule, not from Comtrade.'
+          ? `${NAME_SOURCE_NOTE[line?.nameSource ?? ''] ?? 'Name from India\u2019s own eight-digit schedule.'} Not from Comtrade.`
           : 'The eight-digit code is how customs files this line and how it is best quoted.',
       },
 
@@ -393,12 +390,20 @@ export function Hs8View({
           {line.principalCommodity && <span className="rf-id-item">{sentence(line.principalCommodity)}</span>}
         </p>
 
-        <h1 className={line.title ? undefined : 'hs8-code-title'}>{line.title || hs8}</h1>
+        {/* An official name can run long (a whole WCO heading); it is shown
+            in full, a size down, rather than cut. */}
+        <h1 className={!line.title ? 'hs8-code-title' : line.title.length > 90 ? 'hs8-long-title' : undefined}>
+          {line.title || hs8}
+        </h1>
 
         <p className="rf-official hs8-sub">
           {siblings.length > 1 ? `1 of ${siblings.length} lines under` : 'Only line under'}{' '}
           <strong>HS {hs6}</strong>
-          {entry ? <> · {entry.displayName || entry.product}</> : line.headingName ? <> · {line.headingName}</> : null}
+          {entry ? (
+            <> · {entry.displayName || entry.product}</>
+          ) : line.headingName && line.headingName !== line.title ? (
+            <> · {line.headingName}</>
+          ) : null}
           {relationLabel(relation) && <> · {relationLabel(relation)}</>}
         </p>
 
