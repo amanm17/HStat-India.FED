@@ -8,6 +8,7 @@ import type { SearchIndex, SearchOutcome } from '../lib/search'
 import { search, suggestedTerms } from '../lib/search'
 import type { SearchItem } from '../types'
 import { nameOf } from '../lib/format'
+import { streamBadge } from '../lib/streams'
 
 /* A result's name: a product's own label; a chapter's or heading's curated
  * short name, as on its page. */
@@ -166,11 +167,13 @@ function AnswerCard({
               {inBasket(item.code) ? 'In HStack' : 'Add to HStack'}
             </button>
 
-            {!item.inFedDefinition && (
+            {streamBadge(item) ? (
+              <span className="answer-flag">{streamBadge(item)}</span>
+            ) : !item.inFedDefinition ? (
               <span className="answer-flag">
-                Outside the FED sector definition — shown for reference
+                Outside the FED sector definition, shown for reference
               </span>
-            )}
+            ) : null}
           </>
         )}
       </div>

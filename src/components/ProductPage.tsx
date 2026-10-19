@@ -41,6 +41,7 @@ import type {
 import { loadHsNodes } from '../lib/data'
 import { TILES, type Workspace } from '../lib/workspace'
 import { dayLabel, delta, monthLabel, nameOf, officialName, ordinal, pct, plural, shareText, usd } from '../lib/format'
+import { isElectronics, streamBadge } from '../lib/streams'
 import { money, rateNote } from '../lib/currency'
 import { palette } from '../lib/palette'
 import { usePageHelp } from '../lib/pagehelp'
@@ -405,7 +406,11 @@ export function ProductPage(props: Props) {
           {/* A chapter or heading spans several categories; its stored one is
             * only its first member's, so it is not shown. */}
           {node.level === 6 && node.category && <span className="rf-id-item">{node.category}</span>}
-          {!node.inFedDefinition && <span className="rf-id-item">Reference only</span>}
+          {!node.inFedDefinition && isElectronics(node) && <span className="rf-id-item">Reference only</span>}
+          {node.level === 6 && streamBadge(node) && <span className="rf-id-item rf-stream-tag">{streamBadge(node)}</span>}
+          {node.level !== 6 && node.streams?.length && !node.streams.includes('electronics') ? (
+            <span className="rf-id-item rf-stream-tag">Beyond electronics, not in electronics totals</span>
+          ) : null}
           {retired && <span className="rf-id-item">Retired in HS {retired.revision}</span>}
         </p>
 

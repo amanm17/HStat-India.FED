@@ -24,6 +24,7 @@ from definition import (
     load_aliases,
     load_products,
     parent_universe,
+    pending_codes,
     retired_codes,
     successors_of,
 )
@@ -193,7 +194,11 @@ def alias_index():
 
 
 def main():
-    current = set(hs6_universe())
+    # Codes an intake merged that await their first pull have no page yet;
+    # search must not offer them. The refresh rebuilds this library after it
+    # promotes a snapshot and closes their batch, so they appear the day
+    # their pages do.
+    current = set(hs6_universe()) - set(pending_codes())
 
     retired = retired_codes()
 
@@ -349,6 +354,7 @@ def main():
                 "category": product.category,
                 "segment": product.segment,
                 "inFedDefinition": product.in_fed_definition,
+                "stream": product.stream,
                 "loaded": True,
                 "parent2": product.hs2,
                 "parent4": product.hs4,
@@ -375,6 +381,11 @@ def main():
 
         for code in codes:
             members = rank(members_by_code.get(code, []))
+
+            # A chapter or heading whose only codes are awaiting their first
+            # pull has no page yet either.
+            if not members:
+                continue
 
             product_names = dedupe(item.product for item in members)
 
@@ -442,6 +453,7 @@ def main():
                 "category": product.category,
                 "segment": product.segment,
                 "inFedDefinition": product.in_fed_definition,
+                "stream": product.stream,
                 "loaded": False,
                 "retired": True,
                 "successors": list(targets),
@@ -473,8 +485,10 @@ def main():
 
     # Plain-text mirrors of the universe, so a reviewer can diff what the
     # pull will request without reading JSON.
+    # The whole universe, codes awaiting their first pull included: this
+    # file is what the pull and the HS-8 scope read.
     (CONFIG / "hs6_universe.txt").write_text(
-        "\n".join(sorted(current)) + "\n"
+        "\n".join(sorted(hs6_universe())) + "\n"
     )
 
     write_json(CONFIG / "parent_universe.json", parents)

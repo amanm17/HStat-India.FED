@@ -1,3 +1,4 @@
+import type { Stream } from './lib/streams'
 /*
  * Snapshot schema 2.0.0.
  *
@@ -354,6 +355,11 @@ export type HsNode = {
   segment: string
   dgcisSegment: string
   inFedDefinition: boolean
+  /* Which figures this code counts toward; see lib/streams.ts. Absent on
+   * snapshots built before streams existed, which were all electronics. */
+  stream?: Stream | ''
+  /* On parents: the streams of the HStat lines beneath. */
+  streams?: Stream[]
   referenceFlags: Record<string, boolean>
   /* HS-6 members, on parent nodes only. */
   members: string[]
@@ -391,6 +397,7 @@ export type CatalogueEntry = {
   category: string
   segment: string
   inFedDefinition: boolean
+  stream?: Stream | ''
   /* The authored short name for this code: three or four words, written
    * against the official HS text and unique across the catalogue. Empty on
    * HS-2 and HS-4 parents, which keep their official heading title. */
@@ -433,6 +440,7 @@ export type SearchItem = {
   category: string
   segment: string
   inFedDefinition: boolean
+  stream?: Stream
   loaded: boolean
   /* Retired in HS 2022: indexed as a signpost, never as a product. */
   retired?: boolean

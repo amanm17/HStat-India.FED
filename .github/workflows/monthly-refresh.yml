@@ -268,6 +268,14 @@ jobs:
         if: steps.gate.outputs.run == 'true' && steps.refresh.outputs.incomplete != 'true'
         run: python pipeline/dgcis/relabel_published.py
 
+      # Search lists only codes with a page; a batch closed above gains its
+      # entries here, the same day its pages go live.
+      - name: Rebuild the search library
+        if: steps.gate.outputs.run == 'true' && steps.refresh.outputs.incomplete != 'true'
+        env:
+          COMTRADE_API_KEY: ${{ secrets.COMTRADE_API_KEY }}
+        run: python pipeline/build_hs_library.py
+
       - name: Sanity-check the promoted snapshot
         if: steps.gate.outputs.run == 'true' && steps.refresh.outputs.incomplete != 'true'
         run: python pipeline/launch_sanity.py

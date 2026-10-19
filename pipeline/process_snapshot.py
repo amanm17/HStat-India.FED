@@ -11,6 +11,7 @@ re-imports. See globaltrade.py for how it is built and why.
 
 from __future__ import annotations
 
+from collections import Counter
 from pathlib import Path
 import argparse
 import csv
@@ -1934,6 +1935,8 @@ def build_node(
         "segment": meta.get("segment", ""),
         "dgcisSegment": meta.get("dgcisSegment", ""),
         "inFedDefinition": meta.get("inFedDefinition", False),
+        "stream": meta.get("stream", ""),
+        "streams": meta.get("streams", []),
         "referenceFlags": meta.get("referenceFlags", {}),
         "members": meta.get("members", []),
         "parentCode": (
@@ -2010,6 +2013,7 @@ def node_meta(code: str, level: int, products: dict) -> dict:
             "segment": product.segment,
             "dgcisSegment": product.dgcis_segment,
             "inFedDefinition": product.in_fed_definition,
+            "stream": product.stream,
             "referenceFlags": product.reference_flags,
         }
 
@@ -2032,6 +2036,11 @@ def node_meta(code: str, level: int, products: dict) -> dict:
         "segment": "",
         "dgcisSegment": "",
         "inFedDefinition": any(item.in_fed_definition for item in members),
+        # A chapter or heading is Comtrade's own total of everything under
+        # it, never an electronics figure; `streams` says what HStat carries
+        # beneath it, for labelling only.
+        "stream": "",
+        "streams": sorted({item.stream for item in members}),
         "referenceFlags": {},
         "members": sorted(item.hs6 for item in members),
     }
@@ -2261,7 +2270,11 @@ def main():
     # second pass over the store is needed.
     hs6_values: dict[str, dict] = {}
 
-    scope_summary = ScopeSummary()
+    # One summary per stream. scope.json - the front page's electronics
+    # figures - is built from "electronics" lines only, so widening HStat's
+    # coverage (inputs, other trade) can never move an electronics total.
+    # Every other stream gets its own file, never folded into that one.
+    stream_summaries: dict[str, ScopeSummary] = {}
 
     for code, level in plan:
         node = build_node(
@@ -2308,7 +2321,8 @@ def main():
         )
 
         if level == 6:
-            scope_summary.add(code, lists)
+            stream = (products.get(code).stream if products.get(code) else "other") or "other"
+            stream_summaries.setdefault(stream, ScopeSummary()).add(code, lists)
 
         destination = (
             out / "products" / f"{code}.json"
@@ -2354,6 +2368,7 @@ def main():
                 "category": node["category"],
                 "segment": node["segment"],
                 "inFedDefinition": node["inFedDefinition"],
+                "stream": node.get("stream", ""),
                 "latestIndiaYear": node["latestIndiaYear"],
                 "latestIndiaMonth": node["latestIndiaMonth"],
                 "globalTradeYear": (
@@ -2398,13 +2413,31 @@ def main():
     # The front page's numbers. Written beside the catalogue, never into it:
     # a reader of catalogue.json should not have to parse thirty years of
     # rankings to find a product.
+    stream_lines = Counter(
+        (products.get(code).stream if products.get(code) else "other") or "other"
+        for code, level in plan
+        if level == 6
+    )
+
     write_json(
         out / "scope.json",
-        scope_summary.as_dict(
-            sum(1 for _, level in plan if level == 6)
-        ),
+        {
+            **stream_summaries.get("electronics", ScopeSummary()).as_dict(
+                stream_lines.get("electronics", 0)
+            ),
+            "stream": "electronics",
+        },
         compact=True,
     )
+
+    for stream, summary in sorted(stream_summaries.items()):
+        if stream == "electronics":
+            continue
+        write_json(
+            out / f"scope-{stream}.json",
+            {**summary.as_dict(stream_lines.get(stream, 0)), "stream": stream},
+            compact=True,
+        )
 
     write_json(
         out / "methodology.json",
@@ -2512,6 +2545,14 @@ def main():
                 "products": len(products),
                 "inFedDefinition": sum(
                     1 for item in products.values() if item.in_fed_definition
+                ),
+                "streams": dict(Counter(item.stream for item in products.values())),
+                "streamStatement": (
+                    "Electronics figures - the front page's totals, shares, "
+                    "rankings and segments - sum only the codes in the "
+                    "electronics stream (the FED electronics definition). "
+                    "Electronics inputs and other trade lines have their own "
+                    "pages and their own totals and are never added in."
                 ),
                 "categories": categories(),
                 "segments": segments(),

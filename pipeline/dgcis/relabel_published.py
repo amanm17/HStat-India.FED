@@ -68,6 +68,7 @@ def main() -> int:
         before = compact(payload)
         payload["relation"] = relation
         payload["isProduct"] = relation == "product"
+        payload["stream"] = hs8_scope.stream(hs6)
         for line in payload.get("lines", []):
             line["headingName"] = heading
             line["title"], line["nameSource"] = titles[line["hs8"]]
@@ -77,8 +78,13 @@ def main() -> int:
         for key, value in payload.items():
             if key == "relation":
                 continue
+            if key in ("relation", "stream"):
+                continue
             if key == "isProduct":
                 ordered["relation"] = payload["relation"]
+                ordered[key] = value
+                ordered["stream"] = payload["stream"]
+                continue
             ordered[key] = value
 
         after = compact(ordered)
@@ -96,6 +102,7 @@ def main() -> int:
         line["headingName"] = headings.get(line["hs6"], "") or official_heading(line["hs6"])
         line["relation"] = relation
         line["isProduct"] = relation == "product"
+        line["stream"] = hs8_scope.stream(line["hs6"])
         if line["hs8"] in titles:
             line["title"], line["nameSource"] = titles[line["hs8"]]
     if compact(index) != before:
@@ -112,6 +119,9 @@ def main() -> int:
         "predecessorHs6": sorted(groups["predecessor"]),
         "standaloneHs6": sorted(groups["standalone"]),
         "standaloneHs8": sum(lines_per_hs6[code] for code in groups["standalone"]),
+        "streamHs8": dict(sorted(__import__("collections").Counter(
+            hs8_scope.stream(line["hs6"]) for line in index["lines"]
+        ).items())),
         "scope": hs8_scope.config()["mode"],
         "scopeChapters": list(hs8_scope.chapters() or []),
     })

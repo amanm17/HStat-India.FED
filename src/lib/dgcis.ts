@@ -101,6 +101,8 @@ export type DgcisNode = {
    * lines are real India history with no product page of their own. */
   isProduct: boolean
   relation?: DgcisRelation
+  /* Which figures its lines count toward (lib/streams.ts). */
+  stream?: string
   periods: string[]
   lines: DgcisLine[]
   flows: Partial<Record<DgcisFlow, DgcisFlowBlock>>
@@ -110,6 +112,7 @@ export type DgcisIndexEntry = Omit<DgcisLine, 'description'> & {
   hs6: string
   isProduct: boolean
   relation?: DgcisRelation
+  stream?: string
   flows: Partial<Record<DgcisFlow, {
     latest: { period: string; usdMillion: number } | null
     last12UsdMillion: number | null
@@ -149,6 +152,7 @@ export type DgcisManifest = {
   predecessorHs6: string[]
   standaloneHs6?: string[]
   standaloneHs8?: number
+  streamHs8?: Partial<Record<'electronics' | 'electronics-inputs' | 'other', number>>
   scope?: 'chapters' | 'list' | 'all'
   scopeChapters?: string[]
 }

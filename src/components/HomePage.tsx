@@ -18,7 +18,8 @@ import { SearchHub, type Command } from './SearchHub'
 import { DownloadMenu } from './DownloadMenu'
 import { HomeTariffLines } from './HomeTariffLines'
 import { DecimalsControl, FigureTile, Markers, RankedTable, Segmented } from './ui'
-import { latestScopeYear, loadScope, type RankRow, type ScopeSummary } from '../lib/scope'
+import { latestScopeYear, loadScope, loadStreamScope, type RankRow, type ScopeSummary } from '../lib/scope'
+import { isElectronics, streamOf, STREAM_LABEL, STREAM_NOTE, STREAMS, type Stream } from '../lib/streams'
 import { money } from '../lib/currency'
 import { dayLabel, nameOf, pct, usd } from '../lib/format'
 import { palette } from '../lib/palette'
@@ -132,7 +133,41 @@ export function HomePage({
     return map
   }, [catalogue])
 
-  const products = useMemo(() => catalogue.filter(entry => entry.level === 6), [catalogue])
+  /* Electronics only. Every figure, ranking and segment on this page is the
+   * electronics stream; other covered lines sit in "Beyond electronics" below
+   * and are never added in (lib/streams.ts). */
+  const products = useMemo(
+    () => catalogue.filter(entry => entry.level === 6 && isElectronics(entry)),
+    [catalogue],
+  )
+
+  /* Lines of the other streams, by stream. */
+  const beyond = useMemo(
+    () =>
+      STREAMS.filter(stream => stream !== 'electronics')
+        .map(stream => ({
+          stream,
+          rows: catalogue.filter(entry => entry.level === 6 && streamOf(entry) === stream),
+        }))
+        .filter(group => group.rows.length > 0),
+    [catalogue],
+  )
+
+  const [beyondScope, setBeyondScope] = useState<Partial<Record<Stream, ScopeSummary | null>>>({})
+
+  useEffect(() => {
+    let live = true
+
+    for (const group of beyond) {
+      loadStreamScope(snapshot, group.stream).then(result => {
+        if (live) setBeyondScope(current => ({ ...current, [group.stream]: result }))
+      })
+    }
+
+    return () => {
+      live = false
+    }
+  }, [beyond, snapshot])
 
   const colours = palette(dark)
 
@@ -218,7 +253,7 @@ export function HomePage({
     () => ({
       title: 'HStat.India · front page',
       lines: [
-        'The FED electronics scope: 418 six-digit product lines, summed for the year you choose.',
+        `The FED electronics scope: ${products.length} six-digit product lines, summed for the year you choose. Lines HStat covers beyond electronics are listed separately and never added in.`,
         'Global trade is world imports as filed, plus estimates for economies that have not yet filed; a figure carrying * contains estimated values.',
       ],
       facts: record && year !== null
@@ -476,6 +511,55 @@ export function HomePage({
           </div>
         ))}
       </section>
+
+      {beyond.length > 0 && (
+        <section className="rf-panel rf-segments rf-beyond" aria-labelledby="beyond-electronics">
+          <h2 id="beyond-electronics" className="rf-h2">Beyond electronics</h2>
+          <p className="rf-scope-note">
+            Covered with their own pages. Not part of any electronics figure above.
+          </p>
+
+          {beyond.map(group => {
+            const streamRecord = year !== null ? beyondScope[group.stream]?.years?.[String(year)] : undefined
+            const values = new Map((streamRecord?.products ?? []).map(row => [row[0], row[1]]))
+            const ranked = [...group.rows].sort(
+              (a, b) => (values.get(b.code) ?? 0) - (values.get(a.code) ?? 0),
+            )
+
+            return (
+              <div key={group.stream} className="rf-segment" data-segment={group.stream}>
+                <h3 className="rf-segment-title">
+                  <i className="rf-seg-swatch" aria-hidden="true" />
+                  {STREAM_LABEL[group.stream]} <span>({group.rows.length})</span>
+                </h3>
+                <p className="rf-beyond-note">
+                  {STREAM_NOTE[group.stream]}
+                  {streamRecord && year !== null
+                    ? ` World imports ${usd(streamRecord.worldImports, 1)}, India exports ${india(streamRecord.indiaExports)}, India imports ${india(streamRecord.indiaImports)}, CY ${year}.`
+                    : ''}
+                </p>
+
+                <div className="rf-cat-grid">
+                  {ranked.slice(0, 12).map(entry => (
+                    <button key={entry.code} type="button" className="rf-cat" onClick={() => onOpen(entry.code, 6)}>
+                      <strong>{nameOf(entry)}</strong>
+                      <span>
+                        HS {entry.code}
+                        {values.get(entry.code) ? ` · ${usd(values.get(entry.code), 1)}` : ''}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                {ranked.length > 12 && (
+                  <p className="rf-beyond-note">
+                    {ranked.length - 12} more; search by name or code to open any of them.
+                  </p>
+                )}
+              </div>
+            )
+          })}
+        </section>
+      )}
 
       <HomeTariffLines onOpenHs8={onOpenHs8} onLines={onLines} />
 

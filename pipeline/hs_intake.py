@@ -11,7 +11,9 @@ Bring new HS codes into the dashboard's scope.
 An upload is a CSV, Excel or plain-text file in hs_index/incoming/ with one HS
 code per row (a column named like "HS code", "hs6" or "code"; any other
 column whose name matches hs_index/codes.csv - display_name, category,
-segment, in_fed_definition, search_terms ... - is taken as a tag).
+segment, in_fed_definition, stream, search_terms ... - is taken as a tag;
+stream defaults to "other" and in_fed_definition to "no", so an upload never
+changes the electronics figures or the FED definition by itself).
 
 What happens to each code, in order:
 
@@ -366,8 +368,17 @@ def assess(path: Path) -> dict:
         if not given.get("product"):
             drafted["product"] = (parents.get(code[:4]) or {}).get("short_name") or hs_rules.draft_short_name(code[:4], set())
 
+        # The FED sector definition does not grow by upload either.
         if not given.get("in_fed_definition"):
-            drafted["in_fed_definition"] = "yes"
+            drafted["in_fed_definition"] = "no"
+
+        # Expanding coverage must never move the electronics figures by
+        # itself: a code joins the electronics stream only when the upload
+        # says so.
+        if not given.get("stream"):
+            drafted["stream"] = "other"
+        if (given.get("stream") or "").strip() == "electronics":
+            report["notes"].append(f"{code}: stream 'electronics' given - it will count toward the electronics totals")
 
         if not given.get("search_terms"):
             # Only terms no other code answers to (hs_index_check refuses overlaps).
@@ -384,7 +395,7 @@ def assess(path: Path) -> dict:
                 report["blocking"].append(f"{code}: no {column} given and none to draft from (no codes in its heading or chapter yet)")
 
         vocab = hs_rules.vocabulary()
-        for column in ("category", "segment", "dgcis_segment"):
+        for column in ("category", "segment", "dgcis_segment", "stream"):
             value = tags.get(column)
             if value and vocab.get(column) and value not in vocab[column]:
                 report["blocking"].append(f"{code}: {column} {value!r} is not in hs_index/vocabulary.json")

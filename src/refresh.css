@@ -3155,3 +3155,38 @@
     padding-top: 6px;
   }
 }
+
+/* Beyond electronics: lines HStat covers that never enter an electronics
+ * figure. Silver, the palette's neutral, so nothing here borrows the colour
+ * of a segment it is not part of. */
+.rf-beyond [data-segment] .rf-seg-swatch,
+.rf-beyond .rf-seg-swatch {
+  background: #c2c1c2;
+}
+
+.rf-beyond .rf-cat {
+  border-left-color: #c2c1c2;
+}
+
+.rf-beyond-note {
+  margin: 4px 0 10px;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.rf-stream-tag {
+  color: var(--muted);
+}
+
+.lines-streams {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 4px;
+}
+
+.lines-streams .rf-button[aria-pressed="true"] {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: var(--panel);
+}

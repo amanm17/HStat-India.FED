@@ -418,6 +418,15 @@ earlier, and the trade-trajectory chart has an Annual / Monthly toggle.
 
 Set `monthly.enabled: false`, or pass `--months 0`, to switch it off.
 
+### Streams: electronics figures stay electronics
+
+Every HS-6 code carries a `stream` in `hs_index/codes.csv`: `electronics`
+(the FED electronics definition), `electronics-inputs` (materials, tools and
+machinery for making electronics) or `other`. Only `electronics` is summed
+into any electronics figure; the others have their own pages, their own
+totals (`scope-<stream>.json`) and a "Beyond electronics" block on the front
+page. Uploads default to `other`. See `hs_index/README.md`, "Streams".
+
 ### India tariff lines, monthly (DGCIS)
 
 The pages under `/hs/<8 digits>` come from DGCIS portal downloads, processed by

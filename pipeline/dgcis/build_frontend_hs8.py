@@ -47,7 +47,7 @@ import json
 import re
 import shutil
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -588,6 +588,9 @@ def main() -> int:
             # isProduct is kept for pages built before `relation` existed.
             "relation": relation,
             "isProduct": is_product,
+            # Which figures its lines count toward; only "electronics" lines
+            # are ever summed into an electronics total.
+            "stream": hs8_scope.stream(hs6),
             "periods": periods,
             "lines": ordered,
             "flows": flows_out,
@@ -616,6 +619,7 @@ def main() -> int:
                 "quickEstimateCommodity": line["quickEstimateCommodity"],
                 "relation": relation,
                 "isProduct": is_product,
+                "stream": hs8_scope.stream(hs6),
                 **({"filed": False} if line.get("filed") is False else {}),
                 "flows": {},
             }
@@ -681,6 +685,11 @@ def main() -> int:
         # HS-6 codes HStat does not carry, whose lines have standalone pages.
         "standaloneHs6": sorted(standalone),
         "standaloneHs8": sum(len(lines[code]) for code in standalone),
+        # Tariff lines per stream. The electronics count is the one the front
+        # page's DGCIS panel speaks for.
+        "streamHs8": dict(sorted(Counter(
+            hs8_scope.stream(code) for code in lines for _ in lines[code]
+        ).items())),
         "scope": hs8_scope.config()["mode"],
         "scopeChapters": list(hs8_scope.chapters() or []),
         "reconciliation": {

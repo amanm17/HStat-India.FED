@@ -64,6 +64,16 @@ class Product:
     share_of_world_trade: float | None
     comments: str
     search_terms: tuple[str, ...] = field(default=())
+    # Which trade figures the code counts toward (hs_index/vocabulary.json):
+    #   electronics         HStat's electronics totals - the FED definition
+    #   electronics-inputs  materials, tools and machinery for making them
+    #   other               wider coverage
+    # Only "electronics" is ever summed into an electronics figure.
+    stream: str = "other"
+
+    @property
+    def counts_as_electronics(self) -> bool:
+        return self.stream == "electronics"
 
     @property
     def hs4(self) -> str:
@@ -223,6 +233,7 @@ def load_products() -> tuple[Product, ...]:
             share_of_world_trade=_number(row.get("share_of_world_trade")),
             comments=(row.get("comments") or "").strip(),
             search_terms=_split_terms(row.get("search_terms")),
+            stream=(row.get("stream") or "").strip() or "other",
         )
 
     if not products:

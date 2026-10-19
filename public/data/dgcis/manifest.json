@@ -1,6 +1,6 @@
 {
  "source": "DGCIS / Trade Intelligence & Analytics",
- "builtAt": "2026-10-19T10:10:30.764729+00:00",
+ "builtAt": "2026-10-19T10:33:04.964293+00:00",
  "reporter": "India",
  "partner": "World",
  "units": {
@@ -2280,6 +2280,11 @@
   "962000"
  ],
  "standaloneHs8": 4062,
+ "streamHs8": {
+  "electronics": 1040,
+  "electronics-inputs": 82,
+  "other": 3980
+ },
  "scope": "chapters",
  "scopeChapters": [
   "32",

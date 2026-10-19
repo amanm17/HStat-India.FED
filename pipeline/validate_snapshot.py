@@ -29,6 +29,7 @@ from definition import (
     lineage_for,
     load_scope,
     parent_universe,
+    pending_codes,
     retired_codes,
 )
 
@@ -754,7 +755,22 @@ def main():
         if level == 6:
             found_hs6.add(code)
 
-    missing = sorted(expected_hs6 - found_hs6)
+    # Codes an HS intake merged that await their first pull (their batch is
+    # "pending" in hs_index/batches.json) are not in a snapshot built before
+    # that pull. They are reported, not failed; the backfill that pulls them
+    # builds the snapshot that carries them, and only then is the batch closed.
+    waiting = set(pending_codes())
+    pending_missing = sorted((expected_hs6 - found_hs6) & waiting)
+
+    if pending_missing:
+        report.warn(
+            None,
+            None,
+            f"{len(pending_missing)} newly added codes await their first pull: "
+            + ", ".join(pending_missing[:10]),
+        )
+
+    missing = sorted(expected_hs6 - found_hs6 - waiting)
 
     if len(missing) > args.allow_missing:
         report.fail(
@@ -775,7 +791,11 @@ def main():
             path = root / "parents" / level / f"{code}.json"
 
             if not path.exists():
-                report.fail(code, None, f"HS-{level} parent node missing")
+                live_children = [c for c in expected_hs6 - waiting if c.startswith(code)]
+                if live_children:
+                    report.fail(code, None, f"HS-{level} parent node missing")
+                else:
+                    report.warn(code, None, f"HS-{level} parent node waits with its new codes")
 
     # HS 2022 is the base: a retired predecessor may inform the history but
     # must never be published as a product in its own right.
@@ -840,30 +860,40 @@ def main():
     elif not scope_path.exists():
         report.fail(None, None, "scope.json missing")
     else:
-        scope_summary = json.loads(scope_path.read_text())
+        # scope.json is the electronics stream; scope-<stream>.json the others.
+        # Each must add up to its own products, and the electronics file must
+        # hold no line from another stream (that would move the front page).
+        streams_of = {entry["code"]: entry.get("stream") or "electronics" for entry in catalogue if entry.get("level") == 6}
+        for summary_path in [scope_path] + sorted(root.glob("scope-*.json")):
+            scope_summary = json.loads(summary_path.read_text())
+            expected_stream = scope_summary.get("stream") or "electronics"
 
-        for period, year in (scope_summary.get("years") or {}).items():
-            products_total = sum(row[1] for row in year.get("products") or [])
-            importers_total = sum(row[1] for row in year.get("importers") or [])
-            world = year.get("worldImports") or 0
+            for period, year in (scope_summary.get("years") or {}).items():
+                strays = [row[0] for row in year.get("products") or [] if streams_of.get(row[0], expected_stream) != expected_stream]
+                if strays:
+                    report.fail(None, period, f"{summary_path.name} carries {len(strays)} line(s) from another stream: {', '.join(strays[:5])}")
 
-            if world and abs(products_total - world) > max(1.0, world * 1e-6) * len(year.get("products") or [1]):
-                report.fail(
-                    None,
-                    period,
-                    f"scope world imports {world} != sum of its products "
-                    f"{products_total}",
-                )
+                products_total = sum(row[1] for row in year.get("products") or [])
+                importers_total = sum(row[1] for row in year.get("importers") or [])
+                world = year.get("worldImports") or 0
 
-            if world and abs(importers_total - world) > max(1.0, world * 1e-6) * max(1, len(year.get("importers") or [])):
-                report.fail(
-                    None,
-                    period,
-                    f"scope importers sum {importers_total} != world imports {world}",
-                )
+                if world and abs(products_total - world) > max(1.0, world * 1e-6) * len(year.get("products") or [1]):
+                    report.fail(
+                        None,
+                        period,
+                        f"scope world imports {world} != sum of its products "
+                        f"{products_total}",
+                    )
 
-            if year.get("lines") != len(year.get("products") or []):
-                report.fail(None, period, "scope line count disagrees with its product list")
+                if world and abs(importers_total - world) > max(1.0, world * 1e-6) * max(1, len(year.get("importers") or [])):
+                    report.fail(
+                        None,
+                        period,
+                        f"scope importers sum {importers_total} != world imports {world}",
+                    )
+
+                if year.get("lines") != len(year.get("products") or []):
+                    report.fail(None, period, "scope line count disagrees with its product list")
 
     detail_dir = root / "detail"
 

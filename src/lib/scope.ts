@@ -39,6 +39,8 @@ export type ScopeYear = {
 
 export type ScopeSummary = {
   builtAt: string
+  /* scope.json is "electronics"; scope-<stream>.json carries the others. */
+  stream?: string
   basis: 'gross'
   currency: 'USD'
   linesInScope: number
@@ -101,6 +103,24 @@ export function loadScope(snapshot: string): Promise<ScopeSummary | null> {
   const request = getOptional<ScopeSummary>(`${BASE}/${snapshot}/scope.json`)
 
   scopeCache.set(snapshot, request)
+
+  return request
+}
+
+/* The same summary for a stream other than electronics: scope-<stream>.json.
+ * Ask only when the catalogue holds lines of that stream, so a snapshot
+ * without them is never asked for a file it does not have. */
+export function loadStreamScope(snapshot: string, stream: string): Promise<ScopeSummary | null> {
+  if (pageFiles === false || stream === 'electronics') return Promise.resolve(null)
+
+  const key = `${snapshot}:${stream}`
+  const existing = scopeCache.get(key)
+
+  if (existing) return existing
+
+  const request = getOptional<ScopeSummary>(`${BASE}/${snapshot}/scope-${stream}.json`)
+
+  scopeCache.set(key, request)
 
   return request
 }

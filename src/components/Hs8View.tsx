@@ -10,6 +10,7 @@ import {
 } from 'recharts'
 import { ArrowUpRight, Layers, Pin, PinOff, Plus } from 'lucide-react'
 import { DownloadMenu } from './DownloadMenu'
+import { isElectronics, STREAM_LABEL, streamOf } from '../lib/streams'
 
 import type { CatalogueEntry, Manifest } from '../types'
 import { palette } from '../lib/palette'
@@ -386,6 +387,9 @@ export function Hs8View({
             HS-8 <b>{hs8}</b>
           </span>
           <span className="rf-id-item">India tariff line</span>
+          {!isElectronics(data) && (
+            <span className="rf-id-item rf-stream-tag">{STREAM_LABEL[streamOf(data)]}, not in electronics totals</span>
+          )}
           {line.principalCommodity && <span className="rf-id-item">{sentence(line.principalCommodity)}</span>}
         </p>
 

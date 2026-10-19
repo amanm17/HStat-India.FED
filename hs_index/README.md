@@ -6,12 +6,12 @@ discovers codes from an API, and there is no Excel step.
 
 | File | What it holds |
 |---|---|
-| `codes.csv` | Every HS-6 code in scope, with its tags: official description, display name, product family, category, segment, DGCIS segment, FED-definition flag, source flags, search terms, and the intake batch that added it. |
+| `codes.csv` | Every HS-6 code in scope, with its tags: official description, display name, product family, category, segment, DGCIS segment, FED-definition flag, source flags, search terms, the intake batch that added it, and its stream (see "Streams"). |
 | `parents.csv` | Every HS-2 chapter and HS-4 heading above those codes, with its short name. |
 | `aliases.csv` | Everyday search vocabulary (code, terms, primary yes/no, note). |
 | `lineage.csv` | HS revision history: codes split or merged in 2022, retired codes and their successors. A predecessor named here is pulled for history and its figures are carried into the successor's page, marked `**`. |
 | `batches.json` | Every intake, oldest first, with the codes it added and whether their first data pull has finished. The pull groups codes by batch, so adding codes never invalidates earlier downloads. |
-| `vocabulary.json` | The only values allowed for category, segment and DGCIS segment. |
+| `vocabulary.json` | The only values allowed for category, segment, DGCIS segment and stream. |
 | `hs8_scope.json` | Which India tariff lines (HS-8, from DGCIS) are kept (see "Tariff lines"). |
 | `naming_review.csv` | Reviewer verdicts for display names that use words outside the official HS text (see "Naming rules"). |
 | `incoming/` | Drop new codes here. `incoming/rejected/` holds uploads that could not pass, each with a report. |
@@ -84,6 +84,29 @@ in place.
   official title.
 - **The whole index.** With the batch merged, `pipeline/hs_index_check.py`
   must not find a single new error. Otherwise nothing is merged.
+
+## Streams: keeping electronics figures electronics
+
+Coverage grows beyond electronics, so every code says which figures it counts
+toward (`stream` in `codes.csv`, values in `vocabulary.json`):
+
+| stream | what | in electronics figures? |
+|---|---|---|
+| `electronics` | The FED electronics sector definition (every baseline code). | Yes: front-page totals, shares of electronics, rankings, segments, the DGCIS panel, report and workbook scope. |
+| `electronics-inputs` | Materials, consumables, tooling and machinery used to make electronics (the SPECS batch). | No. Own pages, own totals (`scope-electronics-inputs.json`), front-page "Beyond electronics". |
+| `other` | Wider trade coverage with no electronics role claimed. | No. Own pages, own totals (`scope-other.json`). |
+
+- An upload without a `stream` column gets `other`, and without
+  `in_fed_definition` gets `no`: expanding coverage never moves an
+  electronics figure or the FED definition by itself.
+- Moving a code into `electronics` is a deliberate edit of `codes.csv`
+  (the intake notes it in the batch report). It changes the electronics
+  totals from the next snapshot on, for every year.
+- A tariff line takes its HS-6's stream; a line whose HS-6 is not in the
+  index is `other`.
+- The snapshot writes `scope.json` from electronics lines only;
+  `validate_snapshot.py` fails a stream file that carries another stream's
+  line.
 
 ## Naming rules
 

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { ArrowUpRight, ChevronDown } from 'lucide-react'
 import { usd } from '../lib/format'
 import { Tabs } from './primitives'
+import { isElectronics } from '../lib/streams'
 
 import {
   formatPeriod,
@@ -37,8 +38,17 @@ export function HomeTariffLines({
   const [flow, setFlow] = useState<DgcisFlow>('exports')
   const [open, setOpen] = useState(false)
 
+  /* Electronics lines only: the front page speaks for electronics, and a
+   * tariff line of another stream (gold, glass, paper) would outrank every
+   * phone and chip. The rest are on the tariff-lines page. */
+  const [beyond, setBeyond] = useState(0)
+
   useEffect(() => {
-    loadDgcisIndex().then(index => setLines(index?.lines ?? []))
+    loadDgcisIndex().then(index => {
+      const all = index?.lines ?? []
+      setLines(all.filter(line => isElectronics(line)))
+      setBeyond(all.filter(line => !isElectronics(line)).length)
+    })
   }, [])
 
   const latest = useMemo(
@@ -76,7 +86,7 @@ export function HomeTariffLines({
       >
         <h2 id="dgcis-reporting" className="rf-h2">DGCIS reporting</h2>
         <span className="rf-dgcis-meta">
-          India&rsquo;s {lines.length} tariff lines{latest ? `, to ${formatPeriod(latest)}` : ''}
+          India&rsquo;s {lines.length} electronics tariff lines{latest ? `, to ${formatPeriod(latest)}` : ''}
         </span>
         <span className="rf-dgcis-show">
           {open ? 'Hide' : 'Show'}
@@ -99,7 +109,7 @@ export function HomeTariffLines({
 
             {onLines && (
               <button type="button" className="linkish rf-dgcis-all" onClick={onLines}>
-                All {lines.length} lines <ArrowUpRight size={14} aria-hidden />
+                All {lines.length + beyond} lines{beyond ? `, ${beyond} beyond electronics` : ''} <ArrowUpRight size={14} aria-hidden />
               </button>
             )}
           </div>

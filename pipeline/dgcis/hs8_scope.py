@@ -141,6 +141,25 @@ def in_scope(hs8: str) -> bool:
     return wanted is None or hs8[:2] in wanted
 
 
+@lru_cache(maxsize=1)
+def _streams() -> dict[str, str]:
+    return {
+        _digits(r.get("hs6")): (r.get("stream") or "").strip() or "other"
+        for r in _rows(CODES_CSV)
+        if len(_digits(r.get("hs6"))) == 6
+    }
+
+
+def stream(hs6: str) -> str:
+    """
+    The stream a tariff line counts toward: its HS-6's in the HS index
+    (electronics / electronics-inputs / other), and "other" for a line
+    whose HS-6 HStat does not carry. Only "electronics" lines are summed
+    into an electronics figure anywhere on the dashboard.
+    """
+    return _streams().get(hs6, "other")
+
+
 def relation(hs6: str) -> str:
     if hs6 in products():
         return "product"

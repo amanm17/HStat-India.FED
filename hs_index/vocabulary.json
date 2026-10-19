@@ -25,5 +25,15 @@
   "Electronics instruments",
   "Not Included",
   "Telecom instruments"
- ]
+ ],
+ "stream": [
+  "electronics",
+  "electronics-inputs",
+  "other"
+ ],
+ "_streams": {
+  "electronics": "Counts toward HStat's electronics trade figures (front page totals, shares, segments, rankings). The FED electronics sector definition: every baseline code. A new code joins only by an explicit decision.",
+  "electronics-inputs": "Materials, consumables, tooling and machinery used to make electronics (SPECS-type coverage). Own pages and own totals; never added into electronics figures.",
+  "other": "Wider trade coverage with no electronics role claimed. Own pages; never added into electronics figures. The default for an upload that does not say."
+ }
 }

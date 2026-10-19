@@ -8,6 +8,7 @@ import { Tabs } from './primitives'
 import { PageHeader } from './ui'
 import { usePageHelp } from '../lib/pagehelp'
 
+import { STREAM_LABEL, STREAM_NOTE, streamOf, type Stream } from '../lib/streams'
 import {
   formatPeriod,
   formatValue,
@@ -42,6 +43,9 @@ export function TariffLines({
   const [lines, setLines] = useState<DgcisIndexEntry[] | null>(null)
   const [flow, setFlow] = useState<DgcisFlow>('exports')
   const [query, setQuery] = useState('')
+  /* Electronics first: the tariff lines of other streams are here too, and
+   * never added into an electronics figure. */
+  const [stream, setStream] = useState<Stream | 'all'>('electronics')
   const phone = usePhone()
 
   useEffect(() => {
@@ -55,6 +59,7 @@ export function TariffLines({
     const digits = text.replace(/\D/g, '')
 
     const matched = lines.filter(line => {
+      if (stream !== 'all' && streamOf(line) !== stream) return false
       if (!text) return true
       if (digits.length >= 2) return line.hs8.startsWith(digits) || line.hs6.startsWith(digits)
 
@@ -85,7 +90,7 @@ export function TariffLines({
         items: [...items].sort((a, b) => size(b) - size(a)),
       }))
       .sort((a, b) => b.total - a.total)
-  }, [lines, flow, query])
+  }, [lines, flow, query, stream])
 
   usePageHelp(
     () => {
@@ -162,6 +167,33 @@ export function TariffLines({
           />
         }
       />
+
+      <div className="lines-streams" role="group" aria-label="Which lines">
+        {(['electronics', 'electronics-inputs', 'other', 'all'] as const)
+          .filter(key => key === 'all' || key === 'electronics' || lines.some(line => streamOf(line) === key))
+          .map(key => {
+            const count = key === 'all' ? lines.length : lines.filter(line => streamOf(line) === key).length
+
+            return (
+              <button
+                key={key}
+                type="button"
+                className={stream === key ? 'rf-button active' : 'rf-button quiet'}
+                aria-pressed={stream === key}
+                onClick={() => setStream(key)}
+              >
+                {key === 'all' ? 'All' : STREAM_LABEL[key]} ({count})
+              </button>
+            )
+          })}
+      </div>
+      {stream !== 'electronics' && (
+        <p className="rf-beyond-note">
+          {stream === 'all'
+            ? 'Every line HStat holds. Only electronics lines count toward electronics figures.'
+            : STREAM_NOTE[stream]}
+        </p>
+      )}
 
       <input
         className="lines-filter"
