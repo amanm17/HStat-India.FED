@@ -216,10 +216,12 @@ export function Hs8View({
         value: `HS ${hs8}`,
         what: named
           ? `${line?.title} — one of ${plural(siblings.length, 'line')} India files under HS ${hs6}${headingText}.`
-          : `Not named in the 2025-26 ITC(HS) schedule, so the code stands as the identity. It sits under HS ${hs6}${headingText}.`,
+          : `No name of its own in India\u2019s schedule or DGCIS\u2019s filing (only \u201cOthers\u201d or none), so the code stands as the identity. It sits under HS ${hs6}${headingText}.`,
         note: named
-          ? 'Name from India\u2019s own eight-digit schedule, not from Comtrade.'
-          : 'Filings under this code stop before the current period; it is a line the schedule has since dropped.',
+          ? line?.nameSource === 'dgcis'
+            ? 'Name as DGCIS files this line, abbreviated as in the source, not from Comtrade.'
+            : 'Name from India\u2019s own eight-digit schedule, not from Comtrade.'
+          : 'The eight-digit code is how customs files this line and how it is best quoted.',
       },
 
       facts: [

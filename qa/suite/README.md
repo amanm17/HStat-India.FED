@@ -8,7 +8,7 @@ working when the DGCIS layer is missing, stale, corrupt, or throwing.
 ```
 npm run build
 node qa/suite/serve.mjs dist 4178 &
-node qa/suite/check.mjs        # 27 — routing, panel, composition, deep links
+node qa/suite/check.mjs        # 32 — routing, panel, composition, deep links, standalone lines
 node qa/suite/search.mjs       # 12 — tariff lines in search
 node qa/suite/boundary.mjs     #  7 — a forced throw inside the panel
 node qa/suite/absence.mjs      #  6 — panel or note, never both, never neither

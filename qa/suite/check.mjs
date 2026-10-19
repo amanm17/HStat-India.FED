@@ -10,6 +10,17 @@ function ok(name, pass, detail = '') {
 
 const browser = await chromium.launch()
 
+/* Picked from the build, not hard-coded: since every HS-8 in scope is kept
+ * (Oct 2026), which products lack tariff-line detail changes with the data.
+ * `bare` is a product page with no DGCIS file; `loose` a standalone line. */
+const json = async path => (await fetch(BASE + path)).json()
+const dgcisManifest = await json('/data/dgcis/manifest.json')
+const hs8Index = await json('/data/dgcis/hs8-index.json')
+const catalogue = await json('/data/snapshots/current/catalogue.json')
+const covered = new Set(dgcisManifest.coveredHs6)
+const bare = catalogue.find(e => e.level === 6 && !covered.has(e.code))?.code
+const loose = hs8Index.lines.find(l => l.relation === 'standalone')
+
 async function open(path) {
   const page = await browser.newPage()
   const errors = []
@@ -84,10 +95,10 @@ async function open(path) {
 }
 
 // 6 — a product with NO DGCIS file must be untouched
-{
-  const { page, errors } = await open('/hs/320890')
+if (bare) {
+  const { page, errors } = await open(`/hs/${bare}`)
   const text = await page.innerText('body')
-  ok('product without DGCIS still renders', text.includes('320890') && text.length > 800)
+  ok('product without DGCIS still renders', text.includes(bare) && text.length > 800)
   ok('product without DGCIS shows no panel', (await page.locator('#section-dgcis .dgcis').count()) === 0)
   ok('product without DGCIS has no errors', errors.length === 0, errors.slice(0, 2).join(' | '))
   await page.close()
@@ -116,10 +127,24 @@ async function open(path) {
   await page.close()
 }
 
-{
-  const { page } = await open('/hs/320890')
+if (bare) {
+  const { page } = await open(`/hs/${bare}`)
   const absent = await page.locator('.tariff-absent').count()
   ok('the absence note still appears where there is a real absence', absent === 1)
+  await page.close()
+}
+
+// 9 — a tariff line whose HS-6 HStat does not carry: its own page, no
+//     Comtrade card, no link to levels HStat has no page for.
+if (loose) {
+  const { page, errors } = await open(`/hs/${loose.hs8}`)
+  const text = await page.innerText('body')
+  ok('standalone line renders', text.includes(loose.hs8) && text.length > 400)
+  ok('standalone line says its heading is not in HStat', /heading not in HStat/.test(text))
+  ok('standalone line has no Comtrade card', (await page.locator('.hs8-parent-card').count()) === 0)
+  const crumbs = await page.locator('.hs8-breadcrumb button').allInnerTexts()
+  ok('standalone line links no missing HS-6 page', !crumbs.some(c => c.includes(loose.hs6)), crumbs.join(' / '))
+  ok('standalone line throws nothing', errors.length === 0, errors.slice(0, 2).join(' | '))
   await page.close()
 }
 

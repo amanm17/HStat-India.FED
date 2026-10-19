@@ -161,15 +161,20 @@ def main() -> int:
 
     df = pd.read_csv(source, dtype=str).fillna("")
 
-    required = {
-        "HS Code", "Country Name",
-        "Principal Commodity", "Quick Estimate Commodity",
-    }
+    # The portal has served two layouts. The 2026-10 one carries DGCIS's own
+    # tariff-line description ("HS Description") and no commodity groups;
+    # the earlier one carried the two commodity groups and no description.
+    # Either is read; a missing column becomes an empty field, never a guess.
+    required = {"HS Code", "Country Name"}
 
     missing = required - set(df.columns)
 
     if missing:
         raise SystemExit(f"Missing required columns: {sorted(missing)}")
+
+    for optional in ("Principal Commodity", "Quick Estimate Commodity", "HS Description"):
+        if optional not in df.columns:
+            df[optional] = ""
 
     # Drop the aggregate TOTAL row from the source extract.
     # DGCIS stores it with a blank HS Code and Country Name == TOTAL.
@@ -213,7 +218,7 @@ def main() -> int:
     scope_ref = (
         scoped[[
             "hs8", "hs6", "hs4", "hs2", "relation",
-            "Principal Commodity", "Quick Estimate Commodity",
+            "Principal Commodity", "Quick Estimate Commodity", "HS Description",
         ]]
         .drop_duplicates("hs8")
         .sort_values("hs8")
@@ -271,6 +276,7 @@ def main() -> int:
                 "country": record["Country Name"],
                 "principal_commodity": record["Principal Commodity"],
                 "quick_estimate_commodity": record["Quick Estimate Commodity"],
+                "hs_description": record["HS Description"],
                 "year": year,
                 "month": month,
                 "period": f"{year}-{month:02d}",

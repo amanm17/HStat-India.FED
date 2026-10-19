@@ -69,7 +69,7 @@ export type DgcisLine = {
    * called "Electrical machines, other" cannot be told apart, which is the
    * whole job of a name. The code can, so the code leads. */
   title: string
-  nameSource: 'schedule' | 'none'
+  nameSource: 'schedule' | 'dgcis' | 'none'
   headingName: string
   description?: string
   principalCommodity: string
@@ -686,6 +686,10 @@ export function unitLabel(basis: DgcisBasis): string {
  */
 export function nameCaveat(line: { nameSource?: string }): string | null {
   if (!line.nameSource || line.nameSource === 'schedule') return null
+
+  if (line.nameSource === 'dgcis') {
+    return 'Name as DGCIS files this line, abbreviated as in the source.'
+  }
 
   return (
     'No name in India’s schedule for this code; the name shown is its heading’s.'

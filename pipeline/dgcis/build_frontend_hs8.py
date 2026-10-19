@@ -177,9 +177,10 @@ def title_for(hs8: str, group: str, heading: str, itc: dict) -> tuple[str, str]:
 
     A title is returned only when it genuinely names *this line*:
 
-      1. India's own eight-digit schedule, when config/itc_hs8_names.csv
-         exists. Currently it does not - DGFT refuses automated download.
-      2. Otherwise nothing, and the frontend leads with the code.
+      1. A curated name in config/itc_hs8_names.csv ("schedule").
+      2. DGCIS's own description of the line, when it names that line and
+         no other ("dgcis"; see below).
+      3. Otherwise nothing, and the frontend leads with the code.
 
     `headingName` is emitted separately and always, so a page can say
     "one of 29 lines under HS 854370 - Electrical machines, other" without
@@ -190,7 +191,88 @@ def title_for(hs8: str, group: str, heading: str, itc: dict) -> tuple[str, str]:
     if known.get("displayName") or known.get("description"):
         return (known.get("displayName") or known["description"]), "schedule"
 
+    named = dgcis_titles.get(hs8)
+
+    if named:
+        return named, "dgcis"
+
     return "", "none"
+
+
+# ---------------------------------------------------------------- DGCIS names
+#
+# Since the 2026-10 portal layout, every row carries DGCIS's own description
+# of the line ("HS Description"): the same text config/itc_hs8_names.csv was
+# built from, abbreviated and in capitals. It is used as a line's title only
+# when it names that line and no other - "OTHERS", "PARTS" or a phrase two
+# codes share would be the "Electrical machines, other" problem again - and
+# then only re-cased, never reworded. nameSource "dgcis" says where it came
+# from. Lines with a curated name in itc_hs8_names.csv keep that name.
+
+GENERIC = {"", "other", "others", "parts", "part", "other parts", "others parts", "nes", "n.e.s."}
+
+ACRONYMS = {
+    "ABS", "AC", "ADP", "AM", "ATM", "CD", "CFL", "CNC", "CNG", "CRT", "DC", "DVD",
+    "ECG", "EPS", "FM", "GPS", "HDPE", "HF", "IC", "IR", "LCD", "LDPE", "LED",
+    "LPG", "MOSFET", "MRI", "NC", "OLED", "PCB", "PE", "PET", "PP", "PVC", "RAM",
+    "ROM", "TV", "UHF", "UPS", "USB", "UV", "VHF", "LLDPE", "EVA", "SBR", "NBR",
+    "EPDM", "PTFE", "PU", "PMMA", "PC", "PA", "HIPS", "SIM", "RF", "GSM", "CDMA",
+    "LAN", "WAN", "DSL", "ISDN", "SMD", "MLCC", "IGBT", "SCR", "LI-ION", "NI-CD",
+}
+
+dgcis_titles: dict[str, str] = {}
+
+
+def recase(text: str) -> str:
+    """DGCIS capitals to sentence case, keeping acronyms. Words unchanged."""
+    text = re.sub(r"\s+", " ", text.replace("*", " ")).strip(" ,;:-")
+    words = []
+    for index, word in enumerate(text.split(" ")):
+        core = re.sub(r"[^A-Za-z\-]", "", word).upper()
+        if core in ACRONYMS:
+            words.append(word.upper())
+        else:
+            lowered = word.lower()
+            words.append(lowered[:1].upper() + lowered[1:] if index == 0 else lowered)
+    return " ".join(words)
+
+
+def learn_dgcis_titles(descriptions: dict[str, str], itc: dict) -> None:
+    """Fill dgcis_titles with the descriptions that name exactly one line."""
+    taken = {
+        (v.get("displayName") or v.get("description") or "").strip().lower()
+        for v in itc.values()
+    }
+    cleaned = {code: recase(text) for code, text in descriptions.items()}
+    counts: dict[str, int] = defaultdict(int)
+    for name in cleaned.values():
+        counts[name.lower()] += 1
+
+    dgcis_titles.clear()
+    for code, name in cleaned.items():
+        key = name.lower()
+        if key in GENERIC or counts[key] > 1 or key in taken or len(name) < 3:
+            continue
+        dgcis_titles[code] = name
+
+
+def remembered_groups() -> dict[str, tuple[str, str]]:
+    """
+    hs8 -> (principal, quick estimate) DGCIS commodity groups from
+    config/dgcis_commodity_groups.csv. The 2026-10 portal layout files no
+    groups; lines that had them keep them rather than going blank.
+    """
+    path = CONFIG / "dgcis_commodity_groups.csv"
+    if not path.exists():
+        return {}
+    lines = [
+        line for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip() and not line.startswith("#")
+    ]
+    return {
+        r["hs8"]: (r.get("principal_commodity") or "", r.get("quick_estimate_commodity") or "")
+        for r in csv.DictReader(lines)
+    }
 
 
 def read_flow(flow: str):
@@ -288,6 +370,16 @@ def main() -> int:
 
     headings = heading_names()
     itc = tariff_names()
+    groups_on_file = remembered_groups()
+
+    # DGCIS's own line descriptions, from whichever flow carries them.
+    descriptions: dict[str, str] = {}
+    for bundle in available.values():
+        for row in bundle["rows"]:
+            text = (row.get("hs_description") or "").strip()
+            if text and row["hs8"] not in descriptions and hs8_scope.in_scope(row["hs8"]):
+                descriptions[row["hs8"]] = text
+    learn_dgcis_titles(descriptions, itc)
 
     # hs6 -> hs8 -> {hs8, title, nameSource, principalCommodity, ...}
     lines: dict[str, dict[str, dict]] = defaultdict(dict)
@@ -307,7 +399,8 @@ def main() -> int:
                 continue
 
             if hs8 not in lines[hs6]:
-                group = (row.get("principal_commodity") or "").strip()
+                remembered = groups_on_file.get(hs8, ("", ""))
+                group = (row.get("principal_commodity") or "").strip() or remembered[0]
                 heading = headings.get(hs6, "") or official_heading(hs6)
                 title, source = title_for(hs8, group, heading, itc)
 
@@ -318,13 +411,17 @@ def main() -> int:
                     # The heading this line sits under, carried so a page can
                     # show the relationship without loading the catalogue.
                     "headingName": heading,
-                    "description": (itc.get(hs8) or {}).get("description", ""),
+                    "description": (
+                        (itc.get(hs8) or {}).get("description", "")
+                        or descriptions.get(hs8, "")
+                    ),
                     # DGCIS's own commodity groupings. The extract carries no
                     # tariff-line description and one is not invented here.
                     "principalCommodity": group,
                     "quickEstimateCommodity": (
-                        row.get("quick_estimate_commodity") or ""
-                    ).strip(),
+                        (row.get("quick_estimate_commodity") or "").strip()
+                        or remembered[1]
+                    ),
                 }
 
             entry = series[hs6][flow].get(hs8)

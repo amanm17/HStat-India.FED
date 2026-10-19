@@ -300,9 +300,10 @@ function useTariffMatches(
         .forEach(line => push(line, 'product', item))
     }
 
-    /* Then DGCIS's own words, for someone who typed one of its group names. */
+    /* Then the line's own name, or DGCIS's group names. */
     lines
       .filter(line =>
+        (line.title ?? '').toLowerCase().includes(text) ||
         line.principalCommodity.toLowerCase().includes(text) ||
         line.quickEstimateCommodity.toLowerCase().includes(text))
       .sort((a, b) => size(b) - size(a))
