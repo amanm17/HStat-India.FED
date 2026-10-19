@@ -1,0 +1,116 @@
+name: DGCIS HS-8 refresh
+
+# The India tariff-line (HS-8) refresh, after the part only a person can do.
+#
+# The DGCIS portal is CAPTCHA-gated on purpose, and nothing here works around
+# that: someone downloads the extracts by hand (pipeline/dgcis/refresh_dgcis.py
+# --scope prints what to select). Commit them to data/dgcis/inbox/ and push;
+# this job does the rest:
+#
+#   1. join split downloads of a flow into one file (combine_parts.py)
+#   2. validate each flow, check the declared flow against Comtrade
+#   3. process both flows and rebuild public/data/dgcis
+#   4. commit the pages and clear the inbox; the push deploys
+#
+# File names: DGCIS_DATA_exports*.csv and DGCIS_DATA_imports*.csv (.csv.gz and
+# .zip accepted; several parts per flow are joined). Both flows are needed in
+# one run, so the pages never hold a new month of one flow beside an old month
+# of the other. With only one flow in the inbox the job waits: the file stays
+# and the next push that brings the other one runs the refresh.
+#
+# Any failed check stops the run before anything is published, and the inbox
+# is left as it was.
+
+on:
+  push:
+    paths:
+      - "data/dgcis/inbox/**"
+  workflow_dispatch:
+    inputs:
+      allow_shrink:
+        description: "Publish even if the downloads hold over 10% fewer tariff lines than today"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hstat-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: What is in the inbox?
+        id: inbox
+        run: |
+          shopt -s nullglob
+          ready=yes
+          for flow in exports imports; do
+            parts=(data/dgcis/inbox/DGCIS_DATA_${flow}*)
+            echo "${flow}: ${#parts[@]} file(s) ${parts[*]}"
+            if [ ${#parts[@]} -eq 0 ]; then ready=no; fi
+          done
+          echo "ready=$ready" >> "$GITHUB_OUTPUT"
+          if [ "$ready" = no ]; then
+            echo "::notice::Waiting for both flows in data/dgcis/inbox/ (exports and imports). Nothing was changed."
+          fi
+
+      - name: Join each flow's downloads
+        if: steps.inbox.outputs.ready == 'yes'
+        run: |
+          shopt -s nullglob
+          for flow in exports imports; do
+            python pipeline/dgcis/combine_parts.py --flow "$flow" data/dgcis/inbox/DGCIS_DATA_${flow}*
+          done
+
+      - name: Validate, check the flow, process, build
+        if: steps.inbox.outputs.ready == 'yes'
+        run: |
+          set -o pipefail
+          extra=""
+          if [ "${{ inputs.allow_shrink }}" = "true" ]; then extra="--allow-shrink"; fi
+          python pipeline/dgcis/refresh_dgcis.py --skip-download $extra | tee dgcis-refresh.log
+
+      # The published snapshot and the build must still hold together.
+      - name: Launch sanity
+        if: steps.inbox.outputs.ready == 'yes'
+        run: python pipeline/launch_sanity.py
+
+      - name: Keep the downloads with this run
+        if: steps.inbox.outputs.ready == 'yes'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dgcis-downloads-${{ github.run_id }}
+          path: data/dgcis/inbox/
+          retention-days: 90
+
+      - name: Commit the pages and clear the inbox
+        if: steps.inbox.outputs.ready == 'yes'
+        run: |
+          git config user.name "hstat-data-bot"
+          git config user.email "actions@users.noreply.github.com"
+          last=$(python -c "import json;print(json.load(open('public/data/dgcis/manifest.json'))['lastPeriod'])")
+          git add -A public/data/dgcis
+          git rm -q -r --cached data/dgcis/inbox/DGCIS_DATA_* 2>/dev/null || true
+          rm -f data/dgcis/inbox/DGCIS_DATA_*
+          if git diff --cached --quiet; then
+            echo "Nothing changed."
+          else
+            git commit -m "DGCIS HS-8 refresh through ${last}"
+            git pull --rebase
+            git push
+          fi

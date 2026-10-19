@@ -35,6 +35,8 @@ data/dgcis/normalized/
 # What ships is public/data/dgcis, which is generated from them and is small.
 # Keep the raw archives somewhere durable outside the repo - they are the only
 # record of what the portal actually served on a given day.
+# data/dgcis/inbox/ is the exception: downloads committed there are picked up
+# by the DGCIS HS-8 refresh workflow, which clears the folder once published.
 data/dgcis/raw/
 data/dgcis/processed/
 data/dgcis/tia_network_log.json

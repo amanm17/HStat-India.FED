@@ -253,6 +253,12 @@ jobs:
         if: steps.gate.outputs.run == 'true' && steps.refresh.outputs.incomplete != 'true'
         run: python pipeline/hs_intake.py --mark-pulled
 
+      # Tariff lines under a code whose product page just went live stop
+      # being standalone pages. Labels only; DGCIS figures are untouched.
+      - name: Relabel the published tariff lines
+        if: steps.gate.outputs.run == 'true' && steps.refresh.outputs.incomplete != 'true'
+        run: python pipeline/dgcis/relabel_published.py
+
       - name: Sanity-check the promoted snapshot
         if: steps.gate.outputs.run == 'true' && steps.refresh.outputs.incomplete != 'true'
         run: python pipeline/launch_sanity.py
@@ -281,7 +287,8 @@ jobs:
 
           git add public/data/snapshots public/data/hs-library.json \
                   config/hs6_universe.txt config/parent_universe.json \
-                  config/hs_titles.json hs_index/batches.json
+                  config/hs_titles.json hs_index/batches.json \
+                  public/data/dgcis
 
           if git diff --cached --quiet; then
             echo "No data changes this run."

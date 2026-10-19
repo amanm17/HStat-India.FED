@@ -35,6 +35,10 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+import hs8_scope  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[2]
 DGCIS = ROOT / "data" / "dgcis"
 SOURCE = DGCIS / "incoming" / "DGCIS_DATA.csv"
@@ -277,39 +281,48 @@ def main() -> int:
         f"{sorted(partners)[:5]}",
     )
 
-    # 9 - every code lands under something HStat publishes -------------------
-    universe = set((CONFIG / "hs6_universe.txt").read_text().split())
-    hs4 = {code[:4] for code in universe}
-    hs2 = {code[:2] for code in universe}
+    # 9 - scope, and where each line will sit ------------------------------
+    # Since 2026-10 every tariff line in scope is kept (hs_index/hs8_scope.json),
+    # whether or not it traces back to an HStat HS-6. A line outside the
+    # configured chapters is not an error in the file - the portal query was
+    # simply wider - so it is reported and left out by the processor.
+    check.note(hs8_scope.describe())
 
-    unplaceable = [
-        code for code in codes
-        if code[:6] not in universe and code[:4] not in hs4 and code[:2] not in hs2
-    ]
+    outside = [code for code in codes if not hs8_scope.in_scope(code)]
 
-    check.fail(
-        not unplaceable,
-        f"{len(unplaceable)} HS-8 codes sit under no HStat HS6/HS4/HS2: "
-        f"{', '.join(unplaceable[:6])}",
-    )
+    if outside:
+        check.note(
+            f"outside scope     : {len(outside)} HS-8 codes in chapters "
+            f"{', '.join(sorted({c[:2] for c in outside}))} (left out)"
+        )
 
-    attached = [code for code in codes if code[:6] in universe]
-    orphaned = [code for code in codes if code[:6] not in universe]
+    kept = [code for code in codes if hs8_scope.in_scope(code)]
+
+    check.fail(kept, "no HS-8 code in this file is inside the configured scope")
+
+    by_relation = {name: [c for c in kept if hs8_scope.relation(c[:6]) == name]
+                   for name in hs8_scope.RELATIONS}
+    universe = hs8_scope.products()
 
     check.note(
-        f"attached to product: {len(attached)}  "
-        f"({len({c[:6] for c in attached})} of {len(universe)} products)"
+        f"attached to product: {len(by_relation['product'])}  "
+        f"({len({c[:6] for c in by_relation['product']})} of {len(universe)} products)"
     )
 
-    # Not a failure. These are tariff lines under an HS-6 that HStat carries
-    # only as a lineage predecessor - 851712 before the smartphone split, for
-    # instance - so they are real India history with no product page to sit
-    # on. Saying so is the point; dropping them silently is not.
-    if orphaned:
+    # Tariff lines under an HS-6 HStat carries only as a lineage predecessor -
+    # 851712 before the smartphone split, for instance: real India history
+    # with no product page to sit on.
+    if by_relation["predecessor"]:
         check.note(
-            f"no product page   : {len(orphaned)} HS-8 codes under "
-            f"{', '.join(sorted({c[:6] for c in orphaned}))} "
-            f"(retired predecessors)"
+            f"retired heading   : {len(by_relation['predecessor'])} HS-8 codes under "
+            f"{', '.join(sorted({c[:6] for c in by_relation['predecessor']}))}"
+        )
+
+    # Lines whose HS-6 HStat does not carry at all. Each gets its own page.
+    if by_relation["standalone"]:
+        check.note(
+            f"standalone pages  : {len(by_relation['standalone'])} HS-8 codes under "
+            f"{len({c[:6] for c in by_relation['standalone']})} HS-6 codes with no product page"
         )
 
     # 10 - the sum of the parts is the whole ---------------------------------

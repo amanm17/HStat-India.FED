@@ -1,0 +1,5 @@
+{
+  "_note": "Which India tariff lines (HS-8, from DGCIS) HStat keeps. mode 'chapters': every HS-8 under the HS-2 chapters the HS index covers (derived from hs_index/codes.csv and lineage.csv, so it widens by itself when codes are added). mode 'list': only the chapters in 'chapters'. mode 'all': every HS-8 the extract holds. A line whose HS-6 has no product page is kept as a standalone page. See hs_index/README.md.",
+  "mode": "chapters",
+  "chapters": []
+}

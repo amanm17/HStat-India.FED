@@ -1,6 +1,6 @@
 {
  "source": "DGCIS / Trade Intelligence & Analytics",
- "builtAt": "2026-10-01T06:30:58.115029+00:00",
+ "builtAt": "2026-10-19T08:22:58.833105+00:00",
  "reporter": "India",
  "partner": "World",
  "units": {
@@ -15,7 +15,7 @@
   "exports": {
    "sourceFile": "DGCIS_DATA_exports.csv",
    "sourceSha256": "e2c255a6ff416bf95af349739f59b15e87dddf85f530a850df93b4654af8a943",
-   "processedAt": "2026-10-01T06:27:02.085242+00:00",
+   "processedAt": "2026-10-19T08:22:58.099376+00:00",
    "firstPeriod": "2019-01",
    "lastPeriod": "2026-07",
    "flowVerdict": {
@@ -35,7 +35,7 @@
   "imports": {
    "sourceFile": "DGCIS_DATA_imports.csv",
    "sourceSha256": "e3ff5d0ce2f4a7dd83cc60c64a2b79c5e479520926aa48788dca2b74e953a795",
-   "processedAt": "2026-10-01T06:30:57.827648+00:00",
+   "processedAt": "2026-10-19T08:12:39.475212+00:00",
    "firstPeriod": "2019-01",
    "lastPeriod": "2026-07",
    "flowVerdict": {
@@ -317,6 +317,31 @@
   "851950",
   "852580",
   "854140"
+ ],
+ "standaloneHs6": [],
+ "standaloneHs8": 0,
+ "scope": "chapters",
+ "scopeChapters": [
+  "32",
+  "34",
+  "35",
+  "39",
+  "40",
+  "42",
+  "48",
+  "49",
+  "59",
+  "73",
+  "74",
+  "75",
+  "76",
+  "83",
+  "84",
+  "85",
+  "90",
+  "91",
+  "95",
+  "96"
  ],
  "reconciliation": {
   "method": "sum of HS-8 rows against the DGCIS TOTAL footer",

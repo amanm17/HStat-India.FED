@@ -51,8 +51,10 @@ TIA HS8 DOWNLOAD
 Please use the open browser to configure:
 
   Period basis : Calendar Year
-  Flow         : Import
+  Flow         : Export or Import (one download each; refresh_dgcis.py
+                 is the maintained path and labels the flow for you)
   HS level     : HS8
+  Commodities  : python3 pipeline/dgcis/refresh_dgcis.py --scope
   Country      : World / All as required
   Measure      : Value
 

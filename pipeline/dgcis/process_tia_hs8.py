@@ -36,6 +36,7 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import flow_guard  # noqa: E402
+import hs8_scope  # noqa: E402
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -43,9 +44,6 @@ ROOT = Path(__file__).resolve().parents[2]
 INCOMING = ROOT / "data" / "dgcis" / "incoming"
 PROCESSED = ROOT / "data" / "dgcis" / "processed"
 RAW = ROOT / "data" / "dgcis" / "raw"
-
-FED = ROOT / "hs_index" / "codes.csv"
-HS6_UNIVERSE = ROOT / "config" / "hs6_universe.txt"
 
 FLOWS = ("imports", "exports")
 
@@ -80,41 +78,6 @@ def normalise_code(value, length=None):
         s = s.zfill(length)
 
     return s
-
-
-def load_hstat_scope():
-    """
-    Build the currently represented HStat HS2 / HS4 / HS6 universe.
-
-    Prefer hs6_universe.txt because it is the generated universe actually
-    shipped by HStat. Fall back to hs_index/codes.csv only if needed.
-    """
-    hs6_codes = set()
-
-    if HS6_UNIVERSE.exists():
-        for line in HS6_UNIVERSE.read_text(encoding="utf-8").splitlines():
-            code = normalise_code(line)
-            if len(code) == 6:
-                hs6_codes.add(code)
-
-    if not hs6_codes:
-        fed = pd.read_csv(FED, dtype=str).fillna("")
-
-        candidates = ["hs_code", "hs6", "HS Code", "code", "hs"]
-        code_col = next((c for c in candidates if c in fed.columns), None)
-
-        if not code_col:
-            raise SystemExit(
-                f"Could not identify HS-code column in {FED}. "
-                f"Columns: {list(fed.columns)}"
-            )
-
-        for raw in fed[code_col]:
-            code = normalise_code(raw)
-            if len(code) >= 6:
-                hs6_codes.add(code[:6])
-
-    return {x[:2] for x in hs6_codes}, {x[:4] for x in hs6_codes}, hs6_codes
 
 
 def parse_value_column(name):
@@ -226,25 +189,22 @@ def main() -> int:
     # HStat scope
     # ------------------------------------------------------------
 
-    hs2_scope, hs4_scope, hs6_scope = load_hstat_scope()
+    # Every tariff line inside the configured chapters is kept - whether or
+    # not it traces back to an HStat HS-6 (hs_index/hs8_scope.json). Until
+    # 2026-10 only lines under an HStat HS-6, HS-4 or HS-2 were kept.
+    df["in_scope"] = df["hs8"].map(hs8_scope.in_scope)
+    outside = df[~df["in_scope"]]
 
-    def match_scope(hs8):
-        matches = []
+    if len(outside):
+        print(f"note: {outside['hs8'].nunique()} HS-8 codes are outside "
+              f"{hs8_scope.describe()} and are left out\n")
 
-        if hs8[:6] in hs6_scope:
-            matches.append("HS6")
+    scoped = df[df["in_scope"]].copy()
 
-        if hs8[:4] in hs4_scope:
-            matches.append("HS4")
+    if scoped.empty:
+        raise SystemExit(f"No HS-8 code in {source.name} is inside {hs8_scope.describe()}.")
 
-        if hs8[:2] in hs2_scope:
-            matches.append("HS2")
-
-        return ",".join(matches)
-
-    df["scope_match"] = df["hs8"].map(match_scope)
-
-    scoped = df[df["scope_match"] != ""].copy()
+    scoped["relation"] = scoped["hs8"].str[:6].map(hs8_scope.relation)
 
     scoped["hs6"] = scoped["hs8"].str[:6]
     scoped["hs4"] = scoped["hs8"].str[:4]
@@ -252,7 +212,7 @@ def main() -> int:
 
     scope_ref = (
         scoped[[
-            "hs8", "hs6", "hs4", "hs2", "scope_match",
+            "hs8", "hs6", "hs4", "hs2", "relation",
             "Principal Commodity", "Quick Estimate Commodity",
         ]]
         .drop_duplicates("hs8")
@@ -307,7 +267,7 @@ def main() -> int:
                 "hs6": record["hs6"],
                 "hs4": record["hs4"],
                 "hs2": record["hs2"],
-                "scope_match": record["scope_match"],
+                "relation": record["relation"],
                 "country": record["Country Name"],
                 "principal_commodity": record["Principal Commodity"],
                 "quick_estimate_commodity": record["Quick Estimate Commodity"],
@@ -407,12 +367,17 @@ def main() -> int:
         "processedMonthlyRows": int(len(long_df)),
         "firstPeriod": str(long_df["period"].min()),
         "lastPeriod": str(long_df["period"].max()),
-        "hs2ScopeCount": len(hs2_scope),
-        "hs4ScopeCount": len(hs4_scope),
-        "hs6ScopeCount": len(hs6_scope),
+        "scope": hs8_scope.config()["mode"],
+        "scopeChapters": list(hs8_scope.chapters() or []),
+        "outsideScopeHS8": int(outside["hs8"].nunique()),
+        "relations": {
+            name: int(scoped.loc[scoped["relation"] == name, "hs8"].nunique())
+            for name in hs8_scope.RELATIONS
+        },
         "matchingRule": (
-            "HS8 retained when its first 6, 4, or 2 digits match "
-            "a currently represented HStat HS6/HS4/HS2 code."
+            "Every HS8 inside the configured chapters is retained "
+            "(hs_index/hs8_scope.json). A line whose HS6 has no HStat product "
+            "page is published as a standalone page."
         ),
         "units": {
             "value_inr_crore": "INR crore exactly as supplied by DGCIS",

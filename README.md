@@ -418,7 +418,17 @@ earlier, and the trade-trajectory chart has an Annual / Monthly toggle.
 
 Set `monthly.enabled: false`, or pass `--months 0`, to switch it off.
 
-### India ITC(HS)-8
+### India tariff lines, monthly (DGCIS)
+
+The pages under `/hs/<8 digits>` come from DGCIS portal downloads, processed by
+`pipeline/dgcis/` into `public/data/dgcis/`. Every HS-8 inside the scope in
+`hs_index/hs8_scope.json` is kept (by default every chapter the HS index
+covers); a line whose HS-6 HStat does not carry is a standalone page. Drop
+the monthly downloads in `data/dgcis/inbox/` and push, and the **DGCIS HS-8
+refresh** workflow publishes them. Details: `hs_index/README.md`,
+"Tariff lines (HS-8)".
+
+### India ITC(HS)-8 (static annual file)
 
 The canonical input is one static file:
 

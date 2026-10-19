@@ -33,6 +33,29 @@ export type DgcisFlow = 'exports' | 'imports'
 
 export type DgcisBasis = 'usd' | 'inr'
 
+/* How a tariff line's HS-6 sits in HStat (pipeline/dgcis/hs8_scope.py).
+ *   product      it has a product page
+ *   predecessor  a retired code carried for lineage, no page of its own
+ *   standalone   HStat does not carry it; the line is a page on its own
+ * Every tariff line in scope is kept since Oct 2026, not only those that
+ * trace back to an HStat HS-6. */
+export type DgcisRelation = 'product' | 'predecessor' | 'standalone'
+
+/* Files built before `relation` existed carry only isProduct. */
+export function relationOf(item: { relation?: string; isProduct?: boolean }): DgcisRelation {
+  if (item.relation === 'product' || item.relation === 'predecessor' || item.relation === 'standalone') {
+    return item.relation
+  }
+  return item.isProduct ? 'product' : 'predecessor'
+}
+
+/* A short label for a line with no product page; null when it has one. */
+export function relationLabel(relation: DgcisRelation): string | null {
+  if (relation === 'predecessor') return 'retired code, no product page'
+  if (relation === 'standalone') return 'tariff line only, heading not in HStat'
+  return null
+}
+
 /* DGCIS's own commodity groupings. The extract carries no tariff-line
  * description, and one is not invented here. */
 export type DgcisLine = {
@@ -74,6 +97,7 @@ export type DgcisNode = {
   /* False for an HS-6 carried only as a lineage predecessor, whose tariff
    * lines are real India history with no product page of their own. */
   isProduct: boolean
+  relation?: DgcisRelation
   periods: string[]
   lines: DgcisLine[]
   flows: Partial<Record<DgcisFlow, DgcisFlowBlock>>
@@ -82,6 +106,7 @@ export type DgcisNode = {
 export type DgcisIndexEntry = Omit<DgcisLine, 'description'> & {
   hs6: string
   isProduct: boolean
+  relation?: DgcisRelation
   flows: Partial<Record<DgcisFlow, {
     latest: { period: string; usdMillion: number } | null
     last12UsdMillion: number | null
@@ -119,6 +144,10 @@ export type DgcisManifest = {
   productsTotal: number
   coveredHs6: string[]
   predecessorHs6: string[]
+  standaloneHs6?: string[]
+  standaloneHs8?: number
+  scope?: 'chapters' | 'list' | 'all'
+  scopeChapters?: string[]
 }
 
 const BASE = '/data/dgcis'
@@ -260,7 +289,8 @@ export async function loadDgcisManifest(): Promise<DgcisManifest | null> {
 /*
  * The HS-8 catalogue, fetched once per session.
  *
- * 126 KB, and every consumer of it - search, the tariff-line route, the
+ * One file for every line in scope (about 1.5 MB, 110 KB compressed, at
+ * four thousand lines), and every consumer of it - search, the tariff-line route, the
  * "does this code exist" check - wants the whole thing. Caching the promise
  * rather than the value means five callers during the first paint make one
  * request between them.

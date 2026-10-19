@@ -13,6 +13,7 @@ import {
   formatValue,
   money,
   loadDgcisIndex,
+  relationOf,
   type DgcisFlow,
   type DgcisIndexEntry,
 } from '../lib/dgcis'
@@ -79,7 +80,7 @@ export function TariffLines({
       .map(([hs6, items]) => ({
         hs6,
         heading: items[0].headingName,
-        isProduct: items[0].isProduct,
+        relation: relationOf(items[0]),
         total: items.reduce((sum, line) => sum + size(line), 0),
         items: [...items].sort((a, b) => size(b) - size(a)),
       }))
@@ -183,13 +184,14 @@ export function TariffLines({
                   * would read as lines sharing a name instead of a parent. */}
                 <strong>HS {group.hs6}</strong>
                 <span>{group.heading || 'Heading'}</span>
-                {!group.isProduct && <em>retired code</em>}
+                {group.relation === 'predecessor' && <em>retired code</em>}
+                {group.relation === 'standalone' && <em>not in HStat</em>}
               </div>
 
               <div className="lines-group-right">
                 <span className="lines-total">{money(group.total, 'usd')}</span>
 
-                {group.isProduct && onOpen && (
+                {group.relation === 'product' && onOpen && (
                   <button type="button" className="linkish lines-open" onClick={() => onOpen(group.hs6, 6)}>
                     Product page <ArrowUpRight size={14} aria-hidden />
                   </button>

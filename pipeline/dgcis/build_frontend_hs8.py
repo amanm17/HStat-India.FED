@@ -46,9 +46,14 @@ import csv
 import json
 import re
 import shutil
+import sys
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+import hs8_scope  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 PROCESSED = ROOT / "data" / "dgcis" / "processed"
@@ -88,6 +93,35 @@ def heading_names() -> dict[str, str]:
         for r in rows
         if (r.get("hs6") or "").strip()
     }
+
+
+def official_heading(hs6: str) -> str:
+    """
+    For a standalone line, whose HS-6 HStat does not carry: the HS-6's own
+    official wording, shortened, so the page can still say what heading the
+    line sits under. Labelled as the heading, never as the line's name.
+    """
+    path = CONFIG / "reference" / "comtrade_hs_reference.json"
+
+    if not hasattr(official_heading, "_texts"):
+        texts = {}
+        if path.exists():
+            for row in json.loads(path.read_text(encoding="utf-8")):
+                code = str(row.get("code") or "")
+                text = str(row.get("description") or "")
+                if text.startswith(f"{code} - "):
+                    text = text[len(code) + 3:]
+                texts[code] = text.strip()
+        official_heading._texts = texts
+
+    text = official_heading._texts.get(hs6, "")
+    text = re.sub(r"\(.*?\)", "", text)
+    text = re.sub(r"\s+", " ", text).strip(" ;,")
+
+    if len(text) > 80:
+        text = text[:80].rsplit(" ", 1)[0].rstrip(" ,;") + "…"
+
+    return text
 
 
 def tariff_names() -> dict[str, dict]:
@@ -267,9 +301,14 @@ def main() -> int:
         for row in bundle["rows"]:
             hs6, hs8 = row["hs6"], row["hs8"]
 
+            # The processor already applied the scope; this guards a stale
+            # processed file built under a wider one.
+            if not hs8_scope.in_scope(hs8):
+                continue
+
             if hs8 not in lines[hs6]:
                 group = (row.get("principal_commodity") or "").strip()
-                heading = headings.get(hs6, "")
+                heading = headings.get(hs6, "") or official_heading(hs6)
                 title, source = title_for(hs8, group, heading, itc)
 
                 lines[hs6][hs8] = {
@@ -317,11 +356,13 @@ def main() -> int:
     written = 0
     attached: list[str] = []
     orphaned: list[str] = []
+    standalone: list[str] = []
     catalogue: list[dict] = []
 
     for hs6 in sorted(lines):
         ordered = [lines[hs6][hs8] for hs8 in sorted(lines[hs6])]
-        is_product = hs6 in universe
+        relation = hs8_scope.relation(hs6)
+        is_product = relation == "product"
 
         flows_out = {}
 
@@ -356,10 +397,13 @@ def main() -> int:
             "reporter": "India",
             "partner": "World",
             "units": {"inrCrore": "INR crore", "usdMillion": "USD million"},
-            # True when HStat publishes a product page for this HS-6. False
-            # for a code carried only as a lineage predecessor - 851712 before
-            # the smartphone split - whose tariff lines are real India history
-            # with no page of their own.
+            # How the HS-6 sits in HStat (pipeline/dgcis/hs8_scope.py):
+            #   product      it has a product page
+            #   predecessor  a retired code carried for lineage - 851712
+            #                before the smartphone split - no page of its own
+            #   standalone   HStat does not carry it; each line stands alone
+            # isProduct is kept for pages built before `relation` existed.
+            "relation": relation,
             "isProduct": is_product,
             "periods": periods,
             "lines": ordered,
@@ -371,7 +415,7 @@ def main() -> int:
         expected.add(target)
 
         written += 1
-        (attached if is_product else orphaned).append(hs6)
+        {"product": attached, "predecessor": orphaned, "standalone": standalone}[relation].append(hs6)
 
         # The HS-8 catalogue. Every tariff line needs to be findable by
         # search and reachable by URL without loading 255 files to discover
@@ -387,6 +431,7 @@ def main() -> int:
                 "headingName": line["headingName"],
                 "principalCommodity": line["principalCommodity"],
                 "quickEstimateCommodity": line["quickEstimateCommodity"],
+                "relation": relation,
                 "isProduct": is_product,
                 "flows": {},
             }
@@ -447,6 +492,11 @@ def main() -> int:
         "coveredHs6": sorted(attached),
         # Present in the source, no product page to sit on.
         "predecessorHs6": sorted(orphaned),
+        # HS-6 codes HStat does not carry, whose lines have standalone pages.
+        "standaloneHs6": sorted(standalone),
+        "standaloneHs8": sum(len(lines[code]) for code in standalone),
+        "scope": hs8_scope.config()["mode"],
+        "scopeChapters": list(hs8_scope.chapters() or []),
         "reconciliation": {
             "method": "sum of HS-8 rows against the DGCIS TOTAL footer",
             "tolerancePct": 0.01,
@@ -477,6 +527,8 @@ def main() -> int:
     print(f"files written     : {written}")
     print(f"  with a product  : {len(attached)} of {len(universe)}")
     print(f"  predecessor only: {len(orphaned)}  {orphaned}")
+    print(f"  standalone      : {len(standalone)} HS-6, "
+          f"{manifest['standaloneHs8']} HS-8 lines")
     print(f"HS-8 tariff lines : {manifest['hs8Count']}")
     print(f"periods           : {len(periods)}  {periods[0]} → {periods[-1]}")
     print(f"total on disk     : {size / 1024:.0f} KB")

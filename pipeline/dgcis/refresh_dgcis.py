@@ -26,6 +26,8 @@ place in the pipeline where a human assertion becomes data, which is exactly
 why it is the place with the guard.
 
     --flow exports          just the one
+    --scope                 print the commodity selection for the portal
+    --allow-shrink          publish an extract with >10% fewer tariff lines
     --skip-download         use whatever is already in data/dgcis/incoming/
     --no-diff               skip the month-on-month report
 """
@@ -40,6 +42,9 @@ from datetime import datetime
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+
+import hs8_scope  # noqa: E402
 ROOT = HERE.parents[1]
 
 INCOMING = ROOT / "data" / "dgcis" / "incoming"
@@ -224,9 +229,16 @@ In the browser window:
 
   Trade flow   : {'Export' if flow == 'exports' else 'Import'}   <- this one matters most
   HS level     : HS8
+  Commodities  : {hs8_scope.portal_selection()}
   Country      : World
   Measure      : Value
+  Period basis : Calendar Year
   Period       : the full range you want, ending with the newest month
+
+The commodity list comes from hs_index/hs8_scope.json ({hs8_scope.describe()}).
+Every HS-8 inside it is kept; one whose HS-6 HStat does not carry gets a
+standalone page. If the portal limits how much one query can return, split
+the chapters across queries and save them as one file per flow.
 
 Solve the CAPTCHA, submit, and wait until the results table is on screen.
 
@@ -271,12 +283,70 @@ then re-run with --skip-download.""")
     return target
 
 
+SHRINK_LIMIT = 0.10
+
+
+def check_not_narrower(before: dict, flows: list[str], allowed: bool) -> None:
+    """
+    Stop before anything is rebuilt when a download holds far fewer in-scope
+    tariff lines than the dashboard publishes today.
+
+    With a wide scope the likeliest mistake is a narrow query - the old
+    electronics group, or one chapter batch missing - and publishing it would
+    quietly remove thousands of pages. A real narrowing (a scope change) is
+    passed with --allow-shrink.
+    """
+    published = len(before.get("lines", {}))
+
+    if not published:
+        return
+
+    import csv as _csv
+
+    for flow in flows:
+        path = INCOMING / f"DGCIS_DATA_{flow}.csv"
+        if not path.exists():
+            continue
+
+        with path.open(newline="", encoding="utf-8-sig") as handle:
+            codes = {
+                "".join(ch for ch in (row.get("HS Code") or "") if ch.isdigit()).zfill(8)
+                for row in _csv.DictReader(handle)
+                if (row.get("Country Name") or "").strip().upper() != "TOTAL"
+            }
+
+        kept = sum(1 for code in codes if hs8_scope.in_scope(code))
+
+        if kept < published * (1 - SHRINK_LIMIT):
+            message = (
+                f"The {flow} download holds {kept:,} in-scope tariff lines; the "
+                f"dashboard publishes {published:,} today. Check the portal query "
+                f"covers {hs8_scope.portal_selection()}."
+            )
+            if allowed:
+                print(f"note: {message} Continuing (--allow-shrink).")
+            else:
+                raise SystemExit(
+                    f"{message}\nNothing was rebuilt. If the narrower scope is "
+                    "intended, re-run with --allow-shrink."
+                )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--flow", choices=FLOWS, action="append", default=None)
     parser.add_argument("--skip-download", action="store_true")
     parser.add_argument("--no-diff", action="store_true")
+    parser.add_argument("--allow-shrink", action="store_true",
+                        help="publish even if the new extract holds far fewer tariff lines")
+    parser.add_argument("--scope", action="store_true",
+                        help="print the portal commodity selection and stop")
     args = parser.parse_args()
+
+    if args.scope:
+        print(hs8_scope.describe())
+        print(f"Portal commodities: {hs8_scope.portal_selection()}")
+        return 0
 
     flows = args.flow or list(FLOWS)
 
@@ -298,10 +368,13 @@ def main() -> int:
 
     before = snapshot_published()
 
-    for flow in flows:
-        if not args.skip_download:
+    if not args.skip_download:
+        for flow in flows:
             capture(flow)
 
+    check_not_narrower(before, flows, args.allow_shrink)
+
+    for flow in flows:
         run(f"Validating the {flow} extract",
             [str(HERE / "validate_hs8.py"), "--flow", flow])
 
@@ -324,6 +397,10 @@ Check it locally before shipping:
     npm run build && npm run preview
 
 then commit and push - the deploy runs from main.
+
+Or skip the local build: put the two downloads in data/dgcis/inbox/ (zip
+them if large), commit and push, and the "DGCIS HS-8 refresh" workflow
+validates, processes, builds and commits the pages itself.
 {'─' * 66}""")
 
     return 0

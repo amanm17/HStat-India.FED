@@ -12,6 +12,7 @@ discovers codes from an API, and there is no Excel step.
 | `lineage.csv` | HS revision history: codes split or merged in 2022, retired codes and their successors. A predecessor named here is pulled for history and its figures are carried into the successor's page, marked `**`. |
 | `batches.json` | Every intake, oldest first, with the codes it added and whether their first data pull has finished. The pull groups codes by batch, so adding codes never invalidates earlier downloads. |
 | `vocabulary.json` | The only values allowed for category, segment and DGCIS segment. |
+| `hs8_scope.json` | Which India tariff lines (HS-8, from DGCIS) are kept (see "Tariff lines"). |
 | `naming_review.csv` | Reviewer verdicts for display names that use words outside the official HS text (see "Naming rules"). |
 | `incoming/` | Drop new codes here. `incoming/rejected/` holds uploads that could not pass, each with a report. |
 | `batches/<id>/` | One folder per upload: the original file, `review.csv` (every code, what was given, what was drafted) and `report.md`. |
@@ -94,3 +95,30 @@ the code and it must be reviewed again.
 
 Run `python pipeline/hs_index_check.py` after any hand edit. CI runs it on
 every push.
+
+## Tariff lines (HS-8)
+
+India's own eight-digit lines come from the DGCIS portal, by hand (it is
+CAPTCHA-gated). `hs8_scope.json` says which are kept:
+
+- `chapters` (the default): every HS-8 under an HS-2 chapter this index
+  covers. Adding codes in a new chapter widens it with no other edit.
+- `list`: only the chapters named in the file.
+- `all`: every HS-8 the download holds.
+
+Every line in scope is kept, whether or not it traces back to an HStat HS-6
+(until October 2026 only lines under an HStat code were kept). Each page says
+how its HS-6 relates to HStat: `product` (links up to the product page),
+`predecessor` (a retired code kept for lineage) or `standalone` (HStat does not
+carry the heading; the line is a page of its own, named by its code, with the
+official HS-6 wording as context and no Comtrade card).
+
+Monthly: `python3 pipeline/dgcis/refresh_dgcis.py --scope` prints what to
+select in the portal. Download exports and imports, put both in
+`data/dgcis/inbox/` and push; the **DGCIS HS-8 refresh** workflow joins split
+downloads, validates, checks each flow against Comtrade, rebuilds
+`public/data/dgcis` and commits it. It refuses a download with over 10% fewer
+lines than the site publishes (re-run by hand with `allow_shrink` if a
+narrower scope is intended). A scheduled reminder arrives on the 2nd of each
+month. When a product page goes live, the monthly data refresh relabels the
+lines under it (`pipeline/dgcis/relabel_published.py`).

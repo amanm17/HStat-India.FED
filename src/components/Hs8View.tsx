@@ -33,6 +33,8 @@ import {
   latestOf,
   loadDgcis,
   parentOf,
+  relationLabel,
+  relationOf,
   rollingChange,
   seriesFor,
   shareOfParent,
@@ -183,6 +185,11 @@ export function Hs8View({
   }, [data, flow, basis, parent])
 
   const entry = catalogue.find(item => item.code === hs6)
+  /* The heading's name: HStat's own when it carries the code, otherwise the
+   * official HS-6 wording the build attached (a standalone line). */
+  const headingText = entry
+    ? `, ${entry.displayName || entry.product}`
+    : line?.headingName ? `, ${line.headingName}` : ''
 
   /*
    * The card in the corner, filled from this line rather than from the route.
@@ -208,8 +215,8 @@ export function Hs8View({
       code: {
         value: `HS ${hs8}`,
         what: named
-          ? `${line?.title} — one of ${plural(siblings.length, 'line')} India files under HS ${hs6}${entry ? `, ${entry.displayName || entry.product}` : ''}.`
-          : `Not named in the 2025-26 ITC(HS) schedule, so the code stands as the identity. It sits under HS ${hs6}${entry ? `, ${entry.displayName || entry.product}` : ''}.`,
+          ? `${line?.title} — one of ${plural(siblings.length, 'line')} India files under HS ${hs6}${headingText}.`
+          : `Not named in the 2025-26 ITC(HS) schedule, so the code stands as the identity. It sits under HS ${hs6}${headingText}.`,
         note: named
           ? 'Name from India\u2019s own eight-digit schedule, not from Comtrade.'
           : 'Filings under this code stop before the current period; it is a line the schedule has since dropped.',
@@ -266,7 +273,7 @@ export function Hs8View({
       watch:
         'partner \u201cWorld\u201d here means India trading with everywhere, not world trade. It must never be added to a Comtrade figure.',
     }),
-    [hs8, hs6, line, flow, basis, siblings.length, helpRank, series, entry],
+    [hs8, hs6, line, flow, basis, siblings.length, helpRank, series, entry, headingText],
   )
 
   if (state === 'loading') {
@@ -321,6 +328,11 @@ export function Hs8View({
 
   const chapter = hs6.slice(0, 2)
   const heading = hs6.slice(0, 4)
+  const relation = relationOf(data)
+  /* Predecessors keep their old behaviour (their pages resolve through the
+   * lineage); a standalone line links only to levels HStat publishes. */
+  const hasPage = (code: string) =>
+    relation !== 'standalone' || catalogue.some(item => item.code === code)
 
   return (
     <div className="rf-product rf-hs8 hs8-page">
@@ -330,28 +342,20 @@ export function Hs8View({
             Home
           </button>
         )}
-        {onOpen && (
-          <>
-            <span>
-              <span aria-hidden="true">›</span>
-              <button type="button" className="rf-link" onClick={() => onOpen(chapter, 2)}>
-                HS-2 {chapter}
+        {/* A level HStat has no page for is named, not linked: a standalone
+          * line's HS-4 and HS-6 are not in HStat (its chapter usually is). */}
+        {([[chapter, 2], [heading, 4], [hs6, 6]] as const).map(([code, level]) => (
+          <span key={code}>
+            <span aria-hidden="true">›</span>
+            {onOpen && hasPage(code) ? (
+              <button type="button" className="rf-link" onClick={() => onOpen(code, level)}>
+                HS-{level} {code}
               </button>
-            </span>
-            <span>
-              <span aria-hidden="true">›</span>
-              <button type="button" className="rf-link" onClick={() => onOpen(heading, 4)}>
-                HS-4 {heading}
-              </button>
-            </span>
-            <span>
-              <span aria-hidden="true">›</span>
-              <button type="button" className="rf-link" onClick={() => onOpen(hs6, 6)}>
-                HS-6 {hs6}
-              </button>
-            </span>
-          </>
-        )}
+            ) : (
+              <span>HS-{level} {code}</span>
+            )}
+          </span>
+        ))}
         <span>
           <span aria-hidden="true">›</span>
           <span aria-current="page">HS-8 {hs8}</span>
@@ -374,7 +378,7 @@ export function Hs8View({
           {siblings.length > 1 ? `1 of ${siblings.length} lines under` : 'Only line under'}{' '}
           <strong>HS {hs6}</strong>
           {entry ? <> · {entry.displayName || entry.product}</> : line.headingName ? <> · {line.headingName}</> : null}
-          {!data.isProduct && <> · retired code, no product page</>}
+          {relationLabel(relation) && <> · {relationLabel(relation)}</>}
         </p>
 
         {nameCaveat(line) && <p className="hs8-namecaveat">{nameCaveat(line)}</p>}
@@ -450,14 +454,16 @@ export function Hs8View({
                 </button>
               )}
 
-              <button
-                type="button"
-                className="rf-button quiet stack-add"
-                onClick={() => onQuickStack([{ code: hs8, level: 8 }, { code: hs6, level: 6 }])}
-                title={`Stack this line with HS ${hs6}, the heading it sits under`}
-              >
-                <Layers size={16} aria-hidden /> With HS {hs6}
-              </button>
+              {relation !== 'standalone' && (
+                <button
+                  type="button"
+                  className="rf-button quiet stack-add"
+                  onClick={() => onQuickStack([{ code: hs8, level: 8 }, { code: hs6, level: 6 }])}
+                  title={`Stack this line with HS ${hs6}, the heading it sits under`}
+                >
+                  <Layers size={16} aria-hidden /> With HS {hs6}
+                </button>
+              )}
             </>
           )}
 
