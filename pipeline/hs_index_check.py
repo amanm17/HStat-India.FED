@@ -11,7 +11,8 @@ a bad edit cannot reach a data pull. Errors block; warnings are reported.
 Structural
   E  every HS-6 is a real HS 2022 code, or a retired predecessor in lineage.csv
   E  no code listed twice; every HS-2 / HS-4 parent has a row in parents.csv
-  E  category, segment and DGCIS segment come from vocabulary.json
+  E  category, segment, DGCIS segment and stream come from vocabulary.json;
+     stream is never blank
   E  every lineage row names codes that exist in the index or the reference
 
 Tagging
@@ -87,13 +88,18 @@ def check() -> list[dict]:
             if parent not in parents:
                 add("E", "parent", code, f"parent {parent} has no row in hs_index/parents.csv")
 
-        for column in ("category", "segment", "dgcis_segment"):
+        for column in ("category", "segment", "dgcis_segment", "stream"):
             allowed = vocab.get(column)
             value = getattr(product, column)
             if allowed and value and value not in allowed:
                 add("E", "vocabulary", code, f"{column} {value!r} is not in hs_index/vocabulary.json")
             if column in ("category", "segment") and not value and code not in retired:
                 add("E", "vocabulary", code, f"{column} is empty")
+
+    # A blank stream would load as "other": say so instead of deciding it.
+    for row in _read_csv_rows(hs_rules.HS_INDEX / "codes.csv"):
+        if row.get("hs6") and not (row.get("stream") or "").strip():
+            add("E", "vocabulary", row["hs6"], "stream is empty (electronics, electronics-inputs or other)")
 
     for code, row in parents.items():
         if have_reference and code not in hs_rules.h6():

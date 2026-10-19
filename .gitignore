@@ -39,6 +39,9 @@ data/dgcis/normalized/
 # by the DGCIS HS-8 refresh workflow, which clears the folder once published.
 data/dgcis/raw/
 data/dgcis/processed/
+# Quarantined downloads (a wrong period basis, a wrong flow): kept locally as
+# evidence, never committed, never deleted.
+data/dgcis/rejected/
 data/dgcis/tia_network_log.json
 data/dgcis/tia_capture.json
 data/dgcis/tia_capture.txt

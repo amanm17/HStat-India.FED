@@ -49,8 +49,11 @@ upload, add `naming_review.csv` verdicts for names that use words outside
 the official text, and add rows to `parents.csv` for new chapters and
 headings; the intake then uses them instead of drafting. A code created in
 2022 whose heading lost several codes needs its `lineage.csv` row first.
-`python pipeline/hs_intake.py` (no `--apply`) checks an upload and leaves it
-in place.
+`python3 pipeline/hs_intake.py` (no `--apply`) runs the same checks and the
+same trial merge as the workflow, then puts every file back; it writes its
+report beside the upload as `<name>.check.md` (the merging run deletes it).
+A retired code that keeps its own page (for example 853950) is never drafted
+as a new code's predecessor; the new code is recorded as `new` instead.
 
 ### What the intake checks
 

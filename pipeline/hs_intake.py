@@ -296,7 +296,23 @@ def assess(path: Path) -> dict:
                 if entry["level"] == 6 and old.startswith(code[:4]) and old not in hs_rules.h6()
             )
 
-            if len(candidates) == 1:
+            # A retired code that keeps its own page (853950, LED lamps) must
+            # not be named as a predecessor: that would take its page away
+            # (definition.retired_codes). Draft "new", pointing at it.
+            paged = {product.hs6 for product in products}
+            if len(candidates) == 1 and candidates[0] in paged:
+                old = candidates[0]
+                report["lineage"].append({
+                    "code": code, "predecessor": "", "relation": "new", "predecessor_valid_to": "",
+                    "note": f"Created in HS 2022. Before 2022 this trade was reported under HS {old}, "
+                            f"which keeps its own page with those years.",
+                })
+                item["lineage"] = f"new in HS 2022; HS {old} keeps its own page (drafted - review)"
+                report["notes"].append(
+                    f"{code}: its likely predecessor HS {old} has its own page, so it is recorded as new, "
+                    f"not as a split (naming {old} would remove that page)"
+                )
+            elif len(candidates) == 1:
                 old = candidates[0]
                 report["lineage"].append({
                     "code": code, "predecessor": old, "relation": "split", "predecessor_valid_to": "2021",
@@ -524,9 +540,17 @@ def merge(report: dict, batch: str) -> None:
     # The pull order: this batch's codes after every earlier batch's, so no
     # earlier download is invalidated (definition.pull_groups).
     batches = _load_batches()
+    claimed = {code for earlier in batches["batches"] for code in earlier.get("codes", [])}
+    new_codes = {item["hs6"] for item in report["codes"]}
+    # Every chapter and heading above the new codes that no earlier batch
+    # pulls - drafted here or named by hand in parents.csv beforehand - is
+    # pulled with this batch, never left to the "unbatched" group (whose
+    # chunks would change, and re-download, with each later hand edit).
+    parents_here = {code[:2] for code in new_codes} | {code[:4] for code in new_codes}
     pull_codes = sorted(
-        {item["hs6"] for item in report["codes"]}
+        new_codes
         | {p["code"] for p in report["parents"]}
+        | {code for code in parents_here if code not in claimed}
         | {l["predecessor"] for l in report["lineage"] if l["predecessor"]}
     )
     batches["batches"].append({
@@ -597,7 +621,10 @@ def process(path: Path, apply: bool) -> str:
         "nothing to add" if not report["blocking"] else "needs attention")
 
     merged = False
-    if verdict == "ready to merge" and apply:
+    # A check (no --apply) runs the same merge and the same whole-index check
+    # as --apply, then puts every file back: "ready to merge" from a check
+    # means the workflow's merge will pass too.
+    if verdict == "ready to merge":
         config = ROOT / "config"
         files = [definition.DEFINITION_CSV, definition.PARENTS_CSV, definition.LINEAGE_CSV, definition.BATCHES_JSON,
                  config / "hs6_universe.txt", config / "parent_universe.json", config / "hs_titles.json",
@@ -610,13 +637,24 @@ def process(path: Path, apply: bool) -> str:
         if introduced:
             for p, data in saved.items():
                 p.write_bytes(data)
+            for p in files:
+                if p not in saved and p.exists():
+                    p.unlink()
             _clear_caches()
             report["indexErrors"] = introduced
             report["blocking"].append(f"merging would add {len(introduced)} index-check error(s); nothing was merged")
             verdict = "needs attention"
-        else:
+        elif apply:
             merged = True
             verdict = "merged; pull pending"
+        else:
+            for p, data in saved.items():
+                p.write_bytes(data)
+            for p in files:
+                if p not in saved and p.exists():
+                    p.unlink()
+            _clear_caches()
+            report["notes"].append("check only: the batch merged cleanly and was rolled back")
 
     with (folder / "review.csv").open("w", newline="", encoding="utf-8") as handle:
         csv.writer(handle).writerows(_review_rows(report))
@@ -631,8 +669,16 @@ def process(path: Path, apply: bool) -> str:
     # The file moves when a run acts on it - into its batch folder once
     # merged, or to incoming/rejected/ with the report when it cannot pass.
     if not apply:
-        shutil.copy(path, folder / path.name)
-        return f"{path.name}: {verdict} (check only, file left in incoming/) -> hs_index/batches/{batch}/report.md"
+        # The report goes beside the upload, not into batches/: a check is
+        # not a batch. The run that merges the upload deletes it.
+        check_report = path.with_name(f"{path.stem}.check.md")
+        shutil.copy(folder / "report.md", check_report)
+        shutil.rmtree(folder)
+        return f"{path.name}: {verdict} (check only, nothing changed) -> {check_report.relative_to(ROOT)}"
+
+    stale_check = path.with_name(f"{path.stem}.check.md")
+    if stale_check.exists():
+        stale_check.unlink()
 
     destination = folder if verdict != "needs attention" else REJECTED
     destination.mkdir(parents=True, exist_ok=True)

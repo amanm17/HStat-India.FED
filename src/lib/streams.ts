@@ -24,7 +24,12 @@ export const STREAMS: Stream[] = ['electronics', 'electronics-inputs', 'other']
 export function streamOf(item: { stream?: string | null } | null | undefined): Stream {
   const value = item?.stream
 
-  return value === 'electronics-inputs' || value === 'other' ? value : 'electronics'
+  /* Missing: a file from before streams, which held electronics only. */
+  if (value === undefined || value === null || value === '') return 'electronics'
+  if (value === 'electronics' || value === 'electronics-inputs') return value
+
+  /* Anything else is never counted as electronics. */
+  return 'other'
 }
 
 export function isElectronics(item: { stream?: string | null } | null | undefined): boolean {
