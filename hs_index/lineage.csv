@@ -85,6 +85,12 @@ code,predecessor,relation,predecessor_valid_to,note,retired_in,valid_to,successo
 852492,,new,,Heading 8524 was created in HS 2022. Before then display modules were reported across several headings,,,,
 852499,,new,,Heading 8524 was created in HS 2022. Before then display modules were reported across several headings,,,,
 
+# --- added for SPECS coverage, 2026-10 ------------------------------------
+854800,,new,,"HS 2022 renumbered 8548.90 to 8548.00 and moved electrical and electronic waste out to heading 85.49, so this code covers less than the old one. The years before 2022 are on the retired code's own page, HS 854890, and are not joined on.",,,,
+701963,,new,,"HS 2022 rebuilt the glass-fibre fabric subheadings (7019.61 to 7019.69). Earlier trade sat across 7019.40 to 7019.59 with no single predecessor.",,,,
+701964,,new,,"HS 2022 rebuilt the glass-fibre fabric subheadings (7019.61 to 7019.69). Earlier trade sat across 7019.40 to 7019.59 with no single predecessor.",,,,
+701969,,new,,"HS 2022 rebuilt the glass-fibre fabric subheadings (7019.61 to 7019.69). Earlier trade sat across 7019.40 to 7019.59 with no single predecessor.",,,,
+
 # --- codes deleted outright, with no current successor to attach to ---------
 # Listed as predecessors of their heading so they leave the product list but
 # their data still feeds the HS-4 series.

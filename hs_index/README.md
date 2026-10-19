@@ -43,6 +43,14 @@ Derived from these, and rewritten by the intake (never edit by hand):
 Scope only grows: a code already in scope is skipped, never changed, and
 nothing is removed by an upload.
 
+To choose the names yourself, put `display_name` (and any other tag) in the
+upload, add `naming_review.csv` verdicts for names that use words outside
+the official text, and add rows to `parents.csv` for new chapters and
+headings; the intake then uses them instead of drafting. A code created in
+2022 whose heading lost several codes needs its `lineage.csv` row first.
+`python pipeline/hs_intake.py` (no `--apply`) checks an upload and leaves it
+in place.
+
 ### What the intake checks
 
 - **Format.** Digits only. Excel's lost leading zero is restored (`30490` →

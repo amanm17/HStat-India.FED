@@ -223,12 +223,17 @@ def main():
         "the search index is missing codes that the catalogue publishes",
     )
 
+    # A chapter or heading that only codes awaiting their first pull sit
+    # under is pending with them: it is published by the same backfill.
+    waiting_codes = set(pending_codes())
+    live_codes = {code for code in hs6_universe() if code not in waiting_codes}
+
     for level, codes in parent_universe().items():
         absent = [
             code
             for code in codes
             if not (snapshot / "parents" / level / f"{code}.json").exists()
-            and code not in pending_codes()
+            and any(child.startswith(code) for child in live_codes)
         ]
 
         check.require(

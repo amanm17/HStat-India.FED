@@ -385,6 +385,13 @@ def draft_short_name(code: str, taken: set[str], limit: int = 44) -> str:
 
     if name.lower() in taken:
         name = _shorten(text.replace(";", ","), limit + 16)
+        name = name[0].upper() + name[1:]
+
+    # Still the same words as a chapter or another heading ("Machinery and
+    # mechanical appliances" is both 84 and the start of 8479): the code
+    # tells them apart without inventing words.
+    if name.lower() in taken:
+        name = f"{_shorten(name, limit - 10)} (HS {code})"
 
     return name
 

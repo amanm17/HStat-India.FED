@@ -323,6 +323,13 @@ def assess(path: Path) -> dict:
 
     terms_taken = {term for product in products for term in product.search_terms}
     terms_taken |= {term for alias in definition.load_aliases() if alias.primary for term in alias.terms}
+    # Terms the upload itself gives belong to the code it gives them to.
+    terms_taken |= {
+        term.strip().lower()
+        for item in report["codes"]
+        for term in (item["given"].get("search_terms") or "").split(";")
+        if term.strip()
+    }
 
     for item in report["codes"]:
         code, given = item["hs6"], item["given"]
@@ -608,6 +615,13 @@ def process(path: Path, apply: bool) -> str:
         "blocking": report["blocking"], "toAdd": [c["hs6"] for c in report["codes"]],
         "skipped": report["skipped"], "rejected": report["rejected"],
     }, indent=1) + "\n", encoding="utf-8")
+
+    # A check (no --apply) leaves the upload where it is: it only reports.
+    # The file moves when a run acts on it - into its batch folder once
+    # merged, or to incoming/rejected/ with the report when it cannot pass.
+    if not apply:
+        shutil.copy(path, folder / path.name)
+        return f"{path.name}: {verdict} (check only, file left in incoming/) -> hs_index/batches/{batch}/report.md"
 
     destination = folder if verdict != "needs attention" else REJECTED
     destination.mkdir(parents=True, exist_ok=True)
