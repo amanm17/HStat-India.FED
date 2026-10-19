@@ -38,7 +38,8 @@ Derived from these, and rewritten by the intake (never edit by hand):
 
 3. Read `hs_index/batches/<id>/report.md`. A merged batch is pulled by the
    nightly backfill (about 01:07 IST), validated, and goes live once the
-   snapshot passes every check; the batch is then marked pulled.
+   snapshot passes every check; the batch is then marked pulled. To pull it
+   now instead, add a line to `hs_index/pull_now.txt`, commit and push.
 
 Scope only grows: a code already in scope is skipped, never changed, and
 nothing is removed by an upload.

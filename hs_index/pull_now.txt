@@ -1,0 +1,7 @@
+# Commit and push a change to this file to pull newly added codes now,
+# instead of waiting for the nightly backfill (01:07 IST). It runs the
+# "Validated data refresh" workflow in backfill mode: only what the pending
+# intake batches are missing, within the usual 200-call budget, then the
+# usual validation before anything is published. Add a line saying why.
+
+2026-10-19  SPECS batch (37 codes): pull now, requested by Aman

@@ -84,6 +84,11 @@ export type Hs8DownloadRequest = {
  */
 /* DGCIS commodity groups are filed in capitals ("TELECOM INSTRUMENTS");
  * shown as a plain detail they read better in sentence case. */
+/* The flows that carry this line, in the usual order (exports first). */
+function lineFlowsOf(node: DgcisNode | null, hs8: string): DgcisFlow[] {
+  return flowsOf(node).filter(flow => Boolean(node?.flows[flow]?.series[hs8]))
+}
+
 function sentence(text: string): string {
   const lower = text.toLowerCase()
   return lower.charAt(0).toUpperCase() + lower.slice(1)
@@ -137,7 +142,9 @@ export function Hs8View({
       if (!live) return
 
       setData(result)
-      setFlow(flowsOf(result)[0] ?? null)
+      /* The first flow that actually carries this line: a line can be filed
+       * on one flow only (37024210 has imports and no exports). */
+      setFlow(lineFlowsOf(result, hs8)[0] ?? flowsOf(result)[0] ?? null)
       setState('done')
     })
 
@@ -146,7 +153,13 @@ export function Hs8View({
     }
   }, [hs6])
 
-  const available = useMemo(() => flowsOf(data), [data])
+  const available = useMemo(() => lineFlowsOf(data, hs8), [data, hs8])
+
+  /* Moving to a sibling on the same heading keeps the loaded file; if the
+   * new line is not filed on the current flow, switch to one it is. */
+  useEffect(() => {
+    if (data && flow && !available.includes(flow) && available.length) setFlow(available[0])
+  }, [data, flow, available])
 
   const line = useMemo(
     () => data?.lines.find(item => item.hs8 === hs8) ?? null,
@@ -220,7 +233,9 @@ export function Hs8View({
         note: named
           ? line?.nameSource === 'dgcis'
             ? 'Name as DGCIS files this line, abbreviated as in the source, not from Comtrade.'
-            : 'Name from India\u2019s own eight-digit schedule, not from Comtrade.'
+            : line?.nameSource === 'derived'
+              ? 'DGCIS names this line only \u201cOthers\u201d or in shared words; the name adds its heading.'
+              : 'Name from India\u2019s own eight-digit schedule, not from Comtrade.'
           : 'The eight-digit code is how customs files this line and how it is best quoted.',
       },
 
@@ -384,6 +399,12 @@ export function Hs8View({
         </p>
 
         {nameCaveat(line) && <p className="hs8-namecaveat">{nameCaveat(line)}</p>}
+        {line.filed === false && (
+          <p className="hs8-namecaveat">
+            Listed in India&rsquo;s tariff schedule; DGCIS has no trade filed under this line from{' '}
+            {formatPeriod(data.periods[0])} to {formatPeriod(data.periods[data.periods.length - 1])}.
+          </p>
+        )}
       </section>
 
       <div className="rf-furniture" role="toolbar" aria-label="Page controls">

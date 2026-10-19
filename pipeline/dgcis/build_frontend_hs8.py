@@ -157,57 +157,17 @@ def tariff_names() -> dict[str, dict]:
     return out
 
 
-def title_for(hs8: str, group: str, heading: str, itc: dict) -> tuple[str, str]:
-    """
-    What to call a tariff line - and when to admit we cannot.
-
-    First attempt at this fixed the wrong problem. 543 pages were titled from a
-    vocabulary of seven DGCIS commodity groups, so we substituted the heading's
-    authored name: 7 titles became 255. Better, and still wrong, because 29
-    lines were then all called "Electrical machines, other". A reader cannot
-    reference one of those. Neither could they reference "ELECTRONICS
-    COMPONENTS". The repetition simply moved.
-
-    The mistake was looking for a word. A tariff line's name *is* its code:
-    85437099 is how customs files it, how a trader quotes it, and how MeitY
-    will ask about it. It is unique by construction, which no borrowed word can
-    be. So when we have no real description, we return none, the code becomes
-    the identity, and the heading becomes context beside it - clearly labelled
-    as the heading, not passed off as the line's own name.
-
-    A title is returned only when it genuinely names *this line*:
-
-      1. A curated name in config/itc_hs8_names.csv ("schedule").
-      2. DGCIS's own description of the line, when it names that line and
-         no other ("dgcis"; see below).
-      3. Otherwise nothing, and the frontend leads with the code.
-
-    `headingName` is emitted separately and always, so a page can say
-    "one of 29 lines under HS 854370 - Electrical machines, other" without
-    ever implying that phrase identifies the line in front of you.
-    """
-    known = itc.get(hs8) or {}
-
-    if known.get("displayName") or known.get("description"):
-        return (known.get("displayName") or known["description"]), "schedule"
-
-    named = dgcis_titles.get(hs8)
-
-    if named:
-        return named, "dgcis"
-
-    return "", "none"
-
-
-# ---------------------------------------------------------------- DGCIS names
+# ---------------------------------------------------------------- line names
 #
-# Since the 2026-10 portal layout, every row carries DGCIS's own description
-# of the line ("HS Description"): the same text config/itc_hs8_names.csv was
-# built from, abbreviated and in capitals. It is used as a line's title only
-# when it names that line and no other - "OTHERS", "PARTS" or a phrase two
-# codes share would be the "Electrical machines, other" problem again - and
-# then only re-cased, never reworded. nameSource "dgcis" says where it came
-# from. Lines with a curated name in itc_hs8_names.csv keep that name.
+# Every tariff line gets a name, unique across the site (assign_titles).
+#
+# A tariff line's code is how customs files it, and the page always leads
+# with it. Until 2026-10 a line without a real name showed only its code. Now
+# a name is always given, from the source's own words, and its nameSource
+# says how it was made: a curated schedule name, DGCIS's own description
+# (the 2026-10 portal layout carries one per line: abbreviated, in capitals,
+# re-cased here and never reworded), or - where DGCIS says only "Others" or
+# uses words other lines share - the description joined to its heading.
 
 GENERIC = {"", "other", "others", "parts", "part", "other parts", "others parts", "nes", "n.e.s."}
 
@@ -219,9 +179,6 @@ ACRONYMS = {
     "EPDM", "PTFE", "PU", "PMMA", "PC", "PA", "HIPS", "SIM", "RF", "GSM", "CDMA",
     "LAN", "WAN", "DSL", "ISDN", "SMD", "MLCC", "IGBT", "SCR", "LI-ION", "NI-CD",
 }
-
-dgcis_titles: dict[str, str] = {}
-
 
 def recase(text: str) -> str:
     """DGCIS capitals to sentence case, keeping acronyms. Words unchanged."""
@@ -237,23 +194,110 @@ def recase(text: str) -> str:
     return " ".join(words)
 
 
-def learn_dgcis_titles(descriptions: dict[str, str], itc: dict) -> None:
-    """Fill dgcis_titles with the descriptions that name exactly one line."""
-    taken = {
-        (v.get("displayName") or v.get("description") or "").strip().lower()
-        for v in itc.values()
+def _generic(text: str) -> bool:
+    key = re.sub(r"[^a-z.]", " ", text.lower().replace("0", "o"))
+    return re.sub(r"\s+", " ", key).strip() in GENERIC
+
+
+def short_heading(hs6: str, headings: dict[str, str]) -> str:
+    """
+    The heading's name for use inside a line's title: HStat's own when the
+    HS index carries the code, else the shortest official HS-6 wording that
+    fits (hs_rules' four-word drafts), else its official text, cut cleanly.
+    """
+    if headings.get(hs6):
+        return headings[hs6]
+    try:
+        sys.path.insert(0, str(ROOT / "pipeline"))
+        import hs_rules
+        if not hs_rules.official_text(hs6):
+            # Not an HS 2022 code (India still files lines under some HS 2017
+            # codes): the all-editions list has its wording.
+            raise LookupError(hs6)
+        drafted = hs_rules.draft_name(hs6, set())
+        if drafted:
+            return drafted
+        # "Heading; first part of the subheading", e.g. "Engines, parts".
+        head, tail = hs_rules._official_clauses(hs6)
+        first = hs_rules._fragments(tail)[0] if hs_rules._fragments(tail) else ""
+        text = f"{head}, {first}" if first else head
+        if text:
+            return hs_rules._shorten(text, 60)
+    except Exception:  # noqa: BLE001 - a missing reference must not stop the build
+        pass
+    text = official_heading(hs6).rstrip("…").strip()
+    if text:
+        text = re.sub(r"^[^;]*;\s*", lambda m: m.group(0).replace(";", ","), text, count=1)
+        return text[:60].rsplit(" ", 1)[0].rstrip(" ,;") if len(text) > 60 else text
+    return f"HS {hs6}"
+
+
+def assign_titles(
+    lines: dict[str, dict], itc: dict, headings: dict[str, str]
+) -> dict[str, tuple[str, str]]:
+    """
+    hs8 -> (title, nameSource) for every line, so that every tariff line has
+    a name and no two share one.
+
+      schedule  a curated name in config/itc_hs8_names.csv
+      dgcis     DGCIS's own description, re-cased, when it names that line
+                and no other
+      derived   DGCIS gives no name of its own ("Others", "Parts", blank) or
+                one that other lines share. The name is built from the
+                source's words only: "<heading>, other", or "<description>
+                (<heading>)", and when even that repeats, the line's own
+                code is added. Nothing is invented; the caveat says so.
+
+    `lines` is hs8 -> {"hs6": ..., "description": DGCIS's raw text}.
+    """
+    out: dict[str, tuple[str, str]] = {}
+    taken: set[str] = set()
+
+    for hs8 in sorted(lines):
+        known = itc.get(hs8) or {}
+        name = known.get("displayName") or known.get("description")
+        if name:
+            # Two curated rows with one name: the later code says its heading.
+            if name.lower() in taken:
+                name = f"{name} ({short_heading(lines[hs8]['hs6'], headings)})"
+            out[hs8] = (name, "schedule")
+            taken.add(name.lower())
+
+    cleaned = {
+        hs8: recase(meta.get("description") or "")
+        for hs8, meta in lines.items() if hs8 not in out
     }
-    cleaned = {code: recase(text) for code, text in descriptions.items()}
     counts: dict[str, int] = defaultdict(int)
     for name in cleaned.values():
         counts[name.lower()] += 1
 
-    dgcis_titles.clear()
-    for code, name in cleaned.items():
+    for hs8, name in cleaned.items():
         key = name.lower()
-        if key in GENERIC or counts[key] > 1 or key in taken or len(name) < 3:
+        if _generic(name) or counts[key] > 1 or key in taken or len(name) < 3:
             continue
-        dgcis_titles[code] = name
+        out[hs8] = (name, "dgcis")
+        taken.add(key)
+
+    # Derived, in code order so the result is stable.
+    for hs8 in sorted(h for h in lines if h not in out):
+        hs6 = lines[hs8]["hs6"]
+        heading = short_heading(hs6, headings)
+        name = cleaned.get(hs8, "")
+        lowered = name.lower().replace("0", "o")
+
+        if _generic(name):
+            tail = "parts" if "part" in lowered else "other"
+            candidate = f"{heading}, {tail}"
+        else:
+            candidate = f"{name} ({heading})"
+
+        if candidate.lower() in taken:
+            candidate = f"{candidate}, {hs8[:4]}.{hs8[4:6]}.{hs8[6:]}"
+
+        out[hs8] = (candidate, "derived")
+        taken.add(candidate.lower())
+
+    return out
 
 
 def remembered_groups() -> dict[str, tuple[str, str]]:
@@ -379,7 +423,29 @@ def main() -> int:
             text = (row.get("hs_description") or "").strip()
             if text and row["hs8"] not in descriptions and hs8_scope.in_scope(row["hs8"]):
                 descriptions[row["hs8"]] = text
-    learn_dgcis_titles(descriptions, itc)
+    hs6_of = {
+        row["hs8"]: row["hs6"]
+        for bundle in available.values()
+        for row in bundle["rows"]
+        if hs8_scope.in_scope(row["hs8"])
+    }
+
+    # Lines India's schedule lists (config/itc_hs8_names.csv) that DGCIS has
+    # no filing for in the whole period - 38180020, silicon carbide epitaxial
+    # film, for one. DGCIS leaves such a line out of its download rather than
+    # showing zeros, so it is added here with every month blank (not zero),
+    # and its page says no trade was filed.
+    unfiled = sorted(
+        hs8 for hs8 in itc
+        if hs8 not in hs6_of and hs8_scope.in_scope(hs8)
+    )
+    for hs8 in unfiled:
+        hs6_of[hs8] = hs8[:6]
+    titles = assign_titles(
+        {hs8: {"hs6": hs6, "description": descriptions.get(hs8, "")} for hs8, hs6 in hs6_of.items()},
+        itc,
+        headings,
+    )
 
     # hs6 -> hs8 -> {hs8, title, nameSource, principalCommodity, ...}
     lines: dict[str, dict[str, dict]] = defaultdict(dict)
@@ -402,7 +468,7 @@ def main() -> int:
                 remembered = groups_on_file.get(hs8, ("", ""))
                 group = (row.get("principal_commodity") or "").strip() or remembered[0]
                 heading = headings.get(hs6, "") or official_heading(hs6)
-                title, source = title_for(hs8, group, heading, itc)
+                title, source = titles[hs8]
 
                 lines[hs6][hs8] = {
                     "hs8": hs8,
@@ -441,6 +507,26 @@ def main() -> int:
             entry["usdMillion"][position] = round_or_none(
                 number(row.get("value_usd_million")), 3
             )
+
+    for hs8 in unfiled:
+        hs6 = hs8[:6]
+        heading = headings.get(hs6, "") or official_heading(hs6)
+        title, source = titles[hs8]
+        lines[hs6][hs8] = {
+            "hs8": hs8,
+            "title": title,
+            "nameSource": source,
+            "headingName": heading,
+            "description": (itc.get(hs8) or {}).get("description", ""),
+            "principalCommodity": groups_on_file.get(hs8, ("", ""))[0],
+            "quickEstimateCommodity": groups_on_file.get(hs8, ("", ""))[1],
+            "filed": False,
+        }
+        for flow in available:
+            series[hs6][flow][hs8] = {
+                "inrCrore": [None] * len(periods),
+                "usdMillion": [None] * len(periods),
+            }
 
     (OUT / "hs6").mkdir(parents=True, exist_ok=True)
 
@@ -530,6 +616,7 @@ def main() -> int:
                 "quickEstimateCommodity": line["quickEstimateCommodity"],
                 "relation": relation,
                 "isProduct": is_product,
+                **({"filed": False} if line.get("filed") is False else {}),
                 "flows": {},
             }
 
@@ -582,10 +669,12 @@ def main() -> int:
         "lastPeriod": periods[-1],
         "periodCount": len(periods),
         "hs8Count": sum(len(children) for children in lines.values()),
+        # Listed in India's schedule, nothing filed in the period.
+        "unfiledHs8": unfiled,
         # What a reader is entitled to know: this covers some of the
         # catalogue, not all of it.
         "productsCovered": len(attached),
-        "productsTotal": len(universe),
+        "productsTotal": len(hs8_scope.products()),
         "coveredHs6": sorted(attached),
         # Present in the source, no product page to sit on.
         "predecessorHs6": sorted(orphaned),
@@ -622,7 +711,7 @@ def main() -> int:
 
     print(f"flows             : {', '.join(manifest['flows'])}")
     print(f"files written     : {written}")
-    print(f"  with a product  : {len(attached)} of {len(universe)}")
+    print(f"  with a product  : {len(attached)} of {len(hs8_scope.products())}")
     print(f"  predecessor only: {len(orphaned)}  {orphaned}")
     print(f"  standalone      : {len(standalone)} HS-6, "
           f"{manifest['standaloneHs8']} HS-8 lines")

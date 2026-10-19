@@ -36,6 +36,14 @@ on:
     # Nightly backfill for newly added codes. 19:37 UTC = 01:07 IST.
     - cron: "37 19 * * *"
 
+  # Pull newly added codes now rather than tonight: change
+  # hs_index/pull_now.txt (any edit; a line saying why is enough), commit
+  # and push. It runs the same backfill, with the same budget and checks.
+  push:
+    branches: [main]
+    paths:
+      - "hs_index/pull_now.txt"
+
   workflow_dispatch:
     inputs:
       depth:
@@ -92,8 +100,9 @@ jobs:
           DEPTH="${{ inputs.depth || 'auto' }}"
           DAY=$(date -u +%d)
 
-          # The nightly schedule is the backfill.
-          if [ "${{ github.event.schedule }}" = "37 19 * * *" ]; then
+          # The nightly schedule is the backfill, and so is a push of
+          # hs_index/pull_now.txt (the by-hand "pull the new codes now").
+          if [ "${{ github.event.schedule }}" = "37 19 * * *" ] || [ "${{ github.event_name }}" = "push" ]; then
             DEPTH=backfill
           fi
 

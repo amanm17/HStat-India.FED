@@ -69,11 +69,14 @@ export type DgcisLine = {
    * called "Electrical machines, other" cannot be told apart, which is the
    * whole job of a name. The code can, so the code leads. */
   title: string
-  nameSource: 'schedule' | 'dgcis' | 'none'
+  nameSource: 'schedule' | 'dgcis' | 'derived' | 'none'
   headingName: string
   description?: string
   principalCommodity: string
   quickEstimateCommodity: string
+  /* False for a line India's schedule lists but DGCIS has no filing for in
+   * the whole period; every month is blank. Absent means filed. */
+  filed?: boolean
 }
 
 /* Aligned to `periods`. null is a month the source left blank, which is not
@@ -689,6 +692,10 @@ export function nameCaveat(line: { nameSource?: string }): string | null {
 
   if (line.nameSource === 'dgcis') {
     return 'Name as DGCIS files this line, abbreviated as in the source.'
+  }
+
+  if (line.nameSource === 'derived') {
+    return 'DGCIS files this line only as \u201cOthers\u201d or in words other lines share, so its name adds the heading it sits under.'
   }
 
   return (

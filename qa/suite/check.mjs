@@ -148,6 +148,25 @@ if (loose) {
   await page.close()
 }
 
+// 10 - every tariff line has a name, and no two share one
+{
+  const titles = hs8Index.lines.map(l => (l.title || '').trim().toLowerCase())
+  ok('every tariff line is named', titles.every(Boolean), `${titles.filter(t => !t).length} unnamed`)
+  ok('no two tariff lines share a name', new Set(titles).size === titles.length)
+}
+
+// 11 - a line filed on one flow only opens on that flow, not on "no data"
+{
+  const single = hs8Index.lines.find(l => Object.keys(l.flows).length === 1 && l.filed !== false)
+  if (single) {
+    const { page, errors } = await open(`/hs/${single.hs8}`)
+    const h1 = (await page.locator('h1').first().innerText()).trim()
+    ok('one-flow line renders its page', h1 === single.title, `${single.hs8}: ${h1}`)
+    ok('one-flow line throws nothing', errors.length === 0, errors.slice(0, 2).join(' | '))
+    await page.close()
+  }
+}
+
 await browser.close()
 
 const failed = results.filter(r => !r.pass)

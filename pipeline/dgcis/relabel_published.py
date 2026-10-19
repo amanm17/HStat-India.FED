@@ -13,8 +13,8 @@ being standalone. The monthly refresh workflow runs this after promoting a
 snapshot, so a tariff line links up to a product page from the day that page
 exists - not from the next hand download.
 
-Only labels change: relation, isProduct, the heading name, and the
-manifest's coverage lists. Figures are never touched. Files are rewritten only
+Only labels change: relation, isProduct, the heading name, line names
+(build_frontend_hs8.assign_titles), and the manifest's coverage lists. Figures are never touched. Files are rewritten only
 when something in them changed, in the same format build_frontend_hs8.py
 writes.
 """
@@ -27,7 +27,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import hs8_scope  # noqa: E402
-from build_frontend_hs8 import heading_names, official_heading  # noqa: E402
+from build_frontend_hs8 import assign_titles, heading_names, official_heading, tariff_names  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "public" / "data" / "dgcis"
@@ -47,11 +47,20 @@ def main() -> int:
 
     headings = heading_names()
     changed = 0
+
+    # Names first, across every line, because they must stay unique site-wide
+    # and a derived name carries its heading's name.
+    payloads = {path: json.loads(path.read_text()) for path in sorted((OUT / "hs6").glob("*.json"))}
+    everything = {
+        line["hs8"]: {"hs6": payload["hs6"], "description": line.get("description", "")}
+        for payload in payloads.values()
+        for line in payload.get("lines", [])
+    }
+    titles = assign_titles(everything, tariff_names(), headings)
     groups = {"product": [], "predecessor": [], "standalone": []}
     lines_per_hs6: dict[str, int] = {}
 
-    for path in sorted((OUT / "hs6").glob("*.json")):
-        payload = json.loads(path.read_text())
+    for path, payload in payloads.items():
         hs6 = payload["hs6"]
         relation = hs8_scope.relation(hs6)
         heading = headings.get(hs6, "") or official_heading(hs6)
@@ -61,6 +70,7 @@ def main() -> int:
         payload["isProduct"] = relation == "product"
         for line in payload.get("lines", []):
             line["headingName"] = heading
+            line["title"], line["nameSource"] = titles[line["hs8"]]
 
         # Keep relation next to isProduct, as the build writes it.
         ordered = {}
@@ -86,6 +96,8 @@ def main() -> int:
         line["headingName"] = headings.get(line["hs6"], "") or official_heading(line["hs6"])
         line["relation"] = relation
         line["isProduct"] = relation == "product"
+        if line["hs8"] in titles:
+            line["title"], line["nameSource"] = titles[line["hs8"]]
     if compact(index) != before:
         index_path.write_text(compact(index))
         changed += 1

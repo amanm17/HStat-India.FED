@@ -195,7 +195,7 @@ def vocabulary() -> dict[str, list[str]]:
 
 
 _TRIM = [
-    r"\(.*?\)",                                   # parentheticals
+    r"(?:(?<=\s)|^)\(.*?\)",                     # parentheticals, not "poly(vinyl ...)"
     r"\bn\.e\.c\.?( in (chapter|heading|item|subheading)( no\.?)? ?[\d.]+(\s*(or|and|,)\s*[\d.]+)*)?",
     r"\b(of|in) (chapter|heading|item|subheading)s?( no\.?)? ?[\d.]+(\s*(or|and|to|,)\s*[\d.]+)*",
     r"\bother than those of (heading|item)( no\.?)? ?[\d.]+(\s*(or|and|,)\s*[\d.]+)*",
