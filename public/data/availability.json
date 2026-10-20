@@ -1,8 +1,8 @@
 {
  "source": "UN Comtrade data availability (public getDA endpoint)",
  "sourceUrl": "https://comtradeplus.un.org/Visualization/DADashboard",
- "fetchedAt": "2026-10-19T23:39:41.663784+00:00",
- "builtAt": "2026-10-19T23:39:42.326186+00:00",
+ "fetchedAt": "2026-10-20T18:36:31.421126+00:00",
+ "builtAt": "2026-10-20T18:36:32.303444+00:00",
  "snapshotRefreshedAt": "2026-10-08T06:43:59.626680+00:00",
  "lastPullAt": "2026-10-07T10:55:19Z",
  "schedule": "Checked on the 1st of each month and after every monthly data refresh (5th-7th).",
@@ -97,7 +97,7 @@
   {
    "period": "202601",
    "reporters": 85,
-   "latestRelease": "2026-10-16"
+   "latestRelease": "2026-10-20"
   },
   {
    "period": "202602",
@@ -122,7 +122,7 @@
   {
    "period": "202606",
    "reporters": 63,
-   "latestRelease": "2026-10-16"
+   "latestRelease": "2026-10-20"
   },
   {
    "period": "202607",
@@ -131,8 +131,13 @@
   },
   {
    "period": "202608",
-   "reporters": 20,
-   "latestRelease": "2026-10-15"
+   "reporters": 21,
+   "latestRelease": "2026-10-20"
+  },
+  {
+   "period": "202609",
+   "reporters": 2,
+   "latestRelease": "2026-10-20"
   }
  ],
  "holes": [
