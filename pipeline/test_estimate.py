@@ -324,6 +324,9 @@ ok("calibration scales the estimate", close(calibrated.value, blended.value * 1.
 ok("and records its factor and source", calibrated.calibration == 1.1 and calibrated.calibration_source == "test source")
 ok("calibration never reaches a filed cell", "156" not in fill(late, ["2024"], calibration={("156", 2024): (2.0, "x")}).get("2024", {}))
 
+merged, meta = merge({"156": ("China", 1300.0)}, fill(late, ["2024"], calibration={("704", 2024): (1.1, "ref")})["2024"], {"704": "Viet Nam"})
+ok("merge counts calibrated estimates", meta["calibratedReporters"] == 1 and meta["calibratedValue"] > 0)
+
 print(f"\n{PASS}/{PASS + len(FAIL)} passed")
 
 if FAIL:

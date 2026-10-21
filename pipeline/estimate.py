@@ -114,13 +114,23 @@ one year ahead: 18.1% (own rate) to 13.9% (blend), bias 0.0% to -0.4%; two
 years ahead: 30.8% to 22.6%, bias -5.6% to -2.7%.
 `pipeline/backtest_estimates.py` reruns the test.
 
-CALIBRATION - added 21 October 2026
+CALIBRATION - added 21 October 2026, three layers from 22 October
 
-A reviewed benchmark (a country's own published statistics, or a licensed
-source) can realign a country's estimates for a year by one factor, recorded
-in config/estimate_calibration.json with its source and the gap it closes.
-It only ever scales estimates; a filed value is never touched (rule 1), and
-the factor travels on the estimate so the page can say so.
+The figures come in three layers, and an upper layer never overrides a lower
+one:
+
+  1. Comtrade filings. The truth. Never changed by anything below.
+  2. HStat's estimates, for what nobody has filed (this module).
+  3. A reference check. A person reads an economy's reported totals in a
+     reference source (ITC Trade Map, or the economy's own statistics) for
+     the years HStat estimates. Where HStat's estimate is further from the
+     reference than the tolerance, the estimates are realigned by one factor
+     for that economy, flow, year and, optionally, HS chapter or heading.
+     The reference figure is never published or stored as data; only the
+     factor is, in config/estimate_calibration.json, with its source.
+
+A factor only ever scales estimates; a filed value is never touched (rule 1),
+and it travels on the estimate (`calibration`) so the page can say so.
 
 Still no floor on what publishes: an estimate is never withheld for being
 far from its anchor or for being most of a total. An estimate whose rate was
@@ -631,6 +641,8 @@ def merge(
 
     estimated_value = 0.0
     flagged = 0
+    calibrated = 0
+    calibrated_value = 0.0
 
     for reporter, estimate in (estimates or {}).items():
         assert reporter not in merged, (
@@ -653,6 +665,10 @@ def merge(
         if estimate.flagged:
             flagged += 1
 
+        if estimate.calibration:
+            calibrated += 1
+            calibrated_value += net
+
     total = published_total
 
     if total is None:
@@ -664,4 +680,7 @@ def merge(
         "estimatedValue": estimated_value,
         "estimatedShare": (estimated_value / total) if total and total > 0 else None,
         "flaggedReporters": flagged,
+        # Estimates realigned to a reference benchmark (CALIBRATION).
+        "calibratedReporters": calibrated,
+        "calibratedValue": calibrated_value,
     }

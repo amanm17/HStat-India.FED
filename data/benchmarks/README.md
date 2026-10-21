@@ -1,11 +1,24 @@
-# Benchmarks for estimated economies
+# References for the layer-3 check
 
-Files here hold an economy's own reported trade, used to check HStat's estimates for the years it has not yet filed with Comtrade.
+HStat's figures come in three layers. A higher layer never overrides a lower one.
 
-```
-python3 pipeline/benchmark_estimates.py data/benchmarks/<file>.csv          # report
-python3 pipeline/benchmark_estimates.py data/benchmarks/<file>.csv --write  # record calibrations
-```
+1. **Comtrade filings: the truth.** Nothing changes them.
+2. **HStat's estimates** for what has not been filed (`pipeline/estimate.py`).
+3. **A reference check.** A person reads an economy's reported totals in a reference source for the years HStat estimates. Where the estimate is further from the reference than the tolerance (10%), the estimates are realigned by one factor for that economy, flow, year and, optionally, HS chapter or heading. Only the factor is stored, in `config/estimate_calibration.json`.
+
+Reference files (`*.csv`) in this folder stay on the operator's machine: git ignores them, so reference figures are never published.
+
+## Reading Trade Map by hand
+
+1. List the HStat electronics codes:
+   - all of them: `python3 pipeline/benchmark_estimates.py --codes 2025 > codes.txt`
+   - one chapter: add `--group 84`
+2. In Trade Map (www.trademap.org), create a custom product group from that list.
+3. Select the economy as reporter and World as partner, yearly values, direct (reported) data.
+4. For each flow, note the totals for every year HStat estimates, plus one year the economy has filed with Comtrade (the alignment check).
+5. Enter them in a CSV here (format below), with your name and the date in `checked_by`.
+
+Never extract Trade Map content with scripts, browser automation or its data interface. Its terms forbid that (MAT Terms and Conditions, section 12).
 
 ## Format (CSV)
 
@@ -14,16 +27,22 @@ python3 pipeline/benchmark_estimates.py data/benchmarks/<file>.csv --write  # re
 | `reporter` | Comtrade/M49 code, for example `704` for Viet Nam |
 | `flow` | `imports` or `exports` |
 | `year` | Calendar year |
-| `value_usd` | Reported value in US dollars |
-| `hs6` | Optional. Blank means the whole electronics scope that year |
-| `source` | The citation, as it should appear |
+| `group` | Optional HS prefix: a chapter (`84`), a heading (`8471`) or a code. Blank means every HStat electronics code, minus any groups listed separately for the same economy, flow and year. |
+| `value_usd` | Reported total in US dollars over that group's codes |
+| `source` | Citation, for example `Trade Map, International Trade Centre, www.trademap.org (Viet Nam, direct data)` |
+| `checked_by` | Who read the figure, and when. Required before a factor is recorded |
 
-- **Include a filed year.** Give at least one year that the economy has already filed with Comtrade. That row checks alignment. If the benchmark and Comtrade differ by more than 2% in a filed year, the benchmark measures something different, and no calibration is proposed from it.
-- **Tolerance.** Rows outside the tolerance in `config/estimate_calibration.json` (10%) get a proposed factor.
-- **Review before writing.** Read the proposals before running `--write`, then rebuild the snapshot with depth `reprocess`.
+## Running it
 
-## Sources
+```
+python3 pipeline/benchmark_estimates.py data/benchmarks/<file>.csv          # report
+python3 pipeline/benchmark_estimates.py data/benchmarks/<file>.csv --write  # record factors
+```
 
-- **Use the economy's own published statistics:** its customs or statistics office.
-- **ITC Trade Map:** use it only after ITC has given written permission for use in HStat (MAT Terms and Conditions, sections 10, 12 and 14). Send permission requests to itcreg@intracen.org. Until then, Trade Map is a manual reference for a person's review, and its figures do not go in this folder.
-- **Never scrape:** do not fill these files by scraping or by automated extraction from any website.
+Then rebuild the snapshot: Actions, Validated data refresh, depth `reprocess`.
+
+**Chapter rows give a better product mix than one economy-wide factor.** In the Viet Nam check, computers (chapter 84) grew much faster than telecom (chapter 85). One economy-wide factor would raise both by the same amount.
+
+## Terms
+
+FED decided on 21 October 2026 to use Trade Map as a manually consulted reference. ITC's terms (sections 10, 12 and 14) reserve written permission for content that substantially supports a public dashboard. A permission request is open with itcreg@intracen.org. If ITC declines, remove the Trade Map-based entries from `config/estimate_calibration.json` and reprocess.

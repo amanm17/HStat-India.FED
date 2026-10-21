@@ -1730,9 +1730,11 @@ CALIBRATION_FILE = ROOT_CONFIG / "estimate_calibration.json"
 
 def load_calibration() -> dict[str, dict]:
     """
-    flow -> {(reporter, year): (factor, source)} from
+    flow -> {(reporter, year): [(group, factor, source), ...]} from
     config/estimate_calibration.json. Each entry is a reviewed realignment of
-    one economy's estimates for one year against a benchmark; see the file.
+    one economy's estimates for one year against a reference; `group` is an
+    HS prefix (a chapter such as "84" or a heading such as "8471") or blank
+    for every code. See the file, and estimate.py, CALIBRATION.
     """
     out: dict[str, dict] = {FLOW_IMPORTS: {}, FLOW_EXPORTS: {}}
     if not CALIBRATION_FILE.exists():
@@ -1744,10 +1746,30 @@ def load_calibration() -> dict[str, dict]:
         factor = float(entry.get("factor") or 0)
         if not flow or factor <= 0:
             continue
-        out[flow][(str(entry["reporter"]), int(entry["year"]))] = (
+        key = (str(entry["reporter"]), int(entry["year"]))
+        out[flow].setdefault(key, []).append((
+            str(entry.get("group") or ""),
             factor,
             str(entry.get("source") or "benchmark"),
-        )
+        ))
+    for table in out.values():
+        for rows in table.values():
+            rows.sort(key=lambda row: -len(row[0]))
+    return out
+
+
+def calibration_for(code: str, table: dict) -> dict:
+    """
+    (reporter, year) -> (factor, source) for one code: the entry with the
+    longest HS prefix that matches it, so a chapter entry outranks an
+    economy-wide one.
+    """
+    out = {}
+    for key, rows in (table or {}).items():
+        for group, factor, source in rows:
+            if code.startswith(group):
+                out[key] = (factor, source)
+                break
     return out
 
 
@@ -1863,7 +1885,7 @@ def build_node(
                 for economy, series in (context.get("mirror") or {}).items()
                 if code in series
             },
-            calibration=context.get("calibration"),
+            calibration=calibration_for(code, context.get("calibration")),
         )
 
         # Every estimate that landed outside the anomaly band, gathered for
@@ -2601,11 +2623,15 @@ def main():
                     "An economy that filed a year is never estimated for it: "
                     "a product it left out is a zero, a suppression or trade "
                     "filed under another code.",
-                    "Where a reviewed benchmark of an economy's own published "
-                    "statistics differs from its estimate by more than 10%, "
-                    "its estimates for that year are realigned by one factor "
-                    "(config/estimate_calibration.json). Filed values are "
-                    "never realigned.",
+                    "Figures come in three layers: Comtrade filings, which are "
+                    "never changed; HStat's estimates for what has not been "
+                    "filed; and a reference check. Where an economy's reported "
+                    "totals in a reference source (ITC Trade Map, International "
+                    "Trade Centre, www.trademap.org, or its own statistics) "
+                    "differ from HStat's estimate by more than 10%, its "
+                    "estimates for that year are realigned by one factor, by "
+                    "economy and, where needed, HS chapter. Reference figures "
+                    "are not reproduced; filed values are never realigned.",
                     "An economy is estimated only within three years of its "
                     "own filings of that product. One that has stopped is not "
                     "assumed to be trading.",

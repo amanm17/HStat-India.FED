@@ -551,7 +551,11 @@ export function Guide({
           every economy that did file; it is bounded at &plusmn;50% a year and
           used only within three years of the last filing. An economy that
           filed the year is never estimated for it. A filed value always
-          replaces an estimate. A figure containing estimated values carries{' '}
+          replaces an estimate. Estimates are then checked against the
+          economy&rsquo;s reported totals in a reference source (ITC Trade
+          Map, or its own statistics); where they differ by more than 10%,
+          that economy&rsquo;s estimates for the year are realigned by one
+          factor. The reference figures themselves are not shown. A figure containing estimated values carries{' '}
           <strong>*</strong>; a value carried from a retired code carries{' '}
           <strong>**</strong>. Hover, tap or tab to either mark and it says
           what it means for that figure: which economy has not filed, or what
