@@ -151,18 +151,19 @@ console.log('\n=== naming: a name when the schedule has one, the code when it do
   const sub = await page.locator('.hs8-sub').innerText()
   const idline = await page.locator('.rf-idline').innerText()
   ok('the code is beside it, not replaced by it', /85437099/.test(idline + ' ' + sub), idline.slice(0,60))
-  ok('heading is context, labelled as the heading', /1 of 29 lines under/i.test(sub) && /HS 854370/.test(sub), sub.slice(0,90))
+  ok('heading is context, labelled as the heading', /1 of \d+ lines under/i.test(sub) && /HS 854370/.test(sub), sub.slice(0,90))
   ok('a named line carries no borrowed-name caveat', !/belongs to the heading, not to this line/i.test(await page.innerText('body')))
   await page.close()
 }
 {
-  /* 85079020 is in the extract and not in the schedule: no name exists for
-   * it, so the code has to remain the identity. This is the case the whole
-   * naming rule exists for, and it must not quietly acquire a borrowed name. */
+  /* 85079020 has no name of its own in any source (not in the schedule;
+   * DGCIS and the tariff row say only "parts"). Since 20 October 2026 such a
+   * line is named from official wording only: its heading's name and its own
+   * tariff item number, never a borrowed product name (line_names.py). */
   const { page } = await open('/hs/85079020')
   const h1 = await page.locator('h1').first().innerText()
-  ok('H1 is the code when the schedule has no name', h1.trim() === '85079020', h1)
-  ok('caveat explains why', /name shown is its heading/i.test(await page.innerText('body')))
+  ok('H1 is the heading name plus the tariff item when no source names the line', /tariff item 8507 90 20/.test(h1), h1)
+  ok('caveat explains why', /No source names this line on its own/i.test(await page.innerText('body')))
   await page.close()
 }
 await b.close()
