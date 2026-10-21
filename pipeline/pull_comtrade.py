@@ -133,6 +133,38 @@ SCOPES = {
 # reporter frame, and re-imports are not filed by partner anyway, so
 # pulling RM/RX at partner level would spend a third of the India quota on
 # rows nothing reads.
+def parties(scope: str) -> tuple:
+    """
+    (reporter, partner) for a scope. "mirror-<code>" asks every reporter for
+    its trade with one economy: the partners' side of a late filer's trade,
+    read by estimation as that economy's growth (config/scope.json "mirror").
+    """
+    if scope.startswith("mirror-"):
+        return None, scope.split("-", 1)[1]
+    return SCOPES[scope]
+
+
+def mirror_plan(scope_config: dict, end_year: int) -> tuple[list[str], list[tuple[str, str]]]:
+    """
+    The mirror pulls config/scope.json asks for: the years, and (economy,
+    flow) pairs. Partners' exports to an economy (flow X) stand in for its
+    imports; partners' imports from it (flow M) for its exports.
+    """
+    mirror = scope_config.get("mirror") or {}
+    if not mirror.get("enabled"):
+        return [], []
+    span = int(mirror.get("years", 5))
+    last = end_year - 1
+    years = [str(year) for year in range(last - span + 1, last + 1)]
+    flows = []
+    if (mirror.get("estimate") or {}).get("imports", True):
+        flows.append(FLOW_EXPORTS)
+    if (mirror.get("estimate") or {}).get("exports", False):
+        flows.append(FLOW_IMPORTS)
+    pairs = [(str(code), flow) for code in mirror.get("reporters", {}) for flow in flows]
+    return years, pairs
+
+
 SCOPE_FLOWS = {
     "global": [FLOW_IMPORTS, FLOW_RE_IMPORTS, FLOW_EXPORTS, FLOW_RE_EXPORTS],
     "india": [FLOW_IMPORTS, FLOW_EXPORTS],
@@ -351,6 +383,21 @@ def build_jobs(args, scope_config, volatile: set[str]) -> list[Job]:
         ),
     )
 
+    # Mirror pulls for late filers: one period group per economy and flow,
+    # re-pulled whenever its latest year is in the refresh window (monthly
+    # runs, not the nightly backfill). About ten calls per economy and flow.
+    years, pairs = mirror_plan(scope_config, args.end_year)
+    if years and pairs:
+        chunk_size = codes_per_call(len(years), len(codes), override, target_rows)
+        code_chunks = [
+            chunk
+            for _, group_codes in pull_groups()
+            for chunk in chunked(group_codes, chunk_size)
+        ]
+        for economy, flow in pairs:
+            for index, chunk in enumerate(code_chunks):
+                jobs.append(Job("A", f"mirror-{economy}", flow, years, chunk, index))
+
     if args.months > 0:
         add(
             "M",
@@ -462,7 +509,7 @@ def request(
 
 
 def fetch(job: Job, key: str, limits: dict, stats: dict):
-    reporter, partner = SCOPES[job.scope]
+    reporter, partner = parties(job.scope)
 
     def call():
         throttle(float(limits["minSecondsBetweenCalls"]))

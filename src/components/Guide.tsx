@@ -545,10 +545,13 @@ export function Guide({
 
         <p>
           Where an economy that normally files has not yet filed a year, its
-          value is estimated from its own history of that code (five-year
-          growth, falling back to ten, bounded at &plusmn;50% a year, and only
-          within three years of its last filing). A filed value always replaces
-          an estimate. A figure containing estimated values carries{' '}
+          value is projected from its last filing. The growth rate is one
+          quarter its own history of that code and three quarters the growth
+          its trading partners reported with it, or failing that the growth of
+          every economy that did file; it is bounded at &plusmn;50% a year and
+          used only within three years of the last filing. An economy that
+          filed the year is never estimated for it. A filed value always
+          replaces an estimate. A figure containing estimated values carries{' '}
           <strong>*</strong>; a value carried from a retired code carries{' '}
           <strong>**</strong>. Hover, tap or tab to either mark and it says
           what it means for that figure: which economy has not filed, or what

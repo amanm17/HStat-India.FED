@@ -54,6 +54,11 @@ jobs:
       - name: Tariff-line name check
         run: python pipeline/dgcis/check_line_names.py
 
+      # The estimation rules, on synthetic series: a filed value is never
+      # replaced, a year an economy filed is never estimated, bounds hold.
+      - name: Estimation tests
+        run: cd pipeline && python test_estimate.py
+
       # Exactly what Cloudflare will run.
       - name: Build
         run: npm run build

@@ -202,6 +202,19 @@ class ReporterIndex:
     def periods(self) -> set[str]:
         return set(self._periods)
 
+    def filers(self) -> dict[int, set[str]]:
+        """
+        Year -> every reporter that filed anything in this flow that year,
+        across every code pulled. A reporter in here has answered for the
+        year; estimation leaves it alone (estimate.fill, `filers`).
+        """
+        out: dict[int, set[str]] = {}
+        for (_, period), bucket in self.groups.items():
+            if not str(period).isdigit() or len(str(period)) != 4:
+                continue
+            out.setdefault(int(period), set()).update(bucket)
+        return out
+
     def __len__(self) -> int:
         return len(self.groups)
 
@@ -280,6 +293,36 @@ def reporter_index(
     root: Path | None = None,
 ) -> ReporterIndex:
     return ReporterIndex(read_frame(freq, scope, flow, root))
+
+
+def mirror_series(
+    freq: str,
+    target: str,
+    flow: str,
+    root: Path | None = None,
+) -> dict[str, dict[int, dict[str, float]]]:
+    """
+    What every partner reported trading with `target`, from the mirror scope
+    pulled for it (pull_comtrade, scope "mirror-<code>"): code -> year ->
+    {partner: value}. Kept per partner so a growth rate can be taken over the
+    partners that filed both years (estimate.mirror_ratio).
+    """
+    frame = read_frame(freq, f"mirror-{target}", flow, root)
+    out: dict[str, dict[int, dict[str, float]]] = {}
+    if frame is None or frame.empty:
+        return out
+    for code, period, reporter, partner, value in frame[
+        ["cmdCode", "period", "reporterCode", "partnerCode", "primaryValue"]
+    ].itertuples(index=False, name=None):
+        if _text(partner) != str(target) or _text(reporter) == str(target):
+            continue
+        if value is None or value != value or value < 0:
+            continue
+        period = _text(period)
+        if not period.isdigit() or len(period) != 4:
+            continue
+        out.setdefault(_text(code), {}).setdefault(int(period), {})[_text(reporter)] = float(value)
+    return out
 
 
 def partner_index(

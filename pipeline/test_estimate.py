@@ -280,6 +280,50 @@ first = estimate_for(steady, 2024)
 second = estimate_for(steady, 2024)
 ok("estimation is deterministic", first == second)
 
+# ------------------------------------- only a year nobody filed (Oct 2026)
+
+field = {
+    "2021": {"704": ("Viet Nam", 100.0), "156": ("China", 1000.0)},
+    "2022": {"156": ("China", 1200.0)},
+    "2023": {"704": ("Viet Nam", 120.0), "156": ("China", 1300.0)},
+}
+# Viet Nam filed 2022 (other codes), so this code's 2022 is its answer.
+gap = fill(field, ["2022"], filers={2022: {"704", "156"}})
+ok("a reporter that filed the year is never estimated for it", "704" not in gap.get("2022", {}))
+ok("without filers the hole is still filled", "704" in fill(field, ["2022"]).get("2022", {}))
+
+# ------------------------------------------------ growth from the field
+
+late = {
+    "2021": {"704": ("Viet Nam", 100.0), "156": ("China", 1000.0)},
+    "2022": {"704": ("Viet Nam", 100.0), "156": ("China", 1000.0)},
+    "2023": {"704": ("Viet Nam", 100.0), "156": ("China", 1000.0)},
+    "2024": {"156": ("China", 1300.0)},
+}
+blended = fill(late, ["2024"])["2024"]["704"]
+own_only = fill(late, ["2024"], blend=False)["2024"]["704"]
+ok("own-only on a flat series stays flat", close(own_only.value, 100.0))
+ok("the peer signal moves a flat country with its field", close(blended.value, 100.0 * 1.3 ** (1 - 0.25)))
+ok("and says which signal it used", blended.signal == "peer" and blended.method == "blend-peer")
+
+mirrored = fill(late, ["2024"], mirror={"704": {2023: 50.0, 2024: 60.0}})["2024"]["704"]
+ok("a mirror series is preferred to the peer signal", mirrored.signal == "mirror")
+ok("and moves the estimate by the partners' growth", close(mirrored.value, 100.0 * 1.2 ** 0.75))
+
+partial = fill(late, ["2024"], mirror={"704": {2024: 60.0}})["2024"]["704"]
+ok("a mirror missing the anchor year falls back to peers", partial.signal == "peer")
+
+boom = dict(late, **{"2024": {"156": ("China", 10000.0)}})
+held = fill(boom, ["2024"])["2024"]["704"]
+ok("a blended ratio keeps the 50% bound", held.value <= 150.0 + 1e-9 and held.capped)
+
+# --------------------------------------------------------- calibration
+
+calibrated = fill(late, ["2024"], calibration={("704", 2024): (1.1, "test source")})["2024"]["704"]
+ok("calibration scales the estimate", close(calibrated.value, blended.value * 1.1))
+ok("and records its factor and source", calibrated.calibration == 1.1 and calibrated.calibration_source == "test source")
+ok("calibration never reaches a filed cell", "156" not in fill(late, ["2024"], calibration={("156", 2024): (2.0, "x")}).get("2024", {}))
+
 print(f"\n{PASS}/{PASS + len(FAIL)} passed")
 
 if FAIL:

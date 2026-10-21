@@ -52,6 +52,20 @@
     "missingRatePolicy": "refuse"
   },
 
+  "_mirror": "Partners' side of a late filer's trade, pulled from Comtrade (reporter = everyone, partner = the late filer) and read by estimation as that economy's growth for the years it has not filed (pipeline/estimate.py, GROWTH FROM THE FIELD). Partners' exports to an economy stand in for its imports; a 21 October 2026 check against Viet Nam's reported figures put the error of that reading at 11% one year out and 15% two years out, against 18% and 32% for the old method. Partners' imports from an economy read poorly as its exports (re-exports, valuation), so that side is off. Each economy costs about ten calls per refresh. The list is the economies carrying the most estimated value in the 8 October 2026 snapshot; review it when a late filer catches up.",
+  "mirror": {
+    "enabled": true,
+    "years": 5,
+    "estimate": {"imports": true, "exports": false},
+    "reporters": {
+      "704": "Viet Nam",
+      "784": "United Arab Emirates",
+      "490": "Other Asia, nes",
+      "643": "Russian Federation",
+      "364": "Iran"
+    }
+  },
+
   "_tariffLines": "India ITC(HS)-8 detail from data/dgcis/india_hs8.csv. Absent by default; the dashboard reports it as unavailable rather than estimating it.",
   "tariffLines": {
     "reconcileBand": [0.5, 2.0],

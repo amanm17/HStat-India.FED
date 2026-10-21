@@ -405,7 +405,7 @@ export function estimateTip(
 
   if (kind === 'country') {
     if (share !== null && share !== undefined && share >= 0.999) {
-      return `${subject ?? 'This economy'} has not filed this year; its value is estimated from its own history of this code (5-year growth, bounded at ±50% a year).`
+      return `${subject ?? 'This economy'} has not filed this year; its value is estimated from its last filing, at a growth rate that blends its own history with what its partners or the rest of the world recorded (bounded at ±50% a year).`
     }
 
     return `${pct ?? 'Part'} of ${subject ? `${subject}'s` : 'this'} total is estimated: the codes it has not yet filed for this year, each projected from its own history. The rest is as filed.`

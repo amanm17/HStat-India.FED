@@ -1,0 +1,6 @@
+{
+  "_comment": "Reviewed realignments of one economy's ESTIMATED values for one year and flow, against a benchmark of that economy's reported trade. Filed values are never touched (pipeline/estimate.py, rule 1). Entries are written by `python3 pipeline/benchmark_estimates.py <benchmark.csv> --write` after a person has reviewed the report, and only where the gap is outside `tolerance`. A factor scales every estimated cell of that economy, flow and year, in every code; the estimate keeps its own method and records the factor and source. Remove an entry once Comtrade carries the economy's own filing for that year: the filing then replaces the estimate and the entry does nothing.",
+  "_sources": "A benchmark must be the economy's own reported trade: its customs or statistics office's published figures, or a licensed copy of them. ITC Trade Map figures may be used here only once ITC has given written permission for use in HStat (MAT Terms and Conditions, sections 10, 12 and 14; requests to itcreg@intracen.org). Until then, Trade Map is a manual reference for a person's review, never a source for this file.",
+  "tolerance": 0.10,
+  "entries": []
+}

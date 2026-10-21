@@ -78,6 +78,50 @@ for - a late filer's missing 2025, a one-year hole in a series - and
 refuses what it is not: inventing trade for a country that has stopped.
 With MAX_GAP equal to MAX_HORIZON, no estimate is ever a flat hold.
 
+ONLY A YEAR NOBODY FILED - added 21 October 2026
+
+A reporter is estimated only for a year in which it filed nothing at all in
+that flow. A country that filed the year has answered for every code in it:
+a code it left out is a zero, a suppression, or trade it classified under
+another number. Projecting one anyway counted the same goods twice. A check
+of Viet Nam against its own reported figures found $20bn of 2022 exports
+counted twice this way, because Viet Nam filed 2022 flat-panel modules under
+851779 while the engine also projected 852492 back from 2023; across all
+reporters the doubles came to $30bn of exports in 2022 and $128bn in 2021.
+`fill` takes the set of reporters that filed each year (`filers`) and skips
+them.
+
+GROWTH FROM THE FIELD, NOT ONLY THE COUNTRY - added 21 October 2026
+
+A country's own five-year rate is a poor guide to its next year: it carries
+every reclassification and one-off in the window, and a hold-out test on
+about 91,000 filed reporter-code cells (hide 2024 and 2025, re-estimate,
+compare) put its error above simply holding the last value flat. The growth
+the rest of the field filed for the same code and years does better.
+
+So where a growth signal is available the estimate blends the two:
+W_OWN of the country's own capped rate and the rest from the signal, in
+log terms. The signal is
+
+  mirror   what partners report trading with this country, where that has
+           been pulled (late filers only; see config/scope.json "mirror")
+  peer     the growth of every reporter that filed both the anchor year and
+           the target year
+
+The combined ratio keeps the same bounds as before: never beyond
+(1 +/- MAX_GROWTH) a year, for at most MAX_HORIZON years. Hold-out error,
+one year ahead: 18.1% (own rate) to 13.9% (blend), bias 0.0% to -0.4%; two
+years ahead: 30.8% to 22.6%, bias -5.6% to -2.7%.
+`pipeline/backtest_estimates.py` reruns the test.
+
+CALIBRATION - added 21 October 2026
+
+A reviewed benchmark (a country's own published statistics, or a licensed
+source) can realign a country's estimates for a year by one factor, recorded
+in config/estimate_calibration.json with its source and the gap it closes.
+It only ever scales estimates; a filed value is never touched (rule 1), and
+the factor travels on the estimate so the page can say so.
+
 Still no floor on what publishes: an estimate is never withheld for being
 far from its anchor or for being most of a total. An estimate whose rate was
 held back by MAX_GROWTH is flagged for review, as is one that lands outside
@@ -86,7 +130,8 @@ the anomaly band; both publish.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict
+import math
+from dataclasses import dataclass, asdict, replace
 
 # A reporter whose estimate lands this far from the value it was projected
 # from is worth a human's attention. It is a flag, not a veto: the value
@@ -104,6 +149,10 @@ MAX_HORIZON = 3
 
 # See RECENCY in the module docstring.
 MAX_GAP = 3
+
+# See GROWTH FROM THE FIELD. The share of the country's own rate in a blended
+# estimate; the rest is the mirror or peer signal.
+W_OWN = 0.25
 
 
 @dataclass(frozen=True)
@@ -129,6 +178,11 @@ class Estimate:
     raw_growth: float | None = None
     # True when MAX_GROWTH held the rate back.
     capped: bool = False
+    # Which growth signal was blended in: "peer", "mirror" or None.
+    signal: str | None = None
+    # A calibration factor applied after projection, and where it came from.
+    calibration: float | None = None
+    calibration_source: str | None = None
 
     def as_dict(self) -> dict:
         return asdict(self)
@@ -185,7 +239,7 @@ def _window(years: list[int], anchor: int, span: int, direction: str) -> list[in
     return [y for y in years if anchor <= y <= anchor + span]
 
 
-def estimate_for(history: dict[int, float], target: int) -> Estimate | None:
+def estimate_for(history: dict[int, float], target: int, signal=None) -> Estimate | None:
     """
     Estimate one reporter's value for one year from that reporter's own
     history of the same code and flow.
@@ -193,6 +247,11 @@ def estimate_for(history: dict[int, float], target: int) -> Estimate | None:
     `history` holds filed values only, keyed by year. A target already in it
     is never estimated - rule 1 - and an empty history is the refusal in
     rule 3.
+
+    `signal`, when given, is a function (anchor_year, target) -> (ratio,
+    kind) or None: the growth the field (kind "peer") or the country's
+    partners (kind "mirror") recorded between those two years. It is blended
+    with the country's own rate; see GROWTH FROM THE FIELD.
     """
     if not history or target in history:
         return None
@@ -253,15 +312,40 @@ def estimate_for(history: dict[int, float], target: int) -> Estimate | None:
         growth = MAX_GROWTH if growth > 0 else -MAX_GROWTH
         capped = True
 
+    distance = target - anchor_year
+    steps = min(abs(distance), MAX_HORIZON)
+
     if growth is None:
         # One observation, or none of the windows could produce a rate. Hold
         # the anchor flat: it is the only defensible reading of a series with
         # no slope to read.
-        value = anchor_value
+        own_ratio = 1.0
     else:
-        distance = target - anchor_year
-        steps = min(abs(distance), MAX_HORIZON)
-        value = anchor_value * ((1.0 + growth) ** (steps if distance > 0 else -steps))
+        own_ratio = (1.0 + growth) ** (steps if distance > 0 else -steps)
+
+    ratio = own_ratio
+    used_signal = None
+
+    found = signal(anchor_year, target) if signal is not None else None
+
+    if found is not None:
+        signal_ratio, kind = found
+
+        if signal_ratio is not None and signal_ratio > 0 and own_ratio > 0:
+            ratio = math.exp(
+                W_OWN * math.log(own_ratio) + (1.0 - W_OWN) * math.log(signal_ratio)
+            )
+            # The blend keeps the bounds the own rate always had.
+            low, high = (1.0 - MAX_GROWTH) ** steps, (1.0 + MAX_GROWTH) ** steps
+            if ratio < low or ratio > high:
+                ratio = min(max(ratio, low), high)
+                capped = True
+            used_signal = kind
+            method = f"blend-{kind}"
+            if steps:
+                growth = ratio ** (1.0 / steps if distance > 0 else -1.0 / steps) - 1.0
+
+    value = anchor_value * ratio
 
     # A projection can only be as positive as its anchor. Negative output
     # would mean the arithmetic ran away, not that a country traded less than
@@ -284,6 +368,7 @@ def estimate_for(history: dict[int, float], target: int) -> Estimate | None:
         flagged=flagged,
         raw_growth=raw_growth,
         capped=capped,
+        signal=used_signal,
     )
 
 
@@ -377,7 +462,66 @@ def last_filed_year(tables: dict[str, dict]) -> int | None:
     return max(years) if years else None
 
 
-def fill(tables: dict[str, dict], periods) -> dict[str, dict[str, Estimate]]:
+def peer_ratios(histories: dict[str, dict[int, float]]):
+    """
+    A signal function: the growth every reporter that filed both years
+    recorded between them, summed. The reporter being estimated never filed
+    the target year, so it is never among its own peers.
+    """
+    cache: dict[tuple[int, int], float | None] = {}
+
+    def signal(anchor: int, target: int):
+        key = (anchor, target)
+        if key not in cache:
+            before = after = 0.0
+            for history in histories.values():
+                if anchor in history and target in history:
+                    before += history[anchor]
+                    after += history[target]
+            cache[key] = after / before if before > 0 and after > 0 else None
+        ratio = cache[key]
+        return (ratio, "peer") if ratio is not None else None
+
+    return signal
+
+
+def mirror_ratio(series: dict[int, float] | None):
+    """
+    A signal function from a mirror series: what partners reported trading
+    with this reporter, by year. None where the series lacks either year.
+    """
+    if not series:
+        return None
+
+    def total(value) -> float:
+        return sum(value.values()) if isinstance(value, dict) else float(value or 0)
+
+    def signal(anchor: int, target: int):
+        before, after = series.get(anchor), series.get(target)
+        if not before or not after:
+            return None
+        if isinstance(before, dict) and isinstance(after, dict):
+            # Only partners that filed both years: a partner yet to file the
+            # target year would read as a fall in trade.
+            common = set(before) & set(after)
+            before = {k: before[k] for k in common}
+            after = {k: after[k] for k in common}
+        b, a = total(before), total(after)
+        if b > 0 and a > 0:
+            return a / b, "mirror"
+        return None
+
+    return signal
+
+
+def fill(
+    tables: dict[str, dict],
+    periods,
+    filers: dict | None = None,
+    mirror: dict | None = None,
+    calibration: dict | None = None,
+    blend: bool = True,
+) -> dict[str, dict[str, Estimate]]:
     """
     Every estimate for one code and one flow, keyed by period then reporter.
 
@@ -385,6 +529,12 @@ def fill(tables: dict[str, dict], periods) -> dict[str, dict[str, Estimate]]:
     other year - rule 3 - and no year outside the span in which anyone filed
     the code at all is estimated; see `first_filed_year` and
     `last_filed_year`.
+
+    `filers` maps a year to the reporters that filed anything at all in this
+    flow that year; they are never estimated for it (ONLY A YEAR NOBODY
+    FILED). `mirror` maps a reporter to its mirror series for this code and
+    flow, preferred over the peer signal. `calibration` maps (reporter, year)
+    to (factor, source). `blend=False` gives the country's own rate alone.
     """
     histories, _ = reporter_histories(tables)
 
@@ -393,6 +543,7 @@ def fill(tables: dict[str, dict], periods) -> dict[str, dict[str, Estimate]]:
 
     floor = first_filed_year(tables)
     ceiling = last_filed_year(tables)
+    peers = peer_ratios(histories) if blend else None
 
     out: dict[str, dict[str, Estimate]] = {}
 
@@ -408,13 +559,39 @@ def fill(tables: dict[str, dict], periods) -> dict[str, dict[str, Estimate]]:
         if ceiling is not None and year > ceiling:
             continue
 
+        answered = set()
+        if filers:
+            answered = filers.get(year) or filers.get(str(year)) or set()
+
         filled: dict[str, Estimate] = {}
 
         for reporter, history in histories.items():
-            estimate = estimate_for(history, year)
+            if reporter in answered:
+                continue
 
-            if estimate is not None:
-                filled[reporter] = estimate
+            signal = None
+            if blend:
+                signal = mirror_ratio((mirror or {}).get(reporter)) or peers
+                if signal is not peers:
+                    own_mirror, peer_signal = signal, peers
+                    signal = (lambda a, t, m=own_mirror, p=peer_signal: m(a, t) or p(a, t))
+
+            estimate = estimate_for(history, year, signal)
+
+            if estimate is None:
+                continue
+
+            factor = (calibration or {}).get((reporter, year))
+            if factor:
+                scale, source = factor
+                estimate = replace(
+                    estimate,
+                    value=estimate.value * scale,
+                    calibration=scale,
+                    calibration_source=source,
+                )
+
+            filled[reporter] = estimate
 
         if filled:
             out[str(period)] = filled

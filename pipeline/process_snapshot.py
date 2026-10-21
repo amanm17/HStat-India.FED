@@ -1719,6 +1719,68 @@ def definition_share(
     }
 
 
+# What estimation needs beyond one code's own table, gathered once per run:
+# flow -> {"filers": year -> reporters that filed anything that year,
+#          "mirror": economy -> code -> year -> {partner: value},
+#          "calibration": (reporter, year) -> (factor, source)}.
+ESTIMATION_CONTEXT: dict[str, dict] = {}
+
+CALIBRATION_FILE = ROOT_CONFIG / "estimate_calibration.json"
+
+
+def load_calibration() -> dict[str, dict]:
+    """
+    flow -> {(reporter, year): (factor, source)} from
+    config/estimate_calibration.json. Each entry is a reviewed realignment of
+    one economy's estimates for one year against a benchmark; see the file.
+    """
+    out: dict[str, dict] = {FLOW_IMPORTS: {}, FLOW_EXPORTS: {}}
+    if not CALIBRATION_FILE.exists():
+        return out
+    data = json.loads(CALIBRATION_FILE.read_text(encoding="utf-8"))
+    flows = {"imports": FLOW_IMPORTS, "exports": FLOW_EXPORTS}
+    for entry in data.get("entries", []):
+        flow = flows.get(entry.get("flow"))
+        factor = float(entry.get("factor") or 0)
+        if not flow or factor <= 0:
+            continue
+        out[flow][(str(entry["reporter"]), int(entry["year"]))] = (
+            factor,
+            str(entry.get("source") or "benchmark"),
+        )
+    return out
+
+
+def prepare_estimation(global_index: dict, scope: dict, root=None) -> None:
+    """Fill ESTIMATION_CONTEXT for this run (see estimate.fill)."""
+    calibration = load_calibration()
+    mirror_config = scope.get("mirror") or {}
+    use = mirror_config.get("estimate") or {}
+    # Partners' exports to an economy read as its imports, and the reverse.
+    sources = {FLOW_IMPORTS: FLOW_EXPORTS, FLOW_EXPORTS: FLOW_IMPORTS}
+    for flow in (FLOW_IMPORTS, FLOW_EXPORTS):
+        wanted = use.get("imports", True) if flow == FLOW_IMPORTS else use.get("exports", False)
+        mirror = {}
+        if mirror_config.get("enabled") and wanted:
+            for economy in mirror_config.get("reporters", {}):
+                series = store.mirror_series("A", str(economy), sources[flow], root)
+                if series:
+                    mirror[str(economy)] = series
+        ESTIMATION_CONTEXT[flow] = {
+            "filers": global_index[flow].filers(),
+            "mirror": mirror,
+            "calibration": calibration.get(flow, {}),
+        }
+    print(
+        "Estimation context: "
+        + ", ".join(
+            f"{flow}: {len(ctx['mirror'])} mirror economies, "
+            f"{len(ctx['calibration'])} calibrations"
+            for flow, ctx in ESTIMATION_CONTEXT.items()
+        )
+    )
+
+
 def build_node(
     code: str,
     level: int,
@@ -1791,7 +1853,18 @@ def build_node(
         histories, names = estimate.reporter_histories(tables)
 
         reporter_names[flow] = names
-        annual_estimates[flow] = estimate.fill(tables, estimable)
+        context = ESTIMATION_CONTEXT.get(flow) or {}
+        annual_estimates[flow] = estimate.fill(
+            tables,
+            estimable,
+            filers=context.get("filers"),
+            mirror={
+                economy: series[code]
+                for economy, series in (context.get("mirror") or {}).items()
+                if code in series
+            },
+            calibration=context.get("calibration"),
+        )
 
         # Every estimate that landed outside the anomaly band, gathered for
         # the monthly resolution report. A review queue for a person, not an
@@ -2193,6 +2266,8 @@ def main():
             "Run pipeline/pull_comtrade.py first."
         )
 
+    prepare_estimation(global_index, scope, root)
+
     years = annual_periods(args.start_year, args.end_year)
 
     months: list[str] = []
@@ -2506,17 +2581,31 @@ def main():
             },
             "estimation": {
                 "statement": (
-                    "Where an economy has not filed a year for a product, its "
-                    "value is projected from its own history of that product "
-                    "and flow, and the world total is re-summed from the "
-                    "reporter table. A filed value is never changed by "
+                    "Where an economy has not filed a year at all, its value "
+                    "for each product is projected from its last filing, at a "
+                    "growth rate that blends its own history with the growth "
+                    "its trading partners or the rest of the world recorded "
+                    "for that product, and the world total is re-summed from "
+                    "the reporter table. A filed value is never changed by "
                     "estimation, and estimated values are marked * with their "
                     "share of the figure."
                 ),
                 "notes": [
-                    "Growth is the compound annual rate over the five years "
-                    "before the gap (ten if five cannot support a rate), held "
+                    "Growth is one quarter the economy's own compound annual "
+                    "rate (five years before the gap, ten if five cannot "
+                    "support a rate) and three quarters a field signal: what "
+                    "its partners reported trading with it, where that has "
+                    "been pulled for late filers, otherwise the growth of "
+                    "every economy that filed both years. The result is held "
                     "within +/-50% a year and applied for at most three years.",
+                    "An economy that filed a year is never estimated for it: "
+                    "a product it left out is a zero, a suppression or trade "
+                    "filed under another code.",
+                    "Where a reviewed benchmark of an economy's own published "
+                    "statistics differs from its estimate by more than 10%, "
+                    "its estimates for that year are realigned by one factor "
+                    "(config/estimate_calibration.json). Filed values are "
+                    "never realigned.",
                     "An economy is estimated only within three years of its "
                     "own filings of that product. One that has stopped is not "
                     "assumed to be trading.",
