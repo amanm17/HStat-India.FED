@@ -2628,9 +2628,9 @@ def main():
                     "filed; and a reference check. Where an economy's reported "
                     "totals in a reference source (ITC Trade Map, International "
                     "Trade Centre, www.trademap.org, or its own statistics) "
-                    "differ from HStat's estimate by more than 10%, its "
-                    "estimates for that year are realigned by one factor, by "
-                    "economy and, where needed, HS chapter. Reference figures "
+                    "have been checked, its estimates for that year are "
+                    "realigned to them by one factor, by economy and, where "
+                    "needed, HS chapter. Reference figures "
                     "are not reproduced; filed values are never realigned.",
                     "An economy is estimated only within three years of its "
                     "own filings of that product. One that has stopped is not "

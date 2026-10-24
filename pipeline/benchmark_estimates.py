@@ -5,6 +5,7 @@ The reference check: layer 3 of HStat's figures.
     python3 pipeline/benchmark_estimates.py data/benchmarks/<file>.csv
     python3 pipeline/benchmark_estimates.py data/benchmarks/<file>.csv --write
     python3 pipeline/benchmark_estimates.py --codes 2025 [--group 84] > codes.txt
+    python3 pipeline/benchmark_estimates.py --template [704 490 ...] > sheet.csv
 
 THE THREE LAYERS
 
@@ -13,7 +14,8 @@ THE THREE LAYERS
   3. A reference check. A person reads an economy's reported totals in a
      reference source, for the HStat electronics codes, for the years HStat
      estimates. Where the estimate is further from the reference than the
-     tolerance (config/estimate_calibration.json, 10%), this script proposes
+     tolerance (config/estimate_calibration.json; 0 since 24 October 2026, so
+     every estimated year is realigned), this script proposes
      one factor that realigns the estimates for that economy, flow, year and,
      optionally, HS chapter or heading. With --write the factors are recorded;
      the next snapshot build applies them. The reference figures themselves
@@ -40,6 +42,14 @@ from it.
 Where both a group row and an economy-wide row exist for the same economy,
 flow and year, the economy-wide row is compared over the codes no group row
 covers, so no code is realigned twice.
+
+TEMPLATES
+
+`--template` writes a reference sheet with every row still to be read: for
+each economy, its latest filed year (the alignment row) and every year HStat
+estimates for it, both flows, values blank. With no codes it covers the
+economies that together hold 95% of the estimated value in the last two
+years. Fill value_usd and checked_by by hand; blank rows are skipped.
 
 READING TRADE MAP BY HAND
 
@@ -93,13 +103,70 @@ def ours(reporter: str, flow: str, year: str, codes: list[str]) -> tuple[float, 
     return filed, estimated
 
 
+def estimated_profile(years: list[str]) -> dict:
+    """reporter -> flow -> year -> (filed, estimated) over the scope codes."""
+    profile: dict = {}
+    for year in years:
+        for code in scope_codes(year):
+            path = SNAPSHOT / "detail" / f"{code}.json"
+            if not path.exists():
+                continue
+            block = json.loads(path.read_text())["years"].get(year, {})
+            for flow, side in SIDES.items():
+                for row in block.get(side, {}).get("rows", []):
+                    cell = profile.setdefault(row[0], {}).setdefault(flow, {}).setdefault(year, [0.0, 0.0])
+                    cell[1 if row[2] else 0] += row[1]
+    return profile
+
+
+def template(reporters: list[str], share: float = 0.95) -> int:
+    manifest = json.loads((SNAPSHOT / "manifest.json").read_text())
+    last = int(manifest.get("endYear", date.today().year))
+    years = [str(y) for y in range(last - 6, last + 1)]
+    profile = estimated_profile(years)
+    recent = [str(last - 2), str(last - 1)]
+
+    def weight(reporter: str) -> float:
+        return sum(profile[reporter].get(f, {}).get(y, [0, 0])[1] for f in SIDES for y in recent)
+
+    if not reporters:
+        ranked = sorted((r for r in profile if weight(r) > 0), key=weight, reverse=True)
+        total = sum(weight(r) for r in ranked)
+        running = 0.0
+        for reporter in ranked:
+            reporters.append(reporter)
+            running += weight(reporter)
+            if total and running / total >= share:
+                break
+
+    writer = csv.writer(sys.stdout)
+    writer.writerow(["reporter", "flow", "year", "group", "value_usd", "source", "checked_by"])
+    for reporter in reporters:
+        for flow in SIDES:
+            cells = profile.get(reporter, {}).get(flow, {})
+            filed = [y for y, (f, e) in cells.items() if f > 0 and e <= 0.01 * (f + e)]
+            # An estimated year is one the economy did not file. (In a snapshot
+            # built before the filed-year rule, a filed year can still carry a
+            # few estimated codes; those are not years to benchmark.)
+            estimated = sorted(y for y, (f, e) in cells.items() if e > 0 and f <= 0.01 * (f + e))
+            rows = ([max(filed)] if filed else []) + estimated
+            for year in rows:
+                writer.writerow([reporter, flow, year, "", "", "Trade Map, International Trade Centre, www.trademap.org (direct data, HStat electronics codes)", ""])
+    print(f"{len(reporters)} economies: {' '.join(reporters)}", file=sys.stderr)
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("reference", type=Path, nargs="?")
     parser.add_argument("--write", action="store_true", help="record proposed factors")
     parser.add_argument("--codes", metavar="YEAR", help="print the HStat electronics codes for a year")
     parser.add_argument("--group", default="", help="with --codes: only codes under this HS prefix")
+    parser.add_argument("--template", nargs="*", metavar="REPORTER", help="print a blank reference sheet")
     args = parser.parse_args()
+
+    if args.template is not None:
+        return template(list(args.template))
 
     if args.codes:
         for code in scope_codes(args.codes):

@@ -4,7 +4,7 @@ HStat's figures come in three layers. A higher layer never overrides a lower one
 
 1. **Comtrade filings: the truth.** Nothing changes them.
 2. **HStat's estimates** for what has not been filed (`pipeline/estimate.py`).
-3. **A reference check.** A person reads an economy's reported totals in a reference source for the years HStat estimates. Where the estimate is further from the reference than the tolerance (10%), the estimates are realigned by one factor for that economy, flow, year and, optionally, HS chapter or heading. Only the factor is stored, in `config/estimate_calibration.json`.
+3. **A reference check.** A person reads an economy's reported totals in a reference source for the years HStat estimates. Every estimated year with a reference is realigned (tolerance 0 since 24 October 2026): the estimates are scaled by one factor for that economy, flow, year and, optionally, HS chapter or heading. Only the factor is stored, in `config/estimate_calibration.json`.
 
 Reference files (`*.csv`) in this folder stay on the operator's machine: git ignores them, so reference figures are never published.
 
