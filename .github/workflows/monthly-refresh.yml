@@ -244,9 +244,24 @@ jobs:
           set +e
           python pipeline/refresh_monthly.py \
             --max-calls "${{ inputs.max_calls || '200' }}" \
-            ${{ steps.depth.outputs.args }}
-          CODE=$?
+            ${{ steps.depth.outputs.args }} 2>&1 | tee refresh.log
+          CODE=${PIPESTATUS[0]}
           set -e
+
+          # A failure is written to the run summary, which anyone who can see
+          # the repository can read without signing in; the full log needs a
+          # sign-in. No secret is ever printed by the pipeline.
+          if [ "$CODE" != "0" ] && [ "$CODE" != "3" ]; then
+            {
+              echo "### Refresh failed (exit $CODE)"
+              echo
+              echo '```'
+              grep -n -i -E "error|fail|traceback|aborted|refus" refresh.log | tail -40
+              echo '---- last 60 lines ----'
+              tail -60 refresh.log
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
 
           if [ "$CODE" = "3" ]; then
             echo "incomplete=true" >> "$GITHUB_OUTPUT"
