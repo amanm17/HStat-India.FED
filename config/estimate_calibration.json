@@ -2,5 +2,54 @@
   "_comment": "Layer 3 of HStat's figures: reviewed realignments of one economy's ESTIMATED values for one year and flow, and optionally one HS chapter or heading (`group`), against a reference. Layer 1 (Comtrade filings) is never touched, and layer 2 (estimate.py) is only ever scaled. Entries are written by `python3 pipeline/benchmark_estimates.py <reference.csv> --write` after a person has read the reference figures and reviewed the report, for every estimated year whose gap exceeds `tolerance` (0 since 24 October 2026: FED decided that every recent estimated year is realigned to its reference). The most specific matching group wins for a code. Remove an entry once Comtrade carries the economy's own filing for that year: the filing then replaces the estimate and the entry does nothing.",
   "_sources": "A reference is an economy's own reported trade, read by a person: ITC Trade Map (Trade Map, International Trade Centre, www.trademap.org), consulted through its own interface, or the economy's customs or statistics office. FED decision, 21 October 2026: Trade Map is used as a manually consulted reference. Only the factor is stored here; reference figures are not published or committed (data/benchmarks/*.csv is ignored by git), and Trade Map is never extracted by script or automation. ITC's MAT Terms (sections 10, 12 and 14) reserve written permission for content that substantially supports a dashboard open to third parties; a permission request is open with itcreg@intracen.org, and if ITC declines, Trade Map-based entries are removed.",
   "tolerance": 0.0,
-  "entries": []
+  "entries": [
+    {
+      "reporter": "704",
+      "flow": "exports",
+      "year": 2024,
+      "group": "",
+      "factor": 1.073521,
+      "gapBefore": -0.0685,
+      "codes": 411,
+      "source": "Trade Map, International Trade Centre, www.trademap.org (Viet Nam, direct data, HStat electronics codes)",
+      "checkedBy": "Aman Mishra, FED (instructed 26 Oct 2026; totals from the 21 Oct 2026 Viet Nam check)",
+      "recorded": "2026-10-26"
+    },
+    {
+      "reporter": "704",
+      "flow": "exports",
+      "year": 2025,
+      "group": "",
+      "factor": 1.221804,
+      "gapBefore": -0.1815,
+      "codes": 411,
+      "source": "Trade Map, International Trade Centre, www.trademap.org (Viet Nam, direct data, HStat electronics codes)",
+      "checkedBy": "Aman Mishra, FED (instructed 26 Oct 2026; totals from the 21 Oct 2026 Viet Nam check)",
+      "recorded": "2026-10-26"
+    },
+    {
+      "reporter": "704",
+      "flow": "imports",
+      "year": 2024,
+      "group": "",
+      "factor": 1.0654,
+      "gapBefore": -0.0614,
+      "codes": 411,
+      "source": "Trade Map, International Trade Centre, www.trademap.org (Viet Nam, direct data, HStat electronics codes)",
+      "checkedBy": "Aman Mishra, FED (instructed 26 Oct 2026; totals from the 21 Oct 2026 Viet Nam check)",
+      "recorded": "2026-10-26"
+    },
+    {
+      "reporter": "704",
+      "flow": "imports",
+      "year": 2025,
+      "group": "",
+      "factor": 1.16478,
+      "gapBefore": -0.1415,
+      "codes": 411,
+      "source": "Trade Map, International Trade Centre, www.trademap.org (Viet Nam, direct data, HStat electronics codes)",
+      "checkedBy": "Aman Mishra, FED (instructed 26 Oct 2026; totals from the 21 Oct 2026 Viet Nam check)",
+      "recorded": "2026-10-26"
+    }
+  ]
 }
