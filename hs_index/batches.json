@@ -625,7 +625,8 @@
     "903180"
    ],
    "pull": {
-    "status": "pending"
+    "status": "complete",
+    "completedOn": "2026-10-26"
    }
   }
  ]

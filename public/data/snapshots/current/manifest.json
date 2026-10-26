@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0.0",
-  "refreshedAt": "2026-10-08T06:43:59.626680+00:00",
+  "refreshedAt": "2026-10-26T07:20:58.449849+00:00",
   "fixture": false,
   "classification": "HS 2022 (H6)",
   "startYear": 1996,
@@ -467,12 +467,12 @@
       "fraction": 0.7547169811320755
     }
   },
-  "products": 418,
+  "products": 455,
   "parents": {
-    "2": 20,
-    "4": 106
+    "2": 25,
+    "4": 122
   },
-  "nodes": 544,
+  "nodes": 602,
   "globalTradeBasis": "imports",
   "monthlyEnabled": true,
   "pageFiles": {
