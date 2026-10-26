@@ -50,6 +50,14 @@ FLOW_RE_IMPORTS = "RM"
 # that is not wrong.
 TOLERANCE = 1e-4
 
+# ... and never less than a dollar. The published total and the estimate it
+# declares are each rounded to whole dollars, so two roundings can leave up to
+# a dollar between them. For a figure of a few hundred dollars that is more
+# than the relative tolerance allows (26 October 2026: 854340 2019, $64.39
+# published as $64), and the check failed on rounding, not on a displaced
+# filing. A displaced filing is never as small as a dollar.
+ABSOLUTE_TOLERANCE = 1.0
+
 
 def net_total(gross: dict, reverse: dict) -> float | None:
     """
@@ -149,7 +157,7 @@ def main() -> int:
 
             drift = abs(published - expected) / expected
 
-            if drift > TOLERANCE:
+            if drift > TOLERANCE and abs(published - expected) > ABSOLUTE_TOLERANCE:
                 mismatches.append(
                     {
                         "code": code,

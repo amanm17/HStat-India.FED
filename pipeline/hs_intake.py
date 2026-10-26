@@ -701,6 +701,17 @@ def apply_batch(batch: str) -> str:
     return process(staged, apply=True)
 
 
+def _has_figure(code: str) -> bool:
+    """A page is not enough: the code must carry a global trade figure, or the
+    launch sanity check would then require one that the store does not hold."""
+    path = CATALOGUE.parent / "products" / f"{code}.json"
+    try:
+        node = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return False
+    return any(((r or {}).get("global") or {}).get("trade") for r in (node.get("annual") or {}).values())
+
+
 def mark_pulled() -> str:
     """Close pending batches whose HS-6 codes all have a page in the live snapshot."""
     if not CATALOGUE.exists():
@@ -713,7 +724,7 @@ def mark_pulled() -> str:
         if batch.get("pull", {}).get("status") != "pending":
             continue
         wanted = [c for c in batch["codes"] if len(c) == 6 and c in products]
-        if wanted and all(c in live for c in wanted):
+        if wanted and all(c in live and _has_figure(c) for c in wanted):
             batch["pull"] = {"status": "complete", "completedOn": date.today().isoformat()}
             closed.append(batch["id"])
     if closed:
