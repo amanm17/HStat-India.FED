@@ -1307,7 +1307,7 @@
     {
       "code": "700231",
       "period": "2024",
-      "message": "import/export mirror ratio 1.869 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 1.871 outside [0.7, 1.5]"
     },
     {
       "code": "700231",
@@ -1317,7 +1317,7 @@
     {
       "code": "700231",
       "period": "2025",
-      "message": "import/export mirror ratio 1.809 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 1.824 outside [0.7, 1.5]"
     },
     {
       "code": "700231",
@@ -1437,7 +1437,7 @@
     {
       "code": "700719",
       "period": "2025",
-      "message": "only 15% of the world total came from reporters that file re-imports separately"
+      "message": "only 14% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "700729",
@@ -1642,7 +1642,7 @@
     {
       "code": "710410",
       "period": "2025",
-      "message": "import/export mirror ratio 0.689 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 0.690 outside [0.7, 1.5]"
     },
     {
       "code": "731815",
@@ -1912,7 +1912,7 @@
     {
       "code": "741022",
       "period": "2025",
-      "message": "import/export mirror ratio 0.596 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 0.607 outside [0.7, 1.5]"
     },
     {
       "code": "741022",
@@ -2347,7 +2347,7 @@
     {
       "code": "831130",
       "period": "2025",
-      "message": "only 24% of the world total came from reporters that file re-imports separately"
+      "message": "only 23% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "841430",
@@ -5167,7 +5167,7 @@
     {
       "code": "844311",
       "period": "2024",
-      "message": "import/export mirror ratio 0.690 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 0.691 outside [0.7, 1.5]"
     },
     {
       "code": "844311",
@@ -7552,7 +7552,7 @@
     {
       "code": "845221",
       "period": "2024",
-      "message": "import/export mirror ratio 0.546 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 0.550 outside [0.7, 1.5]"
     },
     {
       "code": "845221",
@@ -7562,12 +7562,12 @@
     {
       "code": "845221",
       "period": "2025",
-      "message": "import/export mirror ratio 0.491 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 0.499 outside [0.7, 1.5]"
     },
     {
       "code": "845221",
       "period": "2025",
-      "message": "only 17% of the world total came from reporters that file re-imports separately"
+      "message": "only 16% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "845610",
@@ -8452,7 +8452,7 @@
     {
       "code": "847030",
       "period": "2024",
-      "message": "import/export mirror ratio 4.177 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 4.176 outside [0.7, 1.5]"
     },
     {
       "code": "847030",
@@ -8462,7 +8462,7 @@
     {
       "code": "847030",
       "period": "2025",
-      "message": "import/export mirror ratio 4.155 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 4.154 outside [0.7, 1.5]"
     },
     {
       "code": "847030",
@@ -8982,7 +8982,7 @@
     {
       "code": "847149",
       "period": "2024",
-      "message": "import/export mirror ratio 0.692 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 0.693 outside [0.7, 1.5]"
     },
     {
       "code": "847149",
@@ -8992,7 +8992,7 @@
     {
       "code": "847149",
       "period": "2025",
-      "message": "import/export mirror ratio 0.648 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 0.650 outside [0.7, 1.5]"
     },
     {
       "code": "847150",
@@ -11847,7 +11847,7 @@
     {
       "code": "850434",
       "period": "2025",
-      "message": "only 18% of the world total came from reporters that file re-imports separately"
+      "message": "only 17% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "850440",
@@ -12047,7 +12047,7 @@
     {
       "code": "850519",
       "period": "2025",
-      "message": "import/export mirror ratio 1.532 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 1.551 outside [0.7, 1.5]"
     },
     {
       "code": "850520",
@@ -12452,7 +12452,7 @@
     {
       "code": "850630",
       "period": "2025",
-      "message": "import/export mirror ratio 2.072 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 2.074 outside [0.7, 1.5]"
     },
     {
       "code": "850630",
@@ -12697,7 +12697,7 @@
     {
       "code": "850650",
       "period": "2025",
-      "message": "only 21% of the world total came from reporters that file re-imports separately"
+      "message": "only 20% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "850660",
@@ -13027,12 +13027,12 @@
     {
       "code": "850680",
       "period": "2024",
-      "message": "import/export mirror ratio 1.842 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 1.851 outside [0.7, 1.5]"
     },
     {
       "code": "850680",
       "period": "2025",
-      "message": "import/export mirror ratio 2.146 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 2.177 outside [0.7, 1.5]"
     },
     {
       "code": "850690",
@@ -13705,6 +13705,11 @@
       "message": "only 22% of the world total came from reporters that file re-imports separately"
     },
     {
+      "code": "850760",
+      "period": "2025",
+      "message": "only 25% of the world total came from reporters that file re-imports separately"
+    },
+    {
       "code": "850780",
       "period": "1997",
       "message": "only 0% of the world total came from reporters that file re-imports separately"
@@ -14222,7 +14227,7 @@
     {
       "code": "850860",
       "period": "2024",
-      "message": "import/export mirror ratio 2.209 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 2.210 outside [0.7, 1.5]"
     },
     {
       "code": "850860",
@@ -14322,7 +14327,7 @@
     {
       "code": "850870",
       "period": "2025",
-      "message": "only 19% of the world total came from reporters that file re-imports separately"
+      "message": "only 18% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "850940",
@@ -14467,7 +14472,7 @@
     {
       "code": "850940",
       "period": "2025",
-      "message": "only 24% of the world total came from reporters that file re-imports separately"
+      "message": "only 23% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "850980",
@@ -18192,12 +18197,12 @@
     {
       "code": "851718",
       "period": "2024",
-      "message": "import/export mirror ratio 1.885 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 1.879 outside [0.7, 1.5]"
     },
     {
       "code": "851718",
       "period": "2025",
-      "message": "import/export mirror ratio 1.816 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 1.797 outside [0.7, 1.5]"
     },
     {
       "code": "851761",
@@ -18962,7 +18967,7 @@
     {
       "code": "851830",
       "period": "2024",
-      "message": "import/export mirror ratio 1.873 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 1.868 outside [0.7, 1.5]"
     },
     {
       "code": "851830",
@@ -18972,7 +18977,7 @@
     {
       "code": "851830",
       "period": "2025",
-      "message": "import/export mirror ratio 1.931 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 1.916 outside [0.7, 1.5]"
     },
     {
       "code": "851840",
@@ -20192,7 +20197,7 @@
     {
       "code": "852290",
       "period": "2025",
-      "message": "import/export mirror ratio 0.594 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 0.595 outside [0.7, 1.5]"
     },
     {
       "code": "852290",
@@ -20252,7 +20257,7 @@
     {
       "code": "852321",
       "period": "2024",
-      "message": "import/export mirror ratio 1.642 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 1.643 outside [0.7, 1.5]"
     },
     {
       "code": "852341",
@@ -20307,12 +20312,12 @@
     {
       "code": "852341",
       "period": "2024",
-      "message": "import/export mirror ratio 3.142 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 3.127 outside [0.7, 1.5]"
     },
     {
       "code": "852341",
       "period": "2025",
-      "message": "import/export mirror ratio 4.073 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 4.010 outside [0.7, 1.5]"
     },
     {
       "code": "852351",
@@ -20602,12 +20607,12 @@
     {
       "code": "852411",
       "period": "2024",
-      "message": "import/export mirror ratio 1.581 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 1.580 outside [0.7, 1.5]"
     },
     {
       "code": "852411",
       "period": "2025",
-      "message": "import/export mirror ratio 1.640 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 1.638 outside [0.7, 1.5]"
     },
     {
       "code": "852412",
@@ -20622,7 +20627,7 @@
     {
       "code": "852412",
       "period": "2025",
-      "message": "only 14% of the world total came from reporters that file re-imports separately"
+      "message": "only 13% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "852419",
@@ -20632,12 +20637,12 @@
     {
       "code": "852419",
       "period": "2024",
-      "message": "import/export mirror ratio 2.656 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 2.658 outside [0.7, 1.5]"
     },
     {
       "code": "852419",
       "period": "2025",
-      "message": "import/export mirror ratio 2.796 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 2.799 outside [0.7, 1.5]"
     },
     {
       "code": "852491",
@@ -20702,12 +20707,12 @@
     {
       "code": "852491",
       "period": "2024",
-      "message": "import/export mirror ratio 0.687 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 0.693 outside [0.7, 1.5]"
     },
     {
       "code": "852491",
       "period": "2025",
-      "message": "import/export mirror ratio 0.679 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 0.698 outside [0.7, 1.5]"
     },
     {
       "code": "852492",
@@ -20792,7 +20797,7 @@
     {
       "code": "852499",
       "period": "2025",
-      "message": "import/export mirror ratio 0.604 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 0.605 outside [0.7, 1.5]"
     },
     {
       "code": "852550",
@@ -20952,7 +20957,7 @@
     {
       "code": "852550",
       "period": "2024",
-      "message": "import/export mirror ratio 2.579 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 2.578 outside [0.7, 1.5]"
     },
     {
       "code": "852550",
@@ -20962,7 +20967,7 @@
     {
       "code": "852550",
       "period": "2025",
-      "message": "import/export mirror ratio 2.277 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 2.272 outside [0.7, 1.5]"
     },
     {
       "code": "852550",
@@ -21047,12 +21052,17 @@
     {
       "code": "852582",
       "period": "2024",
-      "message": "import/export mirror ratio 0.644 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 0.647 outside [0.7, 1.5]"
+    },
+    {
+      "code": "852582",
+      "period": "2024",
+      "message": "only 25% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "852582",
       "period": "2025",
-      "message": "only 18% of the world total came from reporters that file re-imports separately"
+      "message": "only 17% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "852583",
@@ -21062,12 +21072,12 @@
     {
       "code": "852583",
       "period": "2024",
-      "message": "import/export mirror ratio 0.649 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 0.653 outside [0.7, 1.5]"
     },
     {
       "code": "852583",
       "period": "2025",
-      "message": "import/export mirror ratio 0.582 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 0.593 outside [0.7, 1.5]"
     },
     {
       "code": "852583",
@@ -22572,7 +22582,7 @@
     {
       "code": "852842",
       "period": "2024",
-      "message": "import/export mirror ratio 1.542 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 1.543 outside [0.7, 1.5]"
     },
     {
       "code": "852842",
@@ -22582,7 +22592,7 @@
     {
       "code": "852842",
       "period": "2025",
-      "message": "import/export mirror ratio 2.553 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 2.557 outside [0.7, 1.5]"
     },
     {
       "code": "852842",
@@ -22632,12 +22642,12 @@
     {
       "code": "852849",
       "period": "2024",
-      "message": "import/export mirror ratio 0.529 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 0.530 outside [0.7, 1.5]"
     },
     {
       "code": "852849",
       "period": "2025",
-      "message": "import/export mirror ratio 0.528 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 0.530 outside [0.7, 1.5]"
     },
     {
       "code": "852849",
@@ -22777,7 +22787,7 @@
     {
       "code": "852859",
       "period": "2025",
-      "message": "import/export mirror ratio 0.692 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 0.679 outside [0.7, 1.5]"
     },
     {
       "code": "852862",
@@ -23010,11 +23020,6 @@
       "message": "only 22% of the world total came from reporters that file re-imports separately"
     },
     {
-      "code": "852871",
-      "period": "2025",
-      "message": "import/export mirror ratio 1.502 outside [0.7, 1.5]"
-    },
-    {
       "code": "852872",
       "period": "2009",
       "message": "only 23% of the world total came from reporters that file re-imports separately"
@@ -23242,12 +23247,12 @@
     {
       "code": "852873",
       "period": "2024",
-      "message": "import/export mirror ratio 1.543 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 1.545 outside [0.7, 1.5]"
     },
     {
       "code": "852873",
       "period": "2025",
-      "message": "import/export mirror ratio 1.744 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 1.753 outside [0.7, 1.5]"
     },
     {
       "code": "852910",
@@ -24027,7 +24032,7 @@
     {
       "code": "853210",
       "period": "2025",
-      "message": "import/export mirror ratio 1.562 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 1.566 outside [0.7, 1.5]"
     },
     {
       "code": "853221",
@@ -24192,12 +24197,17 @@
     {
       "code": "853223",
       "period": "2024",
-      "message": "import/export mirror ratio 1.554 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 1.575 outside [0.7, 1.5]"
     },
     {
       "code": "853223",
       "period": "2025",
-      "message": "import/export mirror ratio 1.581 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 1.645 outside [0.7, 1.5]"
+    },
+    {
+      "code": "853223",
+      "period": "2025",
+      "message": "only 25% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "853224",
@@ -24807,7 +24817,7 @@
     {
       "code": "853310",
       "period": "2024",
-      "message": "import/export mirror ratio 1.844 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 1.850 outside [0.7, 1.5]"
     },
     {
       "code": "853310",
@@ -24817,7 +24827,7 @@
     {
       "code": "853310",
       "period": "2025",
-      "message": "import/export mirror ratio 1.529 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 1.544 outside [0.7, 1.5]"
     },
     {
       "code": "853321",
@@ -25087,12 +25097,12 @@
     {
       "code": "853331",
       "period": "2024",
-      "message": "import/export mirror ratio 1.618 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 1.623 outside [0.7, 1.5]"
     },
     {
       "code": "853331",
       "period": "2025",
-      "message": "import/export mirror ratio 1.519 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 1.534 outside [0.7, 1.5]"
     },
     {
       "code": "853339",
@@ -25257,12 +25267,12 @@
     {
       "code": "853339",
       "period": "2024",
-      "message": "import/export mirror ratio 2.539 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 2.547 outside [0.7, 1.5]"
     },
     {
       "code": "853339",
       "period": "2025",
-      "message": "import/export mirror ratio 2.611 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 2.635 outside [0.7, 1.5]"
     },
     {
       "code": "853340",
@@ -26512,7 +26522,7 @@
     {
       "code": "853910",
       "period": "2025",
-      "message": "import/export mirror ratio 1.548 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 1.549 outside [0.7, 1.5]"
     },
     {
       "code": "853921",
@@ -27657,7 +27667,7 @@
     {
       "code": "854012",
       "period": "2025",
-      "message": "import/export mirror ratio 1.601 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 1.602 outside [0.7, 1.5]"
     },
     {
       "code": "854020",
@@ -28022,7 +28032,7 @@
     {
       "code": "854040",
       "period": "2024",
-      "message": "only 15% of the world total came from reporters that file re-imports separately"
+      "message": "only 14% of the world total came from reporters that file re-imports separately"
     },
     {
       "code": "854040",
@@ -28672,7 +28682,7 @@
     {
       "code": "854089",
       "period": "2024",
-      "message": "import/export mirror ratio 1.756 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 1.757 outside [0.7, 1.5]"
     },
     {
       "code": "854089",
@@ -28682,7 +28692,7 @@
     {
       "code": "854089",
       "period": "2025",
-      "message": "import/export mirror ratio 1.770 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 1.774 outside [0.7, 1.5]"
     },
     {
       "code": "854091",
@@ -29877,7 +29887,7 @@
     {
       "code": "854340",
       "period": "2025",
-      "message": "import/export mirror ratio 0.668 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 0.665 outside [0.7, 1.5]"
     },
     {
       "code": "854340",
@@ -30837,7 +30847,7 @@
     {
       "code": "854590",
       "period": "2025",
-      "message": "import/export mirror ratio 1.574 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 1.576 outside [0.7, 1.5]"
     },
     {
       "code": "854610",
@@ -32067,7 +32077,7 @@
     {
       "code": "901380",
       "period": "2024",
-      "message": "import/export mirror ratio 1.514 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 1.520 outside [0.7, 1.5]"
     },
     {
       "code": "901380",
@@ -34142,7 +34152,7 @@
     {
       "code": "902221",
       "period": "2025",
-      "message": "import/export mirror ratio 1.812 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 1.815 outside [0.7, 1.5]"
     },
     {
       "code": "902221",
@@ -35672,7 +35682,7 @@
     {
       "code": "903281",
       "period": "2025",
-      "message": "import/export mirror ratio 0.585 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 0.586 outside [0.7, 1.5]"
     },
     {
       "code": "903281",
@@ -37242,7 +37252,7 @@
     {
       "code": "910521",
       "period": "2025",
-      "message": "import/export mirror ratio 0.609 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 0.610 outside [0.7, 1.5]"
     },
     {
       "code": "910521",
@@ -37547,7 +37557,7 @@
     {
       "code": "910610",
       "period": "2024",
-      "message": "import/export mirror ratio 0.656 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 0.657 outside [0.7, 1.5]"
     },
     {
       "code": "910610",
@@ -37557,7 +37567,7 @@
     {
       "code": "910610",
       "period": "2025",
-      "message": "import/export mirror ratio 0.636 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 0.639 outside [0.7, 1.5]"
     },
     {
       "code": "910690",
@@ -37667,7 +37677,7 @@
     {
       "code": "910690",
       "period": "2025",
-      "message": "import/export mirror ratio 0.334 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 0.335 outside [0.7, 1.5]"
     },
     {
       "code": "910690",
@@ -37872,7 +37882,7 @@
     {
       "code": "910812",
       "period": "2024",
-      "message": "import/export mirror ratio 1.649 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 1.644 outside [0.7, 1.5]"
     },
     {
       "code": "910812",
@@ -37882,7 +37892,7 @@
     {
       "code": "910812",
       "period": "2025",
-      "message": "import/export mirror ratio 2.132 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 2.109 outside [0.7, 1.5]"
     },
     {
       "code": "910812",
@@ -39552,7 +39562,7 @@
     {
       "code": "7002",
       "period": "2024",
-      "message": "import/export mirror ratio 1.516 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 1.517 outside [0.7, 1.5]"
     },
     {
       "code": "7002",
@@ -41702,7 +41712,7 @@
     {
       "code": "8522",
       "period": "2025",
-      "message": "import/export mirror ratio 0.604 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 0.605 outside [0.7, 1.5]"
     },
     {
       "code": "8522",
@@ -43857,7 +43867,7 @@
     {
       "code": "9106",
       "period": "2024",
-      "message": "import/export mirror ratio 0.500 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 0.501 outside [0.7, 1.5]"
     },
     {
       "code": "9106",
@@ -43867,7 +43877,7 @@
     {
       "code": "9106",
       "period": "2025",
-      "message": "import/export mirror ratio 0.405 outside [0.7, 1.5]"
+      "message": "import/export mirror ratio 0.407 outside [0.7, 1.5]"
     },
     {
       "code": "9108",
