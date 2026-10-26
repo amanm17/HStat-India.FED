@@ -1,9 +1,9 @@
 {
  "source": "UN Comtrade data availability (public getDA endpoint)",
  "sourceUrl": "https://comtradeplus.un.org/Visualization/DADashboard",
- "fetchedAt": "2026-10-20T23:12:57.338106+00:00",
- "builtAt": "2026-10-20T23:12:58.521383+00:00",
- "snapshotRefreshedAt": "2026-10-08T06:43:59.626680+00:00",
+ "fetchedAt": "2026-10-26T07:22:26.794888+00:00",
+ "builtAt": "2026-10-26T07:22:27.740281+00:00",
+ "snapshotRefreshedAt": "2026-10-26T07:20:58.449849+00:00",
  "lastPullAt": "2026-10-07T10:55:19Z",
  "schedule": "Checked on the 1st of each month and after every monthly data refresh (5th-7th).",
  "annual": [
@@ -25,7 +25,7 @@
   {
    "period": "2024",
    "reporters": 149,
-   "latestRelease": "2026-10-18"
+   "latestRelease": "2026-10-25"
   },
   {
    "period": "2025",
@@ -97,42 +97,42 @@
   {
    "period": "202601",
    "reporters": 85,
-   "latestRelease": "2026-10-20"
+   "latestRelease": "2026-10-25"
   },
   {
    "period": "202602",
    "reporters": 84,
-   "latestRelease": "2026-10-16"
+   "latestRelease": "2026-10-22"
   },
   {
    "period": "202603",
    "reporters": 84,
-   "latestRelease": "2026-10-16"
+   "latestRelease": "2026-10-23"
   },
   {
    "period": "202604",
-   "reporters": 77,
-   "latestRelease": "2026-10-16"
+   "reporters": 78,
+   "latestRelease": "2026-10-24"
   },
   {
    "period": "202605",
-   "reporters": 70,
-   "latestRelease": "2026-10-16"
+   "reporters": 71,
+   "latestRelease": "2026-10-25"
   },
   {
    "period": "202606",
-   "reporters": 63,
-   "latestRelease": "2026-10-20"
+   "reporters": 64,
+   "latestRelease": "2026-10-25"
   },
   {
    "period": "202607",
-   "reporters": 51,
-   "latestRelease": "2026-10-20"
+   "reporters": 52,
+   "latestRelease": "2026-10-25"
   },
   {
    "period": "202608",
-   "reporters": 21,
-   "latestRelease": "2026-10-20"
+   "reporters": 32,
+   "latestRelease": "2026-10-23"
   },
   {
    "period": "202609",
@@ -144,34 +144,34 @@
   {
    "period": "2024",
    "reporter": "Viet Nam",
-   "products": 89,
-   "priorValue": 108233463522,
+   "products": 101,
+   "priorValue": 112578145950,
    "sample": [
+    "321511",
     "340391",
     "350699",
+    "381800",
     "391990",
     "392099",
-    "392690",
-    "482110",
-    "482190",
-    "482390"
+    "392190",
+    "392690"
    ],
    "filedSince": false
   },
   {
    "period": "2025",
    "reporter": "Other Asia, nes",
-   "products": 65,
-   "priorValue": 133941544104,
+   "products": 79,
+   "priorValue": 155484038779,
    "sample": [
     "350699",
+    "370199",
+    "381800",
     "391990",
     "392099",
     "482390",
     "591190",
-    "741021",
-    "841821",
-    "844319"
+    "700231"
    ],
    "filedSince": false
   },
@@ -193,6 +193,23 @@
    "filedSince": false
   },
   {
+   "period": "2024",
+   "reporter": "Iran",
+   "products": 16,
+   "priorValue": 1097087420,
+   "sample": [
+    "370199",
+    "844311",
+    "844317",
+    "845090",
+    "845130",
+    "847329",
+    "850690",
+    "851761"
+   ],
+   "filedSince": false
+  },
+  {
    "period": "2025",
    "reporter": "Iraq",
    "products": 16,
@@ -210,23 +227,6 @@
    "filedSince": false
   },
   {
-   "period": "2024",
-   "reporter": "Iran",
-   "products": 15,
-   "priorValue": 1075732469,
-   "sample": [
-    "844311",
-    "844317",
-    "845090",
-    "845130",
-    "847329",
-    "850690",
-    "851761",
-    "852412"
-   ],
-   "filedSince": false
-  },
-  {
    "period": "2025",
    "reporter": "Algeria",
    "products": 9,
@@ -240,6 +240,21 @@
     "854150",
     "854610",
     "854810"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Ukraine",
+   "products": 6,
+   "priorValue": 550634042,
+   "sample": [
+    "850132",
+    "850423",
+    "852550",
+    "854020",
+    "854320",
+    "901480"
    ],
    "filedSince": false
   },
@@ -312,20 +327,6 @@
     "854011",
     "854810",
     "854890"
-   ],
-   "filedSince": false
-  },
-  {
-   "period": "2025",
-   "reporter": "Ukraine",
-   "products": 5,
-   "priorValue": 408495465,
-   "sample": [
-    "850423",
-    "852550",
-    "854020",
-    "854320",
-    "901480"
    ],
    "filedSince": false
   },
@@ -424,18 +425,6 @@
    "filedSince": false
   },
   {
-   "period": "2025",
-   "reporter": "Cambodia",
-   "products": 3,
-   "priorValue": 156154529,
-   "sample": [
-    "482110",
-    "831130",
-    "853931"
-   ],
-   "filedSince": true
-  },
-  {
    "period": "2024",
    "reporter": "Tajikistan",
    "products": 3,
@@ -508,17 +497,6 @@
   },
   {
    "period": "2025",
-   "reporter": "Samoa",
-   "products": 2,
-   "priorValue": 865277,
-   "sample": [
-    "851770",
-    "853950"
-   ],
-   "filedSince": true
-  },
-  {
-   "period": "2025",
    "reporter": "Jordan",
    "products": 2,
    "priorValue": 18024941,
@@ -530,23 +508,22 @@
   },
   {
    "period": "2025",
-   "reporter": "Nicaragua",
-   "products": 2,
-   "priorValue": 116064027,
-   "sample": [
-    "853670",
-    "853931"
-   ],
-   "filedSince": true
-  },
-  {
-   "period": "2025",
    "reporter": "Bahrain",
    "products": 2,
    "priorValue": 119533705,
    "sample": [
     "854519",
     "854590"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2024",
+   "reporter": "Lao People's Dem. Rep.",
+   "products": 1,
+   "priorValue": 3863790,
+   "sample": [
+    "710410"
    ],
    "filedSince": false
   },
@@ -649,7 +626,27 @@
     "852321"
    ],
    "filedSince": false
+  },
+  {
+   "period": "2024",
+   "reporter": "Comoros",
+   "products": 1,
+   "priorValue": 200231,
+   "sample": [
+    "854011"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2024",
+   "reporter": "Brazil",
+   "products": 1,
+   "priorValue": 165002,
+   "sample": [
+    "854011"
+   ],
+   "filedSince": true
   }
  ],
- "productsTotal": 418
+ "productsTotal": 455
 }
