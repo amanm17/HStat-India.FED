@@ -775,13 +775,15 @@ function SectorPanel({
   const [open, setOpen] = useState<string | null>(null)
   const colours = palette(dark)
 
+  /* Only the sector's own years: before historyStart its file holds just
+   * the lines it shares with another stream, which is not the sector. */
   const years = summary
     ? Object.entries(summary.years)
-        .filter(([, value]) => value.lines > 0)
+        .filter(([period, value]) => value.lines > 0 && Number(period) >= (sector.historyStart ?? 0))
         .map(([period]) => Number(period))
         .sort((a, b) => b - a)
     : []
-  const latest = latestScopeYear(summary)
+  const latest = years.length ? years[0] : latestScopeYear(summary)
   const year = homeYear !== null && years.includes(homeYear) ? homeYear : latest
   const record = summary && year !== null ? summary.years[String(year)] : null
 

@@ -2386,6 +2386,7 @@ def main():
     starts = sector_index.history_starts()
     sector_summaries: dict[str, ScopeSummary] = {}
     sector_members = {sector.id: sector.members for sector in sector_index.load_sectors()}
+    sector_starts = {sector.id: sector.history_start for sector in sector_index.load_sectors() if sector.history_start}
 
     for code, level in plan:
         node_years = years
@@ -2447,7 +2448,13 @@ def main():
             # A sector sums its own members, whatever their stream.
             for sector_id, members in sector_members.items():
                 if code in members:
-                    sector_summaries.setdefault(sector_id, ScopeSummary()).add(code, lists)
+                    # Only from the sector's start year: before it, the file
+                    # would hold just the lines shared with another stream.
+                    first = sector_starts.get(sector_id)
+                    sector_summaries.setdefault(sector_id, ScopeSummary()).add(
+                        code,
+                        {period: entry for period, entry in lists.items() if not first or int(period) >= first},
+                    )
 
         destination = (
             out / "products" / f"{code}.json"
