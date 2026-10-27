@@ -1,8 +1,8 @@
 {
  "source": "UN Comtrade data availability (public getDA endpoint)",
  "sourceUrl": "https://comtradeplus.un.org/Visualization/DADashboard",
- "fetchedAt": "2026-10-27T14:50:42.871444+00:00",
- "builtAt": "2026-10-27T14:50:44.259635+00:00",
+ "fetchedAt": "2026-10-27T23:07:16.349320+00:00",
+ "builtAt": "2026-10-27T23:07:17.961097+00:00",
  "snapshotRefreshedAt": "2026-10-27T14:48:59.284405+00:00",
  "lastPullAt": "2026-10-07T10:55:19Z",
  "schedule": "Checked on the 1st of each month and after every monthly data refresh (5th-7th).",
@@ -97,12 +97,12 @@
   {
    "period": "202601",
    "reporters": 85,
-   "latestRelease": "2026-10-25"
+   "latestRelease": "2026-10-27"
   },
   {
    "period": "202602",
    "reporters": 84,
-   "latestRelease": "2026-10-22"
+   "latestRelease": "2026-10-27"
   },
   {
    "period": "202603",
