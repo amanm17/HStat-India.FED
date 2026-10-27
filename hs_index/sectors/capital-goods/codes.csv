@@ -1,0 +1,440 @@
+# The FED capital goods segment: every member HS-6 code with its FED tags.
+# Source: Classification sheet of 'India Trade Data 450 codes Oct 26' (FED, October 2026); SCOMET flag from the 'HS under SCOMET' list.
+# A code here may belong to any stream; membership never moves an electronics figure. See pipeline/sectors.py.
+hs6,broad_category,niche_category,scomet
+730900,Process Plant Machinery,Process Plant Machinery,yes
+731010,Process Plant Machinery,Process Plant Machinery,no
+761100,Process Plant Machinery,Process Plant Machinery,no
+761290,Process Plant Machinery,Process Plant Machinery,no
+761300,Process Plant Machinery,Process Plant Machinery,no
+820110,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+820130,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+820140,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+820150,Machine Tools,Machine Tools,no
+820160,Machine Tools,Machine Tools,no
+820190,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+820210,Machine Tools,Machine Tools,no
+820220,Machine Tools,Machine Tools,no
+820231,Machine Tools,Machine Tools,no
+820240,Machine Tools,Machine Tools,no
+820291,Machine Tools,Machine Tools,no
+820299,Machine Tools,Machine Tools,no
+820310,Machine Tools,Machine Tools,no
+820320,Machine Tools,Machine Tools,no
+820330,Machine Tools,Machine Tools,no
+820340,Machine Tools,Machine Tools,no
+820411,Machine Tools,Machine Tools,no
+820412,Machine Tools,Machine Tools,no
+820420,Machine Tools,Machine Tools,no
+820510,Machine Tools,Machine Tools,no
+820520,Machine Tools,Machine Tools,no
+820530,Machine Tools,Machine Tools,no
+820540,Machine Tools,Machine Tools,no
+820551,Machine Tools,Machine Tools,no
+820559,Machine Tools,Machine Tools,no
+820560,Machine Tools,Machine Tools,no
+820570,Machine Tools,Machine Tools,no
+820590,Machine Tools,Machine Tools,no
+820600,Machine Tools,Machine Tools,no
+820713,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+820719,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+820740,Machine Tools,Machine Tools,no
+820750,Machine Tools,Machine Tools,no
+820760,Machine Tools,Machine Tools,no
+820770,Machine Tools,Machine Tools,no
+820780,Machine Tools,Machine Tools,no
+820790,Machine Tools,Machine Tools,no
+820810,Machine Tools,Machine Tools,no
+820820,Machine Tools,Machine Tools,no
+820830,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+820840,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+820890,Machine Tools,Machine Tools,no
+821110,Machine Tools,Machine Tools,no
+821192,Machine Tools,Machine Tools,no
+821193,Machine Tools,Machine Tools,no
+821194,Machine Tools,Machine Tools,no
+821195,Machine Tools,Machine Tools,no
+840120,Other Machinery,Other Machinery,yes
+840211,Process Plant Machinery,Process Plant Machinery,no
+840212,Process Plant Machinery,Process Plant Machinery,no
+840219,Process Plant Machinery,Process Plant Machinery,no
+840220,Process Plant Machinery,Process Plant Machinery,no
+840310,Process Plant Machinery,Process Plant Machinery,no
+840410,Process Plant Machinery,Process Plant Machinery,no
+840420,Process Plant Machinery,Process Plant Machinery,no
+841319,Process Plant Machinery,Process Plant Machinery,no
+841320,Process Plant Machinery,Process Plant Machinery,no
+841340,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+841350,Process Plant Machinery,Process Plant Machinery,no
+841360,Process Plant Machinery,Process Plant Machinery,no
+841370,Process Plant Machinery,Process Plant Machinery,no
+841381,Process Plant Machinery,Process Plant Machinery,no
+841382,Process Plant Machinery,Process Plant Machinery,no
+841610,Process Plant Machinery,Process Plant Machinery,no
+841620,Process Plant Machinery,Process Plant Machinery,no
+841630,Process Plant Machinery,Metallurgical Machinery,no
+841710,Process Plant Machinery,Metallurgical Machinery,no
+841720,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+841780,Process Plant Machinery,Process Plant Machinery,yes
+841861,Process Plant Machinery,Process Plant Machinery,no
+841912,Process Plant Machinery,Process Plant Machinery,no
+841919,Process Plant Machinery,Process Plant Machinery,no
+841920,Process Plant Machinery,Process Plant Machinery,yes
+841933,Process Plant Machinery,Process Plant Machinery,no
+841934,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+841935,Process Plant Machinery,Process Plant Machinery,no
+841939,Process Plant Machinery,Process Plant Machinery,yes
+841940,Process Plant Machinery,Process Plant Machinery,no
+841960,Process Plant Machinery,Process Plant Machinery,no
+841989,Process Plant Machinery,Process Plant Machinery,yes
+842010,Process Plant Machinery,Textile Machinery,no
+842111,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+842112,Process Plant Machinery,Textile Machinery,no
+842119,Process Plant Machinery,Process Plant Machinery,yes
+842122,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+842129,Process Plant Machinery,Process Plant Machinery,yes
+842139,Process Plant Machinery,Process Plant Machinery,no
+842219,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+842220,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+842230,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+842240,Process Plant Machinery,Process Plant Machinery,no
+842320,Process Plant Machinery,Process Plant Machinery,no
+842330,Process Plant Machinery,Process Plant Machinery,no
+842381,Process Plant Machinery,Process Plant Machinery,no
+842382,Process Plant Machinery,Process Plant Machinery,no
+842389,Process Plant Machinery,Process Plant Machinery,no
+842420,Process Plant Machinery,Process Plant Machinery,no
+842430,Process Plant Machinery,Process Plant Machinery,no
+842441,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+842449,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+842482,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+842489,Process Plant Machinery,Process Plant Machinery,yes
+842511,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+842519,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+842531,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+842539,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+842611,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+842612,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+842619,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+842620,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+842630,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+842641,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+842649,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+842691,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+842699,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+842710,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+842720,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+842790,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+842810,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+842820,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+842831,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+842832,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+842833,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+842839,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+842840,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+842870,Machine Tools,Machine Tools,no
+842890,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,yes
+842911,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+842919,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+842920,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+842930,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+842940,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+842951,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+842952,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+842959,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+843010,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+843020,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+843031,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+843039,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+843041,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+843049,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+843050,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+843061,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+843069,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+843210,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+843221,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+843229,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+843231,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+843239,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+843241,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+843242,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+843280,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+843320,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+843330,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+843340,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+843351,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+843352,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+843353,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+843359,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+843360,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+843410,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+843420,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+843510,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+843610,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+843621,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+843629,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+843680,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+843710,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+843780,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+843810,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+843820,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+843830,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+843840,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+843850,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+843860,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+843880,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+843910,Printing Machinery,Printing Machinery,no
+843920,Printing Machinery,Printing Machinery,no
+843930,Printing Machinery,Printing Machinery,no
+844010,Printing Machinery,Printing Machinery,no
+844110,Printing Machinery,Printing Machinery,no
+844120,Printing Machinery,Printing Machinery,no
+844130,Printing Machinery,Printing Machinery,no
+844140,Printing Machinery,Printing Machinery,no
+844180,Printing Machinery,Printing Machinery,no
+844230,Printing Machinery,Printing Machinery,no
+844311,Printing Machinery,Printing Machinery,no
+844312,Printing Machinery,Printing Machinery,no
+844313,Printing Machinery,Printing Machinery,no
+844314,Printing Machinery,Printing Machinery,no
+844315,Printing Machinery,Printing Machinery,no
+844316,Printing Machinery,Printing Machinery,no
+844317,Printing Machinery,Printing Machinery,no
+844319,Printing Machinery,Printing Machinery,no
+844339,Printing Machinery,Printing Machinery,no
+844391,Printing Machinery,Printing Machinery,no
+844400,Process Plant Machinery,Textile Machinery,no
+844511,Process Plant Machinery,Textile Machinery,no
+844512,Process Plant Machinery,Textile Machinery,no
+844513,Process Plant Machinery,Textile Machinery,no
+844519,Process Plant Machinery,Textile Machinery,no
+844520,Process Plant Machinery,Textile Machinery,no
+844530,Process Plant Machinery,Textile Machinery,no
+844540,Process Plant Machinery,Textile Machinery,no
+844590,Process Plant Machinery,Textile Machinery,no
+844610,Process Plant Machinery,Textile Machinery,no
+844621,Process Plant Machinery,Textile Machinery,no
+844629,Process Plant Machinery,Textile Machinery,no
+844630,Process Plant Machinery,Textile Machinery,no
+844711,Process Plant Machinery,Textile Machinery,no
+844712,Process Plant Machinery,Textile Machinery,no
+844720,Process Plant Machinery,Textile Machinery,no
+844790,Process Plant Machinery,Textile Machinery,yes
+844900,Process Plant Machinery,Textile Machinery,no
+845110,Process Plant Machinery,Textile Machinery,no
+845129,Process Plant Machinery,Textile Machinery,no
+845130,Process Plant Machinery,Textile Machinery,no
+845140,Process Plant Machinery,Textile Machinery,no
+845150,Process Plant Machinery,Textile Machinery,no
+845180,Process Plant Machinery,Textile Machinery,no
+845221,Process Plant Machinery,Textile Machinery,no
+845229,Process Plant Machinery,Textile Machinery,no
+845310,Process Plant Machinery,Textile Machinery,no
+845320,Process Plant Machinery,Textile Machinery,no
+845380,Process Plant Machinery,Textile Machinery,no
+845410,Process Plant Machinery,Metallurgical Machinery,no
+845430,Process Plant Machinery,Metallurgical Machinery,no
+845510,Process Plant Machinery,Metallurgical Machinery,no
+845521,Process Plant Machinery,Metallurgical Machinery,no
+845522,Process Plant Machinery,Metallurgical Machinery,no
+845611,Machine Tools,Machine Tools,no
+845612,Machine Tools,Machine Tools,no
+845620,Machine Tools,Machine Tools,no
+845630,Machine Tools,Machine Tools,no
+845640,Machine Tools,Machine Tools,no
+845650,Machine Tools,Machine Tools,no
+845690,Machine Tools,Machine Tools,no
+845710,Machine Tools,Machine Tools,no
+845720,Machine Tools,Machine Tools,no
+845730,Machine Tools,Machine Tools,no
+845811,Machine Tools,Machine Tools,yes
+845819,Machine Tools,Machine Tools,no
+845891,Machine Tools,Machine Tools,no
+845899,Machine Tools,Machine Tools,no
+845910,Machine Tools,Machine Tools,no
+845921,Machine Tools,Machine Tools,no
+845929,Machine Tools,Machine Tools,no
+845931,Machine Tools,Machine Tools,no
+845939,Machine Tools,Machine Tools,no
+845941,Machine Tools,Machine Tools,no
+845949,Machine Tools,Machine Tools,no
+845951,Machine Tools,Machine Tools,no
+845959,Machine Tools,Machine Tools,no
+845961,Machine Tools,Machine Tools,no
+845969,Machine Tools,Machine Tools,no
+845970,Machine Tools,Machine Tools,no
+846012,Machine Tools,Machine Tools,no
+846019,Machine Tools,Machine Tools,no
+846022,Machine Tools,Machine Tools,no
+846023,Machine Tools,Machine Tools,no
+846024,Machine Tools,Machine Tools,no
+846029,Machine Tools,Machine Tools,no
+846031,Machine Tools,Machine Tools,no
+846039,Machine Tools,Machine Tools,no
+846040,Machine Tools,Machine Tools,no
+846090,Machine Tools,Machine Tools,no
+846120,Machine Tools,Machine Tools,no
+846130,Machine Tools,Machine Tools,no
+846140,Machine Tools,Machine Tools,no
+846150,Machine Tools,Machine Tools,no
+846190,Machine Tools,Machine Tools,no
+846211,Machine Tools,Machine Tools,no
+846219,Machine Tools,Machine Tools,no
+846222,Machine Tools,Machine Tools,no
+846223,Machine Tools,Machine Tools,no
+846224,Machine Tools,Machine Tools,no
+846225,Machine Tools,Machine Tools,no
+846226,Machine Tools,Machine Tools,no
+846229,Machine Tools,Machine Tools,no
+846232,Machine Tools,Machine Tools,no
+846233,Machine Tools,Machine Tools,no
+846239,Machine Tools,Machine Tools,no
+846242,Machine Tools,Machine Tools,no
+846249,Machine Tools,Machine Tools,no
+846251,Machine Tools,Machine Tools,no
+846259,Machine Tools,Machine Tools,no
+846261,Machine Tools,Machine Tools,no
+846262,Machine Tools,Machine Tools,no
+846263,Machine Tools,Machine Tools,no
+846269,Machine Tools,Machine Tools,no
+846290,Machine Tools,Machine Tools,no
+846310,Machine Tools,Machine Tools,no
+846320,Machine Tools,Machine Tools,no
+846330,Machine Tools,Machine Tools,no
+846390,Machine Tools,Machine Tools,no
+846410,Machine Tools,Machine Tools,no
+846420,Machine Tools,Machine Tools,no
+846490,Machine Tools,Machine Tools,no
+846510,Machine Tools,Machine Tools,no
+846520,Machine Tools,Machine Tools,no
+846591,Machine Tools,Machine Tools,no
+846592,Machine Tools,Machine Tools,no
+846593,Machine Tools,Machine Tools,no
+846594,Machine Tools,Machine Tools,no
+846595,Machine Tools,Machine Tools,no
+846596,Machine Tools,Machine Tools,no
+846599,Machine Tools,Machine Tools,no
+846711,Machine Tools,Machine Tools,no
+846719,Machine Tools,Machine Tools,no
+846721,Machine Tools,Machine Tools,no
+846722,Machine Tools,Machine Tools,no
+846729,Machine Tools,Machine Tools,no
+846781,Machine Tools,Machine Tools,no
+846789,Machine Tools,Machine Tools,no
+846791,Machine Tools,Machine Tools,no
+846792,Machine Tools,Machine Tools,no
+846810,Machine Tools,Machine Tools,no
+846820,Machine Tools,Machine Tools,no
+846880,Machine Tools,Machine Tools,no
+847410,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+847420,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,yes
+847431,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+847432,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+847439,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+847510,Process Plant Machinery,Electronics Manufacturing Machinery,no
+847521,Other Machinery,Other Machinery,no
+847529,Other Machinery,Other Machinery,no
+847621,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+847629,Agriculture & Food Processing Machinery,Agriculture & Food Processing Machinery,no
+847710,Process Plant Machinery,Plastic Machinery,no
+847720,Process Plant Machinery,Plastic Machinery,no
+847730,Process Plant Machinery,Plastic Machinery,no
+847740,Process Plant Machinery,Plastic Machinery,no
+847751,Process Plant Machinery,Plastic Machinery,no
+847759,Process Plant Machinery,Plastic Machinery,no
+847780,Process Plant Machinery,Plastic Machinery,no
+847810,Other Machinery,Other Machinery,no
+847910,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+847920,Process Plant Machinery,Process Plant Machinery,no
+847930,Process Plant Machinery,Textile Machinery,no
+847940,Process Plant Machinery,Textile Machinery,no
+847950,Machine Tools,Machine Tools,yes
+847960,Process Plant Machinery,Process Plant Machinery,no
+847981,Process Plant Machinery,Metallurgical Machinery,no
+847982,Process Plant Machinery,Process Plant Machinery,yes
+847983,Process Plant Machinery,Metallurgical Machinery,no
+847989,Process Plant Machinery,Process Plant Machinery,yes
+848010,Process Plant Machinery,Metallurgical Machinery,no
+848510,Machine Tools,Machine Tools,yes
+848520,Process Plant Machinery,Plastic Machinery,no
+848530,Process Plant Machinery,Process Plant Machinery,no
+848580,Machine Tools,Machine Tools,no
+848610,Process Plant Machinery,Electronics Manufacturing Machinery,no
+848620,Process Plant Machinery,Electronics Manufacturing Machinery,yes
+848630,Process Plant Machinery,Electronics Manufacturing Machinery,no
+848640,Process Plant Machinery,Electronics Manufacturing Machinery,no
+850819,Process Plant Machinery,Process Plant Machinery,no
+851411,Process Plant Machinery,Metallurgical Machinery,no
+851419,Process Plant Machinery,Electronics Manufacturing Machinery,no
+851420,Process Plant Machinery,Metallurgical Machinery,no
+851431,Process Plant Machinery,Metallurgical Machinery,no
+851432,Process Plant Machinery,Metallurgical Machinery,no
+851439,Process Plant Machinery,Metallurgical Machinery,no
+851440,Process Plant Machinery,Process Plant Machinery,no
+851511,Machine Tools,Machine Tools,no
+851519,Machine Tools,Machine Tools,no
+851521,Machine Tools,Machine Tools,no
+851529,Machine Tools,Machine Tools,no
+851531,Machine Tools,Machine Tools,no
+851539,Machine Tools,Machine Tools,no
+851580,Machine Tools,Machine Tools,yes
+851610,Process Plant Machinery,Process Plant Machinery,no
+854310,Process Plant Machinery,Electronics Manufacturing Machinery,yes
+854320,Process Plant Machinery,Electronics Manufacturing Machinery,yes
+854330,Process Plant Machinery,Electronics Manufacturing Machinery,no
+854370,Process Plant Machinery,Electronics Manufacturing Machinery,yes
+870110,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+870130,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+870191,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+870192,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+870193,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+870194,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+901110,Process Plant Machinery,Process Plant Machinery,no
+901120,Process Plant Machinery,Process Plant Machinery,no
+901180,Process Plant Machinery,Process Plant Machinery,no
+901210,Process Plant Machinery,Process Plant Machinery,no
+901380,Process Plant Machinery,Electronics Manufacturing Machinery,no
+901520,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+901530,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+901540,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,no
+901580,Earthmoving & Mining Machinery,Earthmoving & Mining Machinery,yes
+901600,Process Plant Machinery,Process Plant Machinery,no
+901730,Process Plant Machinery,Process Plant Machinery,no
+901780,Process Plant Machinery,Process Plant Machinery,no
+902219,Process Plant Machinery,Process Plant Machinery,yes
+902229,Process Plant Machinery,Process Plant Machinery,no
+902410,Process Plant Machinery,Metallurgical Machinery,no
+902480,Process Plant Machinery,Process Plant Machinery,no
+902511,Process Plant Machinery,Process Plant Machinery,no
+902519,Process Plant Machinery,Process Plant Machinery,no
+902580,Process Plant Machinery,Process Plant Machinery,no
+902610,Process Plant Machinery,Process Plant Machinery,no
+902620,Process Plant Machinery,Process Plant Machinery,yes
+902680,Process Plant Machinery,Process Plant Machinery,no
+902710,Process Plant Machinery,Process Plant Machinery,yes
+902720,Process Plant Machinery,Process Plant Machinery,no
+902730,Process Plant Machinery,Process Plant Machinery,no
+902750,Process Plant Machinery,Process Plant Machinery,no
+902781,Process Plant Machinery,Process Plant Machinery,yes
+902789,Process Plant Machinery,Process Plant Machinery,no
+902810,Process Plant Machinery,Process Plant Machinery,no
+902820,Process Plant Machinery,Process Plant Machinery,no
+902920,Process Plant Machinery,Process Plant Machinery,no
+903010,Process Plant Machinery,Process Plant Machinery,no
+903020,Process Plant Machinery,Electronics Manufacturing Machinery,no
+903031,Process Plant Machinery,Process Plant Machinery,no
+903032,Process Plant Machinery,Process Plant Machinery,no
+903033,Process Plant Machinery,Process Plant Machinery,no
+903039,Process Plant Machinery,Process Plant Machinery,no
+903082,Process Plant Machinery,Electronics Manufacturing Machinery,yes
+903084,Process Plant Machinery,Electronics Manufacturing Machinery,no
+903089,Process Plant Machinery,Electronics Manufacturing Machinery,no
+903110,Process Plant Machinery,Process Plant Machinery,yes
+903120,Process Plant Machinery,Process Plant Machinery,yes
+903141,Process Plant Machinery,Electronics Manufacturing Machinery,no
+903149,Process Plant Machinery,Process Plant Machinery,yes
+903180,Process Plant Machinery,Process Plant Machinery,yes
+903210,Process Plant Machinery,Process Plant Machinery,no
+903220,Process Plant Machinery,Process Plant Machinery,no
+903281,Process Plant Machinery,Process Plant Machinery,no
+903289,Process Plant Machinery,Process Plant Machinery,no

@@ -3191,6 +3191,16 @@
   color: var(--muted);
 }
 
+/* A sector the line is published in (lib/sectors.ts). */
+.rf-sector-tag {
+  color: var(--muted);
+}
+
+.rf-sector-count {
+  font-weight: 400;
+  color: var(--muted);
+}
+
 .lines-streams {
   display: flex;
   flex-wrap: wrap;

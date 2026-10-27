@@ -195,6 +195,35 @@ def check() -> list[dict]:
         if product.hs6 not in vocab_codes and not product.search_terms:
             add("W", "search", product.hs6, f"{product.display_name!r} has no search vocabulary")
 
+    # Sectors (hs_index/sectors/): every member is an HS-6 code with a page,
+    # each carries both FED tags, the batch it names exists, and its seed
+    # covers only codes of that batch.
+    import sectors as sector_index
+    from definition import load_batches
+
+    sector_index.load_sectors.cache_clear()
+    paged = {product.hs6 for product in current}
+    batch_codes = {batch["id"]: set(batch.get("codes", [])) for batch in load_batches()}
+    seen_ids = set()
+    for sector in sector_index.load_sectors(include_disabled=True):
+        if sector.id in seen_ids or sector.folder.name != sector.id:
+            add("E", "sector", sector.id, "sector id must be unique and match its folder name")
+        seen_ids.add(sector.id)
+        if sector.batch and sector.batch not in batch_codes:
+            add("E", "sector", sector.id, f"names batch {sector.batch!r}, which batches.json does not hold")
+        codes_seen = set()
+        for entry in sector.codes:
+            if entry.hs6 in codes_seen:
+                add("E", "sector", entry.hs6, f"listed twice in sector {sector.id}")
+            codes_seen.add(entry.hs6)
+            if entry.hs6 not in paged:
+                add("E", "sector", entry.hs6, f"in sector {sector.id} but not a current HS-6 code in codes.csv")
+            if not entry.broad_category or not entry.niche_category:
+                add("E", "sector", entry.hs6, f"sector {sector.id}: broad and niche category are both required")
+        stray = sector.seed_codes() - batch_codes.get(sector.batch, set())
+        if stray:
+            add("E", "sector", sector.id, f"seed covers {len(stray)} code(s) outside batch {sector.batch}: {', '.join(sorted(stray)[:5])}")
+
     return findings
 
 

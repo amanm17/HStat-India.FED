@@ -12,6 +12,7 @@ discovers codes from an API, and there is no Excel step.
 | `lineage.csv` | HS revision history: codes split or merged in 2022, retired codes and their successors. A predecessor named here is pulled for history and its figures are carried into the successor's page, marked `**`. |
 | `batches.json` | Every intake, oldest first, with the codes it added and whether their first data pull has finished. The pull groups codes by batch, so adding codes never invalidates earlier downloads. |
 | `vocabulary.json` | The only values allowed for category, segment, DGCIS segment and stream. |
+| `sectors/<id>/` | One folder per sector: its members and tags, its settings and any seed data (see "Sectors"). |
 | `hs8_scope.json` | Which India tariff lines (HS-8, from DGCIS) are kept (see "Tariff lines"). |
 | `naming_review.csv` | Reviewer verdicts for display names that use words outside the official HS text (see "Naming rules"). |
 | `incoming/` | Drop new codes here. `incoming/rejected/` holds uploads that could not pass, each with a report. |
@@ -97,6 +98,7 @@ toward (`stream` in `codes.csv`, values in `vocabulary.json`):
 |---|---|---|
 | `electronics` | The FED electronics sector definition (every baseline code). | Yes: front-page totals, shares of electronics, rankings, segments, the DGCIS panel, report and workbook scope. |
 | `electronics-inputs` | Materials, consumables, tooling and machinery used to make electronics (the SPECS batch). | No. Own pages, own totals (`scope-electronics-inputs.json`), front-page "Beyond electronics". |
+| `capital-goods` | Machinery and equipment for production: the FED capital goods segment's own codes. | No. Own pages, own totals (`scope-capital-goods.json`); the full segment, with shared codes, is the capital goods sector. |
 | `other` | Wider trade coverage with no electronics role claimed. | No. Own pages, own totals (`scope-other.json`). |
 
 - An upload without a `stream` column gets `other`, and without
@@ -110,6 +112,37 @@ toward (`stream` in `codes.csv`, values in `vocabulary.json`):
 - The snapshot writes `scope.json` from electronics lines only;
   `validate_snapshot.py` fails a stream file that carries another stream's
   line.
+
+## Sectors: published groupings with their own totals
+
+A sector (`hs_index/sectors/<id>/`) is a named set of HS-6 codes with its own
+page panel, tags and totals. Unlike a stream it can take codes from any stream:
+the capital goods sector holds its own 370 lines (stream `capital-goods`) and
+66 machines and instruments that stay in the electronics and
+electronics-inputs streams. Its totals (`sector-<id>.json` in the snapshot)
+never add to an electronics figure.
+
+| File | What it holds |
+|---|---|
+| `sector.json` | Label, note, the intake batch that added its own codes, `historyStart` (first year pulled for that batch), `mirror`, the vocabulary it added, and its `seed`. |
+| `codes.csv` | One row per member: `hs6`, `broad_category`, `niche_category`, `scomet`. |
+| `seed/` | Comtrade rows supplied with the sector (an export FED already holds), loaded into the raw store so the pull asks only for what they lack. |
+
+- **Adding a sector.** Run its own codes through the intake as usual (with a
+  `stream` column), then add the folder. Build a seed from Comtrade exports
+  with `python3 pipeline/sectors.py --build-seed <id> --world W.xlsx --india I.xlsx`.
+  `pipeline/test_sectors.py` (CI) checks the seed and the pull plan.
+- **Hiding a sector.** Set `"enabled": false` in `sector.json` and push. Its
+  codes stay; the panel, tags and totals go at the next refresh.
+- **Removing a sector.** Actions > **Remove a sector** > Run workflow, typing
+  the id twice (or `python3 pipeline/hs_intake.py --remove-sector <id>`). It
+  removes the folder, the batch that added the sector's own codes, those codes
+  with their aliases, name reviews and lineage rows, every chapter and heading
+  only they used (`parents.csv`), and the vocabulary values the sector added;
+  shared codes stay. The workflow then starts a reprocess, so the site loses
+  the sector without any Comtrade call.
+- **Earlier years.** Lower `historyStart` (1996 is HStat's full series) and the
+  nightly backfill fetches the missing years for that batch.
 
 ## Naming rules
 

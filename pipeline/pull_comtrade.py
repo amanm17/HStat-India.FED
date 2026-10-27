@@ -50,6 +50,7 @@ from common import (
     write_json,
 )
 from definition import load_scope, pull_groups, pull_universe
+import sectors as sector_index
 
 # Comtrade's limits differ by subscription and the published figures do not
 # agree with each other, so they live in config/scope.json under "api" and
@@ -345,6 +346,12 @@ def build_jobs(args, scope_config, volatile: set[str]) -> list[Job]:
         else scope_config["monthly"].get("scopes", ["india", "global"])
     )
 
+    # A batch that arrived with a seed (pipeline/sectors.py) has its annual
+    # chunks cut separately, so only what the seed lacks is asked for. It is
+    # left out of the shared annual numbering below; being the newest batch,
+    # leaving it out shifts no earlier chunk.
+    seeded = sector_index.seeded_batches()
+
     def add(freq: str, groups):
         for group in groups:
             chunk_size = codes_per_call(
@@ -359,7 +366,8 @@ def build_jobs(args, scope_config, volatile: set[str]) -> list[Job]:
             # exactly as it was. Chunk numbers run on across batches.
             code_chunks = [
                 chunk
-                for _, group_codes in pull_groups()
+                for batch_id, group_codes in pull_groups()
+                if not (freq == "A" and batch_id in seeded)
                 for chunk in chunked(group_codes, chunk_size)
             ]
 
@@ -383,15 +391,48 @@ def build_jobs(args, scope_config, volatile: set[str]) -> list[Job]:
         ),
     )
 
+    # Seeded batches: the codes the seed covers are asked only for the years
+    # and flows it does not hold; the batch's other codes (its chapters and
+    # headings, predecessors the seed lacks) for every year. Chunk numbers
+    # start at 100 and 300, clear of the shared numbering.
+    annual = annual_periods(args.start_year, args.end_year)
+    for position, (batch_id, group_codes) in enumerate(pull_groups()):
+        sector = seeded.get(batch_id)
+        if sector is None:
+            continue
+        first = str(sector.history_start or args.start_year)
+        annual_here = [p for p in annual if p >= first]
+        covered = sorted(c for c in group_codes if c in sector.seed_codes())
+        rest = sorted(c for c in group_codes if c not in sector.seed_codes())
+        for scope, flows in SCOPE_FLOWS.items():
+            for flow in flows:
+                skip = sector.seed_years(scope, flow)
+                for base, part, periods in (
+                    (100, covered, [p for p in annual_here if p not in skip]),
+                    (300, rest, annual_here),
+                ):
+                    if not part or not periods:
+                        continue
+                    number = base
+                    for group in group_periods(periods, volatile, args.annual_periods_per_call):
+                        size = codes_per_call(len(group), len(codes), override, target_rows)
+                        for chunk in chunked(part, size):
+                            jobs.append(Job("A", scope, flow, group, chunk, number))
+                            number += 1
+
     # Mirror pulls for late filers: one period group per economy and flow,
     # re-pulled whenever its latest year is in the refresh window (monthly
     # runs, not the nightly backfill). About ten calls per economy and flow.
     years, pairs = mirror_plan(scope_config, args.end_year)
     if years and pairs:
         chunk_size = codes_per_call(len(years), len(codes), override, target_rows)
+        # A sector can leave its codes out of the mirror pulls
+        # (sector.json "mirror": false); they are estimated from peer growth.
+        no_mirror = {s.batch for s in sector_index.load_sectors() if s.batch and not s.mirror}
         code_chunks = [
             chunk
-            for _, group_codes in pull_groups()
+            for batch_id, group_codes in pull_groups()
+            if batch_id not in no_mirror
             for chunk in chunked(group_codes, chunk_size)
         ]
         for economy, flow in pairs:

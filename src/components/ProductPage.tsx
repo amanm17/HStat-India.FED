@@ -408,6 +408,30 @@ export function ProductPage(props: Props) {
           {node.level === 6 && node.category && <span className="rf-id-item">{node.category}</span>}
           {!node.inFedDefinition && isElectronics(node) && <span className="rf-id-item">Reference only</span>}
           {node.level === 6 && streamBadge(node) && <span className="rf-id-item rf-stream-tag">{streamBadge(node)}</span>}
+          {/* Sectors (lib/sectors.ts): a published grouping, whatever the
+            * line's stream. Its own tag, and the FED niche where it adds to
+            * the category already shown. */}
+          {node.level === 6 &&
+            (node.sectors ?? []).map(tag => {
+              /* The stream badge already names a sector the line belongs to
+               * by stream; then only a niche that adds to the category. */
+              const niche = tag.nicheCategory && tag.nicheCategory !== node.category ? tag.nicheCategory : ''
+              const text = node.stream === tag.id ? niche : `Also in ${tag.label.toLowerCase()}${niche ? ` · ${niche}` : ''}`
+
+              return text ? (
+                <span key={tag.id} className="rf-id-item rf-sector-tag" data-sector={tag.id}>
+                  {text}
+                </span>
+              ) : null
+            })}
+          {node.level === 6 && (node.sectors ?? []).some(tag => tag.scomet) && (
+            <span className="rf-id-item rf-sector-tag" title="On India's SCOMET list of export-controlled dual-use items">
+              SCOMET-listed
+            </span>
+          )}
+          {node.level === 6 && node.historyStart ? (
+            <span className="rf-id-item">From {node.historyStart}</span>
+          ) : null}
           {node.level !== 6 && node.streams?.length && !node.streams.includes('electronics') ? (
             <span className="rf-id-item rf-stream-tag">Beyond electronics, not in electronics totals</span>
           ) : null}

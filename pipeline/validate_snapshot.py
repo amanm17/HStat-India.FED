@@ -537,7 +537,7 @@ def period_presence(node: dict) -> dict[str, bool]:
     return presence
 
 
-def check_pull_coverage(report, presence: dict, nodes: int, current_year: int):
+def check_pull_coverage(report, presence: dict, nodes: int, current_year: int, carried: dict | None = None):
     """
     A period is either reported or it is not. It is never reported for 6% of
     the universe.
@@ -561,7 +561,10 @@ def check_pull_coverage(report, presence: dict, nodes: int, current_year: int):
         if not with_data:
             continue
 
-        share = with_data / nodes
+        # Nodes that do not carry the period at all (a sector batch that
+        # starts later, sectors.py historyStart) are not asked for it.
+        carrying = carried.get(period, nodes) if carried else nodes
+        share = with_data / max(carrying, 1)
 
         if share >= 0.5:
             continue
@@ -686,6 +689,7 @@ def main():
 
     # Counted across every node, then checked once: see check_pull_coverage.
     presence: dict[str, int] = {}
+    carried: dict[str, int] = {}
     nodes_checked = 0
 
     catalogue_path = root / "catalogue.json"
@@ -749,6 +753,7 @@ def main():
             check_node(report, path, level, mirror_bounds, rates) or {}
         ).items():
             presence[period] = presence.get(period, 0) + (1 if present else 0)
+            carried[period] = carried.get(period, 0) + 1
 
         nodes_checked += 1
 
@@ -895,6 +900,30 @@ def main():
                 if year.get("lines") != len(year.get("products") or []):
                     report.fail(None, period, "scope line count disagrees with its product list")
 
+        # sector-<id>.json: a sector's own totals. Every line must be one of
+        # its members, and the file must add up like a scope file.
+        sectors_index = root / "sectors.json"
+        listed = {item["id"] for item in json.loads(sectors_index.read_text()).get("sectors", [])} if sectors_index.exists() else set()
+        members_of = {}
+        for entry in catalogue:
+            for sector_id in entry.get("sectors") or []:
+                members_of.setdefault(sector_id, set()).add(entry["code"])
+        for summary_path in sorted(root.glob("sector-*.json")):
+            summary = json.loads(summary_path.read_text())
+            sector_id = summary.get("sector")
+            if sector_id not in listed:
+                report.fail(None, None, f"{summary_path.name} is not listed in sectors.json")
+            for period, year in (summary.get("years") or {}).items():
+                outsiders = [row[0] for row in year.get("products") or [] if row[0] not in members_of.get(sector_id, set())]
+                if outsiders:
+                    report.fail(None, period, f"{summary_path.name} carries {len(outsiders)} line(s) outside the sector: {', '.join(outsiders[:5])}")
+                products_total = sum(row[1] for row in year.get("products") or [])
+                world = year.get("worldImports") or 0
+                if world and abs(products_total - world) > max(1.0, world * 1e-6) * len(year.get("products") or [1]):
+                    report.fail(None, period, f"{summary_path.name} world imports {world} != sum of its products {products_total}")
+                if year.get("lines") != len(year.get("products") or []):
+                    report.fail(None, period, f"{summary_path.name} line count disagrees with its product list")
+
     detail_dir = root / "detail"
 
     for entry in catalogue if phase2 else []:
@@ -948,6 +977,7 @@ def main():
         presence,
         nodes_checked,
         datetime.now(timezone.utc).year,
+        carried,
     )
 
     published = sum(

@@ -145,3 +145,68 @@ code,display_name,verdict,note
 370199,"Monochrome photographic plates, other",ok,"'monochrome' paraphrase the official text; covers the whole code (SPECS intake, Oct 2026)"
 701963,Uncoated plain-weave glass fabric,ok,"'uncoated' paraphrase the official text; covers the whole code (SPECS intake, Oct 2026)"
 848620,Semiconductor device making machines,ok,"'making' paraphrase the official text; covers the whole code (SPECS intake, Oct 2026)"
+820190,"Farm hand tools, other",ok,"paraphrases 'agriculture, horticulture or forestry'; covers the whole code"
+820530,"Planes, chisels and gouges",ok,the official text says gouges (spelled 'gauges' in some versions); covers the whole code
+821110,Assorted knife sets,ok,'knife' is the singular of the official 'knives'; covers the whole code
+821194,Knife blades,ok,'knife' is the singular of the official 'knives'; covers the whole code
+821195,Base metal knife handles,ok,'knife' is the singular of the official 'knives'; covers the whole code
+840211,Large watertube boilers,ok,paraphrases the official capacity or size limit; covers the whole code
+840212,Small watertube boilers,ok,paraphrases the official capacity or size limit; covers the whole code
+841319,Metering liquid pumps,ok,paraphrases 'fitted with a measuring device'; covers the whole code
+841320,Metering hand pumps,ok,paraphrases 'fitted with a measuring device'; covers the whole code
+841939,"Industrial dryers, other",ok,the official text excludes domestic use; 'industrial' says the same; covers the whole code
+841989,"Heat treatment plant, other",ok,paraphrases 'treating materials by change of temperature'; covers the whole code
+842139,Gas filtering machinery,ok,singular of the official 'gases'; covers the whole code
+842489,Industrial spraying appliances,ok,the official text excludes domestic use; 'industrial' says the same; covers the whole code
+842720,Engine fork-lift trucks,ok,paraphrases 'other than electric motor'; covers the whole code
+842790,Non-powered works trucks,ok,paraphrases 'not self-propelled'; covers the whole code
+842919,Wheeled bulldozers,ok,paraphrases 'other than track laying'; covers the whole code
+842940,Road rollers and tampers,ok,paraphrases 'tamping machines'; covers the whole code
+843610,Animal feed machinery,ok,paraphrases 'animal feeding stuffs'; covers the whole code
+843810,Bakery and pasta machinery,ok,"paraphrases 'macaroni, spaghetti or similar products'; covers the whole code"
+844130,Carton and box machines,ok,singular of the official 'boxes'; covers the whole code
+844180,"Paper converting machinery, other",ok,"paraphrases 'making up paper pulp, paper or paperboard'; covers the whole code"
+844315,Sheet-fed letterpress machinery,ok,paraphrases 'other than reel-fed'; covers the whole code
+844610,Narrow weaving looms,ok,paraphrases the official width limit (30cm or less); covers the whole code
+844711,Small circular knitting machines,ok,paraphrases the official capacity or size limit; covers the whole code
+844712,Large circular knitting machines,ok,paraphrases the official capacity or size limit; covers the whole code
+845229,Industrial sewing machines,ok,the official text excludes domestic use; 'industrial' says the same; covers the whole code
+845380,Leather goods machinery,ok,"paraphrases 'articles of hides, skins or leather'; covers the whole code"
+845811,CNC horizontal lathes,ok,'CNC' is the usual short form of the official 'numerically controlled'; covers the whole code
+845891,"CNC lathes, other",ok,'CNC' is the usual short form of the official 'numerically controlled'; covers the whole code
+845921,CNC drilling machines,ok,'CNC' is the usual short form of the official 'numerically controlled'; covers the whole code
+845931,CNC boring-milling machines,ok,'CNC' is the usual short form of the official 'numerically controlled'; covers the whole code
+845941,CNC boring machines,ok,'CNC' is the usual short form of the official 'numerically controlled'; covers the whole code
+845951,CNC knee-type milling machines,ok,'CNC' is the usual short form of the official 'numerically controlled'; covers the whole code
+845961,CNC milling machines,ok,'CNC' is the usual short form of the official 'numerically controlled'; covers the whole code
+846012,CNC flat-surface grinders,ok,'CNC' is the usual short form of the official 'numerically controlled'; covers the whole code
+846022,CNC centreless grinders,ok,'CNC' is the usual short form of the official 'numerically controlled'; covers the whole code
+846023,CNC cylindrical grinders,ok,'CNC' is the usual short form of the official 'numerically controlled'; covers the whole code
+846024,"CNC grinding machines, other",ok,'CNC' is the usual short form of the official 'numerically controlled'; covers the whole code
+846031,CNC sharpening machines,ok,'CNC' is the usual short form of the official 'numerically controlled'; covers the whole code
+846222,CNC flat bending machines,ok,'CNC' is the usual short form of the official 'numerically controlled'; covers the whole code
+846223,CNC press brakes,ok,'CNC' is the usual short form of the official 'numerically controlled'; covers the whole code
+846224,CNC panel benders,ok,'CNC' is the usual short form of the official 'numerically controlled'; covers the whole code
+846225,CNC roll forming machines,ok,'CNC' is the usual short form of the official 'numerically controlled'; covers the whole code
+846226,"CNC bending machines, other",ok,'CNC' is the usual short form of the official 'numerically controlled'; covers the whole code
+846233,CNC shearing machines,ok,'CNC' is the usual short form of the official 'numerically controlled'; covers the whole code
+846242,CNC punching machines,ok,'CNC' is the usual short form of the official 'numerically controlled'; covers the whole code
+846251,CNC tube working machines,ok,'CNC' is the usual short form of the official 'numerically controlled'; covers the whole code
+846290,"Metal forming machines, other",ok,"'forming' paraphrases 'forging, hammering, bending, shearing or punching'; covers the whole code"
+846390,"Non-cutting metal machines, other",ok,'non-cutting' paraphrases 'without removing material'; covers the whole code
+846510,Multi-operation woodworking machines,ok,'multi-operation' paraphrases 'different types of machining operations without tool change'; 'woodworking' paraphrases 'for working wood'; covers the whole code
+846520,Woodworking machining centres,ok,'woodworking' paraphrases 'for working wood'; covers the whole code
+846591,Woodworking sawing machines,ok,'woodworking' paraphrases 'for working wood'; covers the whole code
+846592,"Woodworking planing, moulding machines",ok,'woodworking' paraphrases 'for working wood'; covers the whole code
+846593,Woodworking sanding machines,ok,'woodworking' paraphrases 'for working wood'; covers the whole code
+846594,Woodworking assembling machines,ok,'woodworking' paraphrases 'for working wood'; covers the whole code
+846595,Woodworking drilling machines,ok,'woodworking' paraphrases 'for working wood'; covers the whole code
+846599,"Woodworking machines, other",ok,'woodworking' paraphrases 'for working wood'; covers the whole code
+846781,Engine chain saws,ok,paraphrases 'other than electric motor'; covers the whole code
+846789,"Powered hand tools, other",ok,'powered' paraphrases 'hydraulic or with self-contained non-electric motor'; covers the whole code
+847930,"Board presses, woodworking machinery",ok,'woodworking' paraphrases 'for working wood'; covers the whole code
+851521,Automatic resistance welders,ok,'welders' paraphrases 'welding machines and apparatus'; covers the whole code
+851529,"Resistance welders, other",ok,'welders' paraphrases 'welding machines and apparatus'; covers the whole code
+851531,Automatic arc welders,ok,'welders' paraphrases 'welding machines and apparatus'; covers the whole code
+851539,"Arc welders, other",ok,'welders' paraphrases 'welding machines and apparatus'; covers the whole code
+902680,"Liquid, gas checking instruments",ok,singular of the official 'gases'; covers the whole code

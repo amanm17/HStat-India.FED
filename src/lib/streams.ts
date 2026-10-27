@@ -12,21 +12,23 @@
  *   electronics-inputs  materials, consumables, tooling and machinery used
  *                       to make electronics (SPECS-type coverage)
  *   other               wider trade coverage, no electronics role claimed
+ *   capital-goods       machinery and equipment for production (the FED
+ *                       capital goods segment; see lib/sectors.ts)
  *
  * A snapshot or tariff file built before streams existed held electronics
  * only, so a missing stream reads as electronics.
  */
 
-export type Stream = 'electronics' | 'electronics-inputs' | 'other'
+export type Stream = 'electronics' | 'electronics-inputs' | 'capital-goods' | 'other'
 
-export const STREAMS: Stream[] = ['electronics', 'electronics-inputs', 'other']
+export const STREAMS: Stream[] = ['electronics', 'electronics-inputs', 'capital-goods', 'other']
 
 export function streamOf(item: { stream?: string | null } | null | undefined): Stream {
   const value = item?.stream
 
   /* Missing: a file from before streams, which held electronics only. */
   if (value === undefined || value === null || value === '') return 'electronics'
-  if (value === 'electronics' || value === 'electronics-inputs') return value
+  if (value === 'electronics' || value === 'electronics-inputs' || value === 'capital-goods') return value
 
   /* Anything else is never counted as electronics. */
   return 'other'
@@ -39,6 +41,7 @@ export function isElectronics(item: { stream?: string | null } | null | undefine
 export const STREAM_LABEL: Record<Stream, string> = {
   electronics: 'Electronics',
   'electronics-inputs': 'Electronics inputs',
+  'capital-goods': 'Capital goods',
   other: 'Other trade',
 }
 
@@ -47,6 +50,8 @@ export const STREAM_NOTE: Record<Stream, string> = {
   electronics: 'The FED electronics definition: the only lines in the electronics figures.',
   'electronics-inputs':
     'Materials, tools and machinery used to make electronics. Own pages and totals; not in the electronics figures.',
+  'capital-goods':
+    'Machinery and equipment used to make other goods. Own pages and totals; not in the electronics figures.',
   other: 'Wider trade coverage. Own pages; not in the electronics figures.',
 }
 

@@ -155,6 +155,10 @@ def main():
 
     run(sys.executable, "pipeline/import_dgcis.py")
 
+    # Comtrade rows supplied with a sector (hs_index/sectors/<id>/seed/) go
+    # into the raw store first, so the pull asks only for what they lack.
+    run(sys.executable, "pipeline/sectors.py", "--install-seeds")
+
     if not args.skip_pull:
         pull = [
             sys.executable,

@@ -360,6 +360,12 @@ export type HsNode = {
   stream?: Stream | ''
   /* On parents: the streams of the HStat lines beneath. */
   streams?: Stream[]
+  /* Sectors this HS-6 line is published in, with its tags there
+   * (hs_index/sectors/; lib/sectors.ts). Absent when it is in none. */
+  sectors?: SectorTag[]
+  /* First year carried, when the line's batch starts later than HStat's
+   * history (a sector's historyStart). */
+  historyStart?: number
   referenceFlags: Record<string, boolean>
   /* HS-6 members, on parent nodes only. */
   members: string[]
@@ -389,6 +395,14 @@ export type HsNode = {
   sources: Record<string, string>
 }
 
+export type SectorTag = {
+  id: string
+  label: string
+  broadCategory: string
+  nicheCategory: string
+  scomet: boolean
+}
+
 export type CatalogueEntry = {
   code: string
   level: 2 | 4 | 6
@@ -398,6 +412,8 @@ export type CatalogueEntry = {
   segment: string
   inFedDefinition: boolean
   stream?: Stream | ''
+  /* Ids of the sectors this line is published in (lib/sectors.ts). */
+  sectors?: string[] | null
   /* The authored short name for this code: three or four words, written
    * against the official HS text and unique across the catalogue. Empty on
    * HS-2 and HS-4 parents, which keep their official heading title. */

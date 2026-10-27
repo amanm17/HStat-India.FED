@@ -23,6 +23,7 @@ import { isElectronics, streamOf, STREAM_LABEL, STREAM_NOTE, STREAMS, type Strea
 import { money } from '../lib/currency'
 import { dayLabel, nameOf, pct, usd } from '../lib/format'
 import { palette } from '../lib/palette'
+import { loadSectorScope, loadSectors, type SectorInfo } from '../lib/sectors'
 import { usePageHelp } from '../lib/pagehelp'
 
 export type HomeRankKind = 'importers' | 'exporters' | 'finished' | 'components'
@@ -141,16 +142,42 @@ export function HomePage({
     [catalogue],
   )
 
+  /* Sectors (lib/sectors.ts): published groupings with their own totals,
+   * each shown as its own panel. A stream a sector stands for (capital
+   * goods) is shown there, not again under "Beyond electronics". */
+  const [sectors, setSectors] = useState<SectorInfo[]>([])
+  const [sectorScopes, setSectorScopes] = useState<Record<string, ScopeSummary | null>>({})
+
+  useEffect(() => {
+    let live = true
+
+    loadSectors(snapshot).then(list => {
+      if (!live) return
+      setSectors(list)
+      for (const sector of list) {
+        loadSectorScope(snapshot, sector.id).then(result => {
+          if (live) setSectorScopes(current => ({ ...current, [sector.id]: result }))
+        })
+      }
+    })
+
+    return () => {
+      live = false
+    }
+  }, [snapshot])
+
+  const sectorIds = useMemo(() => new Set(sectors.map(sector => sector.id)), [sectors])
+
   /* Lines of the other streams, by stream. */
   const beyond = useMemo(
     () =>
-      STREAMS.filter(stream => stream !== 'electronics')
+      STREAMS.filter(stream => stream !== 'electronics' && !sectorIds.has(stream))
         .map(stream => ({
           stream,
           rows: catalogue.filter(entry => entry.level === 6 && streamOf(entry) === stream),
         }))
         .filter(group => group.rows.length > 0),
-    [catalogue],
+    [catalogue, sectorIds],
   )
 
   const [beyondScope, setBeyondScope] = useState<Partial<Record<Stream, ScopeSummary | null>>>({})
@@ -512,6 +539,21 @@ export function HomePage({
         ))}
       </section>
 
+      {sectors.map(sector => (
+        <SectorPanel
+          key={sector.id}
+          sector={sector}
+          summary={sectorScopes[sector.id] ?? null}
+          byCode={byCode}
+          year={year}
+          currency={currency}
+          manifest={manifest}
+          dark={dark}
+          onOpen={code => onOpen(code, 6)}
+          onStack={onStack}
+        />
+      ))}
+
       {beyond.length > 0 && (
         <section className="rf-panel rf-segments rf-beyond" aria-labelledby="beyond-electronics">
           <h2 id="beyond-electronics" className="rf-h2">Beyond electronics</h2>
@@ -592,7 +634,7 @@ export function HomePage({
  * figure is a plain sum and each line's share is of that sum. The reader can
  * take the lines into their own HStack from here.
  */
-function CategoryStack({
+export function CategoryStack({
   title,
   segment,
   rows,
@@ -700,5 +742,216 @@ function CategoryStack({
         </table>
       </div>
     </div>
+  )
+}
+
+/*
+ * One sector (lib/sectors.ts) as its own panel: its totals, its top
+ * economies and its groups, for the home page's year where the sector has
+ * it and for its latest year otherwise. Nothing here is added to, or taken
+ * from, an electronics figure.
+ */
+function SectorPanel({
+  sector,
+  summary,
+  byCode,
+  year: homeYear,
+  currency,
+  manifest,
+  dark,
+  onOpen,
+  onStack,
+}: {
+  sector: SectorInfo
+  summary: ScopeSummary | null
+  byCode: Map<string, CatalogueEntry>
+  year: number | null
+  currency: CurrencyMode
+  manifest: Manifest
+  dark: boolean
+  onOpen: (code: string) => void
+  onStack: Props['onStack']
+}) {
+  const [open, setOpen] = useState<string | null>(null)
+  const colours = palette(dark)
+
+  const years = summary
+    ? Object.entries(summary.years)
+        .filter(([, value]) => value.lines > 0)
+        .map(([period]) => Number(period))
+        .sort((a, b) => b - a)
+    : []
+  const latest = latestScopeYear(summary)
+  const year = homeYear !== null && years.includes(homeYear) ? homeYear : latest
+  const record = summary && year !== null ? summary.years[String(year)] : null
+
+  const india = (value: number | null | undefined) =>
+    year === null ? usd(value) : money(value, currency, manifest.currency, String(year), { basis: 'CY' }).text
+
+  const rows = (list: [string, number, number][] | undefined, total: number): RankRow[] =>
+    (list ?? []).map(([code, value, estimated], position) => ({
+      rank: position + 1,
+      code,
+      name: summary?.reporters?.[code] ?? code,
+      value,
+      share: total ? value / total : null,
+      estimated: estimated > 0,
+      estimatedShare: value ? estimated / value : null,
+    }))
+
+  const importers = record ? rows(record.importers, record.worldImports) : []
+  const exporters = record ? rows(record.exporters, record.worldExports) : []
+  const values = new Map((record?.products ?? []).map(row => [row[0], row]))
+
+  const groups = Object.entries(sector.groups.broadCategory ?? {})
+    .map(([name, codes]) => ({
+      key: `broad:${name}`,
+      name,
+      rows: codes.map(code => byCode.get(code)).filter((entry): entry is CatalogueEntry => Boolean(entry)),
+    }))
+    .concat(
+      Object.entries(sector.groups.scomet ?? {}).map(([, codes]) => ({
+        key: 'scomet',
+        name: 'SCOMET-listed',
+        rows: codes.map(code => byCode.get(code)).filter((entry): entry is CatalogueEntry => Boolean(entry)),
+      })),
+    )
+    .map(group => ({
+      ...group,
+      world: group.rows.reduce((sum, row) => sum + (values.get(row.code)?.[1] ?? 0), 0),
+    }))
+    .sort((a, b) => (a.key === 'scomet' ? 1 : b.key === 'scomet' ? -1 : b.world - a.world))
+
+  const shown = groups.find(group => group.key === open)
+  const shared = Object.entries(sector.streams)
+    .filter(([stream]) => stream !== sector.id)
+    .reduce((sum, [, count]) => sum + count, 0)
+
+  return (
+    <section className="rf-panel rf-segments rf-sector" aria-labelledby={`sector-${sector.id}`} data-sector={sector.id}>
+      <h2 id={`sector-${sector.id}`} className="rf-h2">
+        {sector.label} <span className="rf-sector-count">({sector.lines} lines)</span>
+      </h2>
+      <p className="rf-scope-note">
+        {sector.note}
+        {sector.historyStart ? ` Carried from ${sector.historyStart}.` : ''}
+        {shared ? ` ${shared} of its lines are also counted in electronics or electronics inputs.` : ''}
+      </p>
+
+      {record && year !== null ? (
+        <>
+          <section className="rf-tiles" aria-label={`${sector.label}, ${year}`}>
+            <FigureTile
+              series="global"
+              label="Global trade"
+              value={usd(record.worldImports)}
+              estimatedShare={record.worldImports ? record.estimatedImports / record.worldImports : null}
+              caption="World imports"
+            />
+            <FigureTile
+              series="exports"
+              label="India exports"
+              value={india(record.indiaExports)}
+              caption={
+                record.indiaExports && record.worldExports
+                  ? `${pct(record.indiaExports / record.worldExports, 1)} of world exports`
+                  : 'India, to the world'
+              }
+            />
+            <FigureTile
+              series="imports"
+              label="India imports"
+              value={india(record.indiaImports)}
+              caption={
+                record.indiaImports && record.worldImports
+                  ? `${pct(record.indiaImports / record.worldImports, 1)} of world imports`
+                  : 'India, from the world'
+              }
+            />
+          </section>
+          <p className="rf-scope-note">
+            All figures: {sector.label.toLowerCase()}, calendar year {year}.
+          </p>
+
+          <div className="rf-grid">
+            <RankedTable
+              id={`sector-${sector.id}-importers`}
+              title="Top importers"
+              rows={importers}
+              count={importers.length}
+              complete
+              valueLabel="Imports"
+              shareLabel={`Share of ${sector.label.toLowerCase()}`}
+              formatValue={value => usd(value)}
+              colour={colours.global}
+              highlight="699"
+              pinnedRow={importers.find(row => row.code === '699') ?? null}
+              dark={dark}
+            />
+            <RankedTable
+              id={`sector-${sector.id}-exporters`}
+              title="Top exporters"
+              rows={exporters}
+              count={exporters.length}
+              complete
+              valueLabel="Exports"
+              shareLabel={`Share of ${sector.label.toLowerCase()}`}
+              formatValue={value => usd(value)}
+              colour={colours.global}
+              highlight="699"
+              pinnedRow={exporters.find(row => row.code === '699') ?? null}
+              dark={dark}
+            />
+          </div>
+        </>
+      ) : (
+        <p className="rf-scope-note">
+          {summary === null ? 'Figures arrive with the next data refresh.' : 'Loading figures.'}
+        </p>
+      )}
+
+      <div className="rf-segment" data-segment={sector.id}>
+        <h3 className="rf-segment-title">
+          <i className="rf-seg-swatch" aria-hidden="true" />
+          Categories
+        </h3>
+        <div className="rf-cat-grid">
+          {groups.map(group => (
+            <button
+              key={group.key}
+              type="button"
+              className={open === group.key ? 'rf-cat active' : 'rf-cat'}
+              aria-expanded={open === group.key}
+              onClick={() => setOpen(current => (current === group.key ? null : group.key))}
+            >
+              <strong>{group.name}</strong>
+              <span>
+                {group.rows.length} lines
+                {record ? ` · ${usd(group.world, 1)}` : ''}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {shown && (
+          <CategoryStack
+            title={shown.name}
+            segment={sector.label}
+            rows={shown.rows}
+            values={values}
+            year={year}
+            india={india}
+            onOpen={onOpen}
+            onClose={() => setOpen(null)}
+            onStack={() =>
+              onStack(
+                shown.rows.map(row => ({ code: row.code, level: 6 as const })),
+                { name: shown.name, segment: sector.label, lines: shown.rows.length },
+              )
+            }
+          />
+        )}
+      </div>
+    </section>
   )
 }

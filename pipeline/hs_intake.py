@@ -582,10 +582,13 @@ def refresh_derived() -> None:
 
     titles_path = config / "hs_titles.json"
     titles = json.loads(titles_path.read_text(encoding="utf-8")) if titles_path.exists() else {}
-    for codes in definition.parent_universe().values():
-        for code in codes:
-            if code not in titles and hs_rules.official_text(code):
-                titles[code] = hs_rules.official_text(code)
+    parents = {code for codes in definition.parent_universe().values() for code in codes}
+    for code in parents:
+        if code not in titles and hs_rules.official_text(code):
+            titles[code] = hs_rules.official_text(code)
+    # Only chapters and headings HStat carries: a removed batch takes its
+    # titles with it (the site's name table needs a short name for each).
+    titles = {code: text for code, text in titles.items() if code in parents}
     write_json(titles_path, dict(sorted(titles.items())))
 
     subprocess.run([sys.executable, str(ROOT / "scripts" / "build_official_children.py")], cwd=ROOT, check=True)
@@ -732,6 +735,113 @@ def mark_pulled() -> str:
     return f"closed: {', '.join(closed)}" if closed else "no pending batch is fully live yet"
 
 
+# ----------------------------------------------------------------- removal
+
+
+def _filter_csv(path: Path, keep) -> int:
+    """Drop data rows for which keep(row) is False; comments and header stay."""
+    if not path.exists():
+        return 0
+    lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
+    header = None
+    out, dropped = [], 0
+    for line in lines:
+        if not line.strip() or line.startswith("#"):
+            out.append(line)
+            continue
+        row = next(csv.reader([line]))
+        if header is None:
+            header = row
+            out.append(line)
+            continue
+        if keep(dict(zip(header, row))):
+            out.append(line)
+        else:
+            dropped += 1
+    path.write_text("".join(out), encoding="utf-8")
+    return dropped
+
+
+def remove_batch(batch: str, vocabulary: dict | None = None) -> list[str]:
+    """
+    Take one intake batch out of the index: its codes, their aliases, name
+    reviews and lineage rows, every chapter and heading no remaining code
+    needs, and the batch record. Codes the batch did not add are untouched.
+    """
+    notes = []
+    batches = _load_batches()
+    record = next((b for b in batches["batches"] if b["id"] == batch), None)
+    if record is None:
+        raise SystemExit(f"no batch {batch!r} in hs_index/batches.json")
+
+    removed = {
+        row["hs6"] for row in definition._read_csv_rows(definition.DEFINITION_CSV)
+        if (row.get("batch") or "").strip() == batch
+    }
+    notes.append(f"codes.csv: {_filter_csv(definition.DEFINITION_CSV, lambda r: r.get('batch') != batch)} codes removed")
+    notes.append(f"aliases.csv: {_filter_csv(definition.ALIASES_CSV, lambda r: r.get('code') not in removed)} rows removed")
+    notes.append(f"naming_review.csv: {_filter_csv(HS_INDEX / 'naming_review.csv', lambda r: r.get('code') not in removed)} rows removed")
+    notes.append(f"lineage.csv: {_filter_csv(definition.LINEAGE_CSV, lambda r: r.get('code') not in removed)} rows removed")
+
+    remaining = {
+        row["hs6"] for row in definition._read_csv_rows(definition.DEFINITION_CSV)
+    }
+    needed = {code[:2] for code in remaining} | {code[:4] for code in remaining}
+    notes.append("parents.csv: " + str(_filter_csv(
+        definition.PARENTS_CSV,
+        lambda r: (r.get("batch") or "").strip() != batch or r.get("code") in needed,
+    )) + " chapters and headings removed")
+
+    batches["batches"] = [b for b in batches["batches"] if b["id"] != batch]
+    _save_batches(batches)
+    folder = BATCHES_DIR / batch
+    if folder.exists():
+        shutil.rmtree(folder)
+    notes.append(f"batch {batch} removed")
+
+    # Vocabulary the batch brought, taken back out when no code still uses it.
+    if vocabulary:
+        vocab_path = HS_INDEX / "vocabulary.json"
+        vocab = json.loads(vocab_path.read_text(encoding="utf-8"))
+        rows = definition._read_csv_rows(definition.DEFINITION_CSV)
+        for column, values in vocabulary.items():
+            used = {(row.get(column) or "").strip() for row in rows}
+            for value in values:
+                if value in vocab.get(column, []) and value not in used:
+                    vocab[column].remove(value)
+                    vocab.get(f"_{column}s", {}).pop(value, None)
+                    notes.append(f"vocabulary: {column} {value!r} removed")
+        vocab_path.write_text(json.dumps(vocab, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    return notes
+
+
+def remove_sector(sector_id: str) -> str:
+    """
+    Take a sector out entirely: its folder (tags, seed), and the intake batch
+    that added its own codes. Codes it shares with other streams stay in the
+    index; only the sector tag goes. The next refresh drops its seed from the
+    raw store and its pages from the snapshot.
+    """
+    import sectors as sector_index
+
+    sector_index.load_sectors.cache_clear()
+    sector = next((s for s in sector_index.load_sectors(include_disabled=True) if s.id == sector_id), None)
+    if sector is None:
+        raise SystemExit(f"no sector {sector_id!r} in hs_index/sectors/")
+    meta = json.loads((sector.folder / "sector.json").read_text(encoding="utf-8"))
+    notes = []
+    if sector.batch:
+        notes += remove_batch(sector.batch, meta.get("vocabulary"))
+    shutil.rmtree(sector.folder)
+    notes.append(f"hs_index/sectors/{sector_id}/ removed")
+    _clear_caches()
+    sector_index.load_sectors.cache_clear()
+    refresh_derived()
+    errors = _index_errors()
+    notes.append(f"index check: {len(errors)} error(s)" + (": " + "; ".join(sorted(errors)[:5]) if errors else ""))
+    return "\n".join(notes)
+
+
 def status() -> str:
     lines = []
     for batch in _load_batches()["batches"]:
@@ -744,7 +854,19 @@ def main() -> int:
     parser.add_argument("--apply", nargs="?", const=True, default=False)
     parser.add_argument("--mark-pulled", action="store_true")
     parser.add_argument("--status", action="store_true")
+    parser.add_argument("--remove-sector", metavar="SECTOR", help="take a sector and the batch that added its codes out of the index")
+    parser.add_argument("--remove-batch", metavar="BATCH", help="take one intake batch's codes out of the index")
     args = parser.parse_args()
+
+    if args.remove_sector:
+        print(remove_sector(args.remove_sector))
+        return 0
+    if args.remove_batch:
+        notes = remove_batch(args.remove_batch)
+        _clear_caches()
+        refresh_derived()
+        print("\n".join(notes))
+        return 0
 
     if args.status:
         print(status())

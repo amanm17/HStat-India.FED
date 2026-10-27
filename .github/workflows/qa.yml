@@ -59,6 +59,11 @@ jobs:
       - name: Estimation tests
         run: cd pipeline && python test_estimate.py
 
+      # Sectors: seeds well formed, the pull plan skips what a seed holds,
+      # seeds go into and out of the raw store cleanly.
+      - name: Sector tests
+        run: cd pipeline && python test_sectors.py
+
       # Exactly what Cloudflare will run.
       - name: Build
         run: npm run build

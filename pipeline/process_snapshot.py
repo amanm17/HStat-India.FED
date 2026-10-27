@@ -22,6 +22,7 @@ import datasets as dataset_registry
 import fx
 import estimate
 import globaltrade
+import sectors as sector_index
 import store
 from common import (
     DATA,
@@ -2032,6 +2033,12 @@ def build_node(
         "inFedDefinition": meta.get("inFedDefinition", False),
         "stream": meta.get("stream", ""),
         "streams": meta.get("streams", []),
+        # Sectors this code is published in (hs_index/sectors/), with its
+        # tags there; absent for a code in none.
+        **({"sectors": meta["sectors"]} if meta.get("sectors") else {}),
+        # First year carried, when the code's batch starts later than the
+        # rest of HStat (sectors.py, historyStart).
+        **({"historyStart": meta["historyStart"]} if meta.get("historyStart") else {}),
         "referenceFlags": meta.get("referenceFlags", {}),
         "members": meta.get("members", []),
         "parentCode": (
@@ -2373,17 +2380,34 @@ def main():
     # Every other stream gets its own file, never folded into that one.
     stream_summaries: dict[str, ScopeSummary] = {}
 
+    # A sector batch can start later than the rest (sectors.py,
+    # historyStart): its codes carry only the years that were pulled, so a
+    # year before the start is absent, never an empty "not filed".
+    starts = sector_index.history_starts()
+    sector_summaries: dict[str, ScopeSummary] = {}
+    sector_members = {sector.id: sector.members for sector in sector_index.load_sectors()}
+
     for code, level in plan:
+        node_years = years
+        if code in starts:
+            node_years = [year for year in years if int(year) >= starts[code]]
+        meta = node_meta(code, level, products)
+        if level == 6:
+            memberships = sector_index.sectors_of(code)
+            if memberships:
+                meta["sectors"] = memberships
+        if code in starts:
+            meta["historyStart"] = starts[code]
         node = build_node(
             code,
             level,
-            node_meta(code, level, products),
+            meta,
             global_index,
             india_index,
             monthly_global,
             monthly_india,
             scope,
-            years,
+            node_years,
             months,
             hs8,
             hs6_values,
@@ -2420,6 +2444,10 @@ def main():
         if level == 6:
             stream = (products.get(code).stream if products.get(code) else "other") or "other"
             stream_summaries.setdefault(stream, ScopeSummary()).add(code, lists)
+            # A sector sums its own members, whatever their stream.
+            for sector_id, members in sector_members.items():
+                if code in members:
+                    sector_summaries.setdefault(sector_id, ScopeSummary()).add(code, lists)
 
         destination = (
             out / "products" / f"{code}.json"
@@ -2466,6 +2494,7 @@ def main():
                 "segment": node["segment"],
                 "inFedDefinition": node["inFedDefinition"],
                 "stream": node.get("stream", ""),
+                "sectors": [item["id"] for item in node.get("sectors", [])] or None,
                 "latestIndiaYear": node["latestIndiaYear"],
                 "latestIndiaMonth": node["latestIndiaMonth"],
                 "globalTradeYear": (
@@ -2535,6 +2564,40 @@ def main():
             {**summary.as_dict(stream_lines.get(stream, 0)), "stream": stream},
             compact=True,
         )
+
+    # One file per sector (hs_index/sectors/), and an index of them for the
+    # front page. Lines are the sector's members with a page in this build.
+    published = {code for code, level in plan if level == 6}
+    sector_list = []
+    for sector in sector_index.load_sectors():
+        lines = len(sector.members & published)
+        summary = sector_summaries.get(sector.id, ScopeSummary())
+        write_json(
+            out / f"sector-{sector.id}.json",
+            {**summary.as_dict(lines), "sector": sector.id},
+            compact=True,
+        )
+        tags: dict[str, dict[str, list[str]]] = {}
+        for entry in sector.codes:
+            if entry.hs6 not in published:
+                continue
+            tags.setdefault("broadCategory", {}).setdefault(entry.broad_category, []).append(entry.hs6)
+            tags.setdefault("nicheCategory", {}).setdefault(entry.niche_category, []).append(entry.hs6)
+            if entry.scomet:
+                tags.setdefault("scomet", {}).setdefault("yes", []).append(entry.hs6)
+        sector_list.append({
+            "id": sector.id,
+            "label": sector.label,
+            "note": sector.note,
+            "lines": lines,
+            "historyStart": sector.history_start,
+            "streams": dict(Counter(
+                (products.get(code).stream if products.get(code) else "other") or "other"
+                for code in sector.members & published
+            )),
+            "groups": {key: {name: sorted(codes) for name, codes in sorted(value.items())} for key, value in tags.items()},
+        })
+    write_json(out / "sectors.json", {"sectors": sector_list}, compact=True)
 
     write_json(
         out / "methodology.json",
@@ -2666,8 +2729,32 @@ def main():
                     "Electronics figures - the front page's totals, shares, "
                     "rankings and segments - sum only the codes in the "
                     "electronics stream (the FED electronics definition). "
-                    "Electronics inputs and other trade lines have their own "
-                    "pages and their own totals and are never added in."
+                    "Electronics inputs, capital goods and other trade lines "
+                    "have their own pages and their own totals and are never "
+                    "added in."
+                ),
+                "sectors": [
+                    {
+                        "id": sector.id,
+                        "label": sector.label,
+                        "note": sector.note,
+                        "lines": len(sector.members),
+                        "historyStart": sector.history_start,
+                        "seedSource": (sector.seed or {}).get("source"),
+                        "seedYears": (sector.seed or {}).get("years"),
+                    }
+                    for sector in sector_index.load_sectors()
+                ],
+                "sectorStatement": (
+                    "A sector is a published grouping of HS-6 lines with its "
+                    "own totals, taken from any stream. A line can belong to a "
+                    "sector and to the electronics figures at once; the "
+                    "sector's totals never add to an electronics figure. "
+                    "Where a sector's Comtrade data for settled years came "
+                    "with it (an extract from UN Comtrade supplied by FED), "
+                    "those rows were loaded as they are and checked against "
+                    "the raw store like any download; later years are pulled "
+                    "from Comtrade directly."
                 ),
                 "categories": categories(),
                 "segments": segments(),
