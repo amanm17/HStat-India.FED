@@ -1,9 +1,9 @@
 {
  "source": "UN Comtrade data availability (public getDA endpoint)",
  "sourceUrl": "https://comtradeplus.un.org/Visualization/DADashboard",
- "fetchedAt": "2026-10-26T23:19:10.815812+00:00",
- "builtAt": "2026-10-26T23:19:12.093729+00:00",
- "snapshotRefreshedAt": "2026-10-26T07:40:33.555700+00:00",
+ "fetchedAt": "2026-10-27T14:50:42.871444+00:00",
+ "builtAt": "2026-10-27T14:50:44.259635+00:00",
+ "snapshotRefreshedAt": "2026-10-27T14:48:59.284405+00:00",
  "lastPullAt": "2026-10-07T10:55:19Z",
  "schedule": "Checked on the 1st of each month and after every monthly data refresh (5th-7th).",
  "annual": [
@@ -126,8 +126,8 @@
   },
   {
    "period": "202607",
-   "reporters": 52,
-   "latestRelease": "2026-10-25"
+   "reporters": 53,
+   "latestRelease": "2026-10-27"
   },
   {
    "period": "202608",
@@ -144,8 +144,8 @@
   {
    "period": "2024",
    "reporter": "Viet Nam",
-   "products": 101,
-   "priorValue": 112578145950,
+   "products": 202,
+   "priorValue": 118745606505,
    "sample": [
     "321511",
     "340391",
@@ -161,8 +161,8 @@
   {
    "period": "2025",
    "reporter": "Other Asia, nes",
-   "products": 79,
-   "priorValue": 155484038779,
+   "products": 112,
+   "priorValue": 158170023273,
    "sample": [
     "350699",
     "370199",
@@ -178,83 +178,134 @@
   {
    "period": "2024",
    "reporter": "United Arab Emirates",
-   "products": 61,
-   "priorValue": 55071636488,
+   "products": 89,
+   "priorValue": 56552504026,
    "sample": [
+    "761100",
+    "820310",
+    "820330",
+    "820530",
+    "820719",
     "831110",
     "831120",
-    "841510",
-    "841581",
-    "841582",
-    "841583",
-    "841821",
-    "844312"
+    "840212"
    ],
    "filedSince": false
   },
   {
    "period": "2024",
    "reporter": "Iran",
-   "products": 16,
-   "priorValue": 1097087420,
+   "products": 59,
+   "priorValue": 2737206088,
    "sample": [
     "370199",
-    "844311",
+    "841340",
+    "841710",
+    "841940",
+    "842531",
+    "843420",
+    "843510",
+    "843830"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Uzbekistan",
+   "products": 33,
+   "priorValue": 1355765054,
+   "sample": [
+    "841780",
+    "841940",
+    "843359",
+    "843780",
     "844317",
-    "845090",
-    "845130",
-    "847329",
-    "850690",
-    "851761"
-   ],
-   "filedSince": false
-  },
-  {
-   "period": "2025",
-   "reporter": "Iraq",
-   "products": 16,
-   "priorValue": 399312752,
-   "sample": [
-    "831130",
-    "845019",
-    "847029",
-    "847030",
-    "847321",
-    "850680",
-    "850690",
-    "851310"
-   ],
-   "filedSince": false
-  },
-  {
-   "period": "2025",
-   "reporter": "Algeria",
-   "products": 9,
-   "priorValue": 609340495,
-   "sample": [
-    "841891",
-    "845090",
-    "845610",
-    "851770",
-    "852610",
-    "854150",
-    "854610",
-    "854810"
+    "844511",
+    "844512",
+    "844513"
    ],
    "filedSince": false
   },
   {
    "period": "2025",
    "reporter": "Ukraine",
-   "products": 6,
-   "priorValue": 550634042,
+   "products": 20,
+   "priorValue": 1068028802,
    "sample": [
-    "850132",
-    "850423",
-    "852550",
-    "854020",
-    "854320",
-    "901480"
+    "841934",
+    "843210",
+    "843221",
+    "843229",
+    "843239",
+    "843320",
+    "843351",
+    "843352"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Iraq",
+   "products": 19,
+   "priorValue": 3327719583,
+   "sample": [
+    "820510",
+    "820713",
+    "820719",
+    "831130",
+    "845019",
+    "847029",
+    "847030",
+    "847321"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Algeria",
+   "products": 19,
+   "priorValue": 745431145,
+   "sample": [
+    "840219",
+    "841891",
+    "842612",
+    "843830",
+    "844120",
+    "844711",
+    "845090",
+    "845320"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Peru",
+   "products": 15,
+   "priorValue": 691153464,
+   "sample": [
+    "820719",
+    "842389",
+    "842630",
+    "842911",
+    "842959",
+    "843041",
+    "844511",
+    "844512"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2024",
+   "reporter": "Ethiopia",
+   "products": 6,
+   "priorValue": 84513329,
+   "sample": [
+    "843780",
+    "843840",
+    "844312",
+    "844621",
+    "847920",
+    "870130"
    ],
    "filedSince": false
   },
@@ -287,20 +338,6 @@
     "854890"
    ],
    "filedSince": true
-  },
-  {
-   "period": "2025",
-   "reporter": "Uzbekistan",
-   "products": 5,
-   "priorValue": 367882777,
-   "sample": [
-    "844317",
-    "845221",
-    "847629",
-    "850423",
-    "851761"
-   ],
-   "filedSince": false
   },
   {
    "period": "2025",
@@ -374,14 +411,27 @@
   },
   {
    "period": "2025",
-   "reporter": "Peru",
+   "reporter": "Zambia",
    "products": 4,
-   "priorValue": 166188475,
+   "priorValue": 138040715,
    "sample": [
-    "842389",
-    "845020",
-    "852713",
-    "852791"
+    "840220",
+    "843242",
+    "843780",
+    "847439"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Qatar",
+   "products": 4,
+   "priorValue": 411146484,
+   "sample": [
+    "841940",
+    "843069",
+    "843920",
+    "844312"
    ],
    "filedSince": false
   },
@@ -421,6 +471,30 @@
     "854150",
     "854810",
     "854890"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Jordan",
+   "products": 3,
+   "priorValue": 33014442,
+   "sample": [
+    "842919",
+    "852412",
+    "852419"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Tunisia",
+   "products": 3,
+   "priorValue": 40510157,
+   "sample": [
+    "845320",
+    "847920",
+    "852321"
    ],
    "filedSince": false
   },
@@ -485,6 +559,39 @@
    "filedSince": false
   },
   {
+   "period": "2024",
+   "reporter": "Lao People's Dem. Rep.",
+   "products": 2,
+   "priorValue": 7348176,
+   "sample": [
+    "710410",
+    "842930"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Dem. Rep. of the Congo",
+   "products": 2,
+   "priorValue": 25184416,
+   "sample": [
+    "820190",
+    "842930"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2025",
+   "reporter": "Honduras",
+   "products": 2,
+   "priorValue": 20760212,
+   "sample": [
+    "840211",
+    "847021"
+   ],
+   "filedSince": false
+  },
+  {
    "period": "2025",
    "reporter": "Antigua and Barbuda",
    "products": 2,
@@ -497,12 +604,12 @@
   },
   {
    "period": "2025",
-   "reporter": "Jordan",
+   "reporter": "Zimbabwe",
    "products": 2,
-   "priorValue": 18024941,
+   "priorValue": 24761214,
    "sample": [
-    "852412",
-    "852419"
+    "847810",
+    "851431"
    ],
    "filedSince": false
   },
@@ -519,134 +626,54 @@
   },
   {
    "period": "2024",
-   "reporter": "Lao People's Dem. Rep.",
+   "reporter": "Saudi Arabia",
    "products": 1,
-   "priorValue": 3863790,
+   "priorValue": 871811,
    "sample": [
-    "710410"
-   ],
-   "filedSince": false
-  },
-  {
-   "period": "2025",
-   "reporter": "Japan",
-   "products": 1,
-   "priorValue": 6360114,
-   "sample": [
-    "844311"
-   ],
-   "filedSince": true
-  },
-  {
-   "period": "2024",
-   "reporter": "Ethiopia",
-   "products": 1,
-   "priorValue": 604466,
-   "sample": [
-    "844312"
-   ],
-   "filedSince": false
-  },
-  {
-   "period": "2025",
-   "reporter": "Myanmar",
-   "products": 1,
-   "priorValue": 365694,
-   "sample": [
-    "844312"
+    "840120"
    ],
    "filedSince": true
   },
   {
    "period": "2025",
-   "reporter": "Qatar",
-   "products": 1,
-   "priorValue": 349437,
-   "sample": [
-    "844312"
-   ],
-   "filedSince": false
-  },
-  {
-   "period": "2025",
-   "reporter": "Grenada",
-   "products": 1,
-   "priorValue": 30356,
-   "sample": [
-    "845610"
-   ],
-   "filedSince": false
-  },
-  {
-   "period": "2025",
-   "reporter": "Honduras",
-   "products": 1,
-   "priorValue": 1846517,
-   "sample": [
-    "847021"
-   ],
-   "filedSince": false
-  },
-  {
-   "period": "2024",
-   "reporter": "Dem. Rep. of the Congo",
-   "products": 1,
-   "priorValue": 30262,
-   "sample": [
-    "850740"
-   ],
-   "filedSince": true
-  },
-  {
-   "period": "2025",
-   "reporter": "Burkina Faso",
-   "products": 1,
-   "priorValue": 102215124,
-   "sample": [
-    "851310"
-   ],
-   "filedSince": false
-  },
-  {
-   "period": "2024",
-   "reporter": "Mauritania",
-   "products": 1,
-   "priorValue": 12636069,
-   "sample": [
-    "851770"
-   ],
-   "filedSince": true
-  },
-  {
-   "period": "2025",
-   "reporter": "Tunisia",
-   "products": 1,
-   "priorValue": 9992876,
-   "sample": [
-    "852321"
-   ],
-   "filedSince": false
-  },
-  {
-   "period": "2024",
-   "reporter": "Comoros",
-   "products": 1,
-   "priorValue": 200231,
-   "sample": [
-    "854011"
-   ],
-   "filedSince": false
-  },
-  {
-   "period": "2024",
    "reporter": "Brazil",
    "products": 1,
-   "priorValue": 165002,
+   "priorValue": 1549158,
    "sample": [
-    "854011"
+    "840120"
+   ],
+   "filedSince": true
+  },
+  {
+   "period": "2024",
+   "reporter": "China, Hong Kong SAR",
+   "products": 1,
+   "priorValue": 142250435,
+   "sample": [
+    "840211"
+   ],
+   "filedSince": true
+  },
+  {
+   "period": "2024",
+   "reporter": "Mongolia",
+   "products": 1,
+   "priorValue": 8658072,
+   "sample": [
+    "840220"
+   ],
+   "filedSince": false
+  },
+  {
+   "period": "2024",
+   "reporter": "Iraq",
+   "products": 1,
+   "priorValue": 3223725,
+   "sample": [
+    "842112"
    ],
    "filedSince": true
   }
  ],
- "productsTotal": 455
+ "productsTotal": 825
 }
