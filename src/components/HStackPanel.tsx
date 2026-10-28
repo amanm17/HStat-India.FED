@@ -15,6 +15,7 @@ import { Download, Sigma, Trash2, X } from 'lucide-react'
 import type { HsNode } from '../types'
 import type { BasketEntry, BasketLine } from '../lib/hstack'
 import type { SnapshotName } from '../lib/data'
+import { mapLimit } from '../lib/data'
 import { loadDetail } from '../lib/scope'
 import {
   bestYear,
@@ -60,6 +61,7 @@ export function HStackPanel({
   entries,
   nodes,
   loading,
+  progress = null,
   onRemove,
   onClear,
   onOpen,
@@ -72,6 +74,7 @@ export function HStackPanel({
   entries: BasketEntry[]
   nodes: HsNode[]
   loading: boolean
+  progress?: { done: number; total: number } | null
   onRemove: (code: string) => void
   onClear: () => void
   onOpen: (code: string, level: 2 | 4 | 6) => void
@@ -128,12 +131,10 @@ export function HStackPanel({
 
     let live = true
 
-    Promise.all(
-      nodes.map(node =>
-        loadDetail(snapshot, node.code)
-          .catch(() => null)
-          .then(detail => [node.code, detail] as const),
-      ),
+    mapLimit(nodes, 8, node =>
+      loadDetail(snapshot, node.code)
+        .catch(() => null)
+        .then(detail => [node.code, detail] as const),
     ).then(pairs => {
       if (live) setDetails(new Map(pairs))
     })
@@ -360,7 +361,16 @@ export function HStackPanel({
         )}
 
         {entries.length > 0 && loading && (
-          <div className="hstack-loading">Loading {entries.length} codes…</div>
+          <div className="hstack-loading" role="status">
+            {progress && progress.total > 20
+              ? `Loading ${progress.done} of ${progress.total} lines…`
+              : `Loading ${entries.length} codes…`}
+            {progress && progress.total > 20 && (
+              <span className="hstack-progress" aria-hidden="true">
+                <i style={{ width: `${Math.round((progress.done / progress.total) * 100)}%` }} />
+              </span>
+            )}
+          </div>
         )}
 
         {/*

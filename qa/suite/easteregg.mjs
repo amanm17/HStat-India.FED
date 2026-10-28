@@ -66,7 +66,9 @@ for (const [w, h, shape] of [[1440, 900, 'desk'], [390, 844, 'phone']]) {
   await page.waitForTimeout(800)
   ok(`[${shape}] product pages take the look`, (await look(page)) === 'aman')
   const chart = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--series-global').trim())
-  ok(`[${shape}] series colours follow the look`, chart.toLowerCase() === '#6656d8', chart)
+  /* The secret look opens dark: titanium Global trade on graphite. */
+  ok(`[${shape}] the secret look opens dark`, (await page.evaluate(() => document.documentElement.dataset.theme)) === 'dark')
+  ok(`[${shape}] series colours follow the look`, chart.toLowerCase() === '#c5cbd3', chart)
 
   await page.goto(BASE + '/', { waitUntil: 'networkidle' })
   await page.waitForTimeout(600)
@@ -78,6 +80,7 @@ for (const [w, h, shape] of [[1440, 900, 'desk'], [390, 844, 'phone']]) {
   await page.keyboard.press('Escape')
   await page.waitForTimeout(400)
   ok(`[${shape}] ~AM1708/ returns to the FED look`, (await look(page)) === 'fed' && (await stored(page)) === null)
+  ok(`[${shape}] the FED look comes back light`, (await page.evaluate(() => document.documentElement.dataset.theme)) === 'light')
   ok(`[${shape}] the FED logo is back`, (await page.locator('.fed-logo.color').count()) === 1)
 
   /* Typing the exit code from the FED look must not flash the secret one. */

@@ -1,115 +1,131 @@
 /*
  * HStat.India by Aman - the secret look (lib/look.ts).
  *
- * The dashboard's original design language (Inter, navy/blue/green, rounded
- * cards), refined into something sleek: a quiet zinc ground, hairline
- * borders instead of heavy frames, near-black primary actions, one violet
- * accent for focus and selection, tight type, and motion that is felt more
- * than seen - a scroll-progress hairline, a 1px lift on hover, a page that
- * settles in after the switch.
+ * Stealth, titanium, racing red and blue; professional and clean. A
+ * near-black graphite ground (the look always opens dark), brushed titanium
+ * neutrals, matte surfaces with hairline borders, precise 8px corners, and
+ * one livery detail: a red and blue pinstripe under the header. Figures are
+ * set like instruments: tight, tabular, with quiet uppercase labels. No
+ * glow, no gradients on surfaces, no decoration that carries no meaning.
  *
  * Scoped to :root[data-look="aman"]; the FED design is untouched unless the
  * code is typed. Motion lives inside (prefers-reduced-motion: no-preference).
  * Text colours are solid and clear 4.5:1 in both themes.
  *
  * Series keep one meaning each:
- *   Global Trade  violet   India Imports  blue   India Exports  green
+ *   Global Trade  titanium   India Imports  racing red   India Exports  racing blue
  */
 
 /* ----------------------------------------------------------- tokens */
 
 :root[data-look="aman"] {
-  --aman-accent: #5b4cd6;
-  --aman-accent-soft: rgba(91, 76, 214, 0.12);
-  --aman-ink: #18181b;
-  --aman-glow: 91, 76, 214;
+  /* Livery: used for the pinstripe, the mark and the byline only. */
+  --aman-red: #d0122b;
+  --aman-blue: #1f4fd1;
+  --aman-titanium: #8a929c;
 
-  --bg: #f6f6f7;
+  --aman-accent: #2a3038;
+  --aman-accent-soft: rgba(42, 48, 56, 0.08);
+  --aman-ink: #111418;
+
+  --bg: #eceef1;
   --panel: #ffffff;
   --panel-solid: #ffffff;
-  --panel-soft: #f4f4f5;
+  --panel-soft: #f4f5f7;
 
-  --text: #18181b;
-  --muted: #52525b;
-  --faint: #63636d;
+  --text: #111418;
+  --muted: #485059;
+  --faint: #59616b;
 
-  --border: rgba(24, 24, 27, 0.08);
-  --border-strong: rgba(24, 24, 27, 0.15);
+  --border: rgba(17, 20, 24, 0.1);
+  --border-strong: rgba(17, 20, 24, 0.18);
 
-  --navy: #18181b;
-  --blue: #2f6fb5;
-  --green: #1e7a59;
+  --navy: #111418;
+  --blue: #1f4fd1;
+  --green: #1f4fd1;
   --ochre: #8a5a00;
 
-  --link: #3b5bdb;
-  --focus: #5b4cd6;
+  --link: #1f4fd1;
+  --focus: #111418;
 
-  --series-global: #6656d8;
-  --series-imports: #2f6fb5;
-  --series-exports: #23936c;
+  --series-global: #3d4652;
+  --series-imports: #c8102e;
+  --series-exports: #1f4fd1;
 
-  --seg-finished: #38bdf8;
-  --seg-finished-ink: #0b3954;
-  --seg-components: #f59e0b;
-  --seg-components-ink: #5a3700;
+  --seg-finished: #2aa3b8;
+  --seg-finished-ink: #08333b;
+  --seg-components: #d98a1c;
+  --seg-components-ink: #4a2d00;
 
-  --accent: #18181b;
+  --accent: #111418;
   --accent-ink: #ffffff;
 
-  --radius: 10px;
-  --aman-radius: 14px;
-  --shadow: 0 1px 2px rgba(24, 24, 27, 0.04);
-  --aman-shadow-lift: 0 1px 2px rgba(24, 24, 27, 0.05), 0 8px 24px rgba(24, 24, 27, 0.07);
+  --topbar-bg: #e3e6ea;
+
+  --radius: 8px;
+  --aman-radius: 10px;
+  --shadow: 0 1px 2px rgba(17, 20, 24, 0.05);
+  --aman-shadow-lift: 0 1px 2px rgba(17, 20, 24, 0.06), 0 6px 18px rgba(17, 20, 24, 0.08);
 
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   font-feature-settings: "cv11", "ss01", "tnum";
 }
 
 :root[data-look="aman"][data-theme="dark"] {
-  /* Subtle dark: soft graphite rather than black, text a step below white,
-   * borders barely there. */
-  --aman-accent: #a99cf0;
-  --aman-accent-soft: rgba(169, 156, 240, 0.14);
-  --aman-ink: #e4e4e7;
-  --aman-glow: 169, 156, 240;
+  /* Stealth: matte graphite, a step off black, with titanium text. */
+  --aman-red: #ff3b4e;
+  --aman-blue: #4d84ff;
+  --aman-titanium: #9aa3ad;
 
-  --bg: #141417;
-  --panel: #1a1a1e;
-  --panel-solid: #1a1a1e;
-  --panel-soft: #212126;
+  --aman-accent: #c5cbd3;
+  --aman-accent-soft: rgba(197, 203, 211, 0.1);
+  --aman-ink: #e6e9ed;
 
-  --text: #dcdce0;
-  --muted: #a7a7b0;
-  --faint: #95959f;
+  --bg: #0b0d10;
+  --panel: #13161a;
+  --panel-solid: #13161a;
+  --panel-soft: #1a1e23;
 
-  --border: rgba(220, 220, 224, 0.07);
-  --border-strong: rgba(220, 220, 224, 0.13);
+  --text: #e6e9ed;
+  --muted: #a1aab4;
+  --faint: #8f98a3;
 
-  --navy: #e4e4e7;
-  --blue: #8cb8e8;
-  --green: #7fcfae;
+  --border: rgba(230, 233, 237, 0.08);
+  --border-strong: rgba(230, 233, 237, 0.16);
+
+  --navy: #e6e9ed;
+  --blue: #7ea6ff;
+  --green: #7ea6ff;
   --ochre: #e2b878;
 
-  --link: #9db4f0;
-  --focus: #a99cf0;
+  --link: #8fb1ff;
+  --focus: #e6e9ed;
 
-  --series-global: #a99cf0;
-  --series-imports: #7baee3;
-  --series-exports: #5cc2a0;
+  --series-global: #c5cbd3;
+  --series-imports: #ff5a67;
+  --series-exports: #5b8eff;
 
-  --accent: #dcdce0;
-  --accent-ink: #141417;
+  --seg-finished: #3fbfd3;
+  --seg-finished-ink: #04262c;
+  --seg-components: #e9a23d;
+  --seg-components-ink: #2e1d03;
+
+  --accent: #c5cbd3;
+  --accent-ink: #0b0d10;
+
+  --topbar-bg: #111419;
 
   --shadow: none;
-  --aman-shadow-lift: 0 8px 24px rgba(0, 0, 0, 0.3);
+  --aman-shadow-lift: 0 8px 24px rgba(0, 0, 0, 0.45);
 }
 
-/* The level accent: chrome only, never a series. */
-:root[data-look="aman"][data-level="4"] { --accent: #1e7a59; }
-:root[data-look="aman"][data-level="6"] { --accent: #5b4cd6; }
-:root[data-look="aman"][data-level="8"] { --accent: #b45309; }
-:root[data-look="aman"][data-theme="dark"][data-level="4"] { --accent: #7fcfae; }
-:root[data-look="aman"][data-theme="dark"][data-level="6"] { --accent: #a99cf0; }
+/* The level accent: chrome only, never a series. Titanium throughout, a
+ * shade apart per level, so no level borrows a series colour. */
+:root[data-look="aman"][data-level="4"] { --accent: #3d4652; }
+:root[data-look="aman"][data-level="6"] { --accent: #111418; }
+:root[data-look="aman"][data-level="8"] { --accent: #8a5a00; }
+:root[data-look="aman"][data-theme="dark"][data-level="4"] { --accent: #9aa3ad; }
+:root[data-look="aman"][data-theme="dark"][data-level="6"] { --accent: #e6e9ed; }
 :root[data-look="aman"][data-theme="dark"][data-level="8"] { --accent: #e9ac5c; }
 
 /* ---------------------------------------------------------- ground */
@@ -128,30 +144,8 @@
   font-family: inherit;
 }
 
-/* One soft light at the top of the page and a fine dot field under the
- * header - on a pseudo-element, so every surface keeps a solid colour. */
-:root[data-look="aman"] body::before {
-  content: "";
-  position: fixed;
-  inset: 0 0 auto 0;
-  height: 520px;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(60% 100% at 50% 0%, rgba(var(--aman-glow), 0.09), transparent 70%),
-    radial-gradient(rgba(24, 24, 27, 0.07) 1px, transparent 1px) 0 0 / 22px 22px;
-  mask-image: linear-gradient(#000, transparent);
-  -webkit-mask-image: linear-gradient(#000, transparent);
-}
-
-:root[data-look="aman"][data-theme="dark"] body::before {
-  background:
-    radial-gradient(60% 100% at 50% 0%, rgba(var(--aman-glow), 0.08), transparent 70%),
-    radial-gradient(rgba(220, 220, 224, 0.06) 1px, transparent 1px) 0 0 / 22px 22px;
-}
-
 :root[data-look="aman"] ::selection {
-  background: var(--aman-accent-soft);
+  background: color-mix(in srgb, var(--aman-blue) 28%, transparent);
 }
 
 :root[data-look="aman"] :focus-visible {
@@ -161,29 +155,31 @@
 
 /* ---------------------------------------------------------- header */
 
+/* A matte titanium bar, a shade apart from the ground, with the livery
+ * pinstripe (red over blue) along its lower edge. */
 :root[data-look="aman"] .topbar {
-  background: color-mix(in srgb, var(--bg) 78%, transparent);
-  backdrop-filter: saturate(180%) blur(14px);
-  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  background: var(--topbar-bg);
   border-bottom: 1px solid var(--border);
 }
 
-/* A hairline under the header that fills as the page is read. */
 :root[data-look="aman"] .topbar::after {
   content: "";
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -1px;
-  height: 1px;
-  background: linear-gradient(90deg, var(--aman-accent), var(--series-imports));
-  transform-origin: 0 50%;
-  transform: scaleX(0);
+  bottom: 0;
+  height: 3px;
+  background: linear-gradient(
+    to bottom,
+    var(--aman-red) 0 1px,
+    transparent 1px 2px,
+    var(--aman-blue) 2px 3px
+  );
   pointer-events: none;
 }
 
 :root[data-look="aman"] .identity {
-  gap: 11px;
+  gap: 12px;
 }
 
 :root[data-look="aman"] .aman-mark {
@@ -192,38 +188,52 @@
 }
 
 :root[data-look="aman"] .brand {
-  font-size: 19px;
+  font-size: 20px;
   font-weight: 700;
   letter-spacing: -0.03em;
   color: var(--text);
+  white-space: nowrap;
 }
 
 :root[data-look="aman"] .brand strong {
   font-weight: 700;
 }
 
+/* "by Aman": the signature. Set apart by a titanium hairline, in the
+ * header's own weight, with the livery bars in front of it. */
 :root[data-look="aman"] .brand-by {
-  display: inline-block;
-  margin-left: 6px;
-  padding: 1px 7px;
-  border: 1px solid var(--border-strong);
-  border-radius: 999px;
-  color: var(--muted);
-  font-size: 11.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 12px;
+  padding-left: 12px;
+  vertical-align: 1px;
+  border-left: 1px solid var(--border-strong);
+  color: var(--text);
+  font-size: 18px;
   font-style: normal;
   font-weight: 600;
-  letter-spacing: 0;
-  vertical-align: 3px;
+  letter-spacing: -0.015em;
   white-space: nowrap;
+}
+
+:root[data-look="aman"] .brand-by::before {
+  content: "";
+  width: 4px;
+  height: 14px;
+  background: linear-gradient(90deg, var(--aman-red) 0 1.5px, transparent 1.5px 2.5px, var(--aman-blue) 2.5px 4px);
+  transform: skewX(-14deg);
 }
 
 :root[data-look="aman"] .refresh {
   color: var(--faint);
+  font-size: 12px;
+  letter-spacing: 0.02em;
 }
 
 :root[data-look="aman"] .topbar .toggles button,
 :root[data-look="aman"] .helpdock.inheader .helpbutton {
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid var(--border-strong);
   background: var(--panel);
   color: var(--text);
@@ -238,12 +248,6 @@
 @media (max-width: 420px) {
   :root[data-look="aman"] .brand {
     font-size: 17px;
-    white-space: nowrap;
-  }
-
-  :root[data-look="aman"] .brand-by {
-    font-size: 11px;
-    padding: 0 6px;
   }
 }
 
@@ -270,12 +274,12 @@
 :root[data-look="aman"] .rf-home-hero::before {
   height: 1px;
   border-radius: var(--aman-radius) var(--aman-radius) 0 0;
-  background: linear-gradient(90deg, transparent, var(--aman-accent), transparent);
+  background: var(--border-strong);
 }
 
 :root[data-look="aman"] .search-primary,
 :root[data-look="aman"] .rf-home-search .search-primary {
-  border-radius: 12px;
+  border-radius: 8px;
   background: var(--panel);
   border: 1px solid var(--border-strong);
   box-shadow: var(--shadow);
@@ -295,10 +299,10 @@
 :root[data-look="aman"] .search-focus-panel,
 :root[data-look="aman"] .search-output,
 :root[data-look="aman"] .rf-home-search .search-body {
-  border-radius: 12px;
+  border-radius: 8px;
   background: var(--panel);
   border-color: var(--border-strong);
-  box-shadow: 0 12px 40px rgba(24, 24, 27, 0.12);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
 }
 
 :root[data-look="aman"] .search-hub .kb-active {
@@ -315,7 +319,7 @@
 /* ---------------------------------------------- controls and buttons */
 
 :root[data-look="aman"] .rf-button {
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid var(--aman-ink);
   background: var(--aman-ink);
   color: #ffffff;
@@ -324,19 +328,20 @@
   transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
 }
 
+/* In the dark, the primary action is a titanium plate with graphite text. */
 :root[data-look="aman"][data-theme="dark"] .rf-button {
-  background: #2a2a31;
-  border-color: #3a3a43;
-  color: #ececf0;
+  background: #e6e9ed;
+  border-color: #e6e9ed;
+  color: #0b0d10;
 }
 
 :root[data-look="aman"] .rf-button:hover:not(:disabled) {
   filter: none;
-  background: #27272a;
+  background: #2a3038;
 }
 
 :root[data-look="aman"][data-theme="dark"] .rf-button:hover:not(:disabled) {
-  background: #33333b;
+  background: #ffffff;
 }
 
 :root[data-look="aman"] .rf-button.quiet,
@@ -348,7 +353,7 @@
   background: var(--panel);
   color: var(--text);
   border: 1px solid var(--border-strong);
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
 :root[data-look="aman"] .rf-button.quiet:hover:not(:disabled),
@@ -359,7 +364,7 @@
 }
 
 :root[data-look="aman"] .rf-segmented {
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 3px;
   height: auto;
   gap: 2px;
@@ -369,7 +374,7 @@
 
 :root[data-look="aman"] .rf-segmented button {
   height: calc(var(--ctl-h) - 8px);
-  border-radius: 7px;
+  border-radius: 6px;
   border: 0;
   background: transparent;
   color: var(--muted);
@@ -385,11 +390,11 @@
 }
 
 :root[data-look="aman"][data-theme="dark"] .rf-segmented button.active {
-  background: #2a2a31;
+  background: #262b32;
 }
 
 :root[data-look="aman"] .rf-control select {
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid var(--border-strong);
   background-color: var(--panel);
   color: var(--text);
@@ -397,9 +402,9 @@
 
 :root[data-look="aman"] .rf-control > span {
   color: var(--muted);
-  letter-spacing: 0.02em;
-  text-transform: none;
-  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 12px;
   font-weight: 600;
 }
 
@@ -410,10 +415,9 @@
 }
 
 :root[data-look="aman"] .rf-id-mark {
-  border-radius: 999px;
-  width: 8px;
-  height: 8px;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+  border-radius: 1px;
+  width: 12px;
+  height: 3px;
 }
 
 :root[data-look="aman"] .rf-id-code,
@@ -451,29 +455,32 @@
 
 :root[data-look="aman"] .rf-figure,
 :root[data-look="aman"] .rf-figure[data-series] {
-  border-top: 1px solid var(--border);
+  border-top: 2px solid var(--series-global);
   border-left: 1px solid var(--border);
 }
 
+:root[data-look="aman"] .rf-figure[data-series="exports"] {
+  border-top-color: var(--series-exports);
+}
+
+:root[data-look="aman"] .rf-figure[data-series="imports"] {
+  border-top-color: var(--series-imports);
+}
+
+/* Labels read like an instrument cluster: small, uppercase, spaced. */
 :root[data-look="aman"] .rf-figure-label {
   color: var(--muted);
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 :root[data-look="aman"] .rf-swatch {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--series-global) 16%, transparent);
-}
-
-:root[data-look="aman"] .rf-figure[data-series="exports"] .rf-swatch {
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--series-exports) 16%, transparent);
-}
-
-:root[data-look="aman"] .rf-figure[data-series="imports"] .rf-swatch {
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--series-imports) 16%, transparent);
+  width: 12px;
+  height: 3px;
+  border-radius: 1px;
+  box-shadow: none;
 }
 
 :root[data-look="aman"] .rf-figure-value {
@@ -505,13 +512,13 @@
 }
 
 :root[data-look="aman"] .rf-section-toggle {
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
 :root[data-look="aman"] .rf-gap-alert,
 :root[data-look="aman"] .rf-provisional,
 :root[data-look="aman"] .rf-rate-note {
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
 /* ------------------------------------------------------ section tabs */
@@ -524,7 +531,7 @@
 }
 
 :root[data-look="aman"] .rf-tabs button {
-  border-radius: 8px;
+  border-radius: 6px;
   color: var(--muted);
 }
 
@@ -539,8 +546,10 @@
 
 :root[data-look="aman"] .rf-table thead th {
   color: var(--muted);
+  font-size: 12.5px;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
   border-bottom: 1px solid var(--border-strong);
 }
 
@@ -562,7 +571,7 @@
 :root[data-look="aman"] .rf-cat {
   border: 1px solid var(--border);
   border-left: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 8px;
   background: var(--panel);
   box-shadow: var(--shadow);
 }
@@ -570,16 +579,35 @@
 :root[data-look="aman"] .rf-cat strong::before {
   content: "";
   display: inline-block;
-  width: 7px;
-  height: 7px;
+  width: 10px;
+  height: 3px;
   margin-right: 8px;
-  border-radius: 999px;
+  border-radius: 1px;
   background: var(--seg-finished);
   vertical-align: 2px;
 }
 
 :root[data-look="aman"] [data-segment="components"] .rf-cat strong::before {
   background: var(--seg-components);
+}
+
+:root[data-look="aman"] [data-segment="capital"] .rf-cat strong::before {
+  background: var(--series-global);
+}
+
+:root[data-look="aman"] .rf-seg-swatch {
+  width: 14px;
+  height: 4px;
+  border: 0;
+  border-radius: 1px;
+}
+
+:root[data-look="aman"] .rf-segment-open {
+  border-radius: 8px;
+}
+
+:root[data-look="aman"] .rf-segment-open .rf-segment-name {
+  letter-spacing: -0.02em;
 }
 
 :root[data-look="aman"] .rf-cat:hover,
@@ -595,7 +623,7 @@
 /* ------------------------------------------------------ tariff tiles */
 
 :root[data-look="aman"] .rf-tariff-tile {
-  border-radius: 12px;
+  border-radius: 8px;
   background: var(--panel);
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
@@ -610,10 +638,10 @@
 
 :root[data-look="aman"] .rf-download-menu,
 :root[data-look="aman"] .helpcard {
-  border-radius: 12px;
+  border-radius: 8px;
   background: var(--panel);
   border: 1px solid var(--border-strong);
-  box-shadow: 0 16px 48px rgba(24, 24, 27, 0.16);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.22);
 }
 
 :root[data-look="aman"] .rail {
@@ -622,15 +650,15 @@
 }
 
 :root[data-look="aman"] .rail-handle {
-  border-radius: 10px 0 0 10px;
+  border-radius: 8px 0 0 8px;
   background: var(--aman-ink);
   color: #ffffff;
   border: 0;
 }
 
 :root[data-look="aman"][data-theme="dark"] .rail-handle {
-  background: #2a2a31;
-  color: #ececf0;
+  background: #262b32;
+  color: #e6e9ed;
 }
 
 :root[data-look="aman"] .rail-years button.active,
@@ -641,9 +669,9 @@
 }
 
 :root[data-look="aman"][data-theme="dark"] .rail-years button.active {
-  background: #2a2a31;
-  border-color: #3a3a43;
-  color: #ececf0;
+  background: #e6e9ed;
+  border-color: #e6e9ed;
+  color: #0b0d10;
 }
 
 :root[data-look="aman"] .tabbar {
@@ -662,7 +690,7 @@
 }
 
 :root[data-look="aman"] .hstack-panel {
-  border-radius: 16px;
+  border-radius: 12px;
   border-color: var(--border-strong);
 }
 
@@ -687,13 +715,6 @@
     box-shadow: var(--aman-shadow-lift);
   }
 
-  @supports (animation-timeline: scroll()) {
-    :root[data-look="aman"] .topbar::after {
-      animation: aman-progress linear both;
-      animation-timeline: scroll(root);
-    }
-  }
-
   :root.look-arrive .rf-product > *,
   :root.look-arrive .rf-home > *,
   :root.look-arrive .rf-hs8 > * {
@@ -714,11 +735,6 @@
   :root.look-pulse .fed-link {
     animation: aman-pulse 0.8s ease;
   }
-}
-
-@keyframes aman-progress {
-  from { transform: scaleX(0); }
-  to { transform: scaleX(1); }
 }
 
 @keyframes aman-settle {
@@ -750,7 +766,7 @@
   place-items: center;
   overflow: hidden;
   color: #ffffff;
-  background: radial-gradient(120vmax 120vmax at 50% 50%, #12224a 0%, #0a1226 45%, #060a16 100%);
+  background: radial-gradient(120vmax 120vmax at 50% 50%, #1a1e24 0%, #0d0f13 45%, #050608 100%);
   clip-path: circle(0px at var(--ox) var(--oy));
   will-change: clip-path;
 }
@@ -775,7 +791,7 @@
 .look-sheen {
   position: absolute;
   inset: -50%;
-  background: conic-gradient(from 0deg at 50% 50%, rgba(56, 189, 248, 0) 0deg, rgba(56, 189, 248, 0.22) 60deg, rgba(167, 139, 250, 0.26) 140deg, rgba(94, 234, 212, 0.18) 220deg, rgba(56, 189, 248, 0) 300deg);
+  background: conic-gradient(from 0deg at 50% 50%, rgba(197, 203, 211, 0) 0deg, rgba(255, 59, 78, 0.16) 70deg, rgba(197, 203, 211, 0.12) 150deg, rgba(77, 132, 255, 0.18) 230deg, rgba(197, 203, 211, 0) 310deg);
   animation: look-spin 6s linear infinite;
   filter: blur(40px);
 }
@@ -819,7 +835,7 @@
   letter-spacing: -0.045em;
   line-height: 1.05;
   color: #ffffff;
-  text-shadow: 0 0 40px rgba(167, 139, 250, 0.55), 0 0 90px rgba(56, 189, 248, 0.35);
+  text-shadow: 0 0 36px rgba(197, 203, 211, 0.28);
   min-height: 1.05em;
   white-space: nowrap;
 }
@@ -834,7 +850,7 @@
   width: 0;
   height: 2px;
   border-radius: 2px;
-  background: linear-gradient(90deg, transparent, #7dd3fc, #a78bfa, #5eead4, transparent);
+  background: linear-gradient(90deg, transparent, #ff3b4e 30%, #c5cbd3 50%, #4d84ff 70%, transparent);
 }
 
 .look-switch[data-tone="fed"] .look-rule {
@@ -853,7 +869,7 @@
   font-weight: 700;
   letter-spacing: 0.32em;
   text-transform: uppercase;
-  color: #c4b5fd;
+  color: #c5cbd3;
 }
 
 .look-switch[data-tone="fed"] .look-byline {
@@ -958,18 +974,24 @@
  * desktop), so the header's buttons keep their room. */
 @media (max-width: 640px) {
   :root[data-look="aman"] .brand {
-    display: inline-block;
+    display: block;
     line-height: 1.05;
     text-align: left;
     white-space: nowrap;
   }
 
   :root[data-look="aman"] .brand-by {
-    display: block;
-    margin: 2px 0 0;
+    display: flex;
+    width: max-content;
+    margin: 3px 0 0;
     padding: 0;
     border: 0;
-    font-size: 11px;
-    vertical-align: 0;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  :root[data-look="aman"] .brand-by::before {
+    height: 11px;
   }
 }

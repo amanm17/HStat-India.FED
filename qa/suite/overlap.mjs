@@ -415,8 +415,11 @@ for (const [w, h, shape] of SHAPES) {
       await page.goto(base + path, { waitUntil: 'networkidle' })
       if (!primed) { await setLook(page); primed = true; await page.reload({ waitUntil: 'networkidle' }) }
       await page.waitForTimeout(700)
-      if (theme === 'dark') {
-        await page.locator('[aria-label="Switch to dark theme"]').first().click().catch(() => {})
+      /* Either look may open in either theme (the secret look opens dark), so
+       * ask for the one this pass audits rather than assuming light. */
+      const themeSwitch = page.locator(`[aria-label="Switch to ${theme} theme"]`).first()
+      if (await themeSwitch.count()) {
+        await themeSwitch.click().catch(() => {})
         await page.waitForTimeout(250)
       }
       const tag = `${name} @${shape}/${theme}`

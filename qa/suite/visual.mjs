@@ -97,7 +97,7 @@ for (const theme of ['light', 'dark']) {
       const errs = []
       page.on('pageerror', e => errs.push(String(e)))
       await page.goto(BASE + path, { waitUntil: 'networkidle' })
-      if (theme === 'dark') await page.evaluate(() => { document.documentElement.dataset.theme = 'dark' })
+      await page.evaluate(t => { document.documentElement.dataset.theme = t }, theme)
       await page.waitForTimeout(700)
 
       const r = await page.evaluate(`(${audit})()`)
@@ -119,7 +119,7 @@ for (const [w, h] of WIDTHS) {
     const errs = []
     page.on('pageerror', e => errs.push(String(e)))
     await page.goto(AVAIL + '/availability', { waitUntil: 'networkidle' })
-    if (theme === 'dark') await page.evaluate(() => { document.documentElement.dataset.theme = 'dark' })
+    await page.evaluate(t => { document.documentElement.dataset.theme = t }, theme)
     await page.waitForTimeout(800)
     const r = await page.evaluate(`(${audit})()`)
     const tag = `${theme} ${w}px availability`

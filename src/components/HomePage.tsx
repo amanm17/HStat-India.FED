@@ -8,8 +8,8 @@
  * pages rank - so a total here is exactly the products listed under it.
  */
 import { Mark, estimateTip } from './primitives'
-import { useEffect, useMemo, useState } from 'react'
-import { FileText, Layers } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { ChevronDown, FileText, Layers } from 'lucide-react'
 
 import type { CatalogueEntry, CurrencyMode, Manifest, SearchItem } from '../types'
 import type { SearchIndex } from '../lib/search'
@@ -73,6 +73,27 @@ export function segmentTitle(segment: string | undefined): string {
   const key = segmentKey(segment)
 
   return key === 'finished' ? 'Finished goods' : key === 'components' ? 'Components & inputs' : segment ?? ''
+}
+
+/* One line in an on-page stack: a catalogue line, or a code retired in
+ * HS 2022 whose trade is counted before the split (carried). */
+type StackRow = { code: string; name: string; carried?: boolean }
+
+/* A group of lines under a heading: an electronics category, or a capital
+ * goods sub-category (FED niche category). */
+type HeadingGroup = { key: string; name: string; rows: StackRow[]; world: number }
+
+/* A heading line on the front page: electronics Finished goods and
+ * Components & inputs, or a capital goods broad category. Every heading is
+ * itself a stack, and so is every group under it. */
+type Heading = {
+  key: string
+  title: string
+  tone: 'finished' | 'components' | 'capital' | 'flag'
+  rows: StackRow[]
+  world: number
+  groups: HeadingGroup[]
+  note?: string
 }
 
 export function HomePage({
@@ -284,102 +305,173 @@ export function HomePage({
     estimatedShare,
   }))
 
-  const sectorCategoryRows: RankRow[] = (() => {
-    if (!sector || !record) return []
-    const values = new Map((record.products ?? []).map(row => [row[0], row]))
-    return Object.entries(sector.groups.broadCategory ?? {})
-      .map(([name, codes]) => {
-        const value = codes.reduce((sum, code) => sum + (values.get(code)?.[1] ?? 0), 0)
-        const estimated = codes.reduce((sum, code) => {
-          const row = values.get(code)
-          return sum + (row ? row[1] * row[2] : 0)
-        }, 0)
-        return { name, value, estimated }
-      })
-      .sort((a, b) => b.value - a.value)
-      .map((item, position) => ({
-        rank: position + 1,
-        code: `sector:${item.name}`,
-        name: item.name,
-        value: item.value,
-        share: record.worldImports ? item.value / record.worldImports : null,
-        estimated: item.estimated > 0,
-        estimatedShare: item.value ? item.estimated / item.value : null,
-      }))
-  })()
 
   const indiaImporterRow = importers.find(row => row.code === '699') ?? null
   const indiaExporterRow = exporters.find(row => row.code === '699') ?? null
 
-  /* Key segments: two buckets, then categories, then HS-6 lines. Counted
-   * from the catalogue at run time, never typed in. */
-  const segments = useMemo(
-    () => {
-      if (sector) {
-        /* A sector's categories are its own FED tags, not the electronics
-         * category a shared line carries. */
-        const values = new Map((record?.products ?? []).map(row => [row[0], row]))
-        const pick = (codes: string[]) =>
-          codes.map(code => byCode.get(code)).filter((entry): entry is CatalogueEntry => Boolean(entry))
-        const groups = Object.entries(sector.groups.broadCategory ?? {}).map(([name, codes]) => ({ name, rows: pick(codes) }))
-        for (const [, codes] of Object.entries(sector.groups.scomet ?? {})) {
-          groups.push({ name: 'SCOMET-listed', rows: pick(codes) })
-        }
-        return [
-          {
-            id: 'categories',
-            key: 'categories',
-            title: 'Categories',
-            lines: products.length,
-            categories: groups
-              .map(group => ({
-                ...group,
-                key: `categories:${group.name}`,
-                world: group.rows.reduce((sum, row) => sum + (values.get(row.code)?.[1] ?? 0), 0),
-              }))
-              .sort((a, b) =>
-                a.name === 'SCOMET-listed' ? 1 : b.name === 'SCOMET-listed' ? -1 : b.world - a.world,
-              ),
-          },
-        ]
+  /* Key segments: heading lines, then groups, then HS-6 lines. Counted from
+   * the catalogue at run time, never typed in. A heading and every group
+   * under it can be stacked. */
+  const segments = useMemo((): Heading[] => {
+    const values = new Map((record?.products ?? []).map(row => [row[0], row]))
+    const worldOf = (rows: StackRow[]) => rows.reduce((sum, row) => sum + (values.get(row.code)?.[1] ?? 0), 0)
+
+    /* A code HS 2022 split is counted, before the split, in any group that
+     * holds all of its successors (process_snapshot.py). It has a figure
+     * only for those years, so it joins only when this year has one. */
+    const carried = (rows: StackRow[]): StackRow[] => {
+      const have = new Set(rows.map(row => row.code))
+      return Object.entries(scope?.successors ?? {})
+        .filter(([code, next]) => values.has(code) && next.length > 0 && next.every(item => have.has(item)))
+        .map(([code]) => ({ code, name: scope?.names?.[code] ?? `HS ${code} (before 2022)`, carried: true }))
+    }
+    const withCarried = (rows: StackRow[]) => [...rows, ...carried(rows)]
+    const asRows = (entries: CatalogueEntry[]): StackRow[] => entries.map(entry => ({ code: entry.code, name: nameOf(entry) }))
+
+    if (sector) {
+      /* A sector's headings are its FED broad categories; groups under a
+       * heading are its FED niche categories, shown when a heading has more
+       * than one. A line takes the sector's own tags, not the electronics
+       * category a shared line carries. */
+      const pick = (codes: string[]) =>
+        asRows(codes.map(code => byCode.get(code)).filter((entry): entry is CatalogueEntry => Boolean(entry)))
+      const niches = Object.entries(sector.groups.nicheCategory ?? {})
+
+      const headings: Heading[] = Object.entries(sector.groups.broadCategory ?? {}).map(([name, codes]) => {
+        const members = new Set(codes)
+        const parts = niches
+          .map(([niche, nicheCodes]) => ({ niche, codes: nicheCodes.filter(code => members.has(code)) }))
+          .filter(part => part.codes.length > 0)
+        const groups: HeadingGroup[] =
+          parts.length > 1
+            ? parts
+                .map(part => {
+                  const rows = withCarried(pick(part.codes))
+                  const label = part.niche === name ? `Other ${name.toLowerCase()}` : part.niche
+                  return { key: `g:${name}:${label}`, name: label, rows, world: worldOf(rows) }
+                })
+                .sort((a, b) =>
+                  a.name.startsWith('Other ') ? 1 : b.name.startsWith('Other ') ? -1 : b.world - a.world,
+                )
+            : []
+        const rows = withCarried(pick(codes))
+        return { key: `h:${name}`, title: name, tone: 'capital', rows, world: worldOf(rows), groups }
+      })
+
+      headings.sort((a, b) => b.world - a.world)
+
+      for (const [, codes] of Object.entries(sector.groups.scomet ?? {})) {
+        const rows = pick(codes)
+        headings.push({
+          key: 'h:SCOMET-listed',
+          title: 'SCOMET-listed',
+          tone: 'flag',
+          rows,
+          world: worldOf(rows),
+          groups: [],
+          note: 'Lines on India\'s export control list, drawn from the headings above.',
+        })
       }
 
-      return SEGMENTS.map(side => {
-        const members = products.filter(entry => segmentKey(entry.segment) === side.key)
-        const groups = new Map<string, CatalogueEntry[]>()
+      return headings
+    }
 
-        for (const entry of members) {
-          const key = entry.category || 'Unclassified'
+    return SEGMENTS.map(side => {
+      const members = products.filter(entry => segmentKey(entry.segment) === side.key)
+      const byCategory = new Map<string, CatalogueEntry[]>()
 
-          groups.set(key, [...(groups.get(key) ?? []), entry])
-        }
+      for (const entry of members) {
+        const key = entry.category || 'Unclassified'
+        byCategory.set(key, [...(byCategory.get(key) ?? []), entry])
+      }
 
-        const values = new Map((record?.products ?? []).map(row => [row[0], row]))
+      const rows = withCarried(asRows(members))
 
-        return {
-          ...side,
-          lines: members.length,
-          categories: [...groups.entries()]
-            .map(([name, rows]) => ({
-              name,
-              key: `${side.key}:${name}`,
-              rows,
-              world: rows.reduce((sum, row) => sum + (values.get(row.code)?.[1] ?? 0), 0),
-            }))
-            .sort((a, b) => b.rows.length - a.rows.length || b.world - a.world),
-        }
-      })
-    },
-    [products, record, sector, byCode],
-  )
+      return {
+        key: `h:${side.key}`,
+        title: side.title,
+        tone: side.key,
+        rows,
+        world: worldOf(rows),
+        groups: [...byCategory.entries()]
+          .map(([name, entries]) => {
+            const groupRows = withCarried(asRows(entries))
+            return { key: `g:${side.key}:${name}`, name, rows: groupRows, world: worldOf(groupRows), size: entries.length }
+          })
+          .sort((a, b) => b.size - a.size || b.world - a.world)
+          .map(({ size: _size, ...group }) => group),
+      }
+    })
+  }, [products, record, sector, byCode, scope])
 
   const [openCategory, setOpenCategory] = useState<string | null>(null)
 
   useEffect(() => setOpenCategory(null), [segment])
 
-  const shownCategory = segments
-    .flatMap(side => side.categories.map(category => ({ ...category, side })))
-    .find(category => category.key === openCategory)
+  /* A sector's "Top categories": its headings as one figure each, with the
+   * same lines (and carried codes) the headings below stack. */
+  const sectorCategoryRows: RankRow[] = (() => {
+    if (!sector || !record) return []
+    const values = new Map((record.products ?? []).map(row => [row[0], row]))
+    return segments
+      .filter(heading => heading.tone !== 'flag')
+      .map(heading => ({
+        heading,
+        estimated: heading.rows.reduce((sum, row) => {
+          const value = values.get(row.code)
+          return sum + (value ? value[1] * value[2] : 0)
+        }, 0),
+      }))
+      .sort((a, b) => b.heading.world - a.heading.world)
+      .map(({ heading, estimated }, position) => ({
+        rank: position + 1,
+        code: heading.key,
+        name: heading.title,
+        value: heading.world,
+        share: record.worldImports ? heading.world / record.worldImports : null,
+        estimated: estimated > 0,
+        estimatedShare: heading.world ? estimated / heading.world : null,
+      }))
+  })()
+
+  /* The open stack: a whole heading, or one group under it. */
+  const shownCategory = (() => {
+    for (const heading of segments) {
+      if (heading.key === openCategory) return { heading, name: heading.title, rows: heading.rows, whole: true }
+      const group = heading.groups.find(item => item.key === openCategory)
+      if (group) return { heading, name: group.name, rows: group.rows, whole: false }
+    }
+    return null
+  })()
+
+  /* Opening a stack from the tables above brings it into view; opening one
+   * from its own heading does not need to, it appears right below. */
+  const scrollToStack = useRef(false)
+
+  useEffect(() => {
+    if (!scrollToStack.current || !shownCategory) return
+    scrollToStack.current = false
+    window.requestAnimationFrame(() =>
+      document.querySelector('.rf-segments .rf-stack')?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+    )
+  }, [openCategory, shownCategory])
+
+  const stackLabel = (heading: Heading, whole: boolean) =>
+    sector
+      ? whole
+        ? sector.label
+        : `${sector.label} · ${heading.title}`
+      : whole
+        ? 'Electronics'
+        : heading.title
+
+  const stackHeading = (heading: Heading, name: string, rows: StackRow[], whole: boolean) => {
+    const lines = rows.filter(row => !row.carried)
+    onStack(
+      lines.map(row => ({ code: row.code, level: 6 as const })),
+      { name, segment: stackLabel(heading, whole), lines: lines.length },
+    )
+  }
 
   usePageHelp(
     () => ({
@@ -399,7 +491,7 @@ export function HomePage({
         { name: 'Search', what: 'by product word or HS code; "/" opens commands' },
         { name: 'Top importers and exporters', what: 'countries, across the whole scope' },
         { name: 'Top traded products', what: 'HS-6 lines, finished goods and components separately' },
-        { name: 'Key segments', what: 'each category as one combined figure and its lines' },
+        { name: 'Key segments', what: 'headings and the groups under them, each as one combined figure and its lines; any of them can go into HStack' },
       ],
     }),
     [record, year, currency],
@@ -615,11 +707,12 @@ export function HomePage({
               shareLabel={shareLabel}
               formatValue={value => usd(value)}
               colour={colours.components}
-              onRowOpen={row =>
-                row.code.startsWith('sector:')
-                  ? setOpenCategory(`categories:${row.code.slice('sector:'.length)}`)
-                  : onOpen(row.code, 6)
-              }
+              onRowOpen={row => {
+                if (row.code.startsWith('h:')) {
+                  scrollToStack.current = true
+                  setOpenCategory(row.code)
+                } else onOpen(row.code, 6)
+              }}
               onViewAll={isSector ? undefined : () => onViewAll('components', year)}
               dark={dark}
             />
@@ -627,58 +720,101 @@ export function HomePage({
         </>
       )}
 
-      <section className="rf-panel rf-segments" aria-labelledby="key-segments">
+      <section
+        className={sector ? 'rf-panel rf-segments rf-segments-sector' : 'rf-panel rf-segments'}
+        aria-labelledby="key-segments"
+      >
         <h2 id="key-segments" className="rf-h2">{sector ? `${sector.label}: categories` : 'Key segments'}</h2>
+        <p className="rf-scope-note">
+          Open any heading or group to see its lines as one combined figure, or take it into HStack.
+        </p>
 
-        {segments.map(side => (
-          <div key={side.key} className="rf-segment" data-segment={side.key}>
-            <h3 className="rf-segment-title">
-              <i className="rf-seg-swatch" aria-hidden="true" />
-              {side.title} <span>({side.lines})</span>
-            </h3>
+        {segments.map(heading => {
+          const open = openCategory === heading.key
+          const lines = heading.rows.filter(row => !row.carried).length
 
-            <div className="rf-cat-grid">
-              {side.categories.map(category => (
-                <button
-                  key={category.key}
-                  type="button"
-                  className={openCategory === category.key ? 'rf-cat active' : 'rf-cat'}
-                  aria-expanded={openCategory === category.key}
-                  onClick={() =>
-                    setOpenCategory(current => (current === category.key ? null : category.key))
-                  }
-                >
-                  <strong>{category.name}</strong>
-                  <span>
-                    {category.rows.length} lines
-                    {record ? ` · ${usd(category.world, 1)}` : ''}
+          return (
+            <div
+              key={heading.key}
+              className={heading.groups.length ? 'rf-segment' : 'rf-segment rf-segment-flat'}
+              data-segment={heading.tone}
+            >
+              <div className="rf-segment-head">
+                <h3 className="rf-segment-title">
+                  <button
+                    type="button"
+                    className={open ? 'rf-segment-open active' : 'rf-segment-open'}
+                    aria-expanded={open}
+                    onClick={() => setOpenCategory(current => (current === heading.key ? null : heading.key))}
+                  >
+                    <i className="rf-seg-swatch" aria-hidden="true" />
+                    <span className="rf-segment-name">
+                      {heading.title} <span>({lines})</span>
+                    </span>
+                    {record && <span className="rf-segment-figure">{usd(heading.world, 1)}</span>}
+                    <ChevronDown size={18} aria-hidden className="rf-segment-chevron" />
+                  </button>
+                </h3>
+
+                {/* On a phone the figure moves out of the heading, onto the
+                  * HStack button's line, so a long name can wrap freely. */}
+                {record && (
+                  <span className="rf-segment-figure rf-segment-figure-out" aria-hidden="true">
+                    {usd(heading.world, 1)}
                   </span>
+                )}
+
+                <button
+                  type="button"
+                  className="rf-button quiet rf-segment-stack"
+                  aria-label={`Open ${heading.title} in HStack`}
+                  onClick={() => stackHeading(heading, heading.title, heading.rows, true)}
+                >
+                  <Layers size={16} aria-hidden /> HStack
                 </button>
-              ))}
+              </div>
+
+              {heading.note && <p className="rf-beyond-note">{heading.note}</p>}
+
+              {heading.groups.length > 0 && (
+                <div className="rf-cat-grid">
+                  {heading.groups.map(group => (
+                    <button
+                      key={group.key}
+                      type="button"
+                      className={openCategory === group.key ? 'rf-cat active' : 'rf-cat'}
+                      aria-expanded={openCategory === group.key}
+                      onClick={() => setOpenCategory(current => (current === group.key ? null : group.key))}
+                    >
+                      <strong>{group.name}</strong>
+                      <span>
+                        {group.rows.filter(row => !row.carried).length} lines
+                        {record ? ` · ${usd(group.world, 1)}` : ''}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {shownCategory && shownCategory.heading.key === heading.key && (
+                <CategoryStack
+                  title={shownCategory.name}
+                  segment={stackLabel(heading, shownCategory.whole)}
+                  rows={shownCategory.rows}
+                  values={categoryValues}
+                  year={year}
+                  india={india}
+                  onOpen={code => onOpen(code, 6)}
+                  onClose={() => setOpenCategory(null)}
+                  onStack={() =>
+                    stackHeading(heading, shownCategory.name, shownCategory.rows, shownCategory.whole)
+                  }
+                />
+              )}
             </div>
-
-            {shownCategory && shownCategory.side.key === side.key && (
-              <CategoryStack
-                title={shownCategory.name}
-                segment={side.title}
-                rows={shownCategory.rows}
-                values={categoryValues}
-                year={year}
-                india={india}
-                onOpen={code => onOpen(code, 6)}
-                onClose={() => setOpenCategory(null)}
-                onStack={() =>
-                  onStack(
-                    shownCategory.rows.map(row => ({ code: row.code, level: 6 as const })),
-                    { name: shownCategory.name, segment: side.title, lines: shownCategory.rows.length },
-                  )
-                }
-              />
-            )}
-          </div>
-        ))}
+          )
+        })}
       </section>
-
 
       {!isSector && beyond.length > 0 && (
         <section className="rf-panel rf-segments rf-beyond" aria-labelledby="beyond-electronics">
@@ -773,7 +909,7 @@ export function CategoryStack({
 }: {
   title: string
   segment: string
-  rows: CatalogueEntry[]
+  rows: StackRow[]
   values: Map<string, [string, number, number, number | null, number | null]>
   year: number | null
   india: (value: number | null | undefined) => string
@@ -787,7 +923,8 @@ export function CategoryStack({
 
       return {
         code: row.code,
-        name: nameOf(row),
+        name: row.name,
+        carried: Boolean(row.carried),
         world: value?.[1] ?? null,
         estimated: (value?.[2] ?? 0) > 0,
         estimatedShare: value?.[2] ?? null,
@@ -830,7 +967,7 @@ export function CategoryStack({
           <b>India imports</b> {india(imports)}
         </span>
         <span>
-          <b>Lines</b> {lines.length}
+          <b>Lines</b> {lines.filter(line => !line.carried).length}
         </span>
       </div>
 
@@ -851,9 +988,13 @@ export function CategoryStack({
               <tr key={line.code}>
                 <td className="rf-code">{line.code}</td>
                 <td className="rf-name">
-                  <button type="button" className="rf-link" onClick={() => onOpen(line.code)}>
-                    {line.name}
-                  </button>
+                  {line.carried ? (
+                    <span className="rf-carried">{line.name}</span>
+                  ) : (
+                    <button type="button" className="rf-link" onClick={() => onOpen(line.code)}>
+                      {line.name}
+                    </button>
+                  )}
                 </td>
                 <td className="num money">
                   {usd(line.world)}

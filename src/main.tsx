@@ -10,6 +10,8 @@ import './aman.css'
 
 /* Before the first paint, so the secret look never flashes the FED one. */
 applyLook(readLook())
+/* The secret look opens dark (App.tsx); set it now so it never flashes light. */
+if (readLook() === 'aman') document.documentElement.dataset.theme = 'dark'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

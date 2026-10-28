@@ -76,7 +76,8 @@ console.log('\n=== availability page ===')
   ok('with data it renders', /Data availability/.test(t))
   ok('refresh status shown', /Comtrade has new data since|Nothing new since/.test(t))
   /* The join is rebuilt every month, so no particular economy is expected. */
-  ok('gaps joined to our products', /\d+ of 418 products/.test(t))
+  /* Any count: the universe grows with each batch (825 products once capital goods joined). */
+  ok('gaps joined to our products', /\d+ of \d+ products/.test(t))
   ok('says when Comtrade was checked and when we last pulled', /Checked with Comtrade/.test(t) && /Our data pulled/.test(t) && /Next check/.test(t))
   ok('dates read as 8 Oct 2026', /\b\d{1,2} [A-Z][a-z]{2} \d{4}\b/.test(t) && !/\b20\d\d-\d\d-\d\d\b/.test(t))
   ok('"has since filed" marked', await page.locator('.avail-filed').count() > 0)

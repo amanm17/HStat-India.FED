@@ -100,6 +100,59 @@ export function loadHsNode(
   return request
 }
 
+/*
+ * Runs `task` over `items` with at most `limit` in flight, keeping order.
+ * A stack of 200 lines is 200 node files and 200 detail files; asking for
+ * all of them at once stalls a phone, and a few at a time finishes sooner.
+ */
+export async function mapLimit<T, R>(
+  items: T[],
+  limit: number,
+  task: (item: T, index: number) => Promise<R>,
+  onProgress?: (done: number, total: number) => void,
+): Promise<R[]> {
+  const out = new Array<R>(items.length)
+  let next = 0
+  let done = 0
+
+  const worker = async () => {
+    while (next < items.length) {
+      const index = next++
+      out[index] = await task(items[index], index)
+      done += 1
+      onProgress?.(done, items.length)
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker))
+
+  return out
+}
+
+/*
+ * A stack's nodes, eight at a time. A code whose file cannot be read is left
+ * out rather than failing the whole stack; the panel compares what loaded
+ * with what was asked for, so a short stack still says so.
+ */
+export async function loadHsNodesInBatches(
+  snapshot: string,
+  entries: { code: string; level: 2 | 4 | 6 }[],
+  onProgress?: (done: number, total: number) => void,
+): Promise<HsNode[]> {
+  const loaded = await mapLimit(
+    entries,
+    8,
+    entry =>
+      loadHsNode(snapshot, entry.code, entry.level).catch(error => {
+        console.warn(`HStack: ${entry.code} not loaded`, error)
+        return null
+      }),
+    onProgress,
+  )
+
+  return loaded.filter((node): node is HsNode => node !== null)
+}
+
 export function loadHsNodes(
   snapshot: string,
   entries: { code: string; level: 2 | 4 | 6 }[],

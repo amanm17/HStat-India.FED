@@ -2750,6 +2750,7 @@
   color: inherit;
   font: inherit;
   text-align: left;
+  white-space: normal;
   cursor: pointer;
 }
 
@@ -3218,4 +3219,204 @@
   background: var(--navy);
   border-color: var(--navy);
   color: var(--panel);
+}
+
+/* ------------------------------------------- heading lines (28 Oct 2026)
+ * Every front-page heading is a line you can open (its lines as one
+ * figure, right below) or take into HStack. Electronics has two headings
+ * with categories under them; a sector has one heading per FED broad
+ * category, with sub-categories where the FED list has them. */
+.rf-segment-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 12px;
+}
+
+.rf-segment-head .rf-segment-title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+
+.rf-segment-open {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  /* The height of every control, so the heading and its HStack button
+   * share one line (the overlap audit's control-row check). */
+  min-height: var(--ctl-h, 44px);
+  padding: 0 12px 0 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rf-segment-open:hover,
+.rf-segment-open.active {
+  border-color: var(--border);
+  background: var(--panel-soft);
+}
+
+.rf-segment-title .rf-segment-name {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  color: var(--navy);
+  font-weight: 700;
+}
+
+.rf-segment-title .rf-segment-name span {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.rf-segment-title .rf-segment-figure {
+  margin-left: auto;
+  color: var(--navy);
+  font-size: 17px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.rf-segment-figure-out {
+  display: none;
+}
+
+.rf-segment-chevron {
+  flex: none;
+  color: var(--muted);
+  transition: transform 0.15s ease;
+}
+
+.rf-segment-open.active .rf-segment-chevron {
+  transform: rotate(180deg);
+}
+
+.rf-segment-stack {
+  flex: none;
+}
+
+/* Headings with no groups under them read as one list. */
+.rf-segment-flat + .rf-segment-flat {
+  margin-top: 0;
+}
+
+.rf-segment-flat .rf-segment-head {
+  margin: 0;
+  padding: 6px 0;
+  border-top: 1px solid var(--border);
+}
+
+.rf-segment-flat:last-child .rf-segment-head {
+  border-bottom: 1px solid var(--border);
+}
+
+.rf-segment:not(.rf-segment-flat) + .rf-segment-flat {
+  margin-top: 18px;
+}
+
+.rf-segment-flat .rf-stack {
+  margin: 4px 0 16px;
+}
+
+/* A sector's headings take Indigo, the brand neutral: Light Sky Blue and
+ * Yellow Orange mean electronics Finished goods and Components. */
+[data-segment="capital"] .rf-seg-swatch {
+  background: var(--series-global);
+}
+
+[data-segment="capital"] .rf-cat {
+  border-left-color: var(--series-global);
+}
+
+[data-segment="flag"] .rf-seg-swatch {
+  background: #c2c1c2;
+}
+
+.rf-carried {
+  color: var(--muted);
+}
+
+/* Progress for a big stack (lib/data.ts, loadHsNodesInBatches). */
+.hstack-progress {
+  display: block;
+  width: min(320px, 80%);
+  height: 4px;
+  margin: 12px auto 0;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--border);
+}
+
+.hstack-progress i {
+  display: block;
+  height: 100%;
+  background: var(--series-global);
+  transition: width 0.2s ease;
+}
+
+@media (max-width: 640px) {
+  .rf-segment-head {
+    gap: 6px;
+  }
+
+  /* The heading takes its own line and wraps; the figure and the HStack
+   * button share the line under it. */
+  .rf-segment-head {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+
+  .rf-segment-head .rf-segment-title {
+    flex: 1 0 100%;
+  }
+
+  .rf-segment-open {
+    padding: 6px;
+  }
+
+  .rf-segment-title .rf-segment-figure {
+    display: none;
+  }
+
+  .rf-segment-head .rf-segment-figure-out {
+    display: block;
+    flex: 1;
+    margin-left: 30px;
+    color: var(--navy);
+    font-size: 15px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .rf-segment-head .rf-segment-title {
+    font-size: 17px;
+  }
+
+  .rf-segment-figure {
+    font-size: 15px;
+  }
+
+  .rf-segment-chevron {
+    display: none;
+  }
+}
+
+/* Opened from the tables above, a stack scrolls into view clear of the
+ * sticky header (72px, 60px on a phone). */
+.rf-segments .rf-stack {
+  scroll-margin-top: 92px;
+}
+
+@media (max-width: 899px) {
+  .rf-segments .rf-stack {
+    scroll-margin-top: 76px;
+  }
 }

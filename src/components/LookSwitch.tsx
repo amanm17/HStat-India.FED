@@ -88,7 +88,7 @@ function field(canvas: HTMLCanvasElement | null, tone: string) {
   canvas.style.height = `${h}px`
   ctx.scale(dpr, dpr)
 
-  const colours = tone === 'aman' ? ['#7dd3fc', '#a78bfa', '#5eead4', '#ffffff'] : ['#7DE2D1', '#FEB95F', '#ffffff', '#C2C1C2']
+  const colours = tone === 'aman' ? ['#c5cbd3', '#ff3b4e', '#4d84ff', '#ffffff'] : ['#7DE2D1', '#FEB95F', '#ffffff', '#C2C1C2']
   const count = w < 600 ? 70 : 140
   const cx = w / 2
   const cy = h / 2

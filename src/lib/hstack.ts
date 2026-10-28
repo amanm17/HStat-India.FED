@@ -32,12 +32,14 @@ function grossTrade(
 }
 
 /*
- * How many codes a stack holds. 100 rather than the original 40 so that a
- * whole key-segment category fits (the largest, Finished goods - Consumer
- * Durables, has 90 lines); a stack cut short at 40 would total less than
- * the category it was named after.
+ * How many codes a stack holds. Large enough that a whole front-page heading
+ * fits: electronics Finished goods (208 lines) and Components & inputs
+ * (210), and every capital goods heading (the largest, Process Plant
+ * Machinery, has 163). A stack cut short would total less than the heading
+ * it was named after. Big stacks load in batches (lib/data.ts,
+ * loadHsNodesInBatches) so the panel can say how far it has got.
  */
-export const STACK_LIMIT = 100
+export const STACK_LIMIT = 500
 
 /* What a stack was built as, when it was built as one thing: a key-segment
  * category from the front page. Cleared as soon as the reader changes it. */

@@ -58,34 +58,34 @@ const DARK: Palette = {
 }
 
 /*
- * The secret look (lib/look) keeps the original dashboard's blue and green
- * (brightened) for the two India series and a violet for Global trade, so the three
- * still read apart. Same rule: one meaning per hue on every page.
+ * The secret look (lib/look): titanium for Global trade, racing red for
+ * India's imports and racing blue for its exports. Same rule: one meaning
+ * per hue on every page.
  */
 const AMAN_LIGHT: Palette = {
-  global: '#6656D8',
-  imports: '#2F6FB5',
-  exports: '#23936C',
-  primary: '#6656D8',
-  grid: '#E4E4E7',
-  axis: '#52525B',
+  global: '#3D4652',
+  imports: '#C8102E',
+  exports: '#1F4FD1',
+  primary: '#3D4652',
+  grid: '#E1E4E8',
+  axis: '#485059',
   surface: '#FFFFFF',
-  text: '#18181B',
-  finished: '#38BDF8',
-  components: '#F59E0B',
+  text: '#111418',
+  finished: '#2AA3B8',
+  components: '#D98A1C',
 }
 
 const AMAN_DARK: Palette = {
-  global: '#A99CF0',
-  imports: '#7BAEE3',
-  exports: '#5CC2A0',
-  primary: '#A99CF0',
-  grid: '#2A2A31',
-  axis: '#A7A7B0',
-  surface: '#1A1A1E',
-  text: '#DCDCE0',
-  finished: '#38BDF8',
-  components: '#FBBF24',
+  global: '#C5CBD3',
+  imports: '#FF5A67',
+  exports: '#5B8EFF',
+  primary: '#C5CBD3',
+  grid: '#23282F',
+  axis: '#A1AAB4',
+  surface: '#13161A',
+  text: '#E6E9ED',
+  finished: '#3FBFD3',
+  components: '#E9A23D',
 }
 
 export function palette(dark: boolean): Palette {

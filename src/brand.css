@@ -64,6 +64,9 @@
   --accent: #133E68;
   --accent-ink: #FFFFFF;
 
+  /* The header bar: a pale wash of Indigo Dye (about 7%). */
+  --topbar-bg: #EEF2F7;
+
   --shadow: none;
   --radius: 2px;
 }
@@ -102,6 +105,9 @@
 
   --accent: #93b2d8;
   --accent-ink: #151c25;
+
+  /* Deep Indigo: Indigo Dye over the dark ground. */
+  --topbar-bg: #172a40;
 }
 
 /* The depth accent: page chrome only. */
@@ -139,7 +145,7 @@ a {
 .topbar {
   height: 72px;
   border-bottom: 4px solid var(--accent);
-  background: var(--panel);
+  background: var(--topbar-bg);
   grid-template-columns: auto minmax(0, 640px) auto;
 }
 

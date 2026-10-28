@@ -52,8 +52,11 @@ for (const theme of ['light', 'dark']) {
       await page.goto(BASE + path, { waitUntil: 'networkidle' })
       await page.evaluate(() => { try { localStorage.removeItem('hstat-basket'); localStorage.removeItem('hstat-stack-title') } catch {} })
       await page.waitForTimeout(700)
-      if (theme === 'dark') {
-        await page.locator('[aria-label="Switch to dark theme"]').first().click().catch(() => {})
+      /* Either look may open in either theme (the secret look opens dark), so
+       * ask for the one this pass audits rather than assuming light. */
+      const themeSwitch = page.locator(`[aria-label="Switch to ${theme} theme"]`).first()
+      if (await themeSwitch.count()) {
+        await themeSwitch.click().catch(() => {})
         await page.waitForTimeout(400)
       }
       if (state) await STATES[state](page)

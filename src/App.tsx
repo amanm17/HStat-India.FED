@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { LayoutGrid, Moon, Sigma, Sun } from 'lucide-react'
 
 import type {
@@ -13,6 +13,7 @@ import type {
 import {
   loadCatalogue,
   loadHsNodes,
+  loadHsNodesInBatches,
   loadHsNode,
   loadFxRates,
   loadManifest,
@@ -79,7 +80,7 @@ import {
 } from './lib/workspace'
 
 import { saveReport as saveReportFile } from './lib/report'
-import { useLook } from './lib/look'
+import { readLook, useLook } from './lib/look'
 import { LookSwitch } from './components/LookSwitch'
 import { useDecimals } from './components/ui'
 import { MarkTip } from './components/MarkTip'
@@ -211,7 +212,10 @@ function App() {
   const [error, setError] = useState<string | null>(null)
 
   const [recent, setRecent] = useState<string[]>([])
-  const [dark, setDark] = useState(false)
+  /* The FED look opens light. The secret look always opens dark, and
+   * switching looks resets the theme to that look's default; the moon
+   * button still changes it for the visit. */
+  const [dark, setDark] = useState(() => readLook() === 'aman')
 
   /* The Decimals setting lives in lib/format and is read while rendering.
    * Subscribing here re-renders the whole page when it changes, so every
@@ -269,6 +273,13 @@ function App() {
   /* The secret look (lib/look): presentation only. Read here so the whole
    * tree, charts included, re-renders when it changes. */
   const look = useLook()
+  const lookSeen = useRef(look)
+
+  useEffect(() => {
+    if (lookSeen.current === look) return
+    lookSeen.current = look
+    setDark(look === 'aman')
+  }, [look])
 
   const [basket, setBasket] = useState<BasketEntry[]>([])
 
@@ -294,6 +305,8 @@ function App() {
   }, [])
   const [basketNodes, setBasketNodes] = useState<HsNode[]>([])
   const [basketLoading, setBasketLoading] = useState(false)
+  /* How far a big stack has loaded: lines read of lines asked for. */
+  const [basketProgress, setBasketProgress] = useState<{ done: number; total: number } | null>(null)
   const [stackOpen, setStackOpen] = useState(false)
 
   const index = useMemo(() => buildIndex(library), [library])
@@ -447,13 +460,23 @@ function App() {
 
     /* Eight-digit lines are DGCIS, not Comtrade: there is no snapshot node to
      * load for them, and the stack totals them separately. */
-    loadHsNodes(snapshot, comtradeEntries(basket))
+    const wanted = comtradeEntries(basket)
+
+    setBasketProgress({ done: 0, total: wanted.length })
+
+    loadHsNodesInBatches(snapshot, wanted, (done, total) => {
+      /* Every tenth line, not every line: each update re-renders the panel. */
+      if (!cancelled && (done % 10 === 0 || done === total)) setBasketProgress({ done, total })
+    })
       .then(loaded => {
         if (!cancelled) setBasketNodes(loaded)
       })
       .catch(console.error)
       .finally(() => {
-        if (!cancelled) setBasketLoading(false)
+        if (!cancelled) {
+          setBasketLoading(false)
+          setBasketProgress(null)
+        }
       })
 
     return () => {
@@ -1566,6 +1589,7 @@ function App() {
           entries={basket}
           nodes={basketNodes}
           loading={basketLoading}
+          progress={basketProgress}
           dark={dark}
           onAdd={(code, level) => addToBasket({ code, level })}
           onRemove={removeFromBasket}
