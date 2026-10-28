@@ -40,6 +40,7 @@ from common import (
 from coverage import assess_coverage
 from definition import (
     categories,
+    load_lineage as definition_lineage,
     hs6_universe,
     lineage_for,
     load_products,
@@ -2099,6 +2100,18 @@ def build_node(
     }
 
 
+def predecessor_title(code: str) -> str:
+    """A name for an HS 2017 code that has no page: its official wording."""
+    try:
+        import hs_rules
+
+        entry = (hs_rules.h5() or {}).get(code) or {}
+        text = entry.get("text") or entry.get("description") or ""
+    except Exception:  # noqa: BLE001 - a missing reference only costs the name
+        text = ""
+    return f"HS {code} (before 2022){': ' + text if text else ''}"
+
+
 def node_meta(code: str, level: int, products: dict) -> dict:
     if level == 6:
         product = products.get(code)
@@ -2541,6 +2554,55 @@ def main():
             }
         )
 
+    # Codes HS 2022 split up (851712 into smartphones and other handsets,
+    # 846210 into two forging machines ...). Before the split the trade was
+    # filed under the old code only, so a total summed from the new codes
+    # alone is missing it for every year up to the split. Each predecessor
+    # is counted once, for its own years, in every total that holds all of
+    # its successors; never in one that holds only some of them, which would
+    # add trade the total does not cover. Its figures are never on a page:
+    # the successor pages show them marked **, for reference only.
+    published_hs6 = {code for code, level in plan if level == 6}
+    predecessors: dict[str, dict] = {}
+    for item in definition_lineage():
+        if item.predecessor and item.relation == "split" and len(item.code) == 6:
+            entry = predecessors.setdefault(item.predecessor, {"successors": set(), "validTo": item.predecessor_valid_to})
+            entry["successors"].add(item.code)
+    predecessor_names: dict[str, str] = {}
+    predecessor_successors: dict[str, list[str]] = {}
+    for old_code, entry in sorted(predecessors.items()):
+        successors = entry["successors"]
+        if old_code in published_hs6 or not successors <= published_hs6:
+            continue
+        last = int(entry["validTo"] or 2021)
+        span = [year for year in years if int(year) <= last]
+        if old_code in starts:
+            span = [year for year in span if int(year) >= starts[old_code]]
+        if not span:
+            continue
+        old_node = build_node(
+            old_code, 6, node_meta(old_code, 6, products), global_index, india_index,
+            monthly_global, monthly_india, scope, span, [], hs8, None, official_children,
+        )
+        old_lists = {period: record.pop("_lists", None) for period, record in old_node["annual"].items()}
+        predecessor_names[old_code] = predecessor_title(old_code)
+        predecessor_successors[old_code] = sorted(successors)
+        streams_here = {
+            (products.get(code).stream if products.get(code) else "other") or "other"
+            for code in successors
+        }
+        if len(streams_here) == 1:
+            stream_summaries.setdefault(streams_here.pop(), ScopeSummary()).add(old_code, old_lists)
+        for sector_id, members in sector_members.items():
+            if successors <= members:
+                first = sector_starts.get(sector_id)
+                sector_summaries.setdefault(sector_id, ScopeSummary()).add(
+                    old_code,
+                    {period: item for period, item in old_lists.items() if not first or int(period) >= first},
+                )
+    if predecessor_names:
+        print(f"Predecessors counted in totals before HS 2022: {', '.join(sorted(predecessor_names))}")
+
     write_json(out / "catalogue.json", catalogue, compact=True)
 
     # The front page's numbers. Written beside the catalogue, never into it:
@@ -2559,6 +2621,10 @@ def main():
                 stream_lines.get("electronics", 0)
             ),
             "stream": "electronics",
+            # Codes in the yearly lists that have no page of their own: the
+            # HS 2017 codes counted for the years before they were split.
+            "names": predecessor_names,
+            "successors": predecessor_successors,
         },
         compact=True,
     )
@@ -2568,7 +2634,7 @@ def main():
             continue
         write_json(
             out / f"scope-{stream}.json",
-            {**summary.as_dict(stream_lines.get(stream, 0)), "stream": stream},
+            {**summary.as_dict(stream_lines.get(stream, 0)), "stream": stream, "names": predecessor_names, "successors": predecessor_successors},
             compact=True,
         )
 
@@ -2581,7 +2647,7 @@ def main():
         summary = sector_summaries.get(sector.id, ScopeSummary())
         write_json(
             out / f"sector-{sector.id}.json",
-            {**summary.as_dict(lines), "sector": sector.id},
+            {**summary.as_dict(lines), "sector": sector.id, "names": predecessor_names, "successors": predecessor_successors},
             compact=True,
         )
         tags: dict[str, dict[str, list[str]]] = {}

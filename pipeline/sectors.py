@@ -300,6 +300,8 @@ def build_seed(sector_id: str, world: Path | None, india: Path | None,
             missing = set(df[column]) - set(names) - {"World"}
             report["unmapped"].update(missing)
         df = df[df["Reporter"].isin(names) & (df["Partner"].isin(names) | (df["Partner"] == "World"))]
+        # Regional groups (EU 97, ASEAN 975) repeat their members' rows.
+        df = df[~df["Reporter"].map(names).isin({"97", "975"}) & ~df["Partner"].map(names).isin({"97", "975"})]
         result = pd.DataFrame({
             "period": df["Year"].astype(int).astype(str),
             "refYear": df["Year"].astype(int),

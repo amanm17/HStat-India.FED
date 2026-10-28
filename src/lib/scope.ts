@@ -45,6 +45,11 @@ export type ScopeSummary = {
   currency: 'USD'
   linesInScope: number
   reporters: Record<string, string>
+  /* Codes in the yearly lists without a page of their own: HS 2017 codes
+   * counted for the years before HS 2022 split them. */
+  names?: Record<string, string>
+  /* For each of those, the HS 2022 codes it was split into. */
+  successors?: Record<string, string[]>
   years: Record<string, ScopeYear>
 }
 

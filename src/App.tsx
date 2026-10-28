@@ -126,6 +126,10 @@ function yearParam(): number | null {
   return Number.isInteger(value) && value > 1900 ? value : null
 }
 
+function segmentParam(): string | undefined {
+  return new URLSearchParams(window.location.search).get('segment') || undefined
+}
+
 function levelOf(code: string): 2 | 4 | 6 {
   return code.length === 2 ? 2 : code.length === 4 ? 4 : 6
 }
@@ -141,7 +145,7 @@ function routeFromPath(path: string): Route {
   if (top) {
     return {
       kind: 'viewall',
-      target: { scope: 'home', kind: top[1] as HomeRankKind, year: yearParam() },
+      target: { scope: 'home', kind: top[1] as HomeRankKind, year: yearParam(), segment: segmentParam() },
     }
   }
 
@@ -172,7 +176,10 @@ function pathFor(route: Route): string {
 
   if (route.kind === 'viewall') {
     const target = route.target
-    const query = target.year ? `?year=${target.year}` : ''
+    const params = new URLSearchParams()
+    if (target.year) params.set('year', String(target.year))
+    if (target.scope === 'home' && target.segment) params.set('segment', target.segment)
+    const query = params.toString() ? `?${params.toString()}` : ''
 
     return target.scope === 'home'
       ? `/top/${target.kind}${query}`
@@ -1351,7 +1358,7 @@ function App() {
             onOpenReport={report => {
               if (report.code) openRef(report.code, (report.level ?? 6) as 2 | 4 | 6 | 8)
             }}
-            onViewAll={(kind, forYear) => openViewAll({ scope: 'home', kind, year: forYear })}
+            onViewAll={(kind, forYear, segment) => openViewAll({ scope: 'home', kind, year: forYear, segment })}
             onStack={addManyToBasket}
             currency={currency}
             onCurrency={setCurrency}

@@ -14,6 +14,7 @@ import { ArrowLeft, Download } from 'lucide-react'
 
 import type { CatalogueEntry, CurrencyBlock, CurrencyMode, HsNode } from '../types'
 import { loadHsNode } from '../lib/data'
+import { loadSectorScope, loadSectors, type SectorInfo } from '../lib/sectors'
 import {
   latestScopeYear,
   loadDetail,
@@ -29,7 +30,13 @@ import { downloadCsv, downloadXlsx } from '../lib/export'
 import { segmentKey } from './HomePage'
 
 export type ViewAllTarget =
-  | { scope: 'home'; kind: 'importers' | 'exporters' | 'finished' | 'components'; year: number | null }
+  | {
+      scope: 'home'
+      kind: 'importers' | 'exporters' | 'finished' | 'components'
+      year: number | null
+      /* A sector id (lib/sectors.ts); absent for electronics. */
+      segment?: string
+    }
   | { scope: 'product'; code: string; kind: RankKind; year: number | null }
 
 export const VIEW_ALL_SLUGS: Record<RankKind, string> = {
@@ -71,6 +78,7 @@ export function ViewAll({
   const [note, setNote] = useState<string | null>(null)
   const [year, setYear] = useState<number | null>(target.year)
   const [filter, setFilter] = useState('')
+  const [sectorInfo, setSectorInfo] = useState<SectorInfo | null>(null)
 
   const byCode = useMemo(() => new Map(catalogue.map(entry => [entry.code, entry])), [catalogue])
 
@@ -79,13 +87,23 @@ export function ViewAll({
 
     ;(async () => {
       if (target.scope === 'home') {
-        const summary = await loadScope(snapshot)
+        const sector = target.segment ? (await loadSectors(snapshot)).find(item => item.id === target.segment) ?? null : null
+        const summary = sector ? await loadSectorScope(snapshot, sector.id) : await loadScope(snapshot)
+
+        if (!live) return
+
+        setSectorInfo(sector)
 
         if (!live) return
 
         setScope(summary)
 
-        const chosen = target.year ?? latestScopeYear(summary)
+        const own = summary
+          ? Object.entries(summary.years)
+              .filter(([period, value]) => value.lines > 0 && Number(period) >= (sector?.historyStart ?? 0))
+              .map(([period]) => Number(period))
+          : []
+        const chosen = target.year ?? (own.length ? Math.max(...own) : latestScopeYear(summary))
 
         setYear(chosen)
 
@@ -113,11 +131,18 @@ export function ViewAll({
         } else {
           setRows(
             record.products
-              .filter(([code]) => segmentKey(byCode.get(code)?.segment) === target.kind)
+              /* A sector lists every line; electronics splits finished goods
+               * from components, a pre-2022 code by its successors' segment. */
+              .filter(([code]) =>
+                sector
+                  ? true
+                  : segmentKey(byCode.get(code)?.segment ?? byCode.get(summary?.successors?.[code]?.[0] ?? '')?.segment) ===
+                    target.kind,
+              )
               .map(([code, value, estimatedShare], position) => ({
                 rank: position + 1,
                 code,
-                name: nameOf(byCode.get(code)),
+                name: byCode.get(code) ? nameOf(byCode.get(code)) : summary?.names?.[code] ?? code,
                 value,
                 share: record.worldImports ? value / record.worldImports : null,
                 estimated: estimatedShare > 0,
@@ -180,13 +205,15 @@ export function ViewAll({
   const subject =
     target.scope === 'product'
       ? `${node ? nameOf(node) : ''} · HS-${node?.level ?? ''} ${target.code}`
-      : 'Electronics scope'
+      : sectorInfo
+        ? `${sectorInfo.label} scope`
+        : 'Electronics scope'
 
-  const title = TITLES[target.kind]
+  const title = sectorInfo && target.kind === 'finished' ? 'Top products' : TITLES[target.kind]
 
   const shareLabel =
     target.scope === 'home'
-      ? 'Share of electronics'
+      ? `Share of ${sectorInfo ? sectorInfo.label.toLowerCase() : 'electronics'}`
       : target.kind === 'indiaSuppliers'
         ? "Share of India's imports"
         : target.kind === 'indiaDestinations'
@@ -219,7 +246,7 @@ export function ViewAll({
 
       <PageHeader
         title={title}
-        sub={`${target.scope === 'product' ? subject : 'Electronics'}${year !== null ? `, ${year}` : ''}. Every ${product ? 'product' : 'economy'}, largest first.`}
+        sub={`${target.scope === 'product' ? subject : sectorInfo ? sectorInfo.label : 'Electronics'}${year !== null ? `, ${year}` : ''}. Every ${product ? 'product' : 'economy'}, largest first.`}
         aside={
           <>
             <input

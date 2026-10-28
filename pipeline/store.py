@@ -34,6 +34,13 @@ EXPECTED_COLUMNS = [
 
 WORLD_CODES = {WORLD_PARTNER, "0.0", "0"}
 
+# Regional groups Comtrade can return beside their own members: the European
+# Union (97) and ASEAN (975). A row for one is a sum of rows already counted,
+# so neither is ever read as a reporter or as a partner. (Other Asia, nes,
+# code 490, is flagged a group in Comtrade's list but is one economy,
+# Taiwan, and is counted.)
+AGGREGATE_CODES = {"97", "975"}
+
 
 def store_root(root: Path | None = None) -> Path:
     return Path(root) if root else RAW_STORE
@@ -189,6 +196,9 @@ class ReporterIndex:
 
             reporter = _text(reporter)
 
+            if reporter in AGGREGATE_CODES:
+                continue
+
             # First row wins: a duplicate here would double count.
             if reporter not in bucket:
                 bucket[reporter] = (
@@ -265,6 +275,9 @@ class PartnerIndex:
 
             if partner in WORLD_CODES:
                 self.world.setdefault(key, float(value))
+                continue
+
+            if partner in AGGREGATE_CODES:
                 continue
 
             self.groups.setdefault(key, []).append(

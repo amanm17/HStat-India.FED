@@ -42,7 +42,8 @@ type Props = {
   onLines?: () => void
   reports?: SavedReport[]
   onOpenReport?: (report: SavedReport) => void
-  onViewAll: (kind: HomeRankKind, year: number) => void
+  /* segment: a sector id (lib/sectors.ts); absent for electronics. */
+  onViewAll: (kind: HomeRankKind, year: number, segment?: string) => void
   onStack: (
     entries: { code: string; level: 2 | 4 | 6 | 8 }[],
     title?: { name: string; segment: string; lines: number },
@@ -251,13 +252,17 @@ export function HomePage({
   const importers = record ? countryRows(record.importers, record.worldImports) : []
   const exporters = record ? countryRows(record.exporters, record.worldExports) : []
 
+  /* A pre-2022 code counted in the totals takes its successors' segment. */
+  const segmentOf = (code: string) =>
+    byCode.get(code)?.segment ?? byCode.get(scope?.successors?.[code]?.[0] ?? '')?.segment
+
   const productRows = (segment: 'finished' | 'components'): RankRow[] =>
     (record?.products ?? [])
-      .filter(([code]) => segmentKey(byCode.get(code)?.segment) === segment)
+      .filter(([code]) => segmentKey(segmentOf(code)) === segment)
       .map(([code, value, estimatedShare], position) => ({
         rank: position + 1,
         code,
-        name: byCode.get(code) ? nameOf(byCode.get(code)) : code,
+        name: byCode.get(code) ? nameOf(byCode.get(code)) : scope?.names?.[code] ?? code,
         value,
         share: record?.worldImports ? value / record.worldImports : null,
         estimated: estimatedShare > 0,
@@ -272,7 +277,7 @@ export function HomePage({
   const sectorProducts: RankRow[] = (record?.products ?? []).map(([code, value, estimatedShare], position) => ({
     rank: position + 1,
     code,
-    name: byCode.get(code) ? nameOf(byCode.get(code)) : code,
+    name: byCode.get(code) ? nameOf(byCode.get(code)) : scope?.names?.[code] ?? code,
     value,
     share: record?.worldImports ? value / record.worldImports : null,
     estimated: estimatedShare > 0,
@@ -566,7 +571,7 @@ export function HomePage({
               colour={colours.global}
               highlight="699"
               pinnedRow={indiaImporterRow}
-              onViewAll={isSector ? undefined : () => onViewAll('importers', year)}
+              onViewAll={() => onViewAll('importers', year, sector?.id)}
               dark={dark}
             />
             <RankedTable
@@ -581,7 +586,7 @@ export function HomePage({
               colour={colours.global}
               highlight="699"
               pinnedRow={indiaExporterRow}
-              onViewAll={isSector ? undefined : () => onViewAll('exporters', year)}
+              onViewAll={() => onViewAll('exporters', year, sector?.id)}
               dark={dark}
             />
             <RankedTable
@@ -596,7 +601,7 @@ export function HomePage({
               formatValue={value => usd(value)}
               colour={colours.finished}
               onRowOpen={row => onOpen(row.code, 6)}
-              onViewAll={isSector ? undefined : () => onViewAll('finished', year)}
+              onViewAll={() => onViewAll('finished', year, sector?.id)}
               dark={dark}
             />
             <RankedTable

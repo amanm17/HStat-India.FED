@@ -869,6 +869,15 @@ def main():
         # Each must add up to its own products, and the electronics file must
         # hold no line from another stream (that would move the front page).
         streams_of = {entry["code"]: entry.get("stream") or "electronics" for entry in catalogue if entry.get("level") == 6}
+
+        # No regional group (EU 97, ASEAN 975) may rank beside its own
+        # members: every total here is a sum of economies.
+        for summary_path in [scope_path] + sorted(root.glob("scope-*.json")) + sorted(root.glob("sector-*.json")):
+            summary = json.loads(summary_path.read_text())
+            for period, year in (summary.get("years") or {}).items():
+                groups = {row[0] for side in ("importers", "exporters") for row in year.get(side) or [] if row[0] in {"97", "975"}}
+                if groups:
+                    report.fail(None, period, f"{summary_path.name} ranks a regional group ({', '.join(sorted(groups))}) beside its members")
         for summary_path in [scope_path] + sorted(root.glob("scope-*.json")):
             scope_summary = json.loads(summary_path.read_text())
             expected_stream = scope_summary.get("stream") or "electronics"
@@ -914,7 +923,10 @@ def main():
             if sector_id not in listed:
                 report.fail(None, None, f"{summary_path.name} is not listed in sectors.json")
             for period, year in (summary.get("years") or {}).items():
-                outsiders = [row[0] for row in year.get("products") or [] if row[0] not in members_of.get(sector_id, set())]
+                # A predecessor counted before HS 2022 (listed in "names")
+                # stands in for members that did not exist yet.
+                allowed = members_of.get(sector_id, set()) | set(summary.get("names") or {})
+                outsiders = [row[0] for row in year.get("products") or [] if row[0] not in allowed]
                 if outsiders:
                     report.fail(None, period, f"{summary_path.name} carries {len(outsiders)} line(s) outside the sector: {', '.join(outsiders[:5])}")
                 products_total = sum(row[1] for row in year.get("products") or [])
