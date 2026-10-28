@@ -426,19 +426,26 @@ export function HomePage({
         </section>
 
         <div className="rf-controls">
+          {/* One control for every segment: electronics and each sector
+            * (lib/sectors.ts). A new sector joins the list, not the toolbar. */}
           {sectors.length > 0 && (
-            <div className="rf-control">
+            <label className="rf-control rf-segment-pick">
               <span>Segment</span>
-              <Segmented<string>
-                label="Segment"
+              <select
+                id="home-segment"
+                aria-label="Segment"
+                title="Choose which segment the page shows"
                 value={sector ? sector.id : 'electronics'}
-                onChange={setSegment}
-                options={[
-                  { id: 'electronics', label: 'Electronics', title: 'The FED electronics definition' },
-                  ...sectors.map(item => ({ id: item.id, label: item.label, title: item.note })),
-                ]}
-              />
-            </div>
+                onChange={event => setSegment(event.target.value)}
+              >
+                <option value="electronics">Electronics</option>
+                {sectors.map(item => (
+                  <option key={item.id} value={item.id}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            </label>
           )}
 
           <label className="rf-control">
