@@ -1,8 +1,8 @@
 {
  "source": "UN Comtrade data availability (public getDA endpoint)",
  "sourceUrl": "https://comtradeplus.un.org/Visualization/DADashboard",
- "fetchedAt": "2026-10-29T23:34:01.126949+00:00",
- "builtAt": "2026-10-29T23:34:02.336183+00:00",
+ "fetchedAt": "2026-10-30T23:10:19.968970+00:00",
+ "builtAt": "2026-10-30T23:10:21.884061+00:00",
  "snapshotRefreshedAt": "2026-10-28T14:07:02.990476+00:00",
  "lastPullAt": "2026-10-07T10:55:19Z",
  "schedule": "Checked on the 1st of each month and after every monthly data refresh (5th-7th).",
@@ -10,7 +10,7 @@
   {
    "period": "2021",
    "reporters": 172,
-   "latestRelease": "2026-10-10"
+   "latestRelease": "2026-10-30"
   },
   {
    "period": "2022",
@@ -29,25 +29,25 @@
   },
   {
    "period": "2025",
-   "reporters": 125,
-   "latestRelease": "2026-10-29"
+   "reporters": 127,
+   "latestRelease": "2026-10-30"
   }
  ],
  "monthly": [
   {
    "period": "202501",
    "reporters": 101,
-   "latestRelease": "2026-10-07"
+   "latestRelease": "2026-10-30"
   },
   {
    "period": "202502",
    "reporters": 98,
-   "latestRelease": "2026-10-07"
+   "latestRelease": "2026-10-30"
   },
   {
    "period": "202503",
    "reporters": 97,
-   "latestRelease": "2026-10-07"
+   "latestRelease": "2026-10-30"
   },
   {
    "period": "202504",
@@ -57,12 +57,12 @@
   {
    "period": "202505",
    "reporters": 96,
-   "latestRelease": "2026-10-03"
+   "latestRelease": "2026-10-30"
   },
   {
    "period": "202506",
    "reporters": 95,
-   "latestRelease": "2026-10-03"
+   "latestRelease": "2026-10-30"
   },
   {
    "period": "202507",
@@ -72,7 +72,7 @@
   {
    "period": "202508",
    "reporters": 94,
-   "latestRelease": "2026-10-03"
+   "latestRelease": "2026-10-30"
   },
   {
    "period": "202509",
@@ -82,12 +82,12 @@
   {
    "period": "202510",
    "reporters": 91,
-   "latestRelease": "2026-10-03"
+   "latestRelease": "2026-10-30"
   },
   {
    "period": "202511",
    "reporters": 92,
-   "latestRelease": "2026-10-19"
+   "latestRelease": "2026-10-30"
   },
   {
    "period": "202512",
@@ -97,17 +97,17 @@
   {
    "period": "202601",
    "reporters": 85,
-   "latestRelease": "2026-10-27"
+   "latestRelease": "2026-10-30"
   },
   {
    "period": "202602",
    "reporters": 84,
-   "latestRelease": "2026-10-28"
+   "latestRelease": "2026-10-30"
   },
   {
    "period": "202603",
    "reporters": 84,
-   "latestRelease": "2026-10-26"
+   "latestRelease": "2026-10-30"
   },
   {
    "period": "202604",
@@ -117,7 +117,7 @@
   {
    "period": "202605",
    "reporters": 71,
-   "latestRelease": "2026-10-28"
+   "latestRelease": "2026-10-30"
   },
   {
    "period": "202606",
@@ -126,18 +126,18 @@
   },
   {
    "period": "202607",
-   "reporters": 55,
-   "latestRelease": "2026-10-29"
+   "reporters": 57,
+   "latestRelease": "2026-10-30"
   },
   {
    "period": "202608",
-   "reporters": 33,
-   "latestRelease": "2026-10-29"
+   "reporters": 37,
+   "latestRelease": "2026-10-30"
   },
   {
    "period": "202609",
-   "reporters": 2,
-   "latestRelease": "2026-10-20"
+   "reporters": 4,
+   "latestRelease": "2026-10-30"
   }
  ],
  "holes": [
